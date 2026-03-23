@@ -1,12 +1,12 @@
 # HTTP credentials
 
-fv supports credentials over HTTP when querying package registries.
+fyn supports credentials over HTTP when querying package registries.
 
 Authentication can come from the following sources, in order of precedence:
 
 - The URL, e.g., `https://<user>:<password>@<hostname>/...`
 - A [netrc](#netrc-files) configuration file
-- The fv credentials store
+- The fyn credentials store
 - A [keyring provider](#keyring-providers) (off by default)
 
 Authentication may be used for hosts specified in the following contexts:
@@ -25,12 +25,12 @@ for storing credentials on a system.
 Reading credentials from `.netrc` files is always enabled. The target file path will be loaded from
 the `NETRC` environment variable if defined, falling back to `~/.netrc` if not.
 
-## The fv credentials store
+## The fyn credentials store
 
-fv can read and write credentials from a store using the [`fv auth` commands](./cli.md).
+fyn can read and write credentials from a store using the [`fyn auth` commands](./cli.md).
 
-Credentials are stored in a plaintext file in fv's state directory, e.g.,
-`~/.local/share/fv/credentials/credentials.toml` on Unix. This file is currently not intended to be
+Credentials are stored in a plaintext file in fyn's state directory, e.g.,
+`~/.local/share/fyn/credentials/credentials.toml` on Unix. This file is currently not intended to be
 edited manually.
 
 !!! note
@@ -39,11 +39,11 @@ edited manually.
     experimental and being actively developed. In the future, this will become the default storage
     mechanism.
 
-    When enabled, fv will use the secret storage mechanism native to your operating system. On
+    When enabled, fyn will use the secret storage mechanism native to your operating system. On
     macOS, it uses the Keychain Services. On Windows, it uses the Windows Credential Manager. On
     Linux, it uses the DBus-based Secret Service API.
 
-    Currently, fv only searches the native store for credentials it has added to the secret store —
+    Currently, fyn only searches the native store for credentials it has added to the secret store —
     it will not retrieve credentials persisted by other applications.
 
     Set `UV_PREVIEW_FEATURES=native-auth` to use this storage mechanism.
@@ -53,25 +53,25 @@ edited manually.
 A keyring provider is a concept from `pip` allowing retrieval of credentials from an interface
 matching the popular [keyring](https://github.com/jaraco/keyring) Python package.
 
-The "subprocess" keyring provider invokes the `keyring` command to fetch credentials. fv does not
+The "subprocess" keyring provider invokes the `keyring` command to fetch credentials. fyn does not
 support additional keyring provider types at this time.
 
 Set `--keyring-provider subprocess`, `UV_KEYRING_PROVIDER=subprocess`, or
-`tool.fv.keyring-provider = "subprocess"` to use the provider.
+`tool.fyn.keyring-provider = "subprocess"` to use the provider.
 
 ## Persistence of credentials
 
 If authentication is found for a single index URL or net location (scheme, host, and port), it will
 be cached for the duration of the command and used for other queries to that index or net location.
-Authentication is not cached across invocations of fv.
+Authentication is not cached across invocations of fyn.
 
-When using `fv add`, fv _will not_ persist index credentials to the `pyproject.toml` or `fv.lock`.
+When using `fyn add`, fyn _will not_ persist index credentials to the `pyproject.toml` or `fyn.lock`.
 These files are often included in source control and distributions, so it is generally unsafe to
-include credentials in them. However, fv _will_ persist credentials for direct URLs, i.e.,
+include credentials in them. However, fyn _will_ persist credentials for direct URLs, i.e.,
 `package @ https://username:password:example.com/foo.whl`, as there is not currently a way to
 otherwise provide those credentials.
 
-If credentials were attached to an index URL during `fv add`, fv may fail to fetch dependencies from
+If credentials were attached to an index URL during `fyn add`, fyn may fail to fetch dependencies from
 indexes which require authentication on subsequent operations. See the
 [index authentication documentation](../indexes.md#authentication) for details on persistent
 authentication for indexes.

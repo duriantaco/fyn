@@ -12,8 +12,8 @@ on:
         type: string
 
 jobs:
-  crates-publish-fv:
-    name: Upload fv to crates.io
+  crates-publish-fyn:
+    name: Upload fyn to crates.io
     runs-on: ubuntu-latest
     environment:
       name: release

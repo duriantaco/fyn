@@ -50,7 +50,7 @@ fn {{module_name}}() -> Result<()> {
         requires-python = "{{.}}"
         {{/root.requires_python}}
         {{#resolver_options.has_required_environments}}
-        [tool.fv]
+        [tool.fyn]
         required-environments = [
           {{#resolver_options.required_environments}}
           '''{{.}}''',
@@ -71,7 +71,7 @@ fn {{module_name}}() -> Result<()> {
     );
 
     {{#expected.satisfiable}}
-    let lock = context.read("fv.lock");
+    let lock = context.read("fyn.lock");
     insta::with_settings!({
         filters => filters,
     }, {
@@ -81,7 +81,7 @@ fn {{module_name}}() -> Result<()> {
         );
     });
 
-    // Assert the idempotence of `fv lock` when resolving from the lockfile (`--locked`).
+    // Assert the idempotence of `fyn lock` when resolving from the lockfile (`--locked`).
     context
         .lock()
         .arg("--locked")

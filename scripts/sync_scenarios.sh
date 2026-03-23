@@ -17,7 +17,7 @@
 #
 #   To update the packse version, run the following command first:
 #
-#       $ fv pip compile --group scripts/scenarios/pyproject.toml:packse -o scripts/scenarios/pylock.toml --upgrade-package packse --universal -p 3.12
+#       $ fyn pip compile --group scripts/scenarios/pyproject.toml:packse -o scripts/scenarios/pylock.toml --upgrade-package packse --universal -p 3.12
 #
 # See `scripts/scenarios/` for supporting files.
 set -eu
@@ -27,11 +27,11 @@ script_root="$(realpath "$(dirname "$0")")"
 
 cd "$script_root/scenarios"
 echo "Setting up a temporary environment..."
-fv venv -p 3.12 -c
+fyn venv -p 3.12 -c
 
 # shellcheck disable=SC1091
 source ".venv/bin/activate"
-fv pip install -r "$script_root/scenarios/pylock.toml" --refresh-package packse
+fyn pip install -r "$script_root/scenarios/pylock.toml" --refresh-package packse
 
 echo "Fetching packse scenarios..."
 packse fetch --dest "$script_root/scenarios/.downloads" --force

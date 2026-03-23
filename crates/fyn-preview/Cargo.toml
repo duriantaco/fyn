@@ -1,0 +1,33 @@
+[package]
+name = "fyn-preview"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[package.metadata.cargo-shear]
+ignored = ["fyn-preview"]
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-warnings = { workspace = true }
+
+enumflags2 = { workspace = true }
+itertools = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+fyn-preview = { path = ".", features = ["testing"] }
+
+[features]
+default = []
+testing = []

@@ -37,10 +37,10 @@ jobs:
       - name: "Upload binary"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: fv-linux-libc-${{ github.sha }}
+          name: fyn-linux-libc-${{ github.sha }}
           path: |
-            ./target/no-debug/fv
-            ./target/no-debug/fvx
+            ./target/no-debug/fyn
+            ./target/no-debug/fynx
           retention-days: 1
 
   build-binary-linux-aarch64:
@@ -65,10 +65,10 @@ jobs:
       - name: "Upload binary"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: fv-linux-aarch64-${{ github.sha }}
+          name: fyn-linux-aarch64-${{ github.sha }}
           path: |
-            ./target/no-debug/fv
-            ./target/no-debug/fvx
+            ./target/no-debug/fyn
+            ./target/no-debug/fynx
           retention-days: 1
 
   build-binary-linux-armv7-gnueabihf:
@@ -96,15 +96,15 @@ jobs:
       - name: "Build"
         env:
           CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
-        run: cargo build --profile no-debug --target armv7-unknown-linux-gnueabihf --bin fv --bin fvx
+        run: cargo build --profile no-debug --target armv7-unknown-linux-gnueabihf --bin fyn --bin fynx
 
       - name: "Upload binary"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: fv-linux-armv7-gnueabihf-${{ github.sha }}
+          name: fyn-linux-armv7-gnueabihf-${{ github.sha }}
           path: |
-            ./target/armv7-unknown-linux-gnueabihf/no-debug/fv
-            ./target/armv7-unknown-linux-gnueabihf/no-debug/fvx
+            ./target/armv7-unknown-linux-gnueabihf/no-debug/fyn
+            ./target/armv7-unknown-linux-gnueabihf/no-debug/fynx
           retention-days: 1
 
   build-binary-linux-musl:
@@ -129,15 +129,15 @@ jobs:
           save-if: ${{ inputs.save-rust-cache == 'true' }}
 
       - name: "Build"
-        run: cargo build --profile no-debug --target x86_64-unknown-linux-musl --bin fv --bin fvx
+        run: cargo build --profile no-debug --target x86_64-unknown-linux-musl --bin fyn --bin fynx
 
       - name: "Upload binary"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: fv-linux-musl-${{ github.sha }}
+          name: fyn-linux-musl-${{ github.sha }}
           path: |
-            ./target/x86_64-unknown-linux-musl/no-debug/fv
-            ./target/x86_64-unknown-linux-musl/no-debug/fvx
+            ./target/x86_64-unknown-linux-musl/no-debug/fyn
+            ./target/x86_64-unknown-linux-musl/no-debug/fynx
           retention-days: 1
 
   build-binary-macos-aarch64:
@@ -153,15 +153,15 @@ jobs:
         with:
           save-if: ${{ inputs.save-rust-cache == 'true' }}
       - name: "Build"
-        run: cargo build --profile no-debug --bin fv --bin fvx
+        run: cargo build --profile no-debug --bin fyn --bin fynx
 
       - name: "Upload binary"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: fv-macos-aarch64-${{ github.sha }}
+          name: fyn-macos-aarch64-${{ github.sha }}
           path: |
-            ./target/no-debug/fv
-            ./target/no-debug/fvx
+            ./target/no-debug/fyn
+            ./target/no-debug/fynx
           retention-days: 1
 
   build-binary-macos-x86_64:
@@ -177,15 +177,15 @@ jobs:
         with:
           save-if: ${{ inputs.save-rust-cache == 'true' }}
       - name: "Build"
-        run: cargo build --profile no-debug --bin fv --bin fvx
+        run: cargo build --profile no-debug --bin fyn --bin fynx
 
       - name: "Upload binary"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: fv-macos-x86_64-${{ github.sha }}
+          name: fyn-macos-x86_64-${{ github.sha }}
           path: |
-            ./target/no-debug/fv
-            ./target/no-debug/fvx
+            ./target/no-debug/fyn
+            ./target/no-debug/fynx
           retention-days: 1
 
   build-binary-windows-x86_64:
@@ -212,15 +212,15 @@ jobs:
 
       - name: "Build"
         working-directory: ${{ env.UV_WORKSPACE }}
-        run: cargo build --profile no-debug --bin fv --bin fvx
+        run: cargo build --profile no-debug --bin fyn --bin fynx
 
       - name: "Upload binary"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: fv-windows-x86_64-${{ github.sha }}
+          name: fyn-windows-x86_64-${{ github.sha }}
           path: |
-            ${{ env.UV_WORKSPACE }}/target/no-debug/fv.exe
-            ${{ env.UV_WORKSPACE }}/target/no-debug/fvx.exe
+            ${{ env.UV_WORKSPACE }}/target/no-debug/fyn.exe
+            ${{ env.UV_WORKSPACE }}/target/no-debug/fynx.exe
           retention-days: 1
 
   build-binary-windows-aarch64:
@@ -247,15 +247,15 @@ jobs:
 
       - name: "Build"
         working-directory: ${{ env.UV_WORKSPACE }}
-        run: cargo build --profile no-debug --bin fv --bin fvx
+        run: cargo build --profile no-debug --bin fyn --bin fynx
 
       - name: "Upload binary"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: fv-windows-aarch64-${{ github.sha }}
+          name: fyn-windows-aarch64-${{ github.sha }}
           path: |
-            ${{ env.UV_WORKSPACE }}/target/no-debug/fv.exe
-            ${{ env.UV_WORKSPACE }}/target/no-debug/fvx.exe
+            ${{ env.UV_WORKSPACE }}/target/no-debug/fyn.exe
+            ${{ env.UV_WORKSPACE }}/target/no-debug/fynx.exe
           retention-days: 1
 
   build-binary-msrv:
@@ -283,7 +283,7 @@ jobs:
       - run: cargo +${MSRV} build --profile no-debug
         env:
           MSRV: ${{ steps.msrv.outputs.value }}
-      - run: ./target/no-debug/fv --version
+      - run: ./target/no-debug/fyn --version
 
   build-binary-android-aarch64:
     name: "android aarch64"
@@ -322,15 +322,15 @@ jobs:
           save-if: ${{ inputs.save-rust-cache == 'true' }}
 
       - name: "Build"
-        run: cargo build --profile no-debug --target aarch64-linux-android --bin fv --bin fvx
+        run: cargo build --profile no-debug --target aarch64-linux-android --bin fyn --bin fynx
 
       - name: "Upload binary"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: fv-android-aarch64-${{ github.sha }}
+          name: fyn-android-aarch64-${{ github.sha }}
           path: |
-            ./target/aarch64-linux-android/no-debug/fv
-            ./target/aarch64-linux-android/no-debug/fvx
+            ./target/aarch64-linux-android/no-debug/fyn
+            ./target/aarch64-linux-android/no-debug/fynx
           retention-days: 1
 
   build-binary-freebsd:
@@ -366,7 +366,7 @@ jobs:
             target
             target/x86_64-unknown-freebsd
             target/x86_64-unknown-freebsd/no-debug
-            target/x86_64-unknown-freebsd/no-debug/fv
+            target/x86_64-unknown-freebsd/no-debug/fyn
             EOF
 
             rsync -r -e "ssh" \
@@ -376,6 +376,6 @@ jobs:
               --exclude "*" \
               . firecracker:
           run-in-vm: |
-            mv target/x86_64-unknown-freebsd/no-debug/fv fv
-            chmod +x fv
-            ./fv --version
+            mv target/x86_64-unknown-freebsd/no-debug/fyn fyn
+            chmod +x fyn
+            ./fyn --version

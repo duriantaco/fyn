@@ -1,17 +1,17 @@
 # Package indexes
 
-By default, fv uses the [Python Package Index (PyPI)](https://pypi.org) for dependency resolution
-and package installation. However, fv can be configured to use other package indexes, including
-private indexes, via the `[[tool.fv.index]]` configuration option (and `--index`, the analogous
+By default, fyn uses the [Python Package Index (PyPI)](https://pypi.org) for dependency resolution
+and package installation. However, fyn can be configured to use other package indexes, including
+private indexes, via the `[[tool.fyn.index]]` configuration option (and `--index`, the analogous
 command-line option).
 
 ## Defining an index
 
-To include an additional index when resolving dependencies, add a `[[tool.fv.index]]` entry to your
+To include an additional index when resolving dependencies, add a `[[tool.fyn.index]]` entry to your
 `pyproject.toml`:
 
 ```toml
-[[tool.fv.index]]
+[[tool.fyn.index]]
 # Optional name for the index.
 name = "pytorch"
 # Required URL for the index.
@@ -22,12 +22,12 @@ Indexes are prioritized in the order in which they’re defined, such that the f
 the configuration file is the first index consulted when resolving dependencies, with indexes
 provided via the command line taking precedence over those in the configuration file.
 
-By default, fv includes the Python Package Index (PyPI) as the "default" index, i.e., the index used
+By default, fyn includes the Python Package Index (PyPI) as the "default" index, i.e., the index used
 when a package is not found on any other index. To exclude PyPI from the list of indexes, set
 `default = true` on another index entry (or use the `--default-index` command-line option):
 
 ```toml
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "pytorch"
 url = "https://download.pytorch.org/whl/cpu"
 default = true
@@ -45,22 +45,22 @@ using the `<name>=<url>` syntax, as in:
 
 ```shell
 # On the command line.
-$ fv lock --index pytorch=https://download.pytorch.org/whl/cpu
+$ fyn lock --index pytorch=https://download.pytorch.org/whl/cpu
 # Via an environment variable.
-$ UV_INDEX=pytorch=https://download.pytorch.org/whl/cpu fv lock
+$ UV_INDEX=pytorch=https://download.pytorch.org/whl/cpu fyn lock
 ```
 
 ## Pinning a package to an index
 
-A package can be pinned to a specific index by specifying the index in its `tool.fv.sources` entry.
+A package can be pinned to a specific index by specifying the index in its `tool.fyn.sources` entry.
 For example, to ensure that `torch` is _always_ installed from the `pytorch` index, add the
 following to your `pyproject.toml`:
 
 ```toml
-[tool.fv.sources]
+[tool.fyn.sources]
 torch = { index = "pytorch" }
 
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "pytorch"
 url = "https://download.pytorch.org/whl/cpu"
 ```
@@ -72,17 +72,17 @@ disambiguated by environment markers:
 [project]
 dependencies = ["torch"]
 
-[tool.fv.sources]
+[tool.fyn.sources]
 torch = [
   { index = "pytorch-cu118", marker = "sys_platform == 'darwin'"},
   { index = "pytorch-cu124", marker = "sys_platform != 'darwin'"},
 ]
 
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "pytorch-cu118"
 url = "https://download.pytorch.org/whl/cu118"
 
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "pytorch-cu124"
 url = "https://download.pytorch.org/whl/cu124"
 ```
@@ -92,29 +92,29 @@ unless explicitly pinned to it. For example, to ensure that `torch` is installed
 index, but all other packages are installed from PyPI, add the following to your `pyproject.toml`:
 
 ```toml
-[tool.fv.sources]
+[tool.fyn.sources]
 torch = { index = "pytorch" }
 
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "pytorch"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 ```
 
-Named indexes referenced via `tool.fv.sources` must be defined within the project's `pyproject.toml`
+Named indexes referenced via `tool.fyn.sources` must be defined within the project's `pyproject.toml`
 file; indexes provided via the command-line, environment variables, or user-level configuration will
 not be recognized.
 
 If an index is marked as both `default = true` and `explicit = true`, it will be treated as an
-explicit index (i.e., only usable via `tool.fv.sources`) while also removing PyPI as the default
+explicit index (i.e., only usable via `tool.fyn.sources`) while also removing PyPI as the default
 index.
 
 ## Searching across multiple indexes
 
-By default, fv will stop at the first index on which a given package is available, and limit
+By default, fyn will stop at the first index on which a given package is available, and limit
 resolutions to those present on that first index (`first-index`).
 
-For example, if an internal index is specified via `[[tool.fv.index]]`, fv's behavior is such that
+For example, if an internal index is specified via `[[tool.fyn.index]]`, fyn's behavior is such that
 if a package exists on that internal index, it will _always_ be installed from that internal index,
 and never from PyPI. The intent is to prevent "dependency confusion" attacks, in which an attacker
 publishes a malicious package on PyPI with the same name as an internal package, thus causing the
@@ -153,7 +153,7 @@ For example, given an index named `internal-proxy` that requires a username (`pu
 (`koala`), define the index (without credentials) in your `pyproject.toml`:
 
 ```toml
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "internal-proxy"
 url = "https://example.com/simple"
 ```
@@ -173,61 +173,61 @@ the plaintext `pyproject.toml` file.
 Alternatively, credentials can be embedded directly in the index definition:
 
 ```toml
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "internal"
 url = "https://public:koala@pypi-proxy.corp.dev/simple"
 ```
 
-For security purposes, credentials are _never_ stored in the `fv.lock` file; as such, fv _must_ have
+For security purposes, credentials are _never_ stored in the `fyn.lock` file; as such, fyn _must_ have
 access to the authenticated URL at installation time.
 
 ### Using credential providers
 
-In addition to providing credentials directly, fv supports discovery of credentials from netrc and
+In addition to providing credentials directly, fyn supports discovery of credentials from netrc and
 keyring. See the [HTTP authentication](./authentication/http.md) documentation for details on
 setting up specific credential providers.
 
-By default, fv will attempt an unauthenticated request before querying providers. If the request
-fails, fv will search for credentials. If credentials are found, an authenticated request will be
+By default, fyn will attempt an unauthenticated request before querying providers. If the request
+fails, fyn will search for credentials. If credentials are found, an authenticated request will be
 attempted.
 
 !!! note
 
-    If a username is set, fv will search for credentials before making an unauthenticated request.
+    If a username is set, fyn will search for credentials before making an unauthenticated request.
 
 Some indexes (e.g., GitLab) will forward unauthenticated requests to a public index, like PyPI —
-which means that fv will not search for credentials. This behavior can be changed per-index, using
+which means that fyn will not search for credentials. This behavior can be changed per-index, using
 the `authenticate` setting. For example, to always search for credentials:
 
 ```toml hl_lines="4"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "example"
 url = "https://example.com/simple"
 authenticate = "always"
 ```
 
-When `authenticate` is set to `always`, fv will eagerly search for credentials and error if
+When `authenticate` is set to `always`, fyn will eagerly search for credentials and error if
 credentials cannot be found.
 
 ### Ignoring error codes when searching across indexes
 
-When using the [first-index strategy](#searching-across-multiple-indexes), fv will stop searching
+When using the [first-index strategy](#searching-across-multiple-indexes), fyn will stop searching
 across indexes if an HTTP 401 Unauthorized or HTTP 403 Forbidden status code is encountered. The one
-exception is that fv will ignore 403s when searching the `pytorch` index (since this index returns a
+exception is that fyn will ignore 403s when searching the `pytorch` index (since this index returns a
 403 when a package is not present).
 
 To configure which error codes are ignored for an index, use the `ignored-error-codes` setting. For
 example, to ignore 403s (but not 401s) for a private index:
 
 ```toml
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "private-index"
 url = "https://private-index.com/simple"
 authenticate = "always"
 ignore-error-codes = [403]
 ```
 
-fv will always continue searching across indexes when it encounters a `404 Not Found`. This cannot
+fyn will always continue searching across indexes when it encounters a `404 Not Found`. This cannot
 be overridden.
 
 ### Disabling authentication
@@ -235,26 +235,26 @@ be overridden.
 To prevent leaking credentials, authentication can be disabled for an index:
 
 ```toml hl_lines="4"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "example"
 url = "https://example.com/simple"
 authenticate = "never"
 ```
 
-When `authenticate` is set to `never`, fv will never search for credentials for the given index and
+When `authenticate` is set to `never`, fyn will never search for credentials for the given index and
 will error if credentials are provided directly.
 
 ### Customizing cache control headers
 
-By default, fv will respect the cache control headers provided by the index. For example, PyPI
-serves package metadata with a `max-age=600` header, thereby allowing fv to cache package metadata
+By default, fyn will respect the cache control headers provided by the index. For example, PyPI
+serves package metadata with a `max-age=600` header, thereby allowing fyn to cache package metadata
 for 10 minutes; and wheels and source distributions with a `max-age=365000000, immutable` header,
-thereby allowing fv to cache artifacts indefinitely.
+thereby allowing fyn to cache artifacts indefinitely.
 
 To override the cache control headers for an index, use the `cache-control` setting:
 
 ```toml
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "example"
 url = "https://example.com/simple"
 cache-control = { api = "max-age=600", files = "max-age=365000000, immutable" }
@@ -267,10 +267,10 @@ The `cache-control` setting accepts an object with two optional keys:
 
 The values for these keys are strings that follow the
 [HTTP Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
-syntax. For example, to force fv to always revalidate package metadata, set `api = "no-cache"`:
+syntax. For example, to force fyn to always revalidate package metadata, set `api = "no-cache"`:
 
 ```toml
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "example"
 url = "https://example.com/simple"
 cache-control = { api = "no-cache" }
@@ -283,38 +283,38 @@ approach to caching headers, i.e., setting `api = "max-age=600"` and
 
 ## "Flat" indexes
 
-By default, `[[tool.fv.index]]` entries are assumed to be PyPI-style registries that implement the
-[PEP 503](https://peps.python.org/pep-0503/) Simple Repository API. However, fv also supports "flat"
+By default, `[[tool.fyn.index]]` entries are assumed to be PyPI-style registries that implement the
+[PEP 503](https://peps.python.org/pep-0503/) Simple Repository API. However, fyn also supports "flat"
 indexes, which are local directories or HTML pages that contain flat lists of wheels and source
 distributions. In pip, such indexes are specified using the `--find-links` option.
 
 To define a flat index in your `pyproject.toml`, use the `format = "flat"` option:
 
 ```toml
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "example"
 url = "/path/to/directory"
 format = "flat"
 ```
 
 Flat indexes support the same feature set as Simple Repository API indexes (e.g.,
-`explicit = true`); you can also pin a package to a flat index using `tool.fv.sources`.
+`explicit = true`); you can also pin a package to a flat index using `tool.fyn.sources`.
 
 ## `--index-url` and `--extra-index-url`
 
-In addition to the `[[tool.fv.index]]` configuration option, fv supports pip-style `--index-url` and
+In addition to the `[[tool.fyn.index]]` configuration option, fyn supports pip-style `--index-url` and
 `--extra-index-url` command-line options for compatibility, where `--index-url` defines the default
 index and `--extra-index-url` defines additional indexes.
 
-These options can be used in conjunction with the `[[tool.fv.index]]` configuration option, and
+These options can be used in conjunction with the `[[tool.fyn.index]]` configuration option, and
 follow the same prioritization rules:
 
 - The default index is always treated as lowest priority, whether defined via the legacy
-  `--index-url` argument, the recommended `--default-index` argument, or a `[[tool.fv.index]]` entry
+  `--index-url` argument, the recommended `--default-index` argument, or a `[[tool.fyn.index]]` entry
   with `default = true`.
 - Indexes are consulted in the order in which they’re defined, either via the legacy
-  `--extra-index-url` argument, the recommended `--index` argument, or `[[tool.fv.index]]` entries.
+  `--extra-index-url` argument, the recommended `--index` argument, or `[[tool.fyn.index]]` entries.
 
-In effect, `--index-url` and `--extra-index-url` can be thought of as unnamed `[[tool.fv.index]]`
+In effect, `--index-url` and `--extra-index-url` can be thought of as unnamed `[[tool.fyn.index]]`
 entries, with `default = true` enabled for the former. In that context, `--index-url` maps to
 `--default-index`, and `--extra-index-url` maps to `--index`.

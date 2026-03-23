@@ -1771,7 +1771,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv"
+name = "fyn"
 version = "0.10.12"
 dependencies = [
  "anstream 1.0.0",
@@ -1796,60 +1796,60 @@ dependencies = [
  "flate2",
  "fs-err",
  "futures",
- "fv-audit",
- "fv-auth",
- "fv-bin-install",
- "fv-build-backend",
- "fv-build-frontend",
- "fv-cache",
- "fv-cache-info",
- "fv-cache-key",
- "fv-cli",
- "fv-client",
- "fv-configuration",
- "fv-console",
- "fv-dirs",
- "fv-dispatch",
- "fv-distribution",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-extract",
- "fv-flags",
- "fv-fs",
- "fv-git",
- "fv-git-types",
- "fv-install-wheel",
- "fv-installer",
- "fv-logging",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-performance-memory-allocator",
- "fv-platform",
- "fv-platform-tags",
- "fv-preview",
- "fv-publish",
- "fv-pypi-types",
- "fv-python",
- "fv-redacted",
- "fv-requirements",
- "fv-requirements-txt",
- "fv-resolver",
- "fv-scripts",
- "fv-settings",
- "fv-shell",
- "fv-static",
- "fv-test",
- "fv-tool",
- "fv-torch",
- "fv-trampoline-builder",
- "fv-types",
- "fv-unix",
- "fv-version",
- "fv-virtualenv",
- "fv-warnings",
- "fv-windows",
- "fv-workspace",
+ "fyn-audit",
+ "fyn-auth",
+ "fyn-bin-install",
+ "fyn-build-backend",
+ "fyn-build-frontend",
+ "fyn-cache",
+ "fyn-cache-info",
+ "fyn-cache-key",
+ "fyn-cli",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-console",
+ "fyn-dirs",
+ "fyn-dispatch",
+ "fyn-distribution",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-extract",
+ "fyn-flags",
+ "fyn-fs",
+ "fyn-git",
+ "fyn-git-types",
+ "fyn-install-wheel",
+ "fyn-installer",
+ "fyn-logging",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-performance-memory-allocator",
+ "fyn-platform",
+ "fyn-platform-tags",
+ "fyn-preview",
+ "fyn-publish",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-redacted",
+ "fyn-requirements",
+ "fyn-requirements-txt",
+ "fyn-resolver",
+ "fyn-scripts",
+ "fyn-settings",
+ "fyn-shell",
+ "fyn-static",
+ "fyn-test",
+ "fyn-tool",
+ "fyn-torch",
+ "fyn-trampoline-builder",
+ "fyn-types",
+ "fyn-unix",
+ "fyn-version",
+ "fyn-virtualenv",
+ "fyn-warnings",
+ "fyn-windows",
+ "fyn-workspace",
  "http",
  "http-body-util",
  "hyper",
@@ -1899,16 +1899,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-audit"
+name = "fyn-audit"
 version = "0.0.32"
 dependencies = [
  "astral-reqwest-middleware",
  "futures",
- "fv-configuration",
- "fv-normalize",
- "fv-pep440",
- "fv-redacted",
- "fv-small-str",
+ "fyn-configuration",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-redacted",
+ "fyn-small-str",
  "insta",
  "jiff",
  "reqwest",
@@ -1922,7 +1922,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-auth"
+name = "fyn-auth"
 version = "0.0.32"
 dependencies = [
  "anyhow",
@@ -1933,16 +1933,16 @@ dependencies = [
  "etcetera",
  "fs-err",
  "futures",
- "fv-cache-key",
- "fv-fs",
- "fv-keyring",
- "fv-once-map",
- "fv-preview",
- "fv-redacted",
- "fv-small-str",
- "fv-state",
- "fv-static",
- "fv-warnings",
+ "fyn-cache-key",
+ "fyn-fs",
+ "fyn-keyring",
+ "fyn-once-map",
+ "fyn-preview",
+ "fyn-redacted",
+ "fyn-small-str",
+ "fyn-state",
+ "fyn-static",
+ "fyn-warnings",
  "http",
  "insta",
  "jiff",
@@ -1965,47 +1965,47 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-bench"
+name = "fyn-bench"
 version = "0.0.32"
 dependencies = [
  "anyhow",
  "codspeed-criterion-compat",
- "fv-cache",
- "fv-client",
- "fv-configuration",
- "fv-dispatch",
- "fv-distribution",
- "fv-distribution-types",
- "fv-extract",
- "fv-install-wheel",
- "fv-pep440",
- "fv-pep508",
- "fv-platform-tags",
- "fv-preview",
- "fv-pypi-types",
- "fv-python",
- "fv-resolver",
- "fv-types",
- "fv-workspace",
+ "fyn-cache",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-dispatch",
+ "fyn-distribution",
+ "fyn-distribution-types",
+ "fyn-extract",
+ "fyn-install-wheel",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-platform-tags",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-resolver",
+ "fyn-types",
+ "fyn-workspace",
  "jiff",
  "tokio",
 ]
 
 [[package]]
-name = "fv-bin-install"
+name = "fyn-bin-install"
 version = "0.0.32"
 dependencies = [
  "astral-reqwest-middleware",
  "astral-reqwest-retry",
  "fs-err",
  "futures",
- "fv-cache",
- "fv-client",
- "fv-distribution-filename",
- "fv-extract",
- "fv-pep440",
- "fv-platform",
- "fv-redacted",
+ "fyn-cache",
+ "fyn-client",
+ "fyn-distribution-filename",
+ "fyn-extract",
+ "fyn-pep440",
+ "fyn-platform",
+ "fyn-redacted",
  "jiff",
  "reqwest",
  "serde",
@@ -2018,22 +2018,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-build"
+name = "fyn-build"
 version = "0.10.12"
 dependencies = [
  "anstream 1.0.0",
  "anyhow",
- "fv-build-backend",
- "fv-logging",
- "fv-preview",
- "fv-static",
- "fv-version",
+ "fyn-build-backend",
+ "fyn-logging",
+ "fyn-preview",
+ "fyn-static",
+ "fyn-version",
  "tracing",
  "tracing-subscriber",
 ]
 
 [[package]]
-name = "fv-build-backend"
+name = "fyn-build-backend"
 version = "0.0.32"
 dependencies = [
  "astral-version-ranges",
@@ -2041,18 +2041,18 @@ dependencies = [
  "csv",
  "flate2",
  "fs-err",
- "fv-distribution-filename",
- "fv-fs",
- "fv-globfilter",
- "fv-macros",
- "fv-normalize",
- "fv-options-metadata",
- "fv-pep440",
- "fv-pep508",
- "fv-platform-tags",
- "fv-preview",
- "fv-pypi-types",
- "fv-warnings",
+ "fyn-distribution-filename",
+ "fyn-fs",
+ "fyn-globfilter",
+ "fyn-macros",
+ "fyn-normalize",
+ "fyn-options-metadata",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-platform-tags",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-warnings",
  "globset",
  "indexmap",
  "indoc",
@@ -2075,27 +2075,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-build-frontend"
+name = "fyn-build-frontend"
 version = "0.0.32"
 dependencies = [
  "anstream 1.0.0",
  "fs-err",
- "fv-auth",
- "fv-cache-key",
- "fv-configuration",
- "fv-distribution",
- "fv-distribution-types",
- "fv-fs",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-pypi-types",
- "fv-python",
- "fv-static",
- "fv-types",
- "fv-virtualenv",
- "fv-warnings",
- "fv-workspace",
+ "fyn-auth",
+ "fyn-cache-key",
+ "fyn-configuration",
+ "fyn-distribution",
+ "fyn-distribution-types",
+ "fyn-fs",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-static",
+ "fyn-types",
+ "fyn-virtualenv",
+ "fyn-warnings",
+ "fyn-workspace",
  "indoc",
  "insta",
  "itertools 0.14.0",
@@ -2112,20 +2112,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-cache"
+name = "fyn-cache"
 version = "0.0.32"
 dependencies = [
  "clap",
  "fs-err",
- "fv-cache-info",
- "fv-cache-key",
- "fv-dirs",
- "fv-distribution-types",
- "fv-fs",
- "fv-normalize",
- "fv-pypi-types",
- "fv-redacted",
- "fv-static",
+ "fyn-cache-info",
+ "fyn-cache-key",
+ "fyn-dirs",
+ "fyn-distribution-types",
+ "fyn-fs",
+ "fyn-normalize",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-static",
  "nanoid",
  "rmp-serde",
  "rustc-hash",
@@ -2138,12 +2138,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-cache-info"
+name = "fyn-cache-info"
 version = "0.0.32"
 dependencies = [
  "anyhow",
  "fs-err",
- "fv-fs",
+ "fyn-fs",
  "globwalk",
  "schemars",
  "serde",
@@ -2155,10 +2155,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-cache-key"
+name = "fyn-cache-key"
 version = "0.0.32"
 dependencies = [
- "fv-redacted",
+ "fyn-redacted",
  "hex",
  "memchr",
  "percent-encoding",
@@ -2167,7 +2167,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-cli"
+name = "fyn-cli"
 version = "0.0.32"
 dependencies = [
  "anstream 1.0.0",
@@ -2175,31 +2175,31 @@ dependencies = [
  "clap",
  "clap_complete_command",
  "fs-err",
- "fv-auth",
- "fv-cache",
- "fv-configuration",
- "fv-distribution-types",
- "fv-install-wheel",
- "fv-normalize",
- "fv-pep508",
- "fv-preview",
- "fv-pypi-types",
- "fv-python",
- "fv-redacted",
- "fv-resolver",
- "fv-settings",
- "fv-static",
- "fv-torch",
- "fv-version",
- "fv-warnings",
- "fv-workspace",
+ "fyn-auth",
+ "fyn-cache",
+ "fyn-configuration",
+ "fyn-distribution-types",
+ "fyn-install-wheel",
+ "fyn-normalize",
+ "fyn-pep508",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-redacted",
+ "fyn-resolver",
+ "fyn-settings",
+ "fyn-static",
+ "fyn-torch",
+ "fyn-version",
+ "fyn-warnings",
+ "fyn-workspace",
  "insta",
  "serde",
  "url",
 ]
 
 [[package]]
-name = "fv-client"
+name = "fyn-client"
 version = "0.0.32"
 dependencies = [
  "anyhow",
@@ -2212,27 +2212,27 @@ dependencies = [
  "bytecheck",
  "fs-err",
  "futures",
- "fv-auth",
- "fv-cache",
- "fv-cache-key",
- "fv-configuration",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-fs",
- "fv-metadata",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-platform",
- "fv-platform-tags",
- "fv-preview",
- "fv-pypi-types",
- "fv-redacted",
- "fv-small-str",
- "fv-static",
- "fv-torch",
- "fv-version",
- "fv-warnings",
+ "fyn-auth",
+ "fyn-cache",
+ "fyn-cache-key",
+ "fyn-configuration",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-fs",
+ "fyn-metadata",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-platform",
+ "fyn-platform-tags",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-small-str",
+ "fyn-static",
+ "fyn-torch",
+ "fyn-version",
+ "fyn-warnings",
  "h2",
  "html-escape",
  "http",
@@ -2263,24 +2263,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-configuration"
+name = "fyn-configuration"
 version = "0.0.32"
 dependencies = [
  "anyhow",
  "clap",
  "either",
  "fs-err",
- "fv-auth",
- "fv-cache",
- "fv-cache-info",
- "fv-distribution-types",
- "fv-git",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-platform-tags",
- "fv-redacted",
- "fv-static",
+ "fyn-auth",
+ "fyn-cache",
+ "fyn-cache-info",
+ "fyn-distribution-types",
+ "fyn-git",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-platform-tags",
+ "fyn-redacted",
+ "fyn-static",
  "insta",
  "rayon",
  "reqwest",
@@ -2297,14 +2297,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-console"
+name = "fyn-console"
 version = "0.0.32"
 dependencies = [
  "console 0.16.2",
 ]
 
 [[package]]
-name = "fv-dev"
+name = "fyn-dev"
 version = "0.0.32"
 dependencies = [
  "anstream 1.0.0",
@@ -2312,24 +2312,24 @@ dependencies = [
  "clap",
  "fs-err",
  "futures",
- "fv-cache",
- "fv-cli",
- "fv-client",
- "fv-configuration",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-extract",
- "fv-installer",
- "fv-macros",
- "fv-options-metadata",
- "fv-pep508",
- "fv-performance-memory-allocator",
- "fv-preview",
- "fv-pypi-types",
- "fv-python",
- "fv-settings",
- "fv-static",
- "fv-workspace",
+ "fyn-cache",
+ "fyn-cli",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-extract",
+ "fyn-installer",
+ "fyn-macros",
+ "fyn-options-metadata",
+ "fyn-pep508",
+ "fyn-performance-memory-allocator",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-settings",
+ "fyn-static",
+ "fyn-workspace",
  "itertools 0.14.0",
  "markdown",
  "owo-colors",
@@ -2353,42 +2353,42 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-dirs"
+name = "fyn-dirs"
 version = "0.0.32"
 dependencies = [
  "assert_fs",
  "etcetera",
  "fs-err",
- "fv-static",
+ "fyn-static",
  "indoc",
  "tracing",
 ]
 
 [[package]]
-name = "fv-dispatch"
+name = "fyn-dispatch"
 version = "0.0.32"
 dependencies = [
  "anyhow",
  "futures",
- "fv-build-backend",
- "fv-build-frontend",
- "fv-cache",
- "fv-client",
- "fv-configuration",
- "fv-distribution",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-git",
- "fv-install-wheel",
- "fv-installer",
- "fv-platform-tags",
- "fv-preview",
- "fv-pypi-types",
- "fv-python",
- "fv-resolver",
- "fv-types",
- "fv-version",
- "fv-workspace",
+ "fyn-build-backend",
+ "fyn-build-frontend",
+ "fyn-cache",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-distribution",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-git",
+ "fyn-install-wheel",
+ "fyn-installer",
+ "fyn-platform-tags",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-resolver",
+ "fyn-types",
+ "fyn-version",
+ "fyn-workspace",
  "itertools 0.14.0",
  "rustc-hash",
  "thiserror 2.0.18",
@@ -2397,7 +2397,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-distribution"
+name = "fyn-distribution"
 version = "0.0.32"
 dependencies = [
  "anyhow",
@@ -2405,28 +2405,28 @@ dependencies = [
  "either",
  "fs-err",
  "futures",
- "fv-auth",
- "fv-cache",
- "fv-cache-info",
- "fv-client",
- "fv-configuration",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-extract",
- "fv-flags",
- "fv-fs",
- "fv-git",
- "fv-git-types",
- "fv-metadata",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-platform-tags",
- "fv-pypi-types",
- "fv-redacted",
- "fv-types",
- "fv-warnings",
- "fv-workspace",
+ "fyn-auth",
+ "fyn-cache",
+ "fyn-cache-info",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-extract",
+ "fyn-flags",
+ "fyn-fs",
+ "fyn-git",
+ "fyn-git-types",
+ "fyn-metadata",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-platform-tags",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-types",
+ "fyn-warnings",
+ "fyn-workspace",
  "indoc",
  "insta",
  "nanoid",
@@ -2447,14 +2447,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-distribution-filename"
+name = "fyn-distribution-filename"
 version = "0.0.32"
 dependencies = [
- "fv-cache-key",
- "fv-normalize",
- "fv-pep440",
- "fv-platform-tags",
- "fv-small-str",
+ "fyn-cache-key",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-platform-tags",
+ "fyn-small-str",
  "insta",
  "memchr",
  "rkyv",
@@ -2464,28 +2464,28 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-distribution-types"
+name = "fyn-distribution-types"
 version = "0.0.32"
 dependencies = [
  "arcstr",
  "astral-version-ranges",
  "bitflags 2.11.0",
  "fs-err",
- "fv-auth",
- "fv-cache-info",
- "fv-cache-key",
- "fv-distribution-filename",
- "fv-fs",
- "fv-git-types",
- "fv-install-wheel",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-platform-tags",
- "fv-pypi-types",
- "fv-redacted",
- "fv-small-str",
- "fv-warnings",
+ "fyn-auth",
+ "fyn-cache-info",
+ "fyn-cache-key",
+ "fyn-distribution-filename",
+ "fyn-fs",
+ "fyn-git-types",
+ "fyn-install-wheel",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-platform-tags",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-small-str",
+ "fyn-warnings",
  "http",
  "itertools 0.14.0",
  "jiff",
@@ -2504,7 +2504,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-extract"
+name = "fyn-extract"
 version = "0.0.32"
 dependencies = [
  "astral-tokio-tar",
@@ -2513,11 +2513,11 @@ dependencies = [
  "blake2",
  "fs-err",
  "futures",
- "fv-configuration",
- "fv-distribution-filename",
- "fv-pypi-types",
- "fv-static",
- "fv-warnings",
+ "fyn-configuration",
+ "fyn-distribution-filename",
+ "fyn-pypi-types",
+ "fyn-static",
+ "fyn-warnings",
  "md-5",
  "rayon",
  "regex",
@@ -2535,14 +2535,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-flags"
+name = "fyn-flags"
 version = "0.0.32"
 dependencies = [
  "bitflags 2.11.0",
 ]
 
 [[package]]
-name = "fv-fs"
+name = "fyn-fs"
 version = "0.0.32"
 dependencies = [
  "backon",
@@ -2551,8 +2551,8 @@ dependencies = [
  "either",
  "encoding_rs_io",
  "fs-err",
- "fv-static",
- "fv-warnings",
+ "fyn-static",
+ "fyn-warnings",
  "junction",
  "path-slash",
  "percent-encoding",
@@ -2571,7 +2571,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-git"
+name = "fyn-git"
 version = "0.0.32"
 dependencies = [
  "anyhow",
@@ -2579,14 +2579,14 @@ dependencies = [
  "cargo-util",
  "dashmap",
  "fs-err",
- "fv-auth",
- "fv-cache-key",
- "fv-fs",
- "fv-git-types",
- "fv-redacted",
- "fv-static",
- "fv-version",
- "fv-warnings",
+ "fyn-auth",
+ "fyn-cache-key",
+ "fyn-fs",
+ "fyn-git-types",
+ "fyn-redacted",
+ "fyn-static",
+ "fyn-version",
+ "fyn-warnings",
  "owo-colors",
  "reqwest",
  "thiserror 2.0.18",
@@ -2596,11 +2596,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-git-types"
+name = "fyn-git-types"
 version = "0.0.32"
 dependencies = [
- "fv-redacted",
- "fv-static",
+ "fyn-redacted",
+ "fyn-static",
  "serde",
  "thiserror 2.0.18",
  "tracing",
@@ -2608,7 +2608,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-globfilter"
+name = "fyn-globfilter"
 version = "0.0.32"
 dependencies = [
  "anstream 1.0.0",
@@ -2625,7 +2625,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-install-wheel"
+name = "fyn-install-wheel"
 version = "0.0.32"
 dependencies = [
  "anyhow",
@@ -2634,16 +2634,16 @@ dependencies = [
  "csv",
  "data-encoding",
  "fs-err",
- "fv-distribution-filename",
- "fv-flags",
- "fv-fs",
- "fv-normalize",
- "fv-pep440",
- "fv-preview",
- "fv-pypi-types",
- "fv-shell",
- "fv-trampoline-builder",
- "fv-warnings",
+ "fyn-distribution-filename",
+ "fyn-flags",
+ "fyn-fs",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-shell",
+ "fyn-trampoline-builder",
+ "fyn-warnings",
  "indoc",
  "itertools 0.14.0",
  "mailparse",
@@ -2662,7 +2662,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-installer"
+name = "fyn-installer"
 version = "0.0.32"
 dependencies = [
  "anstream 1.0.0",
@@ -2670,27 +2670,27 @@ dependencies = [
  "async-channel",
  "fs-err",
  "futures",
- "fv-cache",
- "fv-cache-info",
- "fv-cache-key",
- "fv-configuration",
- "fv-distribution",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-fs",
- "fv-git-types",
- "fv-install-wheel",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-platform-tags",
- "fv-preview",
- "fv-pypi-types",
- "fv-python",
- "fv-redacted",
- "fv-static",
- "fv-types",
- "fv-warnings",
+ "fyn-cache",
+ "fyn-cache-info",
+ "fyn-cache-key",
+ "fyn-configuration",
+ "fyn-distribution",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-fs",
+ "fyn-git-types",
+ "fyn-install-wheel",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-platform-tags",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-redacted",
+ "fyn-static",
+ "fyn-types",
+ "fyn-warnings",
  "insta",
  "owo-colors",
  "rayon",
@@ -2705,7 +2705,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-keyring"
+name = "fyn-keyring"
 version = "0.0.32"
 dependencies = [
  "async-trait",
@@ -2722,7 +2722,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-logging"
+name = "fyn-logging"
 version = "0.0.32"
 dependencies = [
  "jiff",
@@ -2732,7 +2732,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-macros"
+name = "fyn-macros"
 version = "0.0.32"
 dependencies = [
  "proc-macro2",
@@ -2742,15 +2742,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-metadata"
+name = "fyn-metadata"
 version = "0.0.32"
 dependencies = [
  "astral_async_zip",
  "fs-err",
  "futures",
- "fv-distribution-filename",
- "fv-normalize",
- "fv-pypi-types",
+ "fyn-distribution-filename",
+ "fyn-normalize",
+ "fyn-pypi-types",
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
@@ -2759,17 +2759,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-normalize"
+name = "fyn-normalize"
 version = "0.0.32"
 dependencies = [
- "fv-small-str",
+ "fyn-small-str",
  "rkyv",
  "schemars",
  "serde",
 ]
 
 [[package]]
-name = "fv-once-map"
+name = "fyn-once-map"
 version = "0.0.32"
 dependencies = [
  "dashmap",
@@ -2778,18 +2778,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-options-metadata"
+name = "fyn-options-metadata"
 version = "0.0.32"
 dependencies = [
  "serde",
 ]
 
 [[package]]
-name = "fv-pep440"
+name = "fyn-pep440"
 version = "0.0.32"
 dependencies = [
  "astral-version-ranges",
- "fv-cache-key",
+ "fyn-cache-key",
  "indoc",
  "rkyv",
  "serde",
@@ -2799,17 +2799,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-pep508"
+name = "fyn-pep508"
 version = "0.0.32"
 dependencies = [
  "arcstr",
  "astral-version-ranges",
  "boxcar",
- "fv-cache-key",
- "fv-fs",
- "fv-normalize",
- "fv-pep440",
- "fv-redacted",
+ "fyn-cache-key",
+ "fyn-fs",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-redacted",
  "indexmap",
  "insta",
  "itertools 0.14.0",
@@ -2828,7 +2828,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-performance-memory-allocator"
+name = "fyn-performance-memory-allocator"
 version = "0.0.32"
 dependencies = [
  "mimalloc",
@@ -2837,13 +2837,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-platform"
+name = "fyn-platform"
 version = "0.0.32"
 dependencies = [
  "fs-err",
- "fv-fs",
- "fv-platform-tags",
- "fv-static",
+ "fyn-fs",
+ "fyn-platform-tags",
+ "fyn-static",
  "goblin",
  "indoc",
  "insta",
@@ -2858,11 +2858,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-platform-tags"
+name = "fyn-platform-tags"
 version = "0.0.32"
 dependencies = [
  "bitflags 2.11.0",
- "fv-small-str",
+ "fyn-small-str",
  "insta",
  "memchr",
  "rkyv",
@@ -2872,18 +2872,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-preview"
+name = "fyn-preview"
 version = "0.0.32"
 dependencies = [
  "enumflags2",
- "fv-preview",
- "fv-warnings",
+ "fyn-preview",
+ "fyn-warnings",
  "itertools 0.14.0",
  "thiserror 2.0.18",
 ]
 
 [[package]]
-name = "fv-publish"
+name = "fyn-publish"
 version = "0.0.32"
 dependencies = [
  "ambient-id",
@@ -2896,19 +2896,19 @@ dependencies = [
  "fastrand",
  "fs-err",
  "futures",
- "fv-auth",
- "fv-cache",
- "fv-client",
- "fv-configuration",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-extract",
- "fv-fs",
- "fv-metadata",
- "fv-pypi-types",
- "fv-redacted",
- "fv-static",
- "fv-warnings",
+ "fyn-auth",
+ "fyn-cache",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-extract",
+ "fyn-fs",
+ "fyn-metadata",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-static",
+ "fyn-warnings",
  "glob",
  "insta",
  "itertools 0.14.0",
@@ -2925,18 +2925,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-pypi-types"
+name = "fyn-pypi-types"
 version = "0.0.32"
 dependencies = [
  "anyhow",
- "fv-cache-key",
- "fv-distribution-filename",
- "fv-git-types",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-redacted",
- "fv-small-str",
+ "fyn-cache-key",
+ "fyn-distribution-filename",
+ "fyn-git-types",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-redacted",
+ "fyn-small-str",
  "hashbrown 0.16.1",
  "indexmap",
  "insta",
@@ -2958,7 +2958,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-python"
+name = "fyn-python"
 version = "0.0.32"
 dependencies = [
  "anyhow",
@@ -2970,27 +2970,27 @@ dependencies = [
  "dunce",
  "fs-err",
  "futures",
- "fv-cache",
- "fv-cache-info",
- "fv-cache-key",
- "fv-client",
- "fv-dirs",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-extract",
- "fv-fs",
- "fv-install-wheel",
- "fv-pep440",
- "fv-pep508",
- "fv-platform",
- "fv-platform-tags",
- "fv-preview",
- "fv-pypi-types",
- "fv-redacted",
- "fv-state",
- "fv-static",
- "fv-trampoline-builder",
- "fv-warnings",
+ "fyn-cache",
+ "fyn-cache-info",
+ "fyn-cache-key",
+ "fyn-client",
+ "fyn-dirs",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-extract",
+ "fyn-fs",
+ "fyn-install-wheel",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-platform",
+ "fyn-platform-tags",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-state",
+ "fyn-static",
+ "fyn-trampoline-builder",
+ "fyn-warnings",
  "indexmap",
  "indoc",
  "insta",
@@ -3022,7 +3022,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-redacted"
+name = "fyn-redacted"
 version = "0.0.32"
 dependencies = [
  "ref-cast",
@@ -3033,7 +3033,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-requirements"
+name = "fyn-requirements"
 version = "0.0.32"
 dependencies = [
  "anyhow",
@@ -3041,24 +3041,24 @@ dependencies = [
  "console 0.16.2",
  "fs-err",
  "futures",
- "fv-cache-key",
- "fv-client",
- "fv-configuration",
- "fv-console",
- "fv-distribution",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-fs",
- "fv-git",
- "fv-normalize",
- "fv-pep508",
- "fv-pypi-types",
- "fv-redacted",
- "fv-requirements-txt",
- "fv-resolver",
- "fv-scripts",
- "fv-types",
- "fv-warnings",
+ "fyn-cache-key",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-console",
+ "fyn-distribution",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-fs",
+ "fyn-git",
+ "fyn-normalize",
+ "fyn-pep508",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-requirements-txt",
+ "fyn-resolver",
+ "fyn-scripts",
+ "fyn-types",
+ "fyn-warnings",
  "rustc-hash",
  "thiserror 2.0.18",
  "toml",
@@ -3067,22 +3067,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-requirements-txt"
+name = "fyn-requirements-txt"
 version = "0.0.32"
 dependencies = [
  "anyhow",
  "assert_fs",
  "astral-reqwest-middleware",
  "fs-err",
- "fv-client",
- "fv-configuration",
- "fv-distribution-types",
- "fv-fs",
- "fv-normalize",
- "fv-pep508",
- "fv-pypi-types",
- "fv-redacted",
- "fv-warnings",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-distribution-types",
+ "fyn-fs",
+ "fyn-normalize",
+ "fyn-pep508",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-warnings",
  "indoc",
  "insta",
  "itertools 0.14.0",
@@ -3100,7 +3100,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-resolver"
+name = "fyn-resolver"
 version = "0.0.32"
 dependencies = [
  "arcstr",
@@ -3111,35 +3111,35 @@ dependencies = [
  "either",
  "fs-err",
  "futures",
- "fv-cache-key",
- "fv-client",
- "fv-configuration",
- "fv-console",
- "fv-distribution",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-flags",
- "fv-fs",
- "fv-git",
- "fv-git-types",
- "fv-metadata",
- "fv-normalize",
- "fv-once-map",
- "fv-pep440",
- "fv-pep508",
- "fv-platform-tags",
- "fv-preview",
- "fv-pypi-types",
- "fv-python",
- "fv-redacted",
- "fv-requirements-txt",
- "fv-small-str",
- "fv-static",
- "fv-torch",
- "fv-types",
- "fv-version",
- "fv-warnings",
- "fv-workspace",
+ "fyn-cache-key",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-console",
+ "fyn-distribution",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-flags",
+ "fyn-fs",
+ "fyn-git",
+ "fyn-git-types",
+ "fyn-metadata",
+ "fyn-normalize",
+ "fyn-once-map",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-platform-tags",
+ "fyn-preview",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-redacted",
+ "fyn-requirements-txt",
+ "fyn-small-str",
+ "fyn-static",
+ "fyn-torch",
+ "fyn-types",
+ "fyn-version",
+ "fyn-warnings",
+ "fyn-workspace",
  "hashbrown 0.16.1",
  "indexmap",
  "insta",
@@ -3165,20 +3165,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-scripts"
+name = "fyn-scripts"
 version = "0.0.32"
 dependencies = [
  "fs-err",
- "fv-configuration",
- "fv-distribution-types",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-pypi-types",
- "fv-redacted",
- "fv-settings",
- "fv-warnings",
- "fv-workspace",
+ "fyn-configuration",
+ "fyn-distribution-types",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-settings",
+ "fyn-warnings",
+ "fyn-workspace",
  "indoc",
  "memchr",
  "regex",
@@ -3190,31 +3190,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-settings"
+name = "fyn-settings"
 version = "0.0.32"
 dependencies = [
  "clap",
  "fs-err",
- "fv-cache-info",
- "fv-client",
- "fv-configuration",
- "fv-dirs",
- "fv-distribution-types",
- "fv-flags",
- "fv-fs",
- "fv-install-wheel",
- "fv-macros",
- "fv-normalize",
- "fv-options-metadata",
- "fv-pep508",
- "fv-pypi-types",
- "fv-python",
- "fv-redacted",
- "fv-resolver",
- "fv-static",
- "fv-torch",
- "fv-warnings",
- "fv-workspace",
+ "fyn-cache-info",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-dirs",
+ "fyn-distribution-types",
+ "fyn-flags",
+ "fyn-fs",
+ "fyn-install-wheel",
+ "fyn-macros",
+ "fyn-normalize",
+ "fyn-options-metadata",
+ "fyn-pep508",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-redacted",
+ "fyn-resolver",
+ "fyn-static",
+ "fyn-torch",
+ "fyn-warnings",
+ "fyn-workspace",
  "schemars",
  "serde",
  "textwrap",
@@ -3225,13 +3225,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-shell"
+name = "fyn-shell"
 version = "0.0.32"
 dependencies = [
  "anyhow",
  "fs-err",
- "fv-fs",
- "fv-static",
+ "fyn-fs",
+ "fyn-static",
  "nix 0.31.2",
  "same-file",
  "temp-env",
@@ -3242,7 +3242,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-small-str"
+name = "fyn-small-str"
 version = "0.0.32"
 dependencies = [
  "arcstr",
@@ -3252,24 +3252,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-state"
+name = "fyn-state"
 version = "0.0.32"
 dependencies = [
  "fs-err",
- "fv-dirs",
+ "fyn-dirs",
  "tempfile",
 ]
 
 [[package]]
-name = "fv-static"
+name = "fyn-static"
 version = "0.0.32"
 dependencies = [
- "fv-macros",
+ "fyn-macros",
  "thiserror 2.0.18",
 ]
 
 [[package]]
-name = "fv-test"
+name = "fyn-test"
 version = "0.0.32"
 dependencies = [
  "anyhow",
@@ -3278,14 +3278,14 @@ dependencies = [
  "base64 0.22.1",
  "fs-err",
  "futures",
- "fv-cache",
- "fv-client",
- "fv-configuration",
- "fv-fs",
- "fv-preview",
- "fv-python",
- "fv-static",
- "fv-version",
+ "fyn-cache",
+ "fyn-client",
+ "fyn-configuration",
+ "fyn-fs",
+ "fyn-preview",
+ "fyn-python",
+ "fyn-static",
+ "fyn-version",
  "ignore",
  "indoc",
  "insta",
@@ -3299,25 +3299,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-tool"
+name = "fyn-tool"
 version = "0.0.32"
 dependencies = [
  "fs-err",
- "fv-cache",
- "fv-dirs",
- "fv-distribution-types",
- "fv-fs",
- "fv-install-wheel",
- "fv-installer",
- "fv-normalize",
- "fv-pep440",
- "fv-pep508",
- "fv-pypi-types",
- "fv-python",
- "fv-settings",
- "fv-state",
- "fv-static",
- "fv-virtualenv",
+ "fyn-cache",
+ "fyn-dirs",
+ "fyn-distribution-types",
+ "fyn-fs",
+ "fyn-install-wheel",
+ "fyn-installer",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-settings",
+ "fyn-state",
+ "fyn-static",
+ "fyn-virtualenv",
  "owo-colors",
  "pathdiff",
  "serde",
@@ -3328,17 +3328,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-torch"
+name = "fyn-torch"
 version = "0.0.32"
 dependencies = [
  "clap",
  "either",
  "fs-err",
- "fv-distribution-types",
- "fv-normalize",
- "fv-pep440",
- "fv-platform-tags",
- "fv-static",
+ "fyn-distribution-types",
+ "fyn-normalize",
+ "fyn-pep440",
+ "fyn-platform-tags",
+ "fyn-static",
  "schemars",
  "serde",
  "thiserror 2.0.18",
@@ -3348,14 +3348,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-trampoline-builder"
+name = "fyn-trampoline-builder"
 version = "0.0.32"
 dependencies = [
  "anyhow",
  "assert_cmd",
  "assert_fs",
  "fs-err",
- "fv-fs",
+ "fyn-fs",
  "rcgen",
  "tempfile",
  "thiserror 2.0.18",
@@ -3365,29 +3365,29 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-types"
+name = "fyn-types"
 version = "0.0.32"
 dependencies = [
  "anyhow",
  "dashmap",
- "fv-cache",
- "fv-configuration",
- "fv-distribution-filename",
- "fv-distribution-types",
- "fv-git",
- "fv-normalize",
- "fv-once-map",
- "fv-pep440",
- "fv-pypi-types",
- "fv-python",
- "fv-redacted",
- "fv-workspace",
+ "fyn-cache",
+ "fyn-configuration",
+ "fyn-distribution-filename",
+ "fyn-distribution-types",
+ "fyn-git",
+ "fyn-normalize",
+ "fyn-once-map",
+ "fyn-pep440",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-redacted",
+ "fyn-workspace",
  "rustc-hash",
  "thiserror 2.0.18",
 ]
 
 [[package]]
-name = "fv-unix"
+name = "fyn-unix"
 version = "0.0.32"
 dependencies = [
  "nix 0.31.2",
@@ -3395,22 +3395,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-version"
+name = "fyn-version"
 version = "0.10.12"
 
 [[package]]
-name = "fv-virtualenv"
+name = "fyn-virtualenv"
 version = "0.0.32"
 dependencies = [
  "console 0.16.2",
  "fs-err",
- "fv-console",
- "fv-fs",
- "fv-platform-tags",
- "fv-pypi-types",
- "fv-python",
- "fv-shell",
- "fv-version",
+ "fyn-console",
+ "fyn-fs",
+ "fyn-platform-tags",
+ "fyn-pypi-types",
+ "fyn-python",
+ "fyn-shell",
+ "fyn-version",
  "itertools 0.14.0",
  "owo-colors",
  "pathdiff",
@@ -3420,7 +3420,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-warnings"
+name = "fyn-warnings"
 version = "0.0.32"
 dependencies = [
  "anstream 1.0.0",
@@ -3432,35 +3432,35 @@ dependencies = [
 ]
 
 [[package]]
-name = "fv-windows"
+name = "fyn-windows"
 version = "0.0.32"
 dependencies = [
  "windows",
 ]
 
 [[package]]
-name = "fv-workspace"
+name = "fyn-workspace"
 version = "0.0.32"
 dependencies = [
  "anyhow",
  "assert_fs",
  "clap",
  "fs-err",
- "fv-build-backend",
- "fv-cache-key",
- "fv-configuration",
- "fv-distribution-types",
- "fv-fs",
- "fv-git-types",
- "fv-macros",
- "fv-normalize",
- "fv-options-metadata",
- "fv-pep440",
- "fv-pep508",
- "fv-pypi-types",
- "fv-redacted",
- "fv-static",
- "fv-warnings",
+ "fyn-build-backend",
+ "fyn-cache-key",
+ "fyn-configuration",
+ "fyn-distribution-types",
+ "fyn-fs",
+ "fyn-git-types",
+ "fyn-macros",
+ "fyn-normalize",
+ "fyn-options-metadata",
+ "fyn-pep440",
+ "fyn-pep508",
+ "fyn-pypi-types",
+ "fyn-redacted",
+ "fyn-static",
+ "fyn-warnings",
  "glob",
  "ignore",
  "insta",

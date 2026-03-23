@@ -2,72 +2,72 @@
 
 ## Help menus
 
-The `--help` flag can be used to view the help menu for a command, e.g., for `fv`:
+The `--help` flag can be used to view the help menu for a command, e.g., for `fyn`:
 
 ```console
-$ fv --help
+$ fyn --help
 ```
 
-To view the help menu for a specific command, e.g., for `fv init`:
+To view the help menu for a specific command, e.g., for `fyn init`:
 
 ```console
-$ fv init --help
+$ fyn init --help
 ```
 
-When using the `--help` flag, fv displays a condensed help menu. To view a longer help menu for a
-command, use `fv help`:
+When using the `--help` flag, fyn displays a condensed help menu. To view a longer help menu for a
+command, use `fyn help`:
 
 ```console
-$ fv help
+$ fyn help
 ```
 
-To view the long help menu for a specific command, e.g., for `fv init`:
+To view the long help menu for a specific command, e.g., for `fyn init`:
 
 ```console
-$ fv help init
+$ fyn help init
 ```
 
-When using the long help menu, fv will attempt to use `less` or `more` to "page" the output so it is
+When using the long help menu, fyn will attempt to use `less` or `more` to "page" the output so it is
 not all displayed at once. To exit the pager, press `q`.
 
 ## Displaying verbose output
 
-The `-v` flag can be used to display verbose output for a command, e.g., for `fv sync`:
+The `-v` flag can be used to display verbose output for a command, e.g., for `fyn sync`:
 
 ```console
-$ fv sync -v
+$ fyn sync -v
 ```
 
 The `-v` flag can be repeated to increase verbosity, e.g.:
 
 ```console
-$ fv sync -vv
+$ fyn sync -vv
 ```
 
-Often, the verbose output will include additional information about why fv is behaving in a certain
+Often, the verbose output will include additional information about why fyn is behaving in a certain
 way.
 
 ## Viewing the version
 
-When seeking help, it's important to determine the version of fv that you're using — sometimes the
+When seeking help, it's important to determine the version of fyn that you're using — sometimes the
 problem is already solved in a newer version.
 
 To check the installed version:
 
 ```console
-$ fv self version
+$ fyn self version
 ```
 
 The following are also valid:
 
 ```console
-$ fv --version      # Same output as `fv self version`
-$ fv -V             # Will not include the build commit and date
+$ fyn --version      # Same output as `fyn self version`
+$ fyn -V             # Will not include the build commit and date
 ```
 
 !!! note
 
-    Before fv 0.7.0, `fv version` was used instead of `fv self version`.
+    Before fyn 0.7.0, `fyn version` was used instead of `fyn self version`.
 
 ## Troubleshooting issues
 
@@ -83,4 +83,4 @@ to encounter the same problem.
 ## Chat on Discord
 
 Astral has a [Discord server](https://discord.com/invite/astral-sh), which is a great place to ask
-questions, learn more about fv, and engage with other community members.
+questions, learn more about fyn, and engage with other community members.

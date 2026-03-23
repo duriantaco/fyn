@@ -1,4 +1,4 @@
-# This file is used to test `fv run <url>` in ../crates/fv/tests/run.rs
+# This file is used to test `fyn run <url>` in ../crates/fyn/tests/run.rs
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
@@ -10,4 +10,4 @@ import sys
 import rich
 
 who = sys.argv[1]
-rich.print(f"Hello {who}, from fv!")
+rich.print(f"Hello {who}, from fyn!")

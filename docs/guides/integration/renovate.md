@@ -1,6 +1,6 @@
 ---
-title: Using fv with Renovate
-description: A guide to using fv with the Renovate dependency bot.
+title: Using fyn with Renovate
+description: A guide to using fyn with the Renovate dependency bot.
 ---
 
 # Renovate
@@ -9,16 +9,16 @@ It is considered best practice to regularly update dependencies, to avoid being 
 vulnerabilities, limit incompatibilities between dependencies, and avoid complex upgrades when
 upgrading from a too old version.
 
-fv is supported by [Renovate](https://github.com/renovatebot/renovate).
+fyn is supported by [Renovate](https://github.com/renovatebot/renovate).
 
-## `fv.lock` output
+## `fyn.lock` output
 
-Renovate uses the presence of a `fv.lock` file to determine that fv is used for managing
+Renovate uses the presence of a `fyn.lock` file to determine that fyn is used for managing
 dependencies, and will suggest upgrades to
 [project dependencies](../../concepts/projects/dependencies.md#project-dependencies),
 [optional dependencies](../../concepts/projects/dependencies.md#optional-dependencies) and
 [development dependencies](../../concepts/projects/dependencies.md#development-dependencies).
-Renovate will update both the `pyproject.toml` and `fv.lock` files.
+Renovate will update both the `pyproject.toml` and `fyn.lock` files.
 
 The lockfile can also be refreshed on a regular basis (for instance to update transitive
 dependencies) by enabling the
@@ -67,7 +67,7 @@ like so:
 If you use [`exclude-newer`](../../reference/settings.md#exclude-newer) option, it is recommended to
 also set the equivalent
 [`minimumReleaseAge`](https://docs.renovatebot.com/configuration-options/#minimumreleaseage) option
-in Renovate, to avoid ending up with pull requests where fv would not be able to lock the
+in Renovate, to avoid ending up with pull requests where fyn would not be able to lock the
 dependencies.
 
 For instance, if you've set `exclude-newer` to `1 week`, you can set:

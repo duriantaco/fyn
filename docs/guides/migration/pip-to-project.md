@@ -1,15 +1,15 @@
-# Migrating from pip to a fv project
+# Migrating from pip to a fyn project
 
 This guide will discuss converting from a `pip` and `pip-tools` workflow centered on `requirements`
-files to fv's project workflow using a `pyproject.toml` and `fv.lock` file.
+files to fyn's project workflow using a `pyproject.toml` and `fyn.lock` file.
 
 !!! note
 
-    If you're looking to migrate from `pip` and `pip-tools` to fv's drop-in interface or from an
+    If you're looking to migrate from `pip` and `pip-tools` to fyn's drop-in interface or from an
     existing workflow where you're already using a `pyproject.toml`, those guides are not yet
     written. See [#5200](https://github.com/astral-sh/uv/issues/5200) to track progress.
 
-We'll start with an overview of developing with `pip`, then discuss migrating to fv.
+We'll start with an overview of developing with `pip`, then discuss migrating to fyn.
 
 !!! tip
 
@@ -111,7 +111,7 @@ typing-extensions==4.12.2
 ```
 
 Here, all the versions constraints are _exact_. Only a single version of each package can be used.
-The above example was generated with `fv pip compile`, but could also be generated with
+The above example was generated with `fyn pip compile`, but could also be generated with
 `pip-compile` from `pip-tools`.
 
 Though less common, the `requirements.txt` can also be generated using `pip freeze`, by first
@@ -143,7 +143,7 @@ Then, when someone wants to use the project, they install from the requirements 
 $ pip install -r requirements.txt
 ```
 
-<!--- TODO: Discuss equivalent commands for `fv pip compile` and `pip compile` -->
+<!--- TODO: Discuss equivalent commands for `fyn pip compile` and `pip compile` -->
 
 ### Development dependencies
 
@@ -265,11 +265,11 @@ supported platform.
 
 !!! note
 
-    fv's resolver can compile dependencies for multiple platforms at once (see ["universal resolution"](../../concepts/resolution.md#universal-resolution)),
+    fyn's resolver can compile dependencies for multiple platforms at once (see ["universal resolution"](../../concepts/resolution.md#universal-resolution)),
     allowing you to use a single `requirements.txt` for all platforms:
 
     ```console
-    $ fv pip compile --universal requirements.in
+    $ fyn pip compile --universal requirements.in
     ```
 
     ```python title="requirements.txt"
@@ -279,9 +279,9 @@ supported platform.
         # via -r requirements.in
     ```
 
-    This resolution mode is also used when using a `pyproject.toml` and `fv.lock`.
+    This resolution mode is also used when using a `pyproject.toml` and `fyn.lock`.
 
-## Migrating to a fv project
+## Migrating to a fyn project
 
 ### The `pyproject.toml`
 
@@ -310,30 +310,30 @@ dev = ["pytest"]
 
 We'll discuss the commands necessary to automate these imports below.
 
-### The fv lockfile
+### The fyn lockfile
 
-fv uses a lockfile (`fv.lock`) file to lock package versions. The format of this file is specific to
-fv, allowing fv to support advanced features. It replaces `requirements.txt` files.
+fyn uses a lockfile (`fyn.lock`) file to lock package versions. The format of this file is specific to
+fyn, allowing fyn to support advanced features. It replaces `requirements.txt` files.
 
 The lockfile will be automatically created and populated when adding dependencies, but you can
-explicitly create it with `fv lock`.
+explicitly create it with `fyn lock`.
 
-Unlike `requirements.txt` files, the `fv.lock` file can represent arbitrary groups of dependencies,
+Unlike `requirements.txt` files, the `fyn.lock` file can represent arbitrary groups of dependencies,
 so multiple files are not needed to lock development dependencies.
 
-The fv lockfile is always [universal](../../concepts/resolution.md#universal-resolution), so
+The fyn lockfile is always [universal](../../concepts/resolution.md#universal-resolution), so
 multiple files are not needed to
 [lock dependencies for each platform](#platform-specific-dependencies). This ensures that all
 developers are using consistent, locked versions of dependencies regardless of their machine.
 
-The fv lockfile also supports concepts like
+The fyn lockfile also supports concepts like
 [pinning packages to specific indexes](../../concepts/indexes.md#pinning-a-package-to-an-index),
 which is not representable in `requirements.txt` files.
 
 !!! tip
 
     If you only need to lock for a subset of platforms, use the
-    [`tool.fv.environments`](../../concepts/resolution.md#limited-resolution-environments) setting
+    [`tool.fyn.environments`](../../concepts/resolution.md#limited-resolution-environments) setting
     to limit the resolution and lockfile.
 
 To learn more, see the [lockfile](../../concepts/projects/layout.md#the-lockfile) documentation.
@@ -343,28 +343,28 @@ To learn more, see the [lockfile](../../concepts/projects/layout.md#the-lockfile
 First, create a `pyproject.toml` if you have not already:
 
 ```console
-$ fv init
+$ fyn init
 ```
 
-Then, the easiest way to import requirements is with `fv add`:
+Then, the easiest way to import requirements is with `fyn add`:
 
 ```console
-$ fv add -r requirements.in
+$ fyn add -r requirements.in
 ```
 
 However, there is some nuance to this transition. Notice we used the `requirements.in` file, which
-does not pin to exact versions of packages so fv will solve for new versions of these packages. You
+does not pin to exact versions of packages so fyn will solve for new versions of these packages. You
 may want to continue using your previously locked versions from your `requirements.txt` so, when
-switching over to fv, none of your dependency versions change.
+switching over to fyn, none of your dependency versions change.
 
-The solution is to add your locked versions as _constraints_. fv supports using these on `add` to
+The solution is to add your locked versions as _constraints_. fyn supports using these on `add` to
 preserve locked versions:
 
 ```console
-$ fv add -r requirements.in -c requirements.txt
+$ fyn add -r requirements.in -c requirements.txt
 ```
 
-Your existing versions will be retained when producing a `fv.lock` file.
+Your existing versions will be retained when producing a `fyn.lock` file.
 
 #### Importing platform-specific constraints
 
@@ -373,7 +373,7 @@ transition to a universal lockfile. However, you cannot just use `-c` to specify
 your existing platform-specific `requirements.txt` files because they do not include markers
 describing the environment and will consequently conflict.
 
-To add the necessary markers, use `fv pip compile` to convert your existing files. For example,
+To add the necessary markers, use `fyn pip compile` to convert your existing files. For example,
 given the following:
 
 ```python title="requirements-win.txt"
@@ -386,7 +386,7 @@ tqdm==4.67.1
 The markers can be added with:
 
 ```console
-$ fv pip compile requirements.in -o requirements-win.txt --python-platform windows --no-strip-markers
+$ fyn pip compile requirements.in -o requirements-win.txt --python-platform windows --no-strip-markers
 ```
 
 Notice the resulting output includes a Windows marker on `colorama`:
@@ -398,16 +398,16 @@ tqdm==4.67.1
     # via -r requirements.in
 ```
 
-When using `-o`, fv will constrain the versions to match the existing output file, if it can.
+When using `-o`, fyn will constrain the versions to match the existing output file, if it can.
 
 Markers can be added for other platforms by changing the `--python-platform` and `-o` values for
 each requirements file you need to import, e.g., to `linux` and `macos`.
 
 Once each `requirements.txt` file has been transformed, the dependencies can be imported to the
-`pyproject.toml` and `fv.lock` with `fv add`:
+`pyproject.toml` and `fyn.lock` with `fyn add`:
 
 ```console
-$ fv add -r requirements.in -c requirements-win.txt -c requirements-linux.txt
+$ fyn add -r requirements.in -c requirements-win.txt -c requirements-linux.txt
 ```
 
 #### Importing development dependency files
@@ -415,26 +415,26 @@ $ fv add -r requirements.in -c requirements-win.txt -c requirements-linux.txt
 As discussed in the [development dependencies](#development-dependencies) section, it's common to
 have groups of dependencies for development purposes.
 
-To import development dependencies, use the `--dev` flag during `fv add`:
+To import development dependencies, use the `--dev` flag during `fyn add`:
 
 ```console
-$ fv add --dev -r requirements-dev.in -c requirements-dev.txt
+$ fyn add --dev -r requirements-dev.in -c requirements-dev.txt
 ```
 
 If the `requirements-dev.in` includes the parent `requirements.in` via `-r`, it will need to be
 stripped to avoid adding the base requirements to the `dev` dependency group. The following example
-uses `sed` to strip lines that start with `-r`, then pipes the result to `fv add`:
+uses `sed` to strip lines that start with `-r`, then pipes the result to `fyn add`:
 
 ```console
-$ sed '/^-r /d' requirements-dev.in | fv add --dev -r - -c requirements-dev.txt
+$ sed '/^-r /d' requirements-dev.in | fyn add --dev -r - -c requirements-dev.txt
 ```
 
-In addition to the `dev` dependency group, fv supports arbitrary group names. For example, if you
+In addition to the `dev` dependency group, fyn supports arbitrary group names. For example, if you
 also have a dedicated set of dependencies for building your documentation, those can be imported to
 a `docs` group:
 
 ```console
-$ fv add -r requirements-docs.in -c requirements-docs.txt --group docs
+$ fyn add -r requirements-docs.in -c requirements-docs.txt --group docs
 ```
 
 #### Importing dependency sources
@@ -447,8 +447,8 @@ When importing requirements on local paths or Git repositories, for example:
 git-dep @ git+https://github.com/astral-sh/git-dep
 ```
 
-fv will map them to [dependency sources](../../concepts/projects/dependencies.md#dependency-sources)
-in the `[tool.fv.sources]` table of the `pyproject.toml`:
+fyn will map them to [dependency sources](../../concepts/projects/dependencies.md#dependency-sources)
+in the `[tool.fyn.sources]` table of the `pyproject.toml`:
 
 ```toml title="pyproject.toml"
 [project]
@@ -458,7 +458,7 @@ dependencies = [
     "git-dep",
 ]
 
-[tool.fv.sources]
+[tool.fyn.sources]
 path-dep = { path = "./path-dep" }
 editable-path-dep = { path = "./editable-path-dep", editable = true }
 git-dep = { git = "https://github.com/astral-sh/git-dep" }
@@ -466,27 +466,27 @@ git-dep = { git = "https://github.com/astral-sh/git-dep" }
 
 ### Project environments
 
-Unlike `pip`, fv is not centered around the concept of an "active" virtual environment. Instead, fv
+Unlike `pip`, fyn is not centered around the concept of an "active" virtual environment. Instead, fyn
 uses a dedicated virtual environment for each project in a `.venv` directory. This environment is
-automatically managed, so when you run a command, like `fv add`, the environment is synced with the
+automatically managed, so when you run a command, like `fyn add`, the environment is synced with the
 project dependencies.
 
-The preferred way to execute commands in the environment is with `fv run`, e.g.:
+The preferred way to execute commands in the environment is with `fyn run`, e.g.:
 
 ```console
-$ fv run pytest
+$ fyn run pytest
 ```
 
-Prior to every `fv run` invocation, fv will verify that the lockfile is up-to-date with the
+Prior to every `fyn run` invocation, fyn will verify that the lockfile is up-to-date with the
 `pyproject.toml`, and that the environment is up-to-date with the lockfile, keeping your project
-in-sync without the need for manual intervention. `fv run` guarantees that your command is run in a
+in-sync without the need for manual intervention. `fyn run` guarantees that your command is run in a
 consistent, locked environment.
 
-The project environment can also be explicitly created with `fv sync`, e.g., for use with editors.
+The project environment can also be explicitly created with `fyn sync`, e.g., for use with editors.
 
 !!! note
 
-    When in projects, fv will prefer a `.venv` in the project directory and ignore the active
+    When in projects, fyn will prefer a `.venv` in the project directory and ignore the active
     environment as declared by the `VIRTUAL_ENV` variable by default. You can opt-in to using the
     active environment with the `--active` flag.
 
@@ -495,5 +495,5 @@ To learn more, see the
 
 ## Next steps
 
-Now that you've migrated to fv, take a look at the
-[project concept](../../concepts/projects/index.md) page for more details about fv projects.
+Now that you've migrated to fyn, take a look at the
+[project concept](../../concepts/projects/index.md) page for more details about fyn projects.

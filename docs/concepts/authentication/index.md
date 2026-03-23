@@ -2,9 +2,9 @@
 
 Authentication is required when working with private repositories or package indexes.
 
-Learn more about authentication in fv:
+Learn more about authentication in fyn:
 
-- [Using the `fv auth` CLI](./cli.md)
+- [Using the `fyn auth` CLI](./cli.md)
 - [HTTP authentication](./http.md)
 - [Git authentication](./git.md)
 - [TLS certificates](./certificates.md)

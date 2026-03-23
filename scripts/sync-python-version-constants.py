@@ -2,7 +2,7 @@
 
 This script reads the download-metadata.json file and extracts the latest
 patch version for each minor version (3.15, 3.14, 3.13, 3.12, 3.11, 3.10).
-It then updates the LATEST_PYTHON_X_Y constants in crates/fv-test/src/lib.rs.
+It then updates the LATEST_PYTHON_X_Y constants in crates/fyn-test/src/lib.rs.
 
 For minor versions with stable releases, it uses the latest stable version.
 For minor versions with only prereleases, it uses the latest prerelease.
@@ -30,7 +30,7 @@ ROOT = SELF_DIR.parent
 
 def main() -> None:
     # Read the download metadata
-    metadata_path = ROOT / "crates" / "fv-python" / "download-metadata.json"
+    metadata_path = ROOT / "crates" / "fyn-python" / "download-metadata.json"
     with open(metadata_path) as f:
         metadata = json.load(f)
 
@@ -70,8 +70,8 @@ def main() -> None:
         if minor not in latest_versions:
             latest_versions[minor] = prerelease_versions[minor]
 
-    # Update the constants in fv-test/src/lib.rs
-    lib_path = ROOT / "crates" / "fv-test" / "src" / "lib.rs"
+    # Update the constants in fyn-test/src/lib.rs
+    lib_path = ROOT / "crates" / "fyn-test" / "src" / "lib.rs"
     content = lib_path.read_text()
 
     # Extract old values first

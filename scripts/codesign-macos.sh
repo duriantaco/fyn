@@ -10,7 +10,7 @@
 #
 #   For example:
 #
-#       $ ./scripts/codesign-macos.sh "Mac Developer: Your Name (TEAM_ID)" target/debug/fv
+#       $ ./scripts/codesign-macos.sh "Mac Developer: Your Name (TEAM_ID)" target/debug/fyn
 #
 #   Use `security find-identity -v -p codesigning` to list available identities.
 

@@ -1,0 +1,58 @@
+[package]
+name = "fyn-installer"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-cache = { workspace = true }
+fyn-cache-info = { workspace = true }
+fyn-cache-key = { workspace = true }
+fyn-configuration = { workspace = true }
+fyn-distribution = { workspace = true }
+fyn-distribution-filename = { workspace = true }
+fyn-distribution-types = { workspace = true }
+fyn-fs = { workspace = true }
+fyn-git-types = { workspace = true }
+fyn-install-wheel = { workspace = true, default-features = false }
+fyn-normalize = { workspace = true }
+fyn-pep440 = { workspace = true }
+fyn-pep508 = { workspace = true }
+fyn-platform-tags = { workspace = true }
+fyn-preview = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-python = { workspace = true }
+fyn-redacted = { workspace = true }
+fyn-static = { workspace = true }
+fyn-types = { workspace = true }
+fyn-warnings = { workspace = true }
+
+anyhow = { workspace = true }
+async-channel = { workspace = true }
+fs-err = { workspace = true }
+futures = { workspace = true }
+owo-colors = { workspace = true }
+rayon = { workspace = true }
+rustc-hash = { workspace = true }
+same-file = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+walkdir = { workspace = true }
+
+[dev-dependencies]
+anstream = { workspace = true }
+insta = { workspace = true }

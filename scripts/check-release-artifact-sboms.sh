@@ -74,8 +74,8 @@ for artifact in $ALL_ARTIFACTS; do
         [ -f "$f" ] && archive=$(basename "$f") && break
     done
 
-    # Check uv and fvx binaries.
-    for bin in fv uvx; do
+    # Check uv and fynx binaries.
+    for bin in fyn uvx; do
         binary=$(find "$dest" \( -name "$bin" -o -name "$bin.exe" \) -type f | head -1)
         if [ -n "$binary" ]; then
             check "$binary" "${archive:-$artifact} / $(basename "$binary")"

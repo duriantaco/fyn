@@ -1,0 +1,51 @@
+[package]
+name = "fyn-requirements-txt"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-client = { workspace = true }
+fyn-configuration = { workspace = true }
+fyn-distribution-types = { workspace = true }
+fyn-fs = { workspace = true }
+fyn-normalize = { workspace = true }
+fyn-pep508 = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-redacted = { workspace = true }
+fyn-warnings = { workspace = true }
+
+fs-err = { workspace = true }
+memchr = { workspace = true }
+reqwest = { workspace = true, optional = true }
+reqwest-middleware = { workspace = true, optional = true }
+rustc-hash = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+unscanny = { workspace = true }
+url = { workspace = true }
+
+[features]
+http = ["reqwest", "reqwest-middleware"]
+
+[dev-dependencies]
+anyhow = { workspace = true }
+assert_fs = { workspace = true }
+indoc = { workspace = true }
+insta = { workspace = true }
+itertools = { workspace = true }
+regex = { workspace = true }
+tempfile = { workspace = true }
+test-case = { workspace = true }
+tokio = { workspace = true }

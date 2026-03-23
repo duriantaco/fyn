@@ -1,0 +1,230 @@
+[package]
+name = "fyn"
+version = "0.10.12"
+description = "A Python package and project manager"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+documentation = "https://github.com/oha/fyn"
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+default-run = "fyn"
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-audit = { workspace = true }
+fyn-auth = { workspace = true }
+fyn-bin-install = { workspace = true }
+fyn-build-backend = { workspace = true }
+fyn-build-frontend = { workspace = true }
+fyn-cache = { workspace = true }
+fyn-cache-info = { workspace = true }
+fyn-cache-key = { workspace = true }
+fyn-cli = { workspace = true }
+fyn-client = { workspace = true }
+fyn-configuration = { workspace = true }
+fyn-console = { workspace = true }
+fyn-dirs = { workspace = true }
+fyn-dispatch = { workspace = true }
+fyn-distribution = { workspace = true }
+fyn-distribution-filename = { workspace = true }
+fyn-distribution-types = { workspace = true }
+fyn-extract = { workspace = true }
+fyn-flags = { workspace = true }
+fyn-fs = { workspace = true }
+fyn-git = { workspace = true }
+fyn-git-types = { workspace = true }
+fyn-install-wheel = { workspace = true, default-features = false }
+fyn-installer = { workspace = true }
+fyn-logging = { workspace = true }
+fyn-normalize = { workspace = true }
+fyn-pep440 = { workspace = true }
+fyn-pep508 = { workspace = true }
+fyn-performance-memory-allocator = { workspace = true, optional = true }
+fyn-platform = { workspace = true }
+fyn-platform-tags = { workspace = true }
+fyn-preview = { workspace = true }
+fyn-publish = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-python = { workspace = true, features = ["schemars"] }
+fyn-redacted = { workspace = true }
+fyn-requirements = { workspace = true }
+fyn-requirements-txt = { workspace = true }
+fyn-resolver = { workspace = true }
+fyn-scripts = { workspace = true }
+fyn-settings = { workspace = true, features = ["schemars"] }
+fyn-shell = { workspace = true }
+fyn-static = { workspace = true }
+fyn-test = { workspace = true, optional = true }
+fyn-tool = { workspace = true }
+fyn-torch = { workspace = true }
+fyn-trampoline-builder = { workspace = true }
+fyn-types = { workspace = true }
+fyn-version = { workspace = true }
+fyn-virtualenv = { workspace = true }
+fyn-warnings = { workspace = true }
+fyn-workspace = { workspace = true, features = ["clap"] }
+
+anstream = { workspace = true }
+anyhow = { workspace = true }
+axoupdater = { workspace = true, features = [
+    "github_releases",
+    "tokio",
+], optional = true }
+clap = { workspace = true, features = ["derive", "string", "wrap_help"] }
+console = { workspace = true }
+ctrlc = { workspace = true }
+diskus = { workspace = true }
+dotenvy = { workspace = true }
+dunce = { workspace = true }
+fs-err = { workspace = true, features = ["tokio"] }
+futures = { workspace = true }
+http = { workspace = true }
+jiff = { workspace = true }
+indexmap = { workspace = true }
+indicatif = { workspace = true }
+indoc = { workspace = true }
+itertools = { workspace = true }
+miette = { workspace = true, features = ["fancy-no-backtrace"] }
+open = { workspace = true }
+owo-colors = { workspace = true }
+petgraph = { workspace = true }
+reqwest = { workspace = true }
+rkyv = { workspace = true }
+rustc-hash = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+textwrap = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+toml = { workspace = true }
+toml_edit = { workspace = true }
+tracing = { workspace = true }
+tracing-durations-export = { workspace = true, features = ["plot"], optional = true }
+tracing-subscriber = { workspace = true, features = ["env-filter", "json", "registry"] }
+tracing-tree = { workspace = true }
+unicode-width = { workspace = true }
+url = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
+version-ranges = { workspace = true }
+walkdir = { workspace = true }
+which = { workspace = true }
+zip = { workspace = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+arrayvec = { workspace = true }
+self-replace = { workspace = true }
+fyn-windows = { workspace = true }
+windows = { workspace = true }
+
+[build-dependencies]
+fyn-static = { workspace = true }
+fyn-version = { workspace = true }
+
+embed-manifest = { workspace = true }
+
+[dev-dependencies]
+fyn-publish = { workspace = true, features = ["test"] }
+fyn-test = { workspace = true }
+
+assert_cmd = { workspace = true }
+assert_fs = { workspace = true }
+backon = { workspace = true }
+base64 = { workspace = true }
+byteorder = { workspace = true }
+bytes = { workspace = true }
+filetime = { workspace = true }
+flate2 = { workspace = true, default-features = false }
+http-body-util = { workspace = true }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+indoc = { workspace = true }
+insta = { workspace = true }
+predicates = { workspace = true }
+regex = { workspace = true }
+reqwest = { workspace = true, features = ["blocking"], default-features = false }
+sha2 = { workspace = true }
+tar = { workspace = true }
+tempfile = { workspace = true }
+tokio-stream = { workspace = true }
+tokio-util = { workspace = true }
+whoami = { workspace = true }
+wiremock = { workspace = true }
+zip = { workspace = true }
+
+[target.'cfg(unix)'.dependencies]
+nix = { workspace = true }
+fyn-unix = { workspace = true }
+
+[features]
+default = ["performance", "fyn-distribution/static", "test-defaults"]
+native-auth = []
+# Use better memory allocators, etc.
+performance = ["performance-memory-allocator"]
+performance-memory-allocator = ["dep:fyn-performance-memory-allocator"]
+
+# Adds self-update functionality. This feature is only enabled for fyn's cargo-dist installer
+# and should be left unselected when building fyn for package managers.
+self-update = ["axoupdater", "fyn-cli/self-update"]
+
+# Features for development only.
+tracing-durations-export = ["dep:tracing-durations-export", "fyn-resolver/tracing-durations-export", "fyn-settings/tracing-durations-export", "fyn-test/tracing-durations-export"]
+
+# Features that only apply when running tests, no-ops otherwise.
+test-defaults = [
+    "test-crates-io",
+    "test-git",
+    "test-git-lfs",
+    "test-pypi",
+    "test-r2",
+    "test-python",
+    "test-python-managed",
+    "test-python-eol",
+    "test-slow",
+    "test-ecosystem"
+]
+# Introduces a testing dependency on crates.io.
+test-crates-io = []
+# Introduces a testing dependency on Git.
+test-git = ["fyn-test?/git"]
+# Introduces a testing dependency on Git LFS.
+test-git-lfs = ["test-git"]
+# Introduces a testing dependency on PyPI.
+test-pypi = []
+# Introduces a testing dependency on R2.
+test-r2 = []
+# Introduces a testing dependency on a local Python installation.
+test-python = []
+# Introduces a testing dependency on a local Python installation with specific patch versions.
+test-python-patch = []
+# Introduces a testing dependency on a local Python installation with an EOL version.
+test-python-eol = []
+# Introduces a testing dependency on managed Python installations.
+test-python-managed = []
+# Include "slow" test cases.
+test-slow = []
+# Includes test cases that require ecosystem packages
+test-ecosystem = []
+# Build fynw binary on Windows
+windows-gui-bin = []
+
+[package.metadata.cargo-shear]
+# The fyn crate has fyn-test as dev-dependency. We want that by default,
+# uv runs tests with `fyn-test/git`, so it's a default feature in fyn. The
+# problem is that fyn-test is only a dev dependency, which gets stripped by
+# `cargo install`, and `cargo install` fails with a missing crate error.
+# As workaround, we make `fyn-test` a regular optional dependency. It's never
+# used as a regular dependency, but it allows using `fyn-test?/git` as default
+# feature.
+ignored = ["fyn-test"]
+
+[package.metadata.dist]
+dist = true
+
+[[bin]]
+name = "fynw"
+required-features = ["windows-gui-bin"]

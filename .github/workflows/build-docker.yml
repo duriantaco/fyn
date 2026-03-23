@@ -2,7 +2,7 @@
 #
 # Uses Depot for multi-platform builds. Includes both a `uv` base image, which
 # is just the binary in a scratch image, and a set of extra, common images with
-# the fv binary installed.
+# the fyn binary installed.
 #
 # On pull requests, triggered via CI workflow when Docker-related files change
 # (e.g., Dockerfile, Cargo.toml, rust-toolchain.toml). Images are built but not
@@ -30,8 +30,8 @@ on:
         default: false
 
 env:
-  UV_GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ inputs.push-dev && 'fv-dev' || 'fv' }}
-  UV_DOCKERHUB_IMAGE: ${{ !inputs.push-dev && 'docker.io/astral/fv' || '' }}
+  UV_GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ inputs.push-dev && 'fyn-dev' || 'fyn' }}
+  UV_DOCKERHUB_IMAGE: ${{ !inputs.push-dev && 'docker.io/astral/fyn' || '' }}
 
 permissions: {}
 
@@ -53,7 +53,7 @@ jobs:
           DRY_RUN: ${{ inputs.plan == '' || fromJson(inputs.plan).announcement_tag_is_implicit }}
           TAG: ${{ inputs.plan != '' && fromJson(inputs.plan).announcement_tag }}
           PUSH_DEV: ${{ inputs.push-dev }}
-          IS_LOCAL_PR: ${{ github.event.pull_request.head.repo.full_name == 'oha/fv' }}
+          IS_LOCAL_PR: ${{ github.event.pull_request.head.repo.full_name == 'oha/fyn' }}
         id: plan
         run: |
           if [ "${PUSH_DEV}" == "true" ] && [ "${IS_LOCAL_PR}" == "true" ]; then
@@ -61,7 +61,7 @@ jobs:
             echo "push=true" >> "$GITHUB_OUTPUT"
             echo "push-version=false" >> "$GITHUB_OUTPUT"
             echo "tag=sha" >> "$GITHUB_OUTPUT"
-            echo "action=build and publish to fv-dev" >> "$GITHUB_OUTPUT"
+            echo "action=build and publish to fyn-dev" >> "$GITHUB_OUTPUT"
           elif [ "${DRY_RUN}" == "false" ]; then
             echo "login=true" >> "$GITHUB_OUTPUT"
             echo "push=true" >> "$GITHUB_OUTPUT"
@@ -125,7 +125,7 @@ jobs:
           echo "matrix=${json}" >> "$GITHUB_OUTPUT"
 
   docker-publish-base:
-    name: ${{ needs.docker-plan.outputs.action }} fv
+    name: ${{ needs.docker-plan.outputs.action }} fyn
     needs:
       - docker-plan
     runs-on: ubuntu-latest
@@ -204,7 +204,7 @@ jobs:
         id: build
         uses: depot/build-push-action@5f3b3c2e5a00f0093de47f657aeaefcedff27d18 # v1.17.0
         with:
-          project: 7hd4vdzmw5 # oha/fv
+          project: 7hd4vdzmw5 # oha/fyn
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ needs.docker-plan.outputs.push }}
@@ -272,10 +272,10 @@ jobs:
           # Generate Dockerfile content
           cat <<EOF > Dockerfile
           FROM ${BASE_IMAGE}
-          COPY --from=${UV_GHCR_IMAGE}:${UV_BASE_TAG} /fv /fvx /usr/local/bin/
+          COPY --from=${UV_GHCR_IMAGE}:${UV_BASE_TAG} /fyn /fynx /usr/local/bin/
           ENV UV_TOOL_BIN_DIR="/usr/local/bin"
           ENTRYPOINT []
-          CMD ["/usr/local/bin/fv"]
+          CMD ["/usr/local/bin/fyn"]
           EOF
 
           # Initialize a variable to store all tag docker metadata patterns
@@ -330,7 +330,7 @@ jobs:
         uses: depot/build-push-action@5f3b3c2e5a00f0093de47f657aeaefcedff27d18 # v1.17.0
         with:
           context: .
-          project: 7hd4vdzmw5 # oha/fv
+          project: 7hd4vdzmw5 # oha/fyn
           platforms: linux/amd64,linux/arm64
           push: ${{ needs.docker-plan.outputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -393,7 +393,7 @@ jobs:
 
   # Annotate the base image
   docker-annotate-base:
-    name: annotate fv
+    name: annotate fyn
     runs-on: ubuntu-latest
     timeout-minutes: 2
     permissions:

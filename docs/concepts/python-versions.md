@@ -5,28 +5,28 @@ library, and other supporting files.
 
 ## Managed and system Python installations
 
-Since it is common for a system to have an existing Python installation, fv supports
-[discovering](#discovery-of-python-versions) Python versions. However, fv also supports
+Since it is common for a system to have an existing Python installation, fyn supports
+[discovering](#discovery-of-python-versions) Python versions. However, fyn also supports
 [installing Python versions](#installing-a-python-version) itself. To distinguish between these two
-types of Python installations, fv refers to Python versions it installs as _managed_ Python
+types of Python installations, fyn refers to Python versions it installs as _managed_ Python
 installations and all other Python installations as _system_ Python installations.
 
 !!! note
 
-    fv does not distinguish between Python versions installed by the operating system vs those
+    fyn does not distinguish between Python versions installed by the operating system vs those
     installed and managed by other tools. For example, if a Python installation is managed with
-    `pyenv`, it would still be considered a _system_ Python version in fv.
+    `pyenv`, it would still be considered a _system_ Python version in fyn.
 
 ## Requesting a version
 
-A specific Python version can be requested with the `--python` flag in most fv commands. For
+A specific Python version can be requested with the `--python` flag in most fyn commands. For
 example, when creating a virtual environment:
 
 ```console
-$ fv venv --python 3.11.6
+$ fyn venv --python 3.11.6
 ```
 
-fv will ensure that Python 3.11.6 is available — downloading and installing it if necessary — then
+fyn will ensure that Python 3.11.6 is available — downloading and installing it if necessary — then
 create the virtual environment with it.
 
 The following Python version request formats are supported:
@@ -47,148 +47,148 @@ Additionally, a specific system Python interpreter can be requested with:
 - `<executable-name>` (e.g., `mypython3`)
 - `<install-dir>` (e.g., `/some/environment/`)
 
-By default, fv will automatically download Python versions if they cannot be found on the system.
+By default, fyn will automatically download Python versions if they cannot be found on the system.
 This behavior can be
 [disabled with the `python-downloads` option](#disabling-automatic-python-downloads).
 
 ### Python version files
 
-The `.python-version` file can be used to create a default Python version request. fv searches for a
-`.python-version` file in the working directory and each of its parents. If none is found, fv will
+The `.python-version` file can be used to create a default Python version request. fyn searches for a
+`.python-version` file in the working directory and each of its parents. If none is found, fyn will
 check the user-level configuration directory. Any of the request formats described above can be
 used, though use of a version number is recommended for interoperability with other tools.
 
 A `.python-version` file can be created in the current directory with the
-[`fv python pin`](../reference/cli.md/#fv-python-pin) command.
+[`fyn python pin`](../reference/cli.md/#fyn-python-pin) command.
 
 A global `.python-version` file can be created in the user configuration directory with the
-[`fv python pin --global`](../reference/cli.md/#fv-python-pin) command.
+[`fyn python pin --global`](../reference/cli.md/#fyn-python-pin) command.
 
 Discovery of `.python-version` files can be disabled with `--no-config`.
 
-fv will not search for `.python-version` files beyond project or workspace boundaries (except the
+fyn will not search for `.python-version` files beyond project or workspace boundaries (except the
 user configuration directory).
 
 ## Installing a Python version
 
-fv bundles a list of downloadable CPython and PyPy distributions for macOS, Linux, and Windows.
+fyn bundles a list of downloadable CPython and PyPy distributions for macOS, Linux, and Windows.
 
 !!! tip
 
     By default, Python versions are automatically downloaded as needed without using
-    `fv python install`.
+    `fyn python install`.
 
 To install a Python version at a specific version:
 
 ```console
-$ fv python install 3.12.3
+$ fyn python install 3.12.3
 ```
 
 To install the latest patch version:
 
 ```console
-$ fv python install 3.12
+$ fyn python install 3.12
 ```
 
 To install a version that satisfies constraints:
 
 ```console
-$ fv python install '>=3.8,<3.10'
+$ fyn python install '>=3.8,<3.10'
 ```
 
 To install multiple versions:
 
 ```console
-$ fv python install 3.9 3.10 3.11
+$ fyn python install 3.9 3.10 3.11
 ```
 
 To install a specific implementation:
 
 ```console
-$ fv python install pypy
+$ fyn python install pypy
 ```
 
 All the [Python version request](#requesting-a-version) formats are supported except those that are
 used for requesting local interpreters such as a file path.
 
-By default `fv python install` will verify that a managed Python version is installed or install the
-latest version. If a `.python-version` file is present, fv will install the Python version listed in
+By default `fyn python install` will verify that a managed Python version is installed or install the
+latest version. If a `.python-version` file is present, fyn will install the Python version listed in
 the file. A project that requires multiple Python versions may define a `.python-versions` file. If
-present, fv will install all the Python versions listed in the file.
+present, fyn will install all the Python versions listed in the file.
 
 !!! important
 
-    The available Python versions are frozen for each fv release. To install new Python versions,
-    you may need upgrade fv.
+    The available Python versions are frozen for each fyn release. To install new Python versions,
+    you may need upgrade fyn.
 
 See the [storage documentation](../reference/storage.md#python-versions) for details about where
 installed Python versions are stored.
 
 ### Installing Python executables
 
-fv installs Python executables into your `PATH` by default, e.g., on Unix `fv python install 3.12`
+fyn installs Python executables into your `PATH` by default, e.g., on Unix `fyn python install 3.12`
 will install a Python executable into `~/.local/bin`, e.g., as `python3.12`. See the
 [storage documentation](../reference/storage.md#python-executables) for more details about the
 target directory.
 
 !!! tip
 
-    If `~/.local/bin` is not in your `PATH`, you can add it with `fv python update-shell`.
+    If `~/.local/bin` is not in your `PATH`, you can add it with `fyn python update-shell`.
 
 To install `python` and `python3` executables, include the experimental `--default` option:
 
 ```console
-$ fv python install 3.12 --default
+$ fyn python install 3.12 --default
 ```
 
-When installing Python executables, fv will only overwrite an existing executable if it is managed
-by fv — e.g., if `~/.local/bin/python3.12` exists already fv will not overwrite it without the
+When installing Python executables, fyn will only overwrite an existing executable if it is managed
+by fyn — e.g., if `~/.local/bin/python3.12` exists already fyn will not overwrite it without the
 `--force` flag.
 
-fv will update executables that it manages. However, it will prefer the latest patch version of each
+fyn will update executables that it manages. However, it will prefer the latest patch version of each
 Python minor version by default. For example:
 
 ```console
-$ fv python install 3.12.7  # Adds `python3.12` to `~/.local/bin`
-$ fv python install 3.12.6  # Does not update `python3.12`
-$ fv python install 3.12.8  # Updates `python3.12` to point to 3.12.8
+$ fyn python install 3.12.7  # Adds `python3.12` to `~/.local/bin`
+$ fyn python install 3.12.6  # Does not update `python3.12`
+$ fyn python install 3.12.8  # Updates `python3.12` to point to 3.12.8
 ```
 
 ## Upgrading Python versions
 
 !!! important
 
-    Upgrades are only supported for fv-managed Python versions.
+    Upgrades are only supported for fyn-managed Python versions.
 
     Upgrades are not currently supported for PyPy, GraalPy, and Pyodide.
 
-fv allows transparently upgrading Python versions to the latest patch release, e.g., 3.13.4 to
-3.13.5. fv does not allow transparently upgrading across minor Python versions, e.g., 3.12 to 3.13,
+fyn allows transparently upgrading Python versions to the latest patch release, e.g., 3.13.4 to
+3.13.5. fyn does not allow transparently upgrading across minor Python versions, e.g., 3.12 to 3.13,
 because changing minor versions can affect dependency resolution.
 
-fv-managed Python versions can be upgraded to the latest supported patch release with the
+fyn-managed Python versions can be upgraded to the latest supported patch release with the
 `python upgrade` command:
 
 To upgrade a Python version to the latest supported patch release:
 
 ```console
-$ fv python upgrade 3.12
+$ fyn python upgrade 3.12
 ```
 
 To upgrade all installed Python versions:
 
 ```console
-$ fv python upgrade
+$ fyn python upgrade
 ```
 
-After an upgrade, fv will prefer the new version, but will retain the existing version as it may
+After an upgrade, fyn will prefer the new version, but will retain the existing version as it may
 still be used by virtual environments.
 
 Virtual environments using the Python version will be automatically upgraded to the new patch
 version.
 
 If a virtual environment was created with an explicitly requested patch version, e.g.,
-`fv venv -p 3.10.8`, it will not be transparently upgraded to a new version.
+`fyn venv -p 3.10.8`, it will not be transparently upgraded to a new version.
 
 ### Minor version directories
 
@@ -196,14 +196,14 @@ Automatic upgrades for virtual environments are implemented using a directory wi
 version, e.g.:
 
 ```
-~/.local/share/fv/python/cpython-3.12-macos-aarch64-none
+~/.local/share/fyn/python/cpython-3.12-macos-aarch64-none
 ```
 
 which is a symbolic link (on Unix) or junction (on Windows) pointing to a specific patch version:
 
 ```console
-$ readlink ~/.local/share/fv/python/cpython-3.12-macos-aarch64-none
-~/.local/share/fv/python/cpython-3.12.11-macos-aarch64-none
+$ readlink ~/.local/share/fyn/python/cpython-3.12-macos-aarch64-none
+~/.local/share/fyn/python/cpython-3.12.11-macos-aarch64-none
 ```
 
 If this link is resolved by another tool, e.g., by canonicalizing the Python interpreter path, and
@@ -211,7 +211,7 @@ used to create a virtual environment, it will not be automatically upgraded.
 
 ## Project Python versions
 
-fv will respect Python requirements defined in `requires-python` in the `pyproject.toml` file during
+fyn will respect Python requirements defined in `requires-python` in the `pyproject.toml` file during
 project command invocations. The first Python version that is compatible with the requirement will
 be used, unless a version is otherwise requested, e.g., via a `.python-version` file or the
 `--python` flag.
@@ -221,19 +221,19 @@ be used, unless a version is otherwise requested, e.g., via a `.python-version` 
 To list installed and available Python versions:
 
 ```console
-$ fv python list
+$ fyn python list
 ```
 
 To filter the Python versions, provide a request, e.g., to show all Python 3.13 interpreters:
 
 ```console
-$ fv python list 3.13
+$ fyn python list 3.13
 ```
 
 Or, to show all PyPy interpreters:
 
 ```console
-$ fv python list pypy
+$ fyn python list pypy
 ```
 
 By default, downloads for other platforms and old patch versions are hidden.
@@ -241,29 +241,29 @@ By default, downloads for other platforms and old patch versions are hidden.
 To view all versions:
 
 ```console
-$ fv python list --all-versions
+$ fyn python list --all-versions
 ```
 
 To view Python versions for other platforms:
 
 ```console
-$ fv python list --all-platforms
+$ fyn python list --all-platforms
 ```
 
 To exclude downloads and only show installed Python versions:
 
 ```console
-$ fv python list --only-installed
+$ fyn python list --only-installed
 ```
 
-See the [`fv python list`](../reference/cli.md#fv-python-list) reference for more details.
+See the [`fyn python list`](../reference/cli.md#fyn-python-list) reference for more details.
 
 ## Finding a Python executable
 
-To find a Python executable, use the `fv python find` command:
+To find a Python executable, use the `fyn python find` command:
 
 ```console
-$ fv python find
+$ fyn python find
 ```
 
 By default, this will display the path to the first available Python executable. See the
@@ -273,17 +273,17 @@ This interface also supports many [request formats](#requesting-a-version), e.g.
 executable that has a version of 3.11 or newer:
 
 ```console
-$ fv python find '>=3.11'
+$ fyn python find '>=3.11'
 ```
 
-By default, `fv python find` will include Python versions from virtual environments. If a `.venv`
+By default, `fyn python find` will include Python versions from virtual environments. If a `.venv`
 directory is found in the working directory or any of the parent directories or the `VIRTUAL_ENV`
 environment variable is set, it will take precedence over any Python executables on the `PATH`.
 
 To ignore virtual environments, use the `--system` flag:
 
 ```console
-$ fv python find --system
+$ fyn python find --system
 ```
 
 ## Discovery of Python versions
@@ -296,7 +296,7 @@ When searching for a Python version, the following locations are checked:
 - On Windows, the Python interpreters in the Windows registry and Microsoft Store Python
   interpreters (see `py --list-paths`) that match the requested version.
 
-In some cases, fv allows using a Python version from a virtual environment. In this case, the
+In some cases, fyn allows using a Python version from a virtual environment. In this case, the
 virtual environment's interpreter will be checked for compatibility with the request before
 searching for an installation as described above. See the
 [pip-compatible virtual environment discovery](../pip/environments.md#discovery-of-python-environments)
@@ -307,10 +307,10 @@ queried for metadata to ensure it meets the [requested Python version](#requesti
 the query fails, the executable will be skipped. If the executable satisfies the request, it is used
 without inspecting additional executables.
 
-When searching for a managed Python version, fv will prefer newer versions first. When searching for
-a system Python version, fv will use the first compatible version — not the newest version.
+When searching for a managed Python version, fyn will prefer newer versions first. When searching for
+a system Python version, fyn will use the first compatible version — not the newest version.
 
-If a Python version cannot be found on the system, fv will check for a compatible managed Python
+If a Python version cannot be found on the system, fyn will check for a compatible managed Python
 version download.
 
 ## Python pre-releases
@@ -321,21 +321,21 @@ available it will be used but otherwise a stable release version will be used. S
 path to a pre-release Python executable is provided then no other Python version matches the request
 and the pre-release version will be used.
 
-If a pre-release Python version is available and matches the request, fv will not download a stable
+If a pre-release Python version is available and matches the request, fyn will not download a stable
 Python version instead.
 
 ## Free-threaded Python
 
-fv supports discovering and installing
+fyn supports discovering and installing
 [free-threaded](https://docs.python.org/3.14/glossary.html#term-free-threading) Python variants in
 CPython 3.13+.
 
 For Python 3.13, free-threaded Python versions will not be selected by default. Free-threaded Python
 versions will only be selected when explicitly requested, e.g., with `3.13t` or `3.13+freethreaded`.
 
-For Python 3.14+, fv will allow use of free-threaded Python 3.14+ interpreters without explicit
+For Python 3.14+, fyn will allow use of free-threaded Python 3.14+ interpreters without explicit
 selection. The GIL-enabled build of Python will still be preferred, e.g., when performing an
-installation with `fv python install 3.14`. However, e.g., if a free-threaded interpreter comes
+installation with `fyn python install 3.14`. However, e.g., if a free-threaded interpreter comes
 before a GIL-enabled build on the `PATH`, it will be used.
 
 If both free-threaded and GIL-enabled Python versions are available on the system, and want to
@@ -343,7 +343,7 @@ require the use of the GIL-enabled variant in a project, you can use the `+gil` 
 
 ## Debug Python variants
 
-fv supports discovering and installing
+fyn supports discovering and installing
 [debug builds](https://docs.python.org/3.14/using/configure.html#debug-build) of Python, i.e., with
 debug assertions enabled.
 
@@ -360,49 +360,49 @@ Debug builds of Python can be explicitly requested with, e.g., `3.13d` or `3.13+
 
 !!! note
 
-    CPython versions installed by fv usually have debug symbols stripped to reduce the distribution
+    CPython versions installed by fyn usually have debug symbols stripped to reduce the distribution
     size. These debug builds do not have debug symbols stripped, which can be useful when debugging
     Python processes with a C-level debugger.
 
 ## Disabling automatic Python downloads
 
-By default, fv will automatically download Python versions when needed.
+By default, fyn will automatically download Python versions when needed.
 
 The [`python-downloads`](../reference/settings.md#python-downloads) option can be used to disable
 this behavior. By default, it is set to `automatic`; set to `manual` to only allow Python downloads
-during `fv python install`.
+during `fyn python install`.
 
 !!! tip
 
     The `python-downloads` setting can be set in a
     [persistent configuration file](./configuration-files.md) to change the default behavior, or
-    the `--no-python-downloads` flag can be passed to any fv command.
+    the `--no-python-downloads` flag can be passed to any fyn command.
 
 ## Requiring or disabling managed Python versions
 
-By default, fv will attempt to use Python versions found on the system and only download managed
+By default, fyn will attempt to use Python versions found on the system and only download managed
 Python versions when necessary. To ignore system Python versions, and only use managed Python
 versions, use the `--managed-python` flag:
 
 ```console
-$ fv python list --managed-python
+$ fyn python list --managed-python
 ```
 
 Similarly, to ignore managed Python versions and only use system Python versions, use the
 `--no-managed-python` flag:
 
 ```console
-$ fv python list --no-managed-python
+$ fyn python list --no-managed-python
 ```
 
-To change fv's default behavior in a configuration file, use the
+To change fyn's default behavior in a configuration file, use the
 [`python-preference` setting](#adjusting-python-version-preferences).
 
 ## Adjusting Python version preferences
 
 The [`python-preference`](../reference/settings.md#python-preference) setting determines whether to
 prefer using Python installations that are already present on the system, or those that are
-downloaded and installed by fv.
+downloaded and installed by fyn.
 
 By default, the `python-preference` is set to `managed` which prefers managed Python installations
 over system Python installations. However, system Python installations are still preferred over
@@ -423,8 +423,8 @@ The following alternative options are available:
 
 ## Python implementation support
 
-fv supports the CPython, PyPy, Pyodide, and GraalPy Python implementations. If a Python
-implementation is not supported, fv will fail to discover its interpreter.
+fyn supports the CPython, PyPy, Pyodide, and GraalPy Python implementations. If a Python
+implementation is not supported, fyn will fail to discover its interpreter.
 
 The implementations may be requested with either the long or short name:
 
@@ -440,18 +440,18 @@ supported formats.
 
 ## Managed Python distributions
 
-fv supports downloading and installing CPython, PyPy, and Pyodide distributions.
+fyn supports downloading and installing CPython, PyPy, and Pyodide distributions.
 
 ### CPython distributions
 
-As Python does not publish official distributable CPython binaries, fv instead uses pre-built
+As Python does not publish official distributable CPython binaries, fyn instead uses pre-built
 distributions from the Astral
 [`python-build-standalone`](https://github.com/astral-sh/python-build-standalone) project.
 `python-build-standalone` is also is used in many other Python projects, like
 [Mise](https://mise.jdx.dev/lang/python.html) and
 [bazelbuild/rules_python](https://github.com/bazelbuild/rules_python).
 
-The fv Python distributions are self-contained, highly-portable, and performant. While Python can be
+The fyn Python distributions are self-contained, highly-portable, and performant. While Python can be
 built from source, as in tools like `pyenv`, doing so requires preinstalled system dependencies, and
 creating optimized, performant builds (e.g., with PGO and LTO enabled) is very slow.
 
@@ -478,8 +478,8 @@ Pyodide is a port of CPython for the WebAssembly / Emscripten platform.
 Both macOS and Windows support running x86_64 binaries on aarch64 through transparent emulation.
 This is called [Rosetta 2](https://support.apple.com/en-gb/102527) or
 [Windows on ARM (WoA) emulation](https://learn.microsoft.com/en-us/windows/arm/apps-on-arm-x86-emulation).
-It's possible to use x86_64 fv on aarch64, and also possible to use an x86_64 Python interpreter on
-aarch64. Either fv binary can use either Python interpreter, but a Python interpreter needs packages
+It's possible to use x86_64 fyn on aarch64, and also possible to use an x86_64 Python interpreter on
+aarch64. Either fyn binary can use either Python interpreter, but a Python interpreter needs packages
 for its architecture, either all x86_64 or all aarch64.
 
 ## Registration in the Windows registry
@@ -490,9 +490,9 @@ defined by [PEP 514](https://peps.python.org/pep-0514/).
 After installation, the Python versions can be selected with the `py` launcher, e.g.:
 
 ```console
-$ fv python install 3.13.1
+$ fyn python install 3.13.1
 $ py -V:Astral/CPython3.13.1
 ```
 
-On uninstall, fv will remove the registry entry for the target version as well as any broken
+On uninstall, fyn will remove the registry entry for the target version as well as any broken
 registry entries.

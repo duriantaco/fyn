@@ -1,9 +1,9 @@
-"""Benchmark the fv `tool` interface against other packaging tools.
+"""Benchmark the fyn `tool` interface against other packaging tools.
 
-For example, to benchmark fv against pipx, run the following from the
+For example, to benchmark fyn against pipx, run the following from the
 `scripts/benchmark` directory:
 
-    fv run tools --uv --pipx
+    fyn run tools --uv --pipx
 """
 
 import abc
@@ -142,10 +142,10 @@ class Pipx(Suite):
         )
 
 
-class Fv(Suite):
+class fyn(Suite):
     def __init__(self, *, path: str | None = None) -> Command | None:
-        """Initialize a fv benchmark."""
-        self.name = path or "fv"
+        """Initialize a fyn benchmark."""
+        self.name = path or "fyn"
         self.path = path or os.path.join(
             os.path.dirname(
                 os.path.dirname(
@@ -156,7 +156,7 @@ class Fv(Suite):
             ),
             "target",
             "release",
-            "fv",
+            "fyn",
         )
 
     def install_cold(self, *, cwd: str) -> Command | None:
@@ -227,7 +227,7 @@ class Fv(Suite):
 def main():
     """Run the benchmark."""
     parser = argparse.ArgumentParser(
-        description="Benchmark fv against other packaging tools."
+        description="Benchmark fyn against other packaging tools."
     )
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Print verbose output."
@@ -265,7 +265,7 @@ def main():
     )
     parser.add_argument(
         "--uv",
-        help="Whether to benchmark fv (assumes a fv binary exists at `./target/release/fv`).",
+        help="Whether to benchmark fyn (assumes a fyn binary exists at `./target/release/fyn`).",
         action="store_true",
     )
     parser.add_argument(
@@ -277,7 +277,7 @@ def main():
     parser.add_argument(
         "--uv-path",
         type=str,
-        help="Path(s) to the fv binary to benchmark.",
+        help="Path(s) to the fyn binary to benchmark.",
         action="append",
     )
 
@@ -298,18 +298,18 @@ def main():
     suites = []
     if args.pipx:
         suites.append(Pipx())
-    if args.fv:
-        suites.append(Fv())
+    if args.fyn:
+        suites.append(fyn())
     for path in args.pipx_path or []:
         suites.append(Pipx(path=path))
     for path in args.uv_path or []:
-        suites.append(Fv(path=path))
+        suites.append(fyn(path=path))
 
     # If no tools were specified, benchmark all tools.
     if not suites:
         suites = [
             Pipx(),
-            Fv(),
+            fyn(),
         ]
 
     # Determine the benchmarks to run, based on user input.

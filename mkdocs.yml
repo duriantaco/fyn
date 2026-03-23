@@ -1,4 +1,4 @@
-site_name: fv
+site_name: fyn
 theme:
   name: material
   logo: assets/logo-letter.svg
@@ -35,12 +35,12 @@ theme:
         icon: material/brightness-4
         name: Switch to system preference
   custom_dir: docs/.overrides
-repo_url: https://github.com/oha/fv
-repo_name: fv
+repo_url: https://github.com/oha/fyn
+repo_name: fyn
 site_author: charliermarsh
-site_url: https://github.com/oha/fv
-site_dir: site/fv
-site_description: fv is an extremely fast Python package and project manager, written in Rust.
+site_url: https://github.com/oha/fyn
+site_dir: site/fyn
+site_description: fyn is an extremely fast Python package and project manager, written in Rust.
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -86,12 +86,12 @@ plugins:
         "guides/integration/dependency-bots.md": "guides/integration/renovate.md"
   - llmstxt:
       markdown_description: |
-        You can use fv to install Python dependencies, run scripts, manage virtual environments,
-        build and publish packages, and even install Python itself. fv is capable of replacing
+        You can use fyn to install Python dependencies, run scripts, manage virtual environments,
+        build and publish packages, and even install Python itself. fyn is capable of replacing
         `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`, `twine`, `virtualenv`, and more.
 
-        fv includes both a pip-compatible CLI (prepend `uv` to a pip command, e.g., `fv pip install ruff`)
-        and a first-class project interface (e.g., `fv add ruff`) complete with lockfiles and
+        fyn includes both a pip-compatible CLI (prepend `uv` to a pip command, e.g., `fyn pip install ruff`)
+        and a first-class project interface (e.g., `fyn add ruff`) complete with lockfiles and
         workspace support.
 
         When fetching documentation, use explicit `index.md` paths for directories, e.g.,
@@ -162,9 +162,9 @@ extra_javascript:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/oha/fv
+      link: https://github.com/oha/fyn
     - icon: fontawesome/brands/discord
-      link: https://github.com/oha/fv/discussions
+      link: https://github.com/oha/fyn/discussions
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/uv/
     - icon: fontawesome/brands/x-twitter
@@ -186,7 +186,7 @@ nav:
       - Publishing packages: guides/package.md
       - Migration:
           - guides/migration/index.md
-          - From pip to a fv project: guides/migration/pip-to-project.md
+          - From pip to a fyn project: guides/migration/pip-to-project.md
       - Integrations:
           - guides/integration/index.md
           - Docker: guides/integration/docker.md

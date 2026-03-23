@@ -21,7 +21,7 @@ if [[ "$(uname)" == "Darwin" && -n "${UV_TEST_CODESIGN_IDENTITY:-}" ]]; then
 
   targets=()
 
-  for bin in target/debug/fv target/debug/uvx; do
+  for bin in target/debug/fyn target/debug/uvx; do
     [[ -f "$bin" ]] && targets+=("$bin")
   done
 

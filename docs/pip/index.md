@@ -1,12 +1,12 @@
 # The pip interface
 
-fv provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands. These
-commands work directly with the virtual environment, in contrast to fv's primary interfaces where
-the virtual environment is managed automatically. The `fv pip` interface exposes the speed and
-functionality of fv to power users and projects that are not ready to transition away from `pip` and
+fyn provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands. These
+commands work directly with the virtual environment, in contrast to fyn's primary interfaces where
+the virtual environment is managed automatically. The `fyn pip` interface exposes the speed and
+functionality of fyn to power users and projects that are not ready to transition away from `pip` and
 `pip-tools`.
 
-The following sections discuss the basics of using `fv pip`:
+The following sections discuss the basics of using `fyn pip`:
 
 - [Creating and using environments](./environments.md)
 - [Installing and managing packages](./packages.md)
@@ -20,6 +20,6 @@ differences. Consult the [pip-compatibility guide](./compatibility.md) for detai
 
 !!! important
 
-    fv does not rely on or invoke pip. The pip interface is named as such to highlight its dedicated
+    fyn does not rely on or invoke pip. The pip interface is named as such to highlight its dedicated
     purpose of providing low-level commands that match pip's interface and to separate it from the
-    rest of fv's commands which operate at a higher level of abstraction.
+    rest of fyn's commands which operate at a higher level of abstraction.

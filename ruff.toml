@@ -1,7 +1,7 @@
 target-version = "py312"
 exclude = [
-  "crates/fv-virtualenv/src/activator/activate_this.py",
-  "crates/fv-virtualenv/src/_virtualenv.py",
+  "crates/fyn-virtualenv/src/activator/activate_this.py",
+  "crates/fyn-virtualenv/src/_virtualenv.py",
   "test/ecosystem",
   "test/workspaces",
   "test/packages",

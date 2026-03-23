@@ -1,20 +1,20 @@
-# The fv build backend
+# The fyn build backend
 
 A build backend transforms a source tree (i.e., a directory) into a source distribution or a wheel.
 
-fv supports all build backends (as specified by [PEP 517](https://peps.python.org/pep-0517/)), but
-also provides a native build backend (`uv_build`) that integrates tightly with fv to improve
+fyn supports all build backends (as specified by [PEP 517](https://peps.python.org/pep-0517/)), but
+also provides a native build backend (`uv_build`) that integrates tightly with fyn to improve
 performance and user experience.
 
 ## Choosing a build backend
 
-The fv build backend is a great choice for most Python projects. It has reasonable defaults, with
+The fyn build backend is a great choice for most Python projects. It has reasonable defaults, with
 the goal of requiring zero configuration for most users, but provides flexible configuration to
-accommodate most Python project structures. It integrates tightly with fv, to improve messaging and
+accommodate most Python project structures. It integrates tightly with fyn, to improve messaging and
 user experience. It validates project metadata and structures, preventing common mistakes. And,
 finally, it's very fast.
 
-The fv build backend currently **only supports pure Python code**. An alternative backend is
+The fyn build backend currently **only supports pure Python code**. An alternative backend is
 required to build a
 [library with extension modules](../concepts/projects/init.md#projects-with-extension-modules).
 
@@ -24,9 +24,9 @@ required to build a
     a more flexible project layout are required, consider using the
     [hatchling](https://hatch.pypa.io/latest/config/build/#build-system) build backend instead.
 
-## Using the fv build backend
+## Using the fyn build backend
 
-To use fv as a build backend in an existing project, add `uv_build` to the
+To use fyn as a build backend in an existing project, add `uv_build` to the
 [`[build-system]`](../concepts/projects/config.md#build-systems) section in your `pyproject.toml`:
 
 ```toml title="pyproject.toml"
@@ -37,24 +37,24 @@ build-backend = "uv_build"
 
 !!! note
 
-    The fv build backend follows the same [versioning policy](../reference/policies/versioning.md)
-    as fv. Including an upper bound on the `uv_build` version ensures that your package continues to
+    The fyn build backend follows the same [versioning policy](../reference/policies/versioning.md)
+    as fyn. Including an upper bound on the `uv_build` version ensures that your package continues to
     build correctly as new versions are released.
 
-To create a new project that uses the fv build backend, use `fv init`:
+To create a new project that uses the fyn build backend, use `fyn init`:
 
 ```console
-$ fv init
+$ fyn init
 ```
 
-When the project is built, e.g., with [`fv build`](../guides/package.md), the fv build backend will
+When the project is built, e.g., with [`fyn build`](../guides/package.md), the fyn build backend will
 be used to create the source distribution and wheel.
 
 ## Bundled build backend
 
 The build backend is published as a separate package (`uv_build`) that is optimized for portability
-and small binary size. However, the `fv` executable also includes a copy of the build backend, which
-will be used during builds performed by fv, e.g., during `fv build`, if its version is compatible
+and small binary size. However, the `fyn` executable also includes a copy of the build backend, which
+will be used during builds performed by fyn, e.g., during `fyn build`, if its version is compatible
 with the `uv_build` requirement. If it's not compatible, a compatible version of the `uv_build`
 package will be used. Other build frontends, such as `python -m build`, will always use the
 `uv_build` package, typically choosing the latest compatible version.
@@ -73,7 +73,7 @@ src
     └── __init__.py
 ```
 
-fv normalizes the package name to determine the default module name: the package name is lowercased
+fyn normalizes the package name to determine the default module name: the package name is lowercased
 and dots and dashes are replaced with underscores, e.g., `Foo-Bar` would be converted to `foo_bar`.
 
 The `src/` directory is the default directory for module discovery.
@@ -90,7 +90,7 @@ FOO
 The correct build configuration would be:
 
 ```toml title="pyproject.toml"
-[tool.fv.build-backend]
+[tool.fyn.build-backend]
 module-name = "FOO"
 module-root = ""
 ```
@@ -114,7 +114,7 @@ src
 And the `module-name` configuration would be:
 
 ```toml title="pyproject.toml"
-[tool.fv.build-backend]
+[tool.fyn.build-backend]
 module-name = "foo.bar"
 ```
 
@@ -138,7 +138,7 @@ While we do not recommend this structure (i.e., you should use a workspace with 
 instead), it is supported by setting `module-name` to a list of names:
 
 ```toml title="pyproject.toml"
-[tool.fv.build-backend]
+[tool.fyn.build-backend]
 module-name = ["foo", "bar"]
 ```
 
@@ -146,7 +146,7 @@ For packages with many modules or complex namespaces, the `namespace = true` opt
 avoid explicitly declaring each module name, e.g.:
 
 ```toml title="pyproject.toml"
-[tool.fv.build-backend]
+[tool.fyn.build-backend]
 namespace = true
 ```
 
@@ -171,7 +171,7 @@ src
 The recommended configuration would be:
 
 ```toml title="pyproject.toml"
-[tool.fv.build-backend]
+[tool.fyn.build-backend]
 module-name = "foo"
 namespace = true
 ```
@@ -180,7 +180,7 @@ namespace = true
 
 The build backend also supports building type stub packages, which are identified by the `-stubs`
 suffix on the package or module name, e.g., `foo-stubs`. The module name for type stub packages must
-end in `-stubs`, so fv will not normalize the `-` to an underscore. Additionally, fv will search for
+end in `-stubs`, so fyn will not normalize the `-` to an underscore. Additionally, fyn will search for
 a `__init__.pyi` file. For example, the project structure would be:
 
 ```text
@@ -197,38 +197,38 @@ Type stub modules are also supported for [namespace packages](#namespace-package
 The build backend is responsible for determining which files in a source tree should be packaged
 into the distributions.
 
-To determine which files to include in a source distribution, fv first adds the included files and
+To determine which files to include in a source distribution, fyn first adds the included files and
 directories, then removes the excluded files and directories. This means that exclusions always take
 precedence over inclusions.
 
-By default, fv excludes `__pycache__`, `*.pyc`, and `*.pyo`.
+By default, fyn excludes `__pycache__`, `*.pyc`, and `*.pyo`.
 
 When building a source distribution, the following files and directories are included:
 
 - The `pyproject.toml`
 - The [module](#modules) under
-  [`tool.fv.build-backend.module-root`](../reference/settings.md#build-backend_module-root).
+  [`tool.fyn.build-backend.module-root`](../reference/settings.md#build-backend_module-root).
 - The files referenced by `project.license-files` and `project.readme`.
-- All directories under [`tool.fv.build-backend.data`](../reference/settings.md#build-backend_data).
+- All directories under [`tool.fyn.build-backend.data`](../reference/settings.md#build-backend_data).
 - All files matching patterns from
-  [`tool.fv.build-backend.source-include`](../reference/settings.md#build-backend_source-include).
+  [`tool.fyn.build-backend.source-include`](../reference/settings.md#build-backend_source-include).
 
 From these, items matching
-[`tool.fv.build-backend.source-exclude`](../reference/settings.md#build-backend_source-exclude) and
+[`tool.fyn.build-backend.source-exclude`](../reference/settings.md#build-backend_source-exclude) and
 the [default excludes](../reference/settings.md#build-backend_default-excludes) are removed.
 
 When building a wheel, the following files and directories are included:
 
 - The [module](#modules) under
-  [`tool.fv.build-backend.module-root`](../reference/settings.md#build-backend_module-root)
+  [`tool.fyn.build-backend.module-root`](../reference/settings.md#build-backend_module-root)
 - The files referenced by `project.license-files`, which are copied into the `.dist-info` directory.
 - The `project.readme`, which is copied into the project metadata.
-- All directories under [`tool.fv.build-backend.data`](../reference/settings.md#build-backend_data),
+- All directories under [`tool.fyn.build-backend.data`](../reference/settings.md#build-backend_data),
   which are copied into the `.data` directory.
 
 From these,
-[`tool.fv.build-backend.source-exclude`](../reference/settings.md#build-backend_source-exclude),
-[`tool.fv.build-backend.wheel-exclude`](../reference/settings.md#build-backend_wheel-exclude) and
+[`tool.fyn.build-backend.source-exclude`](../reference/settings.md#build-backend_source-exclude),
+[`tool.fyn.build-backend.wheel-exclude`](../reference/settings.md#build-backend_wheel-exclude) and
 the default excludes are removed. The source dist excludes are applied to avoid source tree to wheel
 builds including more files than source tree to source distribution to wheel build.
 
@@ -239,10 +239,10 @@ module root alongside the source code.
 
 !!! tip
 
-    When using the fv build backend through a frontend that is not fv, such as pip or
+    When using the fyn build backend through a frontend that is not fyn, such as pip or
     `python -m build`, debug logging can be enabled through environment variables with
-    `RUST_LOG=fv=debug` or `RUST_LOG=fv=verbose`. When used through fv, the fv build backend shares
-    the verbosity level of fv.
+    `RUST_LOG=fyn=debug` or `RUST_LOG=fyn=verbose`. When used through fyn, the fyn build backend shares
+    the verbosity level of fyn.
 
 ### Include and exclude syntax
 

@@ -32,7 +32,7 @@ repos:
         language: system
         types: [rust]
         pass_filenames: false
-        files: ^crates/(fv-cli|fv-settings)/
+        files: ^crates/(fyn-cli|fyn-settings)/
 
   - repo: local
     hooks:

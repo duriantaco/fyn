@@ -4,10 +4,10 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = ["bird-feeder", "iniconfig>=2,<3"]
 
-[tool.fv.sources]
+[tool.fyn.sources]
 bird-feeder = { workspace = true }
 
-[tool.fv.workspace]
+[tool.fyn.workspace]
 members = ["packages/*"]
 
 [build-system]

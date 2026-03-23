@@ -1,4 +1,4 @@
-# Publish fv version information to the versions repository.
+# Publish fyn version information to the versions repository.
 #
 # Assumed to run as a subworkflow of .github/workflows/release.yml; specifically, as a post-announce
 # job within `cargo-dist`.
@@ -29,13 +29,13 @@ jobs:
       - name: "Clone versions repo"
         run: git clone https://${{ secrets.ASTRAL_VERSIONS_PAT }}@github.com/astral-sh/versions.git astral-versions
 
-      - name: "Install fv"
+      - name: "Install fyn"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
 
       - name: "Update versions"
         env:
           PLAN: ${{ inputs.plan }}
-        run: printf '%s' "$PLAN" | fv run astral-versions/scripts/convert-cargo-dist-plan.py | fv run astral-versions/scripts/insert-versions.py --name fv
+        run: printf '%s' "$PLAN" | fyn run astral-versions/scripts/convert-cargo-dist-plan.py | fyn run astral-versions/scripts/insert-versions.py --name fyn
 
       - name: "Commit versions"
         working-directory: astral-versions
@@ -45,14 +45,14 @@ jobs:
 
           git checkout -b "$BRANCH_NAME"
           git add -A
-          git commit -m "Update fv to version $VERSION"
+          git commit -m "Update fyn to version $VERSION"
 
       - name: "Create Pull Request"
         working-directory: astral-versions
         env:
           GITHUB_TOKEN: ${{ secrets.ASTRAL_VERSIONS_PAT }}
         run: |
-          pull_request_title="Add fv $VERSION"
+          pull_request_title="Add fyn $VERSION"
 
           gh pr list --state open --json title --jq ".[] | select(.title == \"$pull_request_title\") | .number" | \
             xargs -I {} gh pr close {}

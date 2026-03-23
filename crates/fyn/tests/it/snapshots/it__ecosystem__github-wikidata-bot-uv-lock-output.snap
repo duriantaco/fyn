@@ -1,0 +1,11 @@
+---
+source: crates/fyn/tests/it/ecosystem.rs
+expression: snapshot
+---
+success: true
+exit_code: 0
+----- stdout -----
+
+----- stderr -----
+warning: The `tool.fyn.dev-dependencies` field (used in `pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+Resolved 31 packages in [TIME]

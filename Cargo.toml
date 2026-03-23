@@ -3,90 +3,90 @@ members = ["crates/*"]
 exclude = [
   "scripts",
   # Needs nightly
-  "crates/fv-trampoline",
+  "crates/fyn-trampoline",
 ]
 resolver = "2"
 
 [workspace.package]
 edition = "2024"
 rust-version = "1.92.0"
-homepage = "https://pypi.org/project/fv/"
-repository = "https://github.com/oha/fv"
-authors = ["fv"]
+homepage = "https://pypi.org/project/fyn/"
+repository = "https://github.com/oha/fyn"
+authors = ["fyn"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-fv-audit = { version = "0.0.32", path = "crates/fv-audit" }
-fv-auth = { version = "0.0.32", path = "crates/fv-auth" }
-fv-bin-install = { version = "0.0.32", path = "crates/fv-bin-install" }
-fv-build-backend = { version = "0.0.32", path = "crates/fv-build-backend" }
-fv-build-frontend = { version = "0.0.32", path = "crates/fv-build-frontend" }
-fv-cache = { version = "0.0.32", path = "crates/fv-cache" }
-fv-cache-info = { version = "0.0.32", path = "crates/fv-cache-info" }
-fv-cache-key = { version = "0.0.32", path = "crates/fv-cache-key" }
-fv-cli = { version = "0.0.32", path = "crates/fv-cli" }
-fv-client = { version = "0.0.32", path = "crates/fv-client" }
-fv-configuration = { version = "0.0.32", path = "crates/fv-configuration" }
-fv-console = { version = "0.0.32", path = "crates/fv-console" }
-fv-dirs = { version = "0.0.32", path = "crates/fv-dirs" }
-fv-dispatch = { version = "0.0.32", path = "crates/fv-dispatch" }
-fv-distribution = { version = "0.0.32", path = "crates/fv-distribution" }
-fv-distribution-filename = { version = "0.0.32", path = "crates/fv-distribution-filename" }
-fv-distribution-types = { version = "0.0.32", path = "crates/fv-distribution-types" }
-fv-extract = { version = "0.0.32", path = "crates/fv-extract" }
-fv-flags = { version = "0.0.32", path = "crates/fv-flags" }
-fv-fs = { version = "0.0.32", path = "crates/fv-fs", features = [
+fyn-audit = { version = "0.0.32", path = "crates/fyn-audit" }
+fyn-auth = { version = "0.0.32", path = "crates/fyn-auth" }
+fyn-bin-install = { version = "0.0.32", path = "crates/fyn-bin-install" }
+fyn-build-backend = { version = "0.0.32", path = "crates/fyn-build-backend" }
+fyn-build-frontend = { version = "0.0.32", path = "crates/fyn-build-frontend" }
+fyn-cache = { version = "0.0.32", path = "crates/fyn-cache" }
+fyn-cache-info = { version = "0.0.32", path = "crates/fyn-cache-info" }
+fyn-cache-key = { version = "0.0.32", path = "crates/fyn-cache-key" }
+fyn-cli = { version = "0.0.32", path = "crates/fyn-cli" }
+fyn-client = { version = "0.0.32", path = "crates/fyn-client" }
+fyn-configuration = { version = "0.0.32", path = "crates/fyn-configuration" }
+fyn-console = { version = "0.0.32", path = "crates/fyn-console" }
+fyn-dirs = { version = "0.0.32", path = "crates/fyn-dirs" }
+fyn-dispatch = { version = "0.0.32", path = "crates/fyn-dispatch" }
+fyn-distribution = { version = "0.0.32", path = "crates/fyn-distribution" }
+fyn-distribution-filename = { version = "0.0.32", path = "crates/fyn-distribution-filename" }
+fyn-distribution-types = { version = "0.0.32", path = "crates/fyn-distribution-types" }
+fyn-extract = { version = "0.0.32", path = "crates/fyn-extract" }
+fyn-flags = { version = "0.0.32", path = "crates/fyn-flags" }
+fyn-fs = { version = "0.0.32", path = "crates/fyn-fs", features = [
   "serde",
   "tokio",
 ] }
-fv-git = { version = "0.0.32", path = "crates/fv-git" }
-fv-git-types = { version = "0.0.32", path = "crates/fv-git-types" }
-fv-globfilter = { version = "0.0.32", path = "crates/fv-globfilter" }
-fv-install-wheel = { version = "0.0.32", path = "crates/fv-install-wheel", default-features = false }
-fv-installer = { version = "0.0.32", path = "crates/fv-installer" }
-fv-keyring = { version = "0.0.32", path = "crates/fv-keyring" }
-fv-logging = { version = "0.0.32", path = "crates/fv-logging" }
-fv-macros = { version = "0.0.32", path = "crates/fv-macros" }
-fv-metadata = { version = "0.0.32", path = "crates/fv-metadata" }
-fv-normalize = { version = "0.0.32", path = "crates/fv-normalize" }
-fv-once-map = { version = "0.0.32", path = "crates/fv-once-map" }
-fv-options-metadata = { version = "0.0.32", path = "crates/fv-options-metadata" }
-fv-performance-memory-allocator = { version = "0.0.32", path = "crates/fv-performance-memory-allocator" }
-fv-pep440 = { version = "0.0.32", path = "crates/fv-pep440", features = [
+fyn-git = { version = "0.0.32", path = "crates/fyn-git" }
+fyn-git-types = { version = "0.0.32", path = "crates/fyn-git-types" }
+fyn-globfilter = { version = "0.0.32", path = "crates/fyn-globfilter" }
+fyn-install-wheel = { version = "0.0.32", path = "crates/fyn-install-wheel", default-features = false }
+fyn-installer = { version = "0.0.32", path = "crates/fyn-installer" }
+fyn-keyring = { version = "0.0.32", path = "crates/fyn-keyring" }
+fyn-logging = { version = "0.0.32", path = "crates/fyn-logging" }
+fyn-macros = { version = "0.0.32", path = "crates/fyn-macros" }
+fyn-metadata = { version = "0.0.32", path = "crates/fyn-metadata" }
+fyn-normalize = { version = "0.0.32", path = "crates/fyn-normalize" }
+fyn-once-map = { version = "0.0.32", path = "crates/fyn-once-map" }
+fyn-options-metadata = { version = "0.0.32", path = "crates/fyn-options-metadata" }
+fyn-performance-memory-allocator = { version = "0.0.32", path = "crates/fyn-performance-memory-allocator" }
+fyn-pep440 = { version = "0.0.32", path = "crates/fyn-pep440", features = [
   "tracing",
   "rkyv",
   "version-ranges",
 ] }
-fv-pep508 = { version = "0.0.32", path = "crates/fv-pep508", features = [
+fyn-pep508 = { version = "0.0.32", path = "crates/fyn-pep508", features = [
   "non-pep508-extensions",
 ] }
-fv-platform = { version = "0.0.32", path = "crates/fv-platform" }
-fv-platform-tags = { version = "0.0.32", path = "crates/fv-platform-tags" }
-fv-preview = { version = "0.0.32", path = "crates/fv-preview" }
-fv-publish = { version = "0.0.32", path = "crates/fv-publish" }
-fv-pypi-types = { version = "0.0.32", path = "crates/fv-pypi-types" }
-fv-python = { version = "0.0.32", path = "crates/fv-python" }
-fv-redacted = { version = "0.0.32", path = "crates/fv-redacted" }
-fv-requirements = { version = "0.0.32", path = "crates/fv-requirements" }
-fv-requirements-txt = { version = "0.0.32", path = "crates/fv-requirements-txt" }
-fv-resolver = { version = "0.0.32", path = "crates/fv-resolver" }
-fv-scripts = { version = "0.0.32", path = "crates/fv-scripts" }
-fv-settings = { version = "0.0.32", path = "crates/fv-settings" }
-fv-shell = { version = "0.0.32", path = "crates/fv-shell" }
-fv-small-str = { version = "0.0.32", path = "crates/fv-small-str" }
-fv-state = { version = "0.0.32", path = "crates/fv-state" }
-fv-static = { version = "0.0.32", path = "crates/fv-static" }
-fv-test = { version = "0.0.32", path = "crates/fv-test" }
-fv-tool = { version = "0.0.32", path = "crates/fv-tool" }
-fv-torch = { version = "0.0.32", path = "crates/fv-torch" }
-fv-trampoline-builder = { version = "0.0.32", path = "crates/fv-trampoline-builder" }
-fv-types = { version = "0.0.32", path = "crates/fv-types" }
-fv-unix = { version = "0.0.32", path = "crates/fv-unix" }
-fv-version = { version = "0.10.12", path = "crates/fv-version" }
-fv-virtualenv = { version = "0.0.32", path = "crates/fv-virtualenv" }
-fv-warnings = { version = "0.0.32", path = "crates/fv-warnings" }
-fv-windows = { version = "0.0.32", path = "crates/fv-windows" }
-fv-workspace = { version = "0.0.32", path = "crates/fv-workspace" }
+fyn-platform = { version = "0.0.32", path = "crates/fyn-platform" }
+fyn-platform-tags = { version = "0.0.32", path = "crates/fyn-platform-tags" }
+fyn-preview = { version = "0.0.32", path = "crates/fyn-preview" }
+fyn-publish = { version = "0.0.32", path = "crates/fyn-publish" }
+fyn-pypi-types = { version = "0.0.32", path = "crates/fyn-pypi-types" }
+fyn-python = { version = "0.0.32", path = "crates/fyn-python" }
+fyn-redacted = { version = "0.0.32", path = "crates/fyn-redacted" }
+fyn-requirements = { version = "0.0.32", path = "crates/fyn-requirements" }
+fyn-requirements-txt = { version = "0.0.32", path = "crates/fyn-requirements-txt" }
+fyn-resolver = { version = "0.0.32", path = "crates/fyn-resolver" }
+fyn-scripts = { version = "0.0.32", path = "crates/fyn-scripts" }
+fyn-settings = { version = "0.0.32", path = "crates/fyn-settings" }
+fyn-shell = { version = "0.0.32", path = "crates/fyn-shell" }
+fyn-small-str = { version = "0.0.32", path = "crates/fyn-small-str" }
+fyn-state = { version = "0.0.32", path = "crates/fyn-state" }
+fyn-static = { version = "0.0.32", path = "crates/fyn-static" }
+fyn-test = { version = "0.0.32", path = "crates/fyn-test" }
+fyn-tool = { version = "0.0.32", path = "crates/fyn-tool" }
+fyn-torch = { version = "0.0.32", path = "crates/fyn-torch" }
+fyn-trampoline-builder = { version = "0.0.32", path = "crates/fyn-trampoline-builder" }
+fyn-types = { version = "0.0.32", path = "crates/fyn-types" }
+fyn-unix = { version = "0.0.32", path = "crates/fyn-unix" }
+fyn-version = { version = "0.10.12", path = "crates/fyn-version" }
+fyn-virtualenv = { version = "0.0.32", path = "crates/fyn-virtualenv" }
+fyn-warnings = { version = "0.0.32", path = "crates/fyn-warnings" }
+fyn-windows = { version = "0.0.32", path = "crates/fyn-windows" }
+fyn-workspace = { version = "0.0.32", path = "crates/fyn-workspace" }
 
 ambient-id = { version = "0.0.10", default-features = false, features = [
   "astral-reqwest-middleware",
@@ -265,7 +265,7 @@ toml = { version = "0.9.2", features = ["fast_hash"] }
 toml_edit = { version = "0.24.0", features = ["serde"] }
 tracing = { version = "0.1.40" }
 tracing-durations-export = { version = "0.3.0", features = ["plot"] }
-tracing-subscriber = { version = "0.3.18" } # Default feature set for fv_build, fv activates extra features
+tracing-subscriber = { version = "0.3.18" } # Default feature set for fyn_build, fyn activates extra features
 tracing-test = { version = "0.2.5" }
 tracing-tree = { version = "0.4.0" }
 unicode-width = { version = "0.2.0" }
@@ -383,7 +383,7 @@ panic = "abort"
 # This profile is meant to mimic the `release` profile as closely as
 # possible, but using settings that are more beneficial for iterative
 # development. That is, the `release` profile is intended for actually
-# building the release, where as `profiling` is meant for building `fv`
+# building the release, where as `profiling` is meant for building `fyn`
 # for running benchmarks.
 #
 # The main differences here are to avoid stripping debug information
@@ -391,20 +391,20 @@ panic = "abort"
 # configuration and our benchmarking configuration, which is unfortunate.
 # But compile times with `lto = true` are completely untenable:
 #
-#     $ cargo b --profile profiling -p fv
-#        Compiling fv-cli v0.0.1 (/home/andrew/astral/uv/crates/fv-cli)
+#     $ cargo b --profile profiling -p fyn
+#        Compiling fyn-cli v0.0.1 (/home/andrew/astral/uv/crates/fyn-cli)
 #        Compiling uv v0.2.34 (/home/andrew/astral/uv/crates/uv)
 #         Finished `profiling` profile [optimized + debuginfo] target(s) in 3m 47s
 #
 # Using `lto = "thin"` brings a massive improvement, but it's still slow:
 #
-#     $ cargo b --profile profiling -p fv
+#     $ cargo b --profile profiling -p fyn
 #        Compiling uv v0.2.34 (/home/andrew/astral/uv/crates/uv)
 #         Finished `profiling` profile [optimized + debuginfo] target(s) in 53.98s
 #
 # But with `lto = false`:
 #
-#     $ cargo b --profile profiling -p fv
+#     $ cargo b --profile profiling -p fyn
 #        Compiling uv v0.2.34 (/home/andrew/astral/uv/crates/uv)
 #         Finished `profiling` profile [optimized + debuginfo] target(s) in 30.09s
 #
@@ -437,7 +437,7 @@ inherits = "dev"
 debug = 0
 strip = "debuginfo"
 
-# Profile to build a minimally sized binary for fv-build
+# Profile to build a minimally sized binary for fyn-build
 [profile.minimal-size]
 inherits = "release"
 opt-level = "z"

@@ -31,7 +31,7 @@ filter = 'test(native_auth)'
 test-group = 'serial'
 
 [[profile.default.overrides]]
-filter = 'package(fv-keyring)'
+filter = 'package(fyn-keyring)'
 test-group = 'serial'
 
 [[profile.ci-windows.overrides]]

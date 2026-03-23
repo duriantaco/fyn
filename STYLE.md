@@ -19,11 +19,11 @@ documentation_.
 1. Use a space, not an equals sign, for command-line arguments with a value, e.g.
    `--resolution lowest`, not `--resolution=lowest`.
 
-## Styling fv
+## Styling fyn
 
-Just fv, please.
+Just fyn, please.
 
-1. Do not escape with backticks, e.g., `fv`, unless referring specifically to the `fv` executable.
+1. Do not escape with backticks, e.g., `fyn`, unless referring specifically to the `fyn` executable.
 1. Do not capitalize, e.g., "Uv", even at the beginning of a sentence.
 1. Do not uppercase, e.g., "UV", unless referring to an environment variable, e.g., `UV_PYTHON`.
 
@@ -38,7 +38,7 @@ Just fv, please.
 1. Use periods at the end of all sentences, including lists unless they enumerate single items.
 1. Avoid language that patronizes the reader, e.g., "simply do this".
 1. Only refer to "the user" in internal or contributor documentation.
-1. Avoid "we" in favor of "fv" or imperative language.
+1. Avoid "we" in favor of "fyn" or imperative language.
 
 ### Sections
 
@@ -50,7 +50,7 @@ The documentation is divided into:
 
 #### Guides
 
-1. Should assume no previous knowledge about fv.
+1. Should assume no previous knowledge about fyn.
 1. May assume basic knowledge of the domain.
 1. Should refer to relevant concept documentation.
 1. Should have a clear flow.

@@ -1,13 +1,13 @@
 ---
 title: Using alternative package indexes
 description:
-  A guide to using alternative package indexes with fv, including Azure Artifacts, Google Artifact
+  A guide to using alternative package indexes with fyn, including Azure Artifacts, Google Artifact
   Registry, AWS CodeArtifact, and more.
 ---
 
 # Using alternative package indexes
 
-While fv uses the official Python Package Index (PyPI) by default, it also supports
+While fyn uses the official Python Package Index (PyPI) by default, it also supports
 [alternative package indexes](../../concepts/indexes.md). Most alternative indexes require various
 forms of authentication, which require some initial setup.
 
@@ -15,12 +15,12 @@ forms of authentication, which require some initial setup.
 
     If using the pip interface, please read the documentation
     on [using multiple indexes](../../pip/compatibility.md#packages-that-exist-on-multiple-indexes)
-    in fv — the default behavior is different from pip to prevent dependency confusion attacks, but
-    this means that fv may not find the versions of a package as you'd expect.
+    in fyn — the default behavior is different from pip to prevent dependency confusion attacks, but
+    this means that fyn may not find the versions of a package as you'd expect.
 
 ## Azure Artifacts
 
-fv can install packages from
+fyn can install packages from
 [Azure Artifacts](https://learn.microsoft.com/en-us/azure/devops/artifacts/start-using-azure-artifacts?view=azure-devops&tabs=nuget%2Cnugetserver),
 either by using a
 [Personal Access Token](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=Windows)
@@ -29,7 +29,7 @@ either by using a
 To use Azure Artifacts, add the index to your project:
 
 ```toml title="pyproject.toml"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "private-registry"
 url = "https://pkgs.dev.azure.com/<ORGANIZATION>/<PROJECT>/_packaging/<FEED>/pypi/simple/"
 ```
@@ -66,14 +66,14 @@ credential provider supports a few different authentication modes including inte
 the [tool's documentation](https://github.com/microsoft/artifacts-credprovider) for information on
 configuration.
 
-fv only supports using the `keyring` package in
+fyn only supports using the `keyring` package in
 [subprocess mode](../../reference/settings.md#keyring-provider). The `keyring` executable must be in
 the `PATH`, i.e., installed globally or in the active environment. The `keyring` CLI requires a
 username in the URL, and it must be `VssSessionToken`.
 
 ```bash
 # Pre-install keyring and the Artifacts plugin from the public PyPI
-fv tool install keyring --with artifacts-keyring
+fyn tool install keyring --with artifacts-keyring
 
 # Enable keyring authentication
 export UV_KEYRING_PROVIDER=subprocess
@@ -84,20 +84,20 @@ export UV_INDEX_PRIVATE_REGISTRY_USERNAME=VssSessionToken
 
 !!! note
 
-    The [`tool.fv.keyring-provider`](../../reference/settings.md#keyring-provider)
-    setting can be used to enable keyring in your `fv.toml` or `pyproject.toml`.
+    The [`tool.fyn.keyring-provider`](../../reference/settings.md#keyring-provider)
+    setting can be used to enable keyring in your `fyn.toml` or `pyproject.toml`.
 
     Similarly, the username for the index can be added directly to the index URL.
 
 ### Publishing packages to Azure Artifacts
 
-If you also want to publish your own packages to Azure Artifacts, you can use `fv publish` as
+If you also want to publish your own packages to Azure Artifacts, you can use `fyn publish` as
 described in the [Building and publishing guide](../package.md).
 
 First, add a `publish-url` to the index you want to publish packages to. For example:
 
 ```toml title="pyproject.toml" hl_lines="4"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "private-registry"
 url = "https://pkgs.dev.azure.com/<ORGANIZATION>/<PROJECT>/_packaging/<FEED>/pypi/simple/"
 publish-url = "https://pkgs.dev.azure.com/<ORGANIZATION>/<PROJECT>/_packaging/<FEED>/pypi/upload/"
@@ -113,22 +113,22 @@ $ export UV_PUBLISH_PASSWORD="$AZURE_ARTIFACTS_TOKEN"
 And publish the package:
 
 ```console
-$ fv publish --index private-registry
+$ fyn publish --index private-registry
 ```
 
-To use `fv publish` without adding the `publish-url` to the project, you can set `UV_PUBLISH_URL`:
+To use `fyn publish` without adding the `publish-url` to the project, you can set `UV_PUBLISH_URL`:
 
 ```console
 $ export UV_PUBLISH_URL=https://pkgs.dev.azure.com/<ORGANIZATION>/<PROJECT>/_packaging/<FEED>/pypi/upload/
-$ fv publish
+$ fyn publish
 ```
 
-Note this method is not preferable because fv cannot check if the package is already published
+Note this method is not preferable because fyn cannot check if the package is already published
 before uploading artifacts.
 
 ## Google Artifact Registry
 
-fv can install packages from
+fyn can install packages from
 [Google Artifact Registry](https://cloud.google.com/artifact-registry/docs), either by using an
 access token, or using the [`keyring`](https://github.com/jaraco/keyring) package.
 
@@ -140,7 +140,7 @@ access token, or using the [`keyring`](https://github.com/jaraco/keyring) packag
 To use Google Artifact Registry, add the index to your project:
 
 ```toml title="pyproject.toml"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "private-registry"
 url = "https://<REGION>-python.pkg.dev/<PROJECT>/<REPOSITORY>/simple/"
 ```
@@ -186,14 +186,14 @@ The `keyrings.google-artifactregistry-auth` plugin wraps
 [gcloud CLI](https://cloud.google.com/sdk/gcloud) to generate short-lived access tokens, securely
 store them in system keyring, and refresh them when they are expired.
 
-fv only supports using the `keyring` package in
+fyn only supports using the `keyring` package in
 [subprocess mode](../../reference/settings.md#keyring-provider). The `keyring` executable must be in
 the `PATH`, i.e., installed globally or in the active environment. The `keyring` CLI requires a
 username in the URL and it must be `oauth2accesstoken`.
 
 ```bash
 # Pre-install keyring and Artifact Registry plugin from the public PyPI
-fv tool install keyring --with keyrings.google-artifactregistry-auth
+fyn tool install keyring --with keyrings.google-artifactregistry-auth
 
 # Enable keyring authentication
 export UV_KEYRING_PROVIDER=subprocess
@@ -204,20 +204,20 @@ export UV_INDEX_PRIVATE_REGISTRY_USERNAME=oauth2accesstoken
 
 !!! note
 
-    The [`tool.fv.keyring-provider`](../../reference/settings.md#keyring-provider)
-    setting can be used to enable keyring in your `fv.toml` or `pyproject.toml`.
+    The [`tool.fyn.keyring-provider`](../../reference/settings.md#keyring-provider)
+    setting can be used to enable keyring in your `fyn.toml` or `pyproject.toml`.
 
     Similarly, the username for the index can be added directly to the index URL.
 
 ### Publishing packages to Google Artifact Registry
 
-If you also want to publish your own packages to Google Artifact Registry, you can use `fv publish`
+If you also want to publish your own packages to Google Artifact Registry, you can use `fyn publish`
 as described in the [Building and publishing guide](../package.md).
 
 First, add a `publish-url` to the index you want to publish packages to. For example:
 
 ```toml title="pyproject.toml" hl_lines="4"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "private-registry"
 url = "https://<REGION>-python.pkg.dev/<PROJECT>/<REPOSITORY>/simple/"
 publish-url = "https://<REGION>-python.pkg.dev/<PROJECT>/<REPOSITORY>/"
@@ -233,22 +233,22 @@ $ export UV_PUBLISH_PASSWORD="$ARTIFACT_REGISTRY_TOKEN"
 And publish the package:
 
 ```console
-$ fv publish --index private-registry
+$ fyn publish --index private-registry
 ```
 
-To use `fv publish` without adding the `publish-url` to the project, you can set `UV_PUBLISH_URL`:
+To use `fyn publish` without adding the `publish-url` to the project, you can set `UV_PUBLISH_URL`:
 
 ```console
 $ export UV_PUBLISH_URL=https://<REGION>-python.pkg.dev/<PROJECT>/<REPOSITORY>/
-$ fv publish
+$ fyn publish
 ```
 
-Note this method is not preferable because fv cannot check if the package is already published
+Note this method is not preferable because fyn cannot check if the package is already published
 before uploading artifacts.
 
 ## AWS CodeArtifact
 
-fv can install packages from
+fyn can install packages from
 [AWS CodeArtifact](https://docs.aws.amazon.com/codeartifact/latest/ug/using-python.html), either by
 using an access token, or using the [`keyring`](https://github.com/jaraco/keyring) package.
 
@@ -259,7 +259,7 @@ using an access token, or using the [`keyring`](https://github.com/jaraco/keyrin
 The index can be declared like so:
 
 ```toml title="pyproject.toml"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "private-registry"
 url = "https://<DOMAIN>-<ACCOUNT_ID>.d.codeartifact.<REGION>.amazonaws.com/pypi/<REPOSITORY>/simple/"
 ```
@@ -308,14 +308,14 @@ The `keyrings.codeartifact` plugin wraps [boto3](https://pypi.org/project/boto3/
 short-lived access tokens, securely store them in system keyring, and refresh them when they are
 expired.
 
-fv only supports using the `keyring` package in
+fyn only supports using the `keyring` package in
 [subprocess mode](../../reference/settings.md#keyring-provider). The `keyring` executable must be in
 the `PATH`, i.e., installed globally or in the active environment. The `keyring` CLI requires a
 username in the URL and it must be `aws`.
 
 ```bash
 # Pre-install keyring and AWS CodeArtifact plugin from the public PyPI
-fv tool install keyring --with keyrings.codeartifact
+fyn tool install keyring --with keyrings.codeartifact
 
 # Enable keyring authentication
 export UV_KEYRING_PROVIDER=subprocess
@@ -326,20 +326,20 @@ export UV_INDEX_PRIVATE_REGISTRY_USERNAME=aws
 
 !!! note
 
-    The [`tool.fv.keyring-provider`](../../reference/settings.md#keyring-provider)
-    setting can be used to enable keyring in your `fv.toml` or `pyproject.toml`.
+    The [`tool.fyn.keyring-provider`](../../reference/settings.md#keyring-provider)
+    setting can be used to enable keyring in your `fyn.toml` or `pyproject.toml`.
 
     Similarly, the username for the index can be added directly to the index URL.
 
 ### Publishing packages to AWS CodeArtifact
 
-If you also want to publish your own packages to AWS CodeArtifact, you can use `fv publish` as
+If you also want to publish your own packages to AWS CodeArtifact, you can use `fyn publish` as
 described in the [Building and publishing guide](../package.md).
 
 First, add a `publish-url` to the index you want to publish packages to. For example:
 
 ```toml title="pyproject.toml" hl_lines="4"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "private-registry"
 url = "https://<DOMAIN>-<ACCOUNT_ID>.d.codeartifact.<REGION>.amazonaws.com/pypi/<REPOSITORY>/simple/"
 publish-url = "https://<DOMAIN>-<ACCOUNT_ID>.d.codeartifact.<REGION>.amazonaws.com/pypi/<REPOSITORY>/"
@@ -355,28 +355,28 @@ $ export UV_PUBLISH_PASSWORD="$AWS_CODEARTIFACT_TOKEN"
 And publish the package:
 
 ```console
-$ fv publish --index private-registry
+$ fyn publish --index private-registry
 ```
 
-To use `fv publish` without adding the `publish-url` to the project, you can set `UV_PUBLISH_URL`:
+To use `fyn publish` without adding the `publish-url` to the project, you can set `UV_PUBLISH_URL`:
 
 ```console
 $ export UV_PUBLISH_URL=https://<DOMAIN>-<ACCOUNT_ID>.d.codeartifact.<REGION>.amazonaws.com/pypi/<REPOSITORY>/
-$ fv publish
+$ fyn publish
 ```
 
-Note this method is not preferable because fv cannot check if the package is already published
+Note this method is not preferable because fyn cannot check if the package is already published
 before uploading artifacts.
 
 ## JFrog Artifactory
 
-fv can install packages from JFrog Artifactory, either by using a username and password or a JWT
+fyn can install packages from JFrog Artifactory, either by using a username and password or a JWT
 token.
 
 To use it, add the index to your project:
 
 ```toml title="pyproject.toml"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "private-registry"
 url = "https://<organization>.jfrog.io/artifactory/api/pypi/<repository>/simple"
 ```
@@ -404,7 +404,7 @@ $ export UV_INDEX_PRIVATE_REGISTRY_PASSWORD="$JFROG_JWT_TOKEN"
 Add a `publish-url` to your index definition:
 
 ```toml title="pyproject.toml"
-[[tool.fv.index]]
+[[tool.fyn.index]]
 name = "private-registry"
 url = "https://<organization>.jfrog.io/artifactory/api/pypi/<repository>/simple"
 publish-url = "https://<organization>.jfrog.io/artifactory/api/pypi/<repository>"
@@ -413,13 +413,13 @@ publish-url = "https://<organization>.jfrog.io/artifactory/api/pypi/<repository>
 !!! important
 
     If you use `--token "$JFROG_TOKEN"` or `UV_PUBLISH_TOKEN` with JFrog, you will receive a
-    401 Unauthorized error as JFrog requires an empty username but fv passes `__token__` for as
+    401 Unauthorized error as JFrog requires an empty username but fyn passes `__token__` for as
     the username when `--token` is used.
 
 To authenticate, pass your token as the password and set the username to an empty string:
 
 ```console
-$ fv publish --index <index_name> -u "" -p "$JFROG_TOKEN"
+$ fyn publish --index <index_name> -u "" -p "$JFROG_TOKEN"
 ```
 
 Alternatively, you can set environment variables:
@@ -427,7 +427,7 @@ Alternatively, you can set environment variables:
 ```console
 $ export UV_PUBLISH_USERNAME=""
 $ export UV_PUBLISH_PASSWORD="$JFROG_TOKEN"
-$ fv publish --index private-registry
+$ fyn publish --index private-registry
 ```
 
 !!! note

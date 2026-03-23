@@ -5,7 +5,7 @@ description = ""
 authors = [{ name = "Astral Software Inc.", email = "hey@astral.sh" }]
 readme = "README.md"
 keywords = [
-  "fv", "packse", "requirements", "packaging", "testing"
+  "fyn", "packse", "requirements", "packaging", "testing"
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -42,7 +42,7 @@ packse = "packse.cli:entrypoint"
 index = ["pypiserver>=2.0.1"]
 serve = ["packse[index]", "watchfiles>=0.21.0"]
 
-[tool.fv]
+[tool.fyn]
 dev-dependencies = [
   "syrupy>=4.6.0",
   "pytest>=7.4.3",

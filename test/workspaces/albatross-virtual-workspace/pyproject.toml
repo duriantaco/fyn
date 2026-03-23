@@ -1,2 +1,2 @@
-[tool.fv.workspace]
+[tool.fyn.workspace]
 members = ["packages/*"]

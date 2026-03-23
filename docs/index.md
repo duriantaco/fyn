@@ -1,4 +1,4 @@
-# fv
+# fyn
 
 An extremely fast Python package and project manager, written in Rust.
 
@@ -32,44 +32,44 @@ An extremely fast Python package and project manager, written in Rust.
 - Installable without Rust or Python via `curl` or `pip`.
 - Supports macOS, Linux, and Windows.
 
-fv is backed by [Astral](https://astral.sh), the creators of
+fyn is backed by [Astral](https://astral.sh), the creators of
 [Ruff](https://github.com/astral-sh/ruff).
 
 ## Installation
 
-Install fv with our official standalone installer:
+Install fyn with our official standalone installer:
 
 === "macOS and Linux"
 
     ```console
-    $ curl -LsSf https://astral.sh/fv/install.sh | sh
+    $ curl -LsSf https://astral.sh/fyn/install.sh | sh
     ```
 
 === "Windows"
 
     ```pwsh-session
-    PS> powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/fv/install.ps1 | iex"
+    PS> powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/fyn/install.ps1 | iex"
     ```
 
 Then, check out the [first steps](./getting-started/first-steps.md) or read on for a brief overview.
 
 !!! tip
 
-    fv may also be installed with pip, Homebrew, and more. See all of the methods on the
+    fyn may also be installed with pip, Homebrew, and more. See all of the methods on the
     [installation page](./getting-started/installation.md).
 
 ## Projects
 
-fv manages project dependencies and environments, with support for lockfiles, workspaces, and more,
+fyn manages project dependencies and environments, with support for lockfiles, workspaces, and more,
 similar to `rye` or `poetry`:
 
 ```console
-$ fv init example
+$ fyn init example
 Initialized project `example` at `/home/user/example`
 
 $ cd example
 
-$ fv add ruff
+$ fyn add ruff
 Creating virtual environment at: .venv
 Resolved 2 packages in 170ms
    Built example @ file:///home/user/example
@@ -78,39 +78,39 @@ Installed 2 packages in 1ms
  + example==0.1.0 (from file:///home/user/example)
  + ruff==0.5.4
 
-$ fv run ruff check
+$ fyn run ruff check
 All checks passed!
 
-$ fv lock
+$ fyn lock
 Resolved 2 packages in 0.33ms
 
-$ fv sync
+$ fyn sync
 Resolved 2 packages in 0.70ms
 Checked 1 package in 0.02ms
 ```
 
 See the [project guide](./guides/projects.md) to get started.
 
-fv also supports building and publishing projects, even if they're not managed with fv. See the
+fyn also supports building and publishing projects, even if they're not managed with fyn. See the
 [packaging guide](./guides/package.md) to learn more.
 
 ## Scripts
 
-fv manages dependencies and environments for single-file scripts.
+fyn manages dependencies and environments for single-file scripts.
 
 Create a new script and add inline metadata declaring its dependencies:
 
 ```console
 $ echo 'import requests; print(requests.get("https://astral.sh"))' > example.py
 
-$ fv add --script example.py requests
+$ fyn add --script example.py requests
 Updated `example.py`
 ```
 
 Then, run the script in an isolated virtual environment:
 
 ```console
-$ fv run example.py
+$ fyn run example.py
 Reading inline script metadata from: example.py
 Installed 5 packages in 12ms
 <Response [200]>
@@ -120,12 +120,12 @@ See the [scripts guide](./guides/scripts.md) to get started.
 
 ## Tools
 
-fv executes and installs command-line tools provided by Python packages, similar to `pipx`.
+fyn executes and installs command-line tools provided by Python packages, similar to `pipx`.
 
-Run a tool in an ephemeral environment using `fvx` (an alias for `fv tool run`):
+Run a tool in an ephemeral environment using `fynx` (an alias for `fyn tool run`):
 
 ```console
-$ fvx pycowsay 'hello world!'
+$ fynx pycowsay 'hello world!'
 Resolved 1 package in 167ms
 Installed 1 package in 9ms
  + pycowsay==0.0.0.2
@@ -141,10 +141,10 @@ Installed 1 package in 9ms
            ||     ||
 ```
 
-Install a tool with `fv tool install`:
+Install a tool with `fyn tool install`:
 
 ```console
-$ fv tool install ruff
+$ fyn tool install ruff
 Resolved 1 package in 6ms
 Installed 1 package in 2ms
  + ruff==0.5.4
@@ -158,12 +158,12 @@ See the [tools guide](./guides/tools.md) to get started.
 
 ## Python versions
 
-fv installs Python and allows quickly switching between versions.
+fyn installs Python and allows quickly switching between versions.
 
 Install multiple Python versions:
 
 ```console
-$ fv python install 3.10 3.11 3.12
+$ fyn python install 3.10 3.11 3.12
 Searching for Python versions matching: Python 3.10
 Searching for Python versions matching: Python 3.11
 Searching for Python versions matching: Python 3.12
@@ -176,12 +176,12 @@ Installed 3 versions in 3.42s
 Download Python versions as needed:
 
 ```console
-$ fv venv --python 3.12.0
+$ fyn venv --python 3.12.0
 Using CPython 3.12.0
 Creating virtual environment at: .venv
 Activate with: source .venv/bin/activate
 
-$ fv run --python pypy@3.8 -- python
+$ fyn run --python pypy@3.8 -- python
 Python 3.8.16 (a9dbdca6fc3286b0addd2240f11d97d8e8de187a, Dec 29 2022, 11:45:30)
 [PyPy 7.3.11 with GCC Apple LLVM 13.1.6 (clang-1316.0.21.2.5)] on darwin
 Type "help", "copyright", "credits" or "license" for more information.
@@ -191,7 +191,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 Use a specific Python version in the current directory:
 
 ```console
-$ fv python pin 3.11
+$ fyn python pin 3.11
 Pinned `.python-version` to `3.11`
 ```
 
@@ -199,19 +199,19 @@ See the [installing Python guide](./guides/install-python.md) to get started.
 
 ## The pip interface
 
-fv provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands.
+fyn provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands.
 
-fv extends their interfaces with advanced features, such as dependency version overrides,
+fyn extends their interfaces with advanced features, such as dependency version overrides,
 platform-independent resolutions, reproducible resolutions, alternative resolution strategies, and
 more.
 
-Migrate to fv without changing your existing workflows — and experience a 10-100x speedup — with the
-`fv pip` interface.
+Migrate to fyn without changing your existing workflows — and experience a 10-100x speedup — with the
+`fyn pip` interface.
 
 Compile requirements into a platform-independent requirements file:
 
 ```console
-$ fv pip compile requirements.in \
+$ fyn pip compile requirements.in \
    --universal \
    --output-file requirements.txt
 Resolved 43 packages in 12ms
@@ -220,7 +220,7 @@ Resolved 43 packages in 12ms
 Create a virtual environment:
 
 ```console
-$ fv venv
+$ fyn venv
 Using CPython 3.12.3
 Creating virtual environment at: .venv
 Activate with: source .venv/bin/activate
@@ -229,7 +229,7 @@ Activate with: source .venv/bin/activate
 Install the locked requirements:
 
 ```console
-$ fv pip sync requirements.txt
+$ fyn pip sync requirements.txt
 Resolved 43 packages in 11ms
 Installed 43 packages in 208ms
  + babel==2.15.0
@@ -243,4 +243,4 @@ See the [pip interface documentation](./pip/index.md) to get started.
 ## Learn more
 
 See the [first steps](./getting-started/first-steps.md) or jump straight to the
-[guides](./guides/index.md) to start using fv.
+[guides](./guides/index.md) to start using fyn.

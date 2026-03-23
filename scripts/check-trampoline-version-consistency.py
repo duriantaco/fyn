@@ -1,6 +1,6 @@
 """Check that the `windows` crate version matches between workspaces.
 
-The fv-trampoline crate is excluded from the main workspace (it requires nightly),
+The fyn-trampoline crate is excluded from the main workspace (it requires nightly),
 so this script verifies that the `windows` crate version is kept in sync by
 comparing the locked versions in both Cargo.lock files.
 """
@@ -32,18 +32,18 @@ def get_locked_windows_version(lockfile_path: Path) -> str | None:
 
 def main() -> int:
     main_lockfile = ROOT / "Cargo.lock"
-    trampoline_lockfile = ROOT / "crates" / "fv-trampoline" / "Cargo.lock"
+    trampoline_lockfile = ROOT / "crates" / "fyn-trampoline" / "Cargo.lock"
 
     main_version = get_locked_windows_version(main_lockfile)
     trampoline_version = get_locked_windows_version(trampoline_lockfile)
 
     print(f"workspace:       windows {main_version}")
-    print(f"fv-trampoline:   windows {trampoline_version}")
+    print(f"fyn-trampoline:   windows {trampoline_version}")
 
     if main_version != trampoline_version:
         print(
             f"\n::error::windows crate version mismatch! "
-            f"workspace uses {main_version} but fv-trampoline uses {trampoline_version}",
+            f"workspace uses {main_version} but fyn-trampoline uses {trampoline_version}",
             file=sys.stderr,
         )
         return 1

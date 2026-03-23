@@ -9,27 +9,27 @@ import subprocess
 
 GENERATED_HEADER = "<!-- This file is generated. DO NOT EDIT -->"
 
-FV_TEMPLATE = """{GENERATED_HEADER}
+fyn_TEMPLATE = """{GENERATED_HEADER}
 
-# fv
+# fyn
 
-fv is a Python package and project manager.
+fyn is a Python package and project manager.
 
-See the [repository](https://github.com/oha/fv)
+See the [repository](https://github.com/oha/fyn)
 for more information.
 
-This crate is the entry point to the fv command-line interface. The Rust API exposed here is not
+This crate is the entry point to the fyn command-line interface. The Rust API exposed here is not
 considered public interface.
 
-This is version {fv_version}. The source can be found [here]({source_url}).
+This is version {fyn_version}. The source can be found [here]({source_url}).
 
-The following fv workspace members are also available:
+The following fyn workspace members are also available:
 
 {WORKSPACE_MEMBERS}
 
-fv's workspace members are considered internal and will have frequent breaking changes.
+fyn's workspace members are considered internal and will have frequent breaking changes.
 
-See fv's crate versioning policy for details on versioning.
+See fyn's crate versioning policy for details on versioning.
 """
 
 
@@ -37,17 +37,17 @@ MEMBER_TEMPLATE = """{GENERATED_HEADER}
 
 # {name}
 
-This crate is an internal component of [fv](https://crates.io/crates/fv). The Rust API exposed here is
+This crate is an internal component of [fyn](https://crates.io/crates/fyn). The Rust API exposed here is
 unstable and will have frequent breaking changes.
 
-This version ({crate_version}) is a component of [fv {fv_version}]({fv_crates_io_url}). The source can
+This version ({crate_version}) is a component of [fyn {fyn_version}]({fyn_crates_io_url}). The source can
 be found [here]({source_url}).
 
-See fv's crate versioning policy for details on versioning.
+See fyn's crate versioning policy for details on versioning.
 """
 
 
-REPO_URL = "https://github.com/oha/fv"
+REPO_URL = "https://github.com/oha/fyn"
 
 
 def main() -> None:
@@ -60,24 +60,24 @@ def main() -> None:
     content = json.loads(result.stdout)
     packages = {package["id"]: package for package in content["packages"]}
 
-    # Find the fv version from the fv crate
-    fv_version = None
+    # Find the fyn version from the fyn crate
+    fyn_version = None
     for package in content["packages"]:
-        if package["name"] == "fv":
-            fv_version = package["version"]
+        if package["name"] == "fyn":
+            fyn_version = package["version"]
             break
-    if fv_version is None:
-        raise RuntimeError("Could not find fv crate")
+    if fyn_version is None:
+        raise RuntimeError("Could not find fyn crate")
 
     workspace_root = pathlib.Path(content["workspace_root"])
-    readme_path = workspace_root / "crates" / "fv" / "README.md"
+    readme_path = workspace_root / "crates" / "fyn" / "README.md"
 
     workspace_members = []
     for workspace_member in content["workspace_members"]:
         package = packages[workspace_member]
         name = package["name"]
-        # Skip the main fv crate
-        if name == "fv":
+        # Skip the main fyn crate
+        if name == "fyn":
             continue
         # Skip crates with publish = false
         if package.get("publish") == []:
@@ -90,13 +90,13 @@ def main() -> None:
         f"- [{name}](https://crates.io/crates/{name})" for name in workspace_members
     )
 
-    # Generate README for the main fv crate
-    fv_source_url = f"{REPO_URL}/blob/{fv_version}/crates/fv"
-    readme_content = FV_TEMPLATE.format(
+    # Generate README for the main fyn crate
+    fyn_source_url = f"{REPO_URL}/blob/{fyn_version}/crates/fyn"
+    readme_content = fyn_TEMPLATE.format(
         GENERATED_HEADER=GENERATED_HEADER,
         WORKSPACE_MEMBERS=members_list,
-        fv_version=fv_version,
-        source_url=fv_source_url,
+        fyn_version=fyn_version,
+        source_url=fyn_source_url,
     )
     readme_path.write_text(readme_content)
 
@@ -108,8 +108,8 @@ def main() -> None:
         package = packages[workspace_member]
         name = package["name"]
 
-        # Skip the main fv crate (already handled above)
-        if name == "fv":
+        # Skip the main fyn crate (already handled above)
+        if name == "fyn":
             continue
 
         # Determine the README path for this crate
@@ -129,16 +129,16 @@ def main() -> None:
         crate_version = package["version"]
         # Compute relative path from workspace root to crate directory
         relative_crate_path = crate_dir.relative_to(workspace_root)
-        source_url = f"{REPO_URL}/blob/{fv_version}/{relative_crate_path}"
+        source_url = f"{REPO_URL}/blob/{fyn_version}/{relative_crate_path}"
 
         # Generate the README content
-        fv_crates_io_url = f"https://crates.io/crates/fv/{fv_version}"
+        fyn_crates_io_url = f"https://crates.io/crates/fyn/{fyn_version}"
         member_readme_content = MEMBER_TEMPLATE.format(
             GENERATED_HEADER=GENERATED_HEADER,
             name=name,
             crate_version=crate_version,
-            fv_version=fv_version,
-            fv_crates_io_url=fv_crates_io_url,
+            fyn_version=fyn_version,
+            fyn_crates_io_url=fyn_crates_io_url,
             source_url=source_url,
         )
         member_readme_path.write_text(member_readme_content)

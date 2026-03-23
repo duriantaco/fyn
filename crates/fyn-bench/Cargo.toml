@@ -1,0 +1,53 @@
+[package]
+name = "fyn-bench"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+publish = false
+authors = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+
+[lints]
+workspace = true
+
+[lib]
+doctest = false
+bench = false
+
+[[bench]]
+name = "fyn"
+path = "benches/fyn.rs"
+harness = false
+
+[dev-dependencies]
+fyn-cache = { workspace = true }
+fyn-client = { workspace = true }
+fyn-configuration = { workspace = true }
+fyn-dispatch = { workspace = true }
+fyn-distribution = { workspace = true }
+fyn-distribution-types = { workspace = true }
+fyn-extract = { workspace = true }
+fyn-install-wheel = { workspace = true }
+fyn-pep440 = { workspace = true }
+fyn-pep508 = { workspace = true }
+fyn-platform-tags = { workspace = true }
+fyn-preview = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-python = { workspace = true }
+fyn-resolver = { workspace = true }
+fyn-types = { workspace = true }
+fyn-workspace = { workspace = true }
+
+anyhow = { workspace = true }
+criterion = { version = "4.0.3", default-features = false, package = "codspeed-criterion-compat", features = ["async_tokio"] }
+jiff = { workspace = true }
+tokio = { workspace = true }
+
+[package.metadata.cargo-shear]
+ignored = ["fyn-extract"]
+
+[features]
+static = ["fyn-extract/static"]

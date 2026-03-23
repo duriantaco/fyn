@@ -1,52 +1,52 @@
 ---
-title: Using fv in GitHub Actions
+title: Using fyn in GitHub Actions
 description:
-  A guide to using fv in GitHub Actions, including installation, setting up Python, installing
+  A guide to using fyn in GitHub Actions, including installation, setting up Python, installing
   dependencies, and more.
 ---
 
-# Using fv in GitHub Actions
+# Using fyn in GitHub Actions
 
 ## Installation
 
 For use with GitHub Actions, we recommend the official
 [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv) action, which installs uv, adds it to
-PATH, (optionally) persists the cache, and more, with support for all fv-supported platforms.
+PATH, (optionally) persists the cache, and more, with support for all fyn-supported platforms.
 
-To install the latest version of fv:
+To install the latest version of fyn:
 
 ```yaml title="example.yml" hl_lines="11 12"
 name: Example
 
 jobs:
-  fv-example:
+  fyn-example:
     name: python
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install fv
+      - name: Install fyn
         uses: astral-sh/setup-uv@v7
 ```
 
-It is considered best practice to pin to a specific fv version, e.g., with:
+It is considered best practice to pin to a specific fyn version, e.g., with:
 
 ```yaml title="example.yml" hl_lines="14 15"
 name: Example
 
 jobs:
-  fv-example:
+  fyn-example:
     name: python
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install fv
+      - name: Install fyn
         uses: astral-sh/setup-uv@v7
         with:
-          # Install a specific version of fv.
+          # Install a specific version of fyn.
           version: "0.10.12"
 ```
 
@@ -58,18 +58,18 @@ Python can be installed with the `python install` command:
 name: Example
 
 jobs:
-  fv-example:
+  fyn-example:
     name: python
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install fv
+      - name: Install fyn
         uses: astral-sh/setup-uv@v7
 
       - name: Set up Python
-        run: fv python install
+        run: fyn python install
 ```
 
 This will respect the Python version pinned in the project.
@@ -85,7 +85,7 @@ option to use the pinned version for the project:
 name: Example
 
 jobs:
-  fv-example:
+  fyn-example:
     name: python
     runs-on: ubuntu-latest
 
@@ -97,7 +97,7 @@ jobs:
         with:
           python-version-file: ".python-version"
 
-      - name: Install fv
+      - name: Install fyn
         uses: astral-sh/setup-uv@v7
 ```
 
@@ -108,7 +108,7 @@ the project's `requires-python` constraint:
 name: Example
 
 jobs:
-  fv-example:
+  fyn-example:
     name: python
     runs-on: ubuntu-latest
 
@@ -120,7 +120,7 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
-      - name: Install fv
+      - name: Install fyn
         uses: astral-sh/setup-uv@v7
 ```
 
@@ -145,7 +145,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install fv and set the Python version
+      - name: Install fyn and set the Python version
         uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
@@ -172,29 +172,29 @@ jobs:
 
 ## Syncing and running
 
-Once fv and Python are installed, the project can be installed with `fv sync` and commands can be
-run in the environment with `fv run`:
+Once fyn and Python are installed, the project can be installed with `fyn sync` and commands can be
+run in the environment with `fyn run`:
 
 ```yaml title="example.yml" hl_lines="15 17-22"
 name: Example
 
 jobs:
-  fv-example:
+  fyn-example:
     name: python
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install fv
+      - name: Install fyn
         uses: astral-sh/setup-uv@v7
 
       - name: Install the project
-        run: fv sync --locked --all-extras --dev
+        run: fyn sync --locked --all-extras --dev
 
       - name: Run tests
         # For example, using `pytest`
-        run: fv run pytest tests
+        run: fyn run pytest tests
 ```
 
 !!! tip
@@ -205,7 +205,7 @@ jobs:
 
 ## Caching
 
-It may improve CI times to store fv's cache across workflow runs.
+It may improve CI times to store fyn's cache across workflow runs.
 
 The [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv) has built-in support for
 persisting the cache:
@@ -223,33 +223,33 @@ Alternatively, you can manage the cache manually with the `actions/cache` action
 jobs:
   install_job:
     env:
-      # Configure a constant location for the fv cache
-      UV_CACHE_DIR: /tmp/.fv-cache
+      # Configure a constant location for the fyn cache
+      UV_CACHE_DIR: /tmp/.fyn-cache
 
     steps:
-      # ... setup up Python and fv ...
+      # ... setup up Python and fyn ...
 
-      - name: Restore fv cache
+      - name: Restore fyn cache
         uses: actions/cache@v5
         with:
-          path: /tmp/.fv-cache
-          key: fv-${{ runner.os }}-${{ hashFiles('fv.lock') }}
+          path: /tmp/.fyn-cache
+          key: fyn-${{ runner.os }}-${{ hashFiles('fyn.lock') }}
           restore-keys: |
-            fv-${{ runner.os }}-${{ hashFiles('fv.lock') }}
-            fv-${{ runner.os }}
+            fyn-${{ runner.os }}-${{ hashFiles('fyn.lock') }}
+            fyn-${{ runner.os }}
 
       # ... install packages, run tests, etc ...
 
-      - name: Minimize fv cache
-        run: fv cache prune --ci
+      - name: Minimize fyn cache
+        run: fyn cache prune --ci
 ```
 
-The `fv cache prune --ci` command is used to reduce the size of the cache and is optimized for CI.
+The `fyn cache prune --ci` command is used to reduce the size of the cache and is optimized for CI.
 Its effect on performance is dependent on the packages being installed.
 
 !!! tip
 
-    If using `fv pip`, use `requirements.txt` instead of `fv.lock` in the cache key.
+    If using `fyn pip`, use `requirements.txt` instead of `fyn.lock` in the cache key.
 
 !!! note
 
@@ -263,23 +263,23 @@ Its effect on performance is dependent on the packages being installed.
     ```yaml
     install_job:
       env:
-        # Configure a relative location for the fv cache
-        UV_CACHE_DIR: ${{ github.workspace }}/.cache/fv
+        # Configure a relative location for the fyn cache
+        UV_CACHE_DIR: ${{ github.workspace }}/.cache/fyn
     ```
 
     Using a post job hook requires setting the `ACTIONS_RUNNER_HOOK_JOB_STARTED` environment
     variable on the self-hosted runner to the path of a cleanup script such as the one shown below.
 
-    ```sh title="clean-fv-cache.sh"
+    ```sh title="clean-fyn-cache.sh"
     #!/usr/bin/env sh
-    fv cache clean
+    fyn cache clean
     ```
 
-## Using `fv pip`
+## Using `fyn pip`
 
-If using the `fv pip` interface instead of the fv project interface, fv requires a virtual
+If using the `fyn pip` interface instead of the fyn project interface, fyn requires a virtual
 environment by default. To allow installing packages into the system environment, use the `--system`
-flag on all `fv` invocations or set the `UV_SYSTEM_PYTHON` variable.
+flag on all `fyn` invocations or set the `UV_SYSTEM_PYTHON` variable.
 
 The `UV_SYSTEM_PYTHON` variable can be defined in at different scopes.
 
@@ -307,17 +307,17 @@ Or, opt-in for a specific step in a job:
 ```yaml title="example.yml"
 steps:
   - name: Install requirements
-    run: fv pip install -r requirements.txt
+    run: fyn pip install -r requirements.txt
     env:
       UV_SYSTEM_PYTHON: 1
 ```
 
-To opt-out again, the `--no-system` flag can be used in any fv invocation.
+To opt-out again, the `--no-system` flag can be used in any fyn invocation.
 
 ## Private repos
 
 If your project has [dependencies](../../concepts/projects/dependencies.md#git) on private GitHub
-repositories, you will need to configure a [personal access token (PAT)][PAT] to allow fv to fetch
+repositories, you will need to configure a [personal access token (PAT)][PAT] to allow fyn to fetch
 them.
 
 After creating a PAT that has read access to the private repositories, add it as a [repository
@@ -345,7 +345,7 @@ steps:
 
 ## Publishing to PyPI
 
-fv can be used to build and publish your package to PyPI from GitHub Actions. We provide a
+fyn can be used to build and publish your package to PyPI from GitHub Actions. We provide a
 standalone example alongside this guide in
 [astral-sh/trusted-publishing-examples](https://github.com/astral-sh/trusted-publishing-examples).
 The workflow uses [trusted publishing](https://docs.pypi.org/trusted-publishers/), so no credentials
@@ -376,19 +376,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install fv
+      - name: Install fyn
         uses: astral-sh/setup-uv@v7
       - name: Install Python 3.13
-        run: fv python install 3.13
+        run: fyn python install 3.13
       - name: Build
-        run: fv build
+        run: fyn build
       # Check that basic features work and we didn't miss to include crucial files
       - name: Smoke test (wheel)
-        run: fv run --isolated --no-project --with dist/*.whl tests/smoke_test.py
+        run: fyn run --isolated --no-project --with dist/*.whl tests/smoke_test.py
       - name: Smoke test (source distribution)
-        run: fv run --isolated --no-project --with dist/*.tar.gz tests/smoke_test.py
+        run: fyn run --isolated --no-project --with dist/*.tar.gz tests/smoke_test.py
       - name: Publish
-        run: fv publish
+        run: fyn publish
 ```
 
 Then, create the environment defined in the workflow in the GitHub repository under "Settings" ->

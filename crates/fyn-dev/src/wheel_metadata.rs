@@ -1,0 +1,54 @@
+use std::str::FromStr;
+
+use anstream::println;
+use anyhow::{Result, bail};
+use clap::Parser;
+
+use fyn_cache::{Cache, CacheArgs};
+use fyn_client::{BaseClientBuilder, RegistryClientBuilder};
+use fyn_distribution_filename::WheelFilename;
+use fyn_distribution_types::{BuiltDist, DirectUrlBuiltDist, IndexCapabilities, RemoteSource};
+use fyn_pep508::VerbatimUrl;
+use fyn_pypi_types::ParsedUrl;
+use fyn_settings::EnvironmentOptions;
+
+#[derive(Parser)]
+pub(crate) struct WheelMetadataArgs {
+    url: VerbatimUrl,
+    #[command(flatten)]
+    cache_args: CacheArgs,
+}
+
+pub(crate) async fn wheel_metadata(
+    args: WheelMetadataArgs,
+    environment: EnvironmentOptions,
+) -> Result<()> {
+    let cache = Cache::try_from(args.cache_args)?.init().await?;
+    let client = RegistryClientBuilder::new(
+        BaseClientBuilder::default()
+            .read_timeout(environment.http_read_timeout)
+            .connect_timeout(environment.http_connect_timeout),
+        cache,
+    )
+    .build();
+    let capabilities = IndexCapabilities::default();
+
+    let filename = WheelFilename::from_str(&args.url.filename()?)?;
+
+    let ParsedUrl::Archive(archive) = ParsedUrl::try_from(args.url.to_url())? else {
+        bail!("Only HTTPS is supported");
+    };
+
+    let metadata = client
+        .wheel_metadata(
+            &BuiltDist::DirectUrl(DirectUrlBuiltDist {
+                filename,
+                location: Box::new(archive.url),
+                url: args.url,
+            }),
+            &capabilities,
+        )
+        .await?;
+    println!("{metadata:?}");
+    Ok(())
+}

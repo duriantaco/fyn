@@ -1,6 +1,6 @@
 # This file is a translation of
 # https://github.com/huggingface/transformers/blob/0e4a1c3401421d3342938a183c7b021cdac6fd79/setup.py
-# to PEP 621 and `tool.fv` sources.
+# to PEP 621 and `tool.fyn` sources.
 
 [project]
 name = "transformers"

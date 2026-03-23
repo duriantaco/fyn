@@ -5,21 +5,21 @@
 
 ## 0.10.13
 
-Released on 2026-03-22. First release as **fv**, a community fork of uv.
+Released on 2026-03-22. First release as **fyn**, a community fork of uv.
 See [MANIFESTO.md](MANIFESTO.md) for why this exists.
 
 ### Breaking changes
 
-- Renamed binary from `uv` to `fv`, `uvx` to `fvx`, `uvw` to `fvw`. All 70 workspace crates
-  renamed from `uv-*` to `fv-*`. Configuration files and environment variables (`UV_*`) are
+- Renamed binary from `uv` to `fyn`, `uvx` to `fynx`, `uvw` to `fynw`. All 70 workspace crates
+  renamed from `uv-*` to `fyn-*`. Configuration files and environment variables (`UV_*`) are
   unchanged for backwards compatibility.
 
 ### Enhancements
 
-- Add `fv shell` command to spawn a new shell with the virtual environment activated. Detects
+- Add `fyn shell` command to spawn a new shell with the virtual environment activated. Detects
   bash, zsh, fish, nushell, powershell, and cmd automatically
   ([astral-sh/uv#1910](https://github.com/astral-sh/uv/issues/1910))
-- Add `fv upgrade [packages...]` command to upgrade and sync dependencies in one step. Supports
+- Add `fyn upgrade [packages...]` command to upgrade and sync dependencies in one step. Supports
   `--dry-run` and `--no-sync`
   ([astral-sh/uv#6794](https://github.com/astral-sh/uv/issues/6794))
 - Add task runner via `[tool.uv.tasks]` in `pyproject.toml`. Supports string and table forms,
@@ -37,12 +37,12 @@ See [MANIFESTO.md](MANIFESTO.md) for why this exists.
 
 - Fix explicit index not respected for transitive dependencies
   ([astral-sh/uv#8253](https://github.com/astral-sh/uv/issues/8253))
-- Fix `fv remove --group` re-sync not including the target group, causing other group packages
+- Fix `fyn remove --group` re-sync not including the target group, causing other group packages
   to be uninstalled ([astral-sh/uv#9012](https://github.com/astral-sh/uv/issues/9012))
 
 ### Privacy
 
-- Remove linehaul telemetry module. User-Agent header is now `fv/<version>` with no system
+- Remove linehaul telemetry module. User-Agent header is now `fyn/<version>` with no system
   profiling
 - Remove `releases.astral.sh` as download mirror. Downloads go to GitHub directly
 - Disable self-update (previously pointed to `astral-sh/uv` releases)

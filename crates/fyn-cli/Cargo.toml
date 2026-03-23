@@ -1,0 +1,54 @@
+[package]
+name = "fyn-cli"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-auth = { workspace = true }
+fyn-cache = { workspace = true, features = ["clap"] }
+fyn-configuration = { workspace = true, features = ["clap"] }
+fyn-distribution-types = { workspace = true }
+fyn-install-wheel = { workspace = true, features = ["clap"], default-features = false }
+fyn-normalize = { workspace = true }
+fyn-pep508 = { workspace = true }
+fyn-preview = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-python = { workspace = true, features = ["clap", "schemars"]}
+fyn-redacted = { workspace = true }
+fyn-resolver = { workspace = true, features = ["clap"] }
+fyn-settings = { workspace = true, features = ["schemars"] }
+fyn-static = { workspace = true }
+fyn-torch = { workspace = true, features = ["clap"] }
+fyn-version = { workspace = true }
+fyn-warnings = { workspace = true }
+fyn-workspace = { workspace = true }
+
+anstream = { workspace = true }
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive", "string"] }
+clap_complete_command = { workspace = true }
+serde = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }
+
+[features]
+default = []
+self-update = []
+
+[build-dependencies]
+fyn-static = { workspace = true }
+fs-err = { workspace = true }

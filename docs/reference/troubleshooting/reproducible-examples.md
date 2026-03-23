@@ -14,9 +14,9 @@ else to reproduce your example. This includes:
 
 - The platform you're using (e.g., the operating system and architecture)
 - Any relevant system state (e.g., explicitly set environment variables)
-- The version of fv
+- The version of fyn
 - The version of other relevant tools
-- The relevant files (the `fv.lock`, `pyproject.toml`, etc.)
+- The relevant files (the `fyn.lock`, `pyproject.toml`, etc.)
 - The commands to run
 
 To ensure your reproduction is minimal, remove as many dependencies, settings, and files as
@@ -46,39 +46,39 @@ self-contained. This means that the state from the reproducer's system does not 
     to the operating system. While using Docker to run Windows containers is feasible, it's not
     commonplace. These sorts of bugs are expected to be reported as a [script](#script) instead.
 
-When writing a Docker MRE with fv, it's best to start with one of
-[fv's Docker images](../../guides/integration/docker.md#available-images). When doing so, be sure to
-pin to a specific version of fv.
+When writing a Docker MRE with fyn, it's best to start with one of
+[fyn's Docker images](../../guides/integration/docker.md#available-images). When doing so, be sure to
+pin to a specific version of fyn.
 
 ```Dockerfile
-FROM ghcr.io/oha/fv:0.5.24-debian-slim
+FROM ghcr.io/oha/fyn:0.5.24-debian-slim
 ```
 
 While Docker images are isolated from the system, the build will use your system's architecture by
 default. When sharing a reproduction, you can explicitly set the platform to ensure a reproducer
-gets the expected behavior. fv publishes images for `linux/amd64` (e.g., Intel or AMD) and
+gets the expected behavior. fyn publishes images for `linux/amd64` (e.g., Intel or AMD) and
 `linux/arm64` (e.g., Apple M Series or ARM)
 
 ```Dockerfile
-FROM --platform=linux/amd64 ghcr.io/oha/fv:0.5.24-debian-slim
+FROM --platform=linux/amd64 ghcr.io/oha/fyn:0.5.24-debian-slim
 ```
 
 Docker images are best for reproducing issues that can be constructed with commands, e.g.:
 
 ```Dockerfile
-FROM --platform=linux/amd64 ghcr.io/oha/fv:0.5.24-debian-slim
+FROM --platform=linux/amd64 ghcr.io/oha/fyn:0.5.24-debian-slim
 
-RUN fv init /mre
+RUN fyn init /mre
 WORKDIR /mre
-RUN fv add pydantic
-RUN fv sync
-RUN fv run -v python -c "import pydantic"
+RUN fyn add pydantic
+RUN fyn sync
+RUN fyn run -v python -c "import pydantic"
 ```
 
 However, you can also write files into the image inline:
 
 ```Dockerfile
-FROM --platform=linux/amd64 ghcr.io/oha/fv:0.5.24-debian-slim
+FROM --platform=linux/amd64 ghcr.io/oha/fyn:0.5.24-debian-slim
 
 COPY <<EOF /mre/pyproject.toml
 [project]
@@ -91,7 +91,7 @@ dependencies = ["pydantic"]
 EOF
 
 WORKDIR /mre
-RUN fv lock
+RUN fyn lock
 ```
 
 If you need to write many files, it's better to create and publish a
@@ -112,10 +112,10 @@ it's best practice to include a script showing the commands that can be used to 
 e.g.:
 
 ```bash
-fv init
-fv add pydantic
-fv sync
-fv run -v python -c "import pydantic"
+fyn init
+fyn add pydantic
+fyn sync
+fyn run -v python -c "import pydantic"
 ```
 
 If your reproduction requires many files, use a [Git repository](#git-repository) to share them.
@@ -144,7 +144,7 @@ You can quickly create a new repository in the [GitHub UI](https://github.com/ne
 CLI:
 
 ```console
-$ gh repo create fv-mre-1234 --clone
+$ gh repo create fyn-mre-1234 --clone
 ```
 
 When using a Git repository for a reproduction, please remember to _minimize_ the contents by

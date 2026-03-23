@@ -1,0 +1,56 @@
+[package]
+name = "fyn-settings"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-cache-info = { workspace = true, features = ["schemars"] }
+fyn-client = { workspace = true }
+fyn-configuration = { workspace = true, features = ["schemars", "clap"] }
+fyn-dirs = { workspace = true }
+fyn-distribution-types = { workspace = true, features = ["schemars"] }
+fyn-flags = { workspace = true }
+fyn-fs = { workspace = true }
+fyn-install-wheel = { workspace = true, features = ["schemars", "clap"] }
+fyn-macros = { workspace = true }
+fyn-normalize = { workspace = true, features = ["schemars"] }
+fyn-options-metadata = { workspace = true }
+fyn-pep508 = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-python = { workspace = true, features = ["schemars", "clap"] }
+fyn-redacted = { workspace = true }
+fyn-resolver = { workspace = true, features = ["schemars", "clap"] }
+fyn-static = { workspace = true }
+fyn-torch = { workspace = true, features = ["schemars", "clap"] }
+fyn-warnings = { workspace = true }
+fyn-workspace = { workspace = true, features = ["schemars", "clap"] }
+
+clap = { workspace = true }
+fs-err = { workspace = true }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true }
+textwrap = { workspace = true }
+thiserror = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+
+[package.metadata.cargo-shear]
+ignored = ["fyn-options-metadata", "clap"]
+
+[dev-dependencies]
+
+[features]
+tracing-durations-export = []

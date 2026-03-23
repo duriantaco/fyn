@@ -1,10 +1,10 @@
-# fv — A uv fork, fast, private Python Package Manager
+# fyn — A uv fork, fast, private Python Package Manager
 
-**fv** is a Python package manager and project manager written in Rust. It's an independent fork of
+**fyn** is a Python package manager and project manager written in Rust. It's an independent fork of
 [uv](https://github.com/astral-sh/uv), which is the fastest Python package installer around- without
 telemetry, missing features added, and bugs fixed.
 
-If you've used uv, you already know fv. Same commands, same speed, easy migration. Just fewer things
+If you've used uv, you already know fyn. Same commands, same speed, easy migration. Just fewer things
 phoning home.
 
 ## Why fork uv?
@@ -15,7 +15,7 @@ uv is great software. Genuinely. It's fast, it works, the Rust code is clean. Bu
 buys your package manager, you start wondering what happens next. Maybe nothing changes. We'd rather
 not find out.
 
-So we forked it. We called it **fv**. You can infer the first letter however you want.
+So we forked it. We called it **fyn**. You can infer the first letter however you want.
 
 ## What's actually different
 
@@ -27,23 +27,23 @@ fixing the stuff that bugged us and adding the things people kept asking for.
 uv was sending a surprising amount of info to package indexes every time you installed something.
 These things include your OS, py version, CPU architecture, Linux distro, whether you're in CI. All
 baked into the User-Agent header via something called "linehaul". We ripped that out. Now it just
-sends `fv/0.10.13`. That's it.
+sends `fyn/0.10.13`. That's it.
 
 ### New features we added
 
-- **`fv shell`**
-- **`fv upgrade`**
+- **`fyn shell`**
+- **`fyn upgrade`**
 - **Cache size limits** — set `UV_CACHE_MAX_SIZE=2G` and the cache cleans itself. uv's cache just
   grew forever.
 
-## fv vs uv — feature comparison
+## fyn vs uv — feature comparison
 
-| Feature                           | uv                             | fv                  |
+| Feature                           | uv                             | fyn                  |
 | --------------------------------- | ------------------------------ | ------------------- |
 | Speed (10-100x faster than pip)   | Yes                            | Yes                 |
 | Telemetry / system profiling      | Sends OS, Python, CPU, CI info | None                |
-| `shell` command                   | Not available                  | `fv shell`          |
-| `upgrade` command                 | Must chain two commands        | `fv upgrade`        |
+| `shell` command                   | Not available                  | `fyn shell`          |
+| `upgrade` command                 | Must chain two commands        | `fyn upgrade`        |
 | Cache size limit                  | No limit                       | `UV_CACHE_MAX_SIZE` |
 | Private index for transitive deps | Broken                         | Fixed               |
 | Env vars in index URLs            | Only in requirements.txt       | Everywhere          |
@@ -51,20 +51,20 @@ sends `fv/0.10.13`. That's it.
 | `remove --group` sync behavior    | Wipes other group packages     | Fixed               |
 | Drop-in replacement for pip       | Yes                            | Yes                 |
 | Python version management         | Yes                            | Yes                 |
-| Lockfile support                  | Yes (`uv.lock`)                | Yes (`fv.lock`)     |
+| Lockfile support                  | Yes (`uv.lock`)                | Yes (`fyn.lock`)     |
 
 ## Roadmap
 
 In no particular order:
 
-1. **Task runner** in `fv run` — like `npm run` but for Python
+1. **Task runner** in `fyn run` — like `npm run` but for Python
 2. **Centralized venv storage** — keep .venvs out of your project dirs
 3. **Glob-pattern source declarations** — `mycompany-*` all goes to your private index, borrowed
    from how PDM does it
 4. **`pip.conf` support** — read your existing pip config
 5. **`pip wheel` and `pip download` commands**
 6. **Plugin system** eventually — custom indexes, auth providers, etc.
-7. **`fv bundle`** — make standalone executables, like PyInstaller but built-in
+7. **`fyn bundle`** — make standalone executables, like PyInstaller but built-in
 8. **Conda support** maybe — if we can do it without making a mess
 
 ## Installation
@@ -72,32 +72,32 @@ In no particular order:
 From PyPI:
 
 ```bash
-pip install fv
+pip install fyn
 ```
 
 From source:
 
 ```bash
-cargo install --path crates/fv
+cargo install --path crates/fyn
 ```
 
-## Migrating from uv to fv
+## Migrating from uv to fyn
 
 Migration takes about 30 seconds:
 
 ```bash
 # 1. Rename your lockfile
-mv uv.lock fv.lock
+mv uv.lock fyn.lock
 
-# 2. In pyproject.toml, rename [tool.uv] to [tool.fv]
-sed -i 's/\[tool\.uv\]/[tool.fv]/' pyproject.toml
+# 2. In pyproject.toml, rename [tool.uv] to [tool.fyn]
+sed -i 's/\[tool\.uv\]/[tool.fyn]/' pyproject.toml
 
-# 3. Use fv instead of uv
-fv sync
-fv run pytest
+# 3. Use fyn instead of uv
+fyn sync
+fyn run pytest
 ```
 
-Config files move from `~/.config/uv/` to `~/.config/fv/`. Environment variables (`UV_*`) still
+Config files move from `~/.config/uv/` to `~/.config/fyn/`. Environment variables (`UV_*`) still
 work.
 
 ## Can I help?

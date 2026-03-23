@@ -1,0 +1,38 @@
+[package]
+name = "fyn-git"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-auth = { workspace = true }
+fyn-cache-key = { workspace = true }
+fyn-fs = { workspace = true, features = ["tokio"] }
+fyn-git-types = { workspace = true }
+fyn-redacted = { workspace = true }
+fyn-static = { workspace = true }
+fyn-version = { workspace = true }
+fyn-warnings = { workspace = true }
+
+anyhow = { workspace = true }
+cargo-util = { workspace = true }
+dashmap = { workspace = true }
+fs-err = { workspace = true, features = ["tokio"] }
+owo-colors = { workspace = true }
+reqwest = { workspace = true, features = ["blocking"] }
+reqwest-middleware = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+which = { workspace = true }

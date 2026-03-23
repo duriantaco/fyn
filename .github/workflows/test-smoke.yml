@@ -27,21 +27,21 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
         run: |
-          chmod +x ./fv
-          chmod +x ./fvx
+          chmod +x ./fyn
+          chmod +x ./fynx
 
       - name: "Smoke test"
         run: |
-          ./fv run --no-project scripts/smoke-test
+          ./fyn run --no-project scripts/smoke-test
 
       - name: "Test shell completions"
         run: |
-          eval "$(./fv generate-shell-completion bash)"
-          eval "$(./fvx --generate-shell-completion bash)"
+          eval "$(./fyn generate-shell-completion bash)"
+          eval "$(./fynx --generate-shell-completion bash)"
 
   smoke-test-linux-aarch64:
     name: "linux aarch64"
@@ -55,21 +55,21 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-aarch64-${{ inputs.sha }}
+          name: fyn-linux-aarch64-${{ inputs.sha }}
 
       - name: "Prepare binary"
         run: |
-          chmod +x ./fv
-          chmod +x ./fvx
+          chmod +x ./fyn
+          chmod +x ./fynx
 
       - name: "Smoke test"
         run: |
-          ./fv run --no-project scripts/smoke-test
+          ./fyn run --no-project scripts/smoke-test
 
       - name: "Test shell completions"
         run: |
-          eval "$(./fv generate-shell-completion bash)"
-          eval "$(./fvx --generate-shell-completion bash)"
+          eval "$(./fyn generate-shell-completion bash)"
+          eval "$(./fynx --generate-shell-completion bash)"
 
   smoke-test-linux-musl:
     name: "linux musl"
@@ -84,16 +84,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-musl-${{ inputs.sha }}
+          name: fyn-linux-musl-${{ inputs.sha }}
 
       - name: "Prepare binary"
         run: |
-          chmod +x ./fv
-          chmod +x ./fvx
+          chmod +x ./fyn
+          chmod +x ./fynx
 
       - name: "Smoke test"
         run: |
-          ./fv run --no-project scripts/smoke-test
+          ./fyn run --no-project scripts/smoke-test
 
   smoke-test-macos:
     name: "macos"
@@ -107,21 +107,21 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-macos-x86_64-${{ inputs.sha }}
+          name: fyn-macos-x86_64-${{ inputs.sha }}
 
       - name: "Prepare binary"
         run: |
-          chmod +x ./fv
-          chmod +x ./fvx
+          chmod +x ./fyn
+          chmod +x ./fynx
 
       - name: "Smoke test"
         run: |
-          ./fv run --no-project scripts/smoke-test
+          ./fyn run --no-project scripts/smoke-test
 
       - name: "Test shell completions"
         run: |
-          eval "$(./fv generate-shell-completion bash)"
-          eval "$(./fvx --generate-shell-completion bash)"
+          eval "$(./fyn generate-shell-completion bash)"
+          eval "$(./fynx --generate-shell-completion bash)"
 
   smoke-test-windows-x86_64:
     name: "windows x86_64"
@@ -135,22 +135,22 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-x86_64-${{ inputs.sha }}
+          name: fyn-windows-x86_64-${{ inputs.sha }}
 
       - name: "Smoke test"
         working-directory: ${{ env.UV_WORKSPACE }}
         run: |
-          ./fv run --no-project scripts/smoke-test
+          ./fyn run --no-project scripts/smoke-test
 
-      - name: "Test fv shell completions"
+      - name: "Test fyn shell completions"
         working-directory: ${{ env.UV_WORKSPACE }}
         run: |
-          (& ./fv generate-shell-completion powershell) | Out-String | Invoke-Expression
+          (& ./fyn generate-shell-completion powershell) | Out-String | Invoke-Expression
 
-      - name: "Test fvx shell completions"
+      - name: "Test fynx shell completions"
         working-directory: ${{ env.UV_WORKSPACE }}
         run: |
-          (& ./fvx --generate-shell-completion powershell) | Out-String | Invoke-Expression
+          (& ./fynx --generate-shell-completion powershell) | Out-String | Invoke-Expression
 
   smoke-test-windows-aarch64:
     name: "windows aarch64"
@@ -164,19 +164,19 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-aarch64-${{ inputs.sha }}
+          name: fyn-windows-aarch64-${{ inputs.sha }}
 
       - name: "Smoke test"
         working-directory: ${{ env.UV_WORKSPACE }}
         run: |
-          ./fv run --no-project scripts/smoke-test
+          ./fyn run --no-project scripts/smoke-test
 
-      - name: "Test fv shell completions"
+      - name: "Test fyn shell completions"
         working-directory: ${{ env.UV_WORKSPACE }}
         run: |
-          (& ./fv generate-shell-completion powershell) | Out-String | Invoke-Expression
+          (& ./fyn generate-shell-completion powershell) | Out-String | Invoke-Expression
 
-      - name: "Test fvx shell completions"
+      - name: "Test fynx shell completions"
         working-directory: ${{ env.UV_WORKSPACE }}
         run: |
-          (& ./fvx --generate-shell-completion powershell) | Out-String | Invoke-Expression
+          (& ./fynx --generate-shell-completion powershell) | Out-String | Invoke-Expression

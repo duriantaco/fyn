@@ -1,6 +1,6 @@
 # Git credentials
 
-fv allows packages to be installed from private Git repositories using SSH or HTTP authentication.
+fyn allows packages to be installed from private Git repositories using SSH or HTTP authentication.
 
 ## SSH authentication
 
@@ -34,16 +34,16 @@ If there are no credentials present in the URL and authentication is needed, the
 
 ## Persistence of credentials
 
-When using `fv add`, fv _will not_ persist Git credentials to the `pyproject.toml` or `fv.lock`.
+When using `fyn add`, fyn _will not_ persist Git credentials to the `pyproject.toml` or `fyn.lock`.
 These files are often included in source control and distributions, so it is generally unsafe to
 include credentials in them.
 
 If you have a Git credential helper configured, your credentials may be automatically persisted,
 resulting in successful subsequent fetches of the dependency. However, if you do not have a Git
-credential helper or the project is used on a machine without credentials seeded, fv will fail to
+credential helper or the project is used on a machine without credentials seeded, fyn will fail to
 fetch the dependency.
 
-You _may_ force fv to persist Git credentials by passing the `--raw` option to `fv add`. However, we
+You _may_ force fyn to persist Git credentials by passing the `--raw` option to `fyn add`. However, we
 strongly recommend setting up a [credential helper](#git-credential-helpers) instead.
 
 ## Git credential helpers
@@ -64,7 +64,7 @@ details.
 !!! note
 
     When using `gh auth login` interactively, the credential helper will be configured automatically.
-    But when using `gh auth login --with-token`, as in the fv
+    But when using `gh auth login --with-token`, as in the fyn
     [GitHub Actions guide](../../guides/integration/github.md#private-repos), the
     [`gh auth setup-git`](https://cli.github.com/manual/gh_auth_setup-git) command will need to be
     run afterwards to configure the credential helper.

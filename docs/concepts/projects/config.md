@@ -46,7 +46,7 @@ hello = "example:hello"
 Then, the command can be run from a console:
 
 ```console
-$ fv run hello
+$ fyn run hello
 ```
 
 ### Graphical user interfaces
@@ -101,23 +101,23 @@ for plugin in entry_points(group='example.plugins'):
 A build system determines how the project should be packaged and installed. Projects may declare and
 configure a build system in the `[build-system]` table of the `pyproject.toml`.
 
-fv uses the presence of a build system to determine if a project contains a package that should be
-installed in the project virtual environment. If a build system is not defined, fv will not attempt
-to build or install the project itself, just its dependencies. If a build system is defined, fv will
+fyn uses the presence of a build system to determine if a project contains a package that should be
+installed in the project virtual environment. If a build system is not defined, fyn will not attempt
+to build or install the project itself, just its dependencies. If a build system is defined, fyn will
 build and install the project into the project environment.
 
-The `--build-backend` option can be provided to `fv init` to create a packaged project with an
-appropriate layout. The `--package` option can be provided to `fv init` to create a packaged project
+The `--build-backend` option can be provided to `fyn init` to create a packaged project with an
+appropriate layout. The `--package` option can be provided to `fyn init` to create a packaged project
 with the default build system.
 
 !!! note
 
-    While fv will not build and install the current project without a build system definition,
+    While fyn will not build and install the current project without a build system definition,
     the presence of a `[build-system]` table is not required in other packages. For legacy reasons,
     if a build system is not defined, then `setuptools.build_meta:__legacy__` is used to build the
     package. Packages you depend on may not explicitly declare their build system but are still
     installable. Similarly, if you [add a dependency on a local project](./dependencies.md#path)
-    or install it with `fv pip`, fv will attempt to build and install it regardless of the presence
+    or install it with `fyn pip`, fyn will attempt to build and install it regardless of the presence
     of a `[build-system]` table.
 
 Build systems are used to power the following features:
@@ -148,16 +148,16 @@ You probably _do not_ need a package if you are:
 - Building a simple application
 - Using a flat layout
 
-While fv usually uses the declaration of a [build system](#build-systems) to determine if a project
-should be packaged, fv also allows overriding this behavior with the
-[`tool.fv.package`](../../reference/settings.md#package) setting.
+While fyn usually uses the declaration of a [build system](#build-systems) to determine if a project
+should be packaged, fyn also allows overriding this behavior with the
+[`tool.fyn.package`](../../reference/settings.md#package) setting.
 
-Setting `tool.fv.package = true` will force a project to be built and installed into the project
-environment. If no build system is defined, fv will use the setuptools legacy backend.
+Setting `tool.fyn.package = true` will force a project to be built and installed into the project
+environment. If no build system is defined, fyn will use the setuptools legacy backend.
 
-Setting `tool.fv.package = false` will force a project package _not_ to be built and installed into
-the project environment. fv will ignore a declared build system when interacting with the project;
-however, fv will still respect explicit attempts to build the project such as invoking `fv build`.
+Setting `tool.fyn.package = false` will force a project package _not_ to be built and installed into
+the project environment. fyn will ignore a declared build system when interacting with the project;
+however, fyn will still respect explicit attempts to build the project such as invoking `fyn build`.
 
 ## Project environment path
 
@@ -166,10 +166,10 @@ environment path (`.venv` by default).
 
 If a relative path is provided, it will be resolved relative to the workspace root. If an absolute
 path is provided, it will be used as-is, i.e., a child directory will not be created for the
-environment. If an environment is not present at the provided path, fv will create it.
+environment. If an environment is not present at the provided path, fyn will create it.
 
 This option can be used to write to the system Python environment, though it is not recommended.
-`fv sync` will remove extraneous packages from the environment by default and, as such, may leave
+`fyn sync` will remove extraneous packages from the environment by default and, as such, may leave
 the system in a broken state.
 
 To target the system environment, set `UV_PROJECT_ENVIRONMENT` to the prefix of the Python
@@ -190,14 +190,14 @@ To target this environment, you'd export `UV_PROJECT_ENVIRONMENT=/usr/local`.
 
 !!! note
 
-    By default, fv does not read the `VIRTUAL_ENV` environment variable during project operations.
+    By default, fyn does not read the `VIRTUAL_ENV` environment variable during project operations.
     A warning will be displayed if `VIRTUAL_ENV` is set to a different path than the project's
     environment. The `--active` flag can be used to opt-in to respecting `VIRTUAL_ENV`. The
     `--no-active` flag can be used to silence the warning.
 
 ## Build isolation
 
-By default, fv builds all packages in isolated virtual environments alongside their declared build
+By default, fyn builds all packages in isolated virtual environments alongside their declared build
 dependencies, as per [PEP 517](https://peps.python.org/pep-0517/).
 
 Some packages are incompatible with this approach to build isolation, be it intentionally or
@@ -213,7 +213,7 @@ dependency list. For example, [`cchardet`](https://pypi.org/project/cchardet/) r
 be installed in the project environment prior to installing `cchardet`, but does not declare it as a
 build dependency.
 
-To address these issues, fv supports two separate approaches to modifying the build isolation
+To address these issues, fyn supports two separate approaches to modifying the build isolation
 behavior:
 
 1. **Augmenting the list of build dependencies**: This allows you to install a package in an
@@ -250,7 +250,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["cchardet"]
 
-[tool.fv.extra-build-dependencies]
+[tool.fyn.extra-build-dependencies]
 cchardet = ["cython"]
 ```
 
@@ -268,7 +268,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["deepspeed", "torch"]
 
-[tool.fv.extra-build-dependencies]
+[tool.fyn.extra-build-dependencies]
 deepspeed = [{ requirement = "torch", match-runtime = true }]
 ```
 
@@ -287,10 +287,10 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["flash-attn", "torch"]
 
-[tool.fv.extra-build-dependencies]
+[tool.fyn.extra-build-dependencies]
 flash-attn = [{ requirement = "torch", match-runtime = true }]
 
-[tool.fv.extra-build-variables]
+[tool.fyn.extra-build-variables]
 flash-attn = { FLASH_ATTENTION_SKIP_CUDA_BUILD = "TRUE" }
 ```
 
@@ -313,14 +313,14 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["deep_gemm", "torch"]
 
-[tool.fv.sources]
+[tool.fyn.sources]
 deep_gemm = { git = "https://github.com/deepseek-ai/DeepGEMM" }
 
-[tool.fv.extra-build-dependencies]
+[tool.fyn.extra-build-dependencies]
 deep_gemm = [{ requirement = "torch", match-runtime = true }]
 ```
 
-The use of `extra-build-dependencies` and `extra-build-variables` are tracked in the fv cache, such
+The use of `extra-build-dependencies` and `extra-build-variables` are tracked in the fyn cache, such
 that changes to these settings will trigger a reinstall and rebuild of the affected packages. For
 example, in the case of `flash-attn`, upgrading the version of `torch` used in your project would
 subsequently trigger a rebuild of `flash-attn` with the new version of `torch`.
@@ -328,11 +328,11 @@ subsequently trigger a rebuild of `flash-attn` with the new version of `torch`.
 #### Dynamic metadata
 
 The use of `match-runtime = true` is only available for packages like `flash-attn` that declare
-static metadata. If static metadata is unavailable, fv is required to build the package during the
-dependency resolution phase; as such, fv cannot determine the version of the build dependency that
+static metadata. If static metadata is unavailable, fyn is required to build the package during the
+dependency resolution phase; as such, fyn cannot determine the version of the build dependency that
 would ultimately be installed in the project environment.
 
-In other words, if `flash-attn` did not declare static metadata, fv would not be able to determine
+In other words, if `flash-attn` did not declare static metadata, fyn would not be able to determine
 the version of `torch` that would be installed in the project environment, since it would need to
 build `flash-attn` prior to resolving the `torch` version.
 
@@ -354,7 +354,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["axolotl[deepspeed, flash-attn]", "torch==2.6.0"]
 
-[tool.fv.extra-build-dependencies]
+[tool.fyn.extra-build-dependencies]
 axolotl = ["torch==2.6.0"]
 deepspeed = ["torch==2.6.0"]
 flash-attn = ["torch==2.6.0"]
@@ -369,7 +369,7 @@ the need to build the package during the dependency resolution phase. For exampl
 `flash-attn` metadata upfront:
 
 ```toml title="pyproject.toml"
-[[tool.fv.dependency-metadata]]
+[[tool.fyn.dependency-metadata]]
 name = "flash-attn"
 version = "2.6.3"
 requires-dist = ["torch", "einops"]
@@ -383,10 +383,10 @@ requires-dist = ["torch", "einops"]
 
     (If the package includes a built distribution, you can unzip it to find the `METADATA` file; however, the presence
     of a built distribution would negate the need to provide the metadata upfront, since it would already be available
-    to fv.)
+    to fyn.)
 
-    The `version` field in `tool.fv.dependency-metadata` is optional for registry-based
-    dependencies (when omitted, fv will assume the metadata applies to all versions of the package),
+    The `version` field in `tool.fyn.dependency-metadata` is optional for registry-based
+    dependencies (when omitted, fyn will assume the metadata applies to all versions of the package),
     but _required_ for direct URL dependencies (like Git dependencies).
 
 ### Disabling build isolation
@@ -399,17 +399,17 @@ install the `cython` and `setuptools` packages in the project environment, follo
 invocation to install `cchardet` without build isolation:
 
 ```console
-$ fv venv
-$ fv pip install cython setuptools
-$ fv pip install cchardet --no-build-isolation
+$ fyn venv
+$ fyn pip install cython setuptools
+$ fyn pip install cchardet --no-build-isolation
 ```
 
-fv simplifies this process by allowing you to specify packages that should not be built in isolation
+fyn simplifies this process by allowing you to specify packages that should not be built in isolation
 via the `no-build-isolation-package` setting in your `pyproject.toml` and the
 `--no-build-isolation-package` flag in the command line. Further, when a package is marked for
-disabling build isolation, fv will perform a two-phase install, first installing any packages that
+disabling build isolation, fyn will perform a two-phase install, first installing any packages that
 support build isolation, followed by those that do not. As a result, if a project's build
-dependencies are included as project dependencies, fv will automatically install them before
+dependencies are included as project dependencies, fyn will automatically install them before
 installing the package that requires build isolation to be disabled.
 
 For example, to install `cchardet` without build isolation, include the following in your
@@ -424,15 +424,15 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["cchardet", "cython", "setuptools"]
 
-[tool.fv]
+[tool.fyn]
 no-build-isolation-package = ["cchardet"]
 ```
 
-When running `fv sync`, fv will first install `cython` and `setuptools` in the project environment,
+When running `fyn sync`, fyn will first install `cython` and `setuptools` in the project environment,
 followed by `cchardet` (without build isolation):
 
 ```console
-$ fv sync --extra build
+$ fyn sync --extra build
  + cchardet==2.1.7
  + cython==3.1.3
  + setuptools==80.9.0
@@ -450,11 +450,11 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["flash-attn", "torch"]
 
-[tool.fv]
+[tool.fyn]
 no-build-isolation-package = ["flash-attn"]
 ```
 
-When running `fv sync`, fv will first install `torch` in the project environment, followed by
+When running `fyn sync`, fyn will first install `torch` in the project environment, followed by
 `flash-attn` (without build isolation). As `torch` is both a project dependency and a build
 dependency, the version of `torch` is guaranteed to be consistent between the build and runtime
 environments.
@@ -463,7 +463,7 @@ A downside of the above approach is that it requires the build dependencies to b
 project environment, which is appropriate for `flash-attn` (which requires `torch` both at
 build-time and runtime), but not for `cchardet` (which only requires `cython` at build-time).
 
-To avoid including build dependencies in the project environment, fv supports a two-step
+To avoid including build dependencies in the project environment, fyn supports a two-step
 installation process that allows you to separate the build dependencies from the packages that
 require them.
 
@@ -482,7 +482,7 @@ dependencies = ["cchardet"]
 [project.optional-dependencies]
 build = ["setuptools", "cython"]
 
-[tool.fv]
+[tool.fyn]
 no-build-isolation-package = ["cchardet"]
 ```
 
@@ -490,21 +490,21 @@ Given the above, a user would first sync with the `build` optional group, and th
 remove the build dependencies:
 
 ```console
-$ fv sync --extra build
+$ fyn sync --extra build
  + cchardet==2.1.7
  + cython==3.1.3
  + setuptools==80.9.0
-$ fv sync
+$ fyn sync
  - cython==3.1.3
  - setuptools==80.9.0
 ```
 
 Some packages, like `cchardet`, only require build dependencies for the _installation_ phase of
-`fv sync`. Others require their build dependencies to be present even just to resolve the project's
+`fyn sync`. Others require their build dependencies to be present even just to resolve the project's
 dependencies during the _resolution_ phase.
 
-In such cases, the build dependencies can be installed prior to running any `fv lock` or `fv sync`
-commands, using the lower lower-level `fv pip` API. For example, given:
+In such cases, the build dependencies can be installed prior to running any `fyn lock` or `fyn sync`
+commands, using the lower lower-level `fyn pip` API. For example, given:
 
 ```toml title="pyproject.toml"
 [project]
@@ -515,16 +515,16 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["flash-attn"]
 
-[tool.fv]
+[tool.fyn]
 no-build-isolation-package = ["flash-attn"]
 ```
 
 You could run the following sequence of commands to sync `flash-attn`:
 
 ```console
-$ fv venv
-$ fv pip install torch setuptools
-$ fv sync
+$ fyn venv
+$ fyn pip install torch setuptools
+$ fyn sync
 ```
 
 Alternatively, users can instead provide the `flash-attn` metadata upfront via the
@@ -533,7 +533,7 @@ the need to build the package during the dependency resolution phase. For exampl
 `flash-attn` metadata upfront:
 
 ```toml title="pyproject.toml"
-[[tool.fv.dependency-metadata]]
+[[tool.fyn.dependency-metadata]]
 name = "flash-attn"
 version = "2.6.3"
 requires-dist = ["torch", "einops"]
@@ -542,22 +542,22 @@ requires-dist = ["torch", "einops"]
 ## Editable mode
 
 By default, the project will be installed in editable mode, such that changes to the source code are
-immediately reflected in the environment. `fv sync` and `fv run` both accept a `--no-editable` flag,
-which instructs fv to install the project in non-editable mode. `--no-editable` is intended for
+immediately reflected in the environment. `fyn sync` and `fyn run` both accept a `--no-editable` flag,
+which instructs fyn to install the project in non-editable mode. `--no-editable` is intended for
 deployment use-cases, such as building a Docker container, in which the project should be included
 in the deployed environment without a dependency on the originating source code.
 
 ## Conflicting dependencies
 
-fv resolves all project dependencies together, including optional dependencies ("extras") and
+fyn resolves all project dependencies together, including optional dependencies ("extras") and
 dependency groups. If dependencies declared in one section are not compatible with those in another
-section, fv will fail to resolve the requirements of the project with an error.
+section, fyn will fail to resolve the requirements of the project with an error.
 
-fv supports explicit declaration of conflicting dependency groups. For example, to declare that the
+fyn supports explicit declaration of conflicting dependency groups. For example, to declare that the
 `optional-dependency` groups `extra1` and `extra2` are incompatible:
 
 ```toml title="pyproject.toml"
-[tool.fv]
+[tool.fyn]
 conflicts = [
     [
       { extra = "extra1" },
@@ -569,7 +569,7 @@ conflicts = [
 Or, to declare the development dependency groups `group1` and `group2` incompatible:
 
 ```toml title="pyproject.toml"
-[tool.fv]
+[tool.fyn]
 conflicts = [
     [
       { group = "group1" },
@@ -587,7 +587,7 @@ set of solved platforms via the `environments` setting, which accepts a list of 
 markers. For example, to constrain the lockfile to macOS and Linux, and exclude Windows:
 
 ```toml title="pyproject.toml"
-[tool.fv]
+[tool.fyn]
 environments = [
     "sys_platform == 'darwin'",
     "sys_platform == 'linux'",
@@ -603,7 +603,7 @@ required via the `required-environments` setting. For example, to require that t
 Intel macOS:
 
 ```toml title="pyproject.toml"
-[tool.fv]
+[tool.fyn]
 required-environments = [
     "sys_platform == 'darwin' and platform_machine == 'x86_64'",
 ]

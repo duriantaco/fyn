@@ -1,46 +1,46 @@
 ---
-title: Using fv with pre-commit
+title: Using fyn with pre-commit
 description:
-  A guide to using fv with pre-commit to automatically update lock files, export requirements, and
+  A guide to using fyn with pre-commit to automatically update lock files, export requirements, and
   compile requirements files.
 ---
 
-# Using fv in pre-commit
+# Using fyn in pre-commit
 
 An official pre-commit hook is provided at
-[`oha/fv-pre-commit`](https://github.com/oha/fv-pre-commit).
+[`oha/fyn-pre-commit`](https://github.com/oha/fyn-pre-commit).
 
-To use fv with pre-commit, add one of the following examples to the `repos` list in the
+To use fyn with pre-commit, add one of the following examples to the `repos` list in the
 `.pre-commit-config.yaml`.
 
-To make sure your `fv.lock` file is up to date even if your `pyproject.toml` file was changed:
+To make sure your `fyn.lock` file is up to date even if your `pyproject.toml` file was changed:
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fv-pre-commit
-    # fv version.
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
     rev: 0.10.12
     hooks:
-      - id: fv-lock
+      - id: fyn-lock
 ```
 
-To keep a `requirements.txt` file in sync with your `fv.lock` file:
+To keep a `requirements.txt` file in sync with your `fyn.lock` file:
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fv-pre-commit
-    # fv version.
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
     rev: 0.10.12
     hooks:
-      - id: fv-export
+      - id: fyn-export
 ```
 
 To compile requirements files:
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fv-pre-commit
-    # fv version.
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
     rev: 0.10.12
     hooks:
       # Compile requirements
@@ -52,8 +52,8 @@ To compile alternative requirements files, modify `args` and `files`:
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fv-pre-commit
-    # fv version.
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
     rev: 0.10.12
     hooks:
       # Compile requirements
@@ -66,8 +66,8 @@ To run the hook over multiple files at the same time, add additional entries:
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fv-pre-commit
-    # fv version.
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
     rev: 0.10.12
     hooks:
       # Compile requirements

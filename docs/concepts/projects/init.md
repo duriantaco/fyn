@@ -1,27 +1,27 @@
 # Creating projects
 
-fv supports creating a project with `fv init`.
+fyn supports creating a project with `fyn init`.
 
-When creating projects, fv supports two basic templates: [**applications**](#applications) and
-[**libraries**](#libraries). By default, fv will create a project for an application. The `--lib`
+When creating projects, fyn supports two basic templates: [**applications**](#applications) and
+[**libraries**](#libraries). By default, fyn will create a project for an application. The `--lib`
 flag can be used to create a project for a library instead.
 
 ## Target directory
 
-fv will create a project in the working directory, or, in a target directory by providing a name,
-e.g., `fv init foo`. The working directory can be modified with the `--directory` option, which will
+fyn will create a project in the working directory, or, in a target directory by providing a name,
+e.g., `fyn init foo`. The working directory can be modified with the `--directory` option, which will
 cause the target directory path to be interpreted relative to the specified working directory. If
-there's already a project in the target directory, i.e., if there's a `pyproject.toml`, fv will exit
+there's already a project in the target directory, i.e., if there's a `pyproject.toml`, fyn will exit
 with an error.
 
 ## Applications
 
 Application projects are suitable for web servers, scripts, and command-line interfaces.
 
-Applications are the default target for `fv init`, but can also be specified with the `--app` flag.
+Applications are the default target for `fyn init`, but can also be specified with the `--app` flag.
 
 ```console
-$ fv init example-app
+$ fyn init example-app
 ```
 
 The project includes a `pyproject.toml`, a sample file (`main.py`), a readme, and a Python version
@@ -38,7 +38,7 @@ example-app
 
 !!! note
 
-    Prior to v0.6.0, fv created a file named `hello.py` instead of `main.py`.
+    Prior to v0.6.0, fyn created a file named `hello.py` instead of `main.py`.
 
 The `pyproject.toml` includes basic metadata. It does not include a build system, it is not a
 [package](./config.md#project-packaging) and will not be installed into the environment:
@@ -64,11 +64,11 @@ if __name__ == "__main__":
     main()
 ```
 
-Python files can be executed with `fv run`:
+Python files can be executed with `fyn run`:
 
 ```console
 $ cd example-app
-$ fv run main.py
+$ fyn run main.py
 Hello from example-project!
 ```
 
@@ -81,7 +81,7 @@ dedicated directory.
 The `--package` flag can be used to create a packaged application:
 
 ```console
-$ fv init --package example-pkg
+$ fyn init --package example-pkg
 ```
 
 The source code is moved into a `src` directory with a module directory and an `__init__.py` file:
@@ -140,11 +140,11 @@ requires = ["uv_build>=0.10.12,<0.11.0"]
 build-backend = "uv_build"
 ```
 
-The command can be executed with `fv run`:
+The command can be executed with `fyn run`:
 
 ```console
 $ cd example-pkg
-$ fv run example-pkg
+$ fyn run example-pkg
 Hello from example-pkg!
 ```
 
@@ -156,7 +156,7 @@ built and distributed, e.g., by uploading them to PyPI.
 Libraries can be created by using the `--lib` flag:
 
 ```console
-$ fv init --lib example-lib
+$ fyn init --lib example-lib
 ```
 
 !!! note
@@ -214,11 +214,11 @@ def hello() -> str:
     return "Hello from example-lib!"
 ```
 
-And you can import and execute it using `fv run`:
+And you can import and execute it using `fyn run`:
 
 ```console
 $ cd example-lib
-$ fv run python -c "import example_lib; print(example_lib.hello())"
+$ fyn run python -c "import example_lib; print(example_lib.hello())"
 Hello from example-lib!
 ```
 
@@ -228,7 +228,7 @@ Most Python projects are "pure Python", meaning they do not define modules in ot
 C, C++, FORTRAN, or Rust. However, projects with extension modules are often used for performance
 sensitive code.
 
-Creating a project with an extension module requires choosing an alternative build system. fv
+Creating a project with an extension module requires choosing an alternative build system. fyn
 supports creating projects with the following build systems that support building extension modules:
 
 - [`maturin`](https://www.maturin.rs) for projects with Rust
@@ -238,7 +238,7 @@ supports creating projects with the following build systems that support buildin
 Specify the build system with the `--build-backend` flag:
 
 ```console
-$ fv init --build-backend maturin example-ext
+$ fyn init --build-backend maturin example-ext
 ```
 
 !!! note
@@ -292,17 +292,17 @@ def main() -> None:
     print(hello_from_bin())
 ```
 
-The command can be executed with `fv run`:
+The command can be executed with `fyn run`:
 
 ```console
 $ cd example-ext
-$ fv run example-ext
+$ fyn run example-ext
 Hello from example-ext!
 ```
 
 !!! important
 
-    When creating a project with maturin or scikit-build-core, fv configures [`tool.fv.cache-keys`](https://docs.astral.sh/fv/reference/settings/#cache-keys)
+    When creating a project with maturin or scikit-build-core, fyn configures [`tool.fyn.cache-keys`](https://docs.astral.sh/fyn/reference/settings/#cache-keys)
     to include common source file types. To force a rebuild, e.g. when changing files outside
     `cache-keys` or when not using `cache-keys`, use `--reinstall`.
 
@@ -311,11 +311,11 @@ Hello from example-ext!
 If you only want to create a `pyproject.toml`, use the `--bare` option:
 
 ```console
-$ fv init example --bare
+$ fyn init example --bare
 ```
 
-fv will skip creating a Python version pin file, a README, and any source directories or files.
-Additionally, fv will not initialize a version control system (i.e., `git`).
+fyn will skip creating a Python version pin file, a README, and any source directories or files.
+Additionally, fyn will not initialize a version control system (i.e., `git`).
 
 ```console
 $ tree example-bare
@@ -323,7 +323,7 @@ example-bare
 └── pyproject.toml
 ```
 
-fv will also not add extra metadata to the `pyproject.toml`, such as the `description` or `authors`.
+fyn will also not add extra metadata to the `pyproject.toml`, such as the `description` or `authors`.
 
 ```toml
 [project]
@@ -334,10 +334,10 @@ dependencies = []
 ```
 
 The `--bare` option can be used with other options like `--lib` or `--build-backend` — in these
-cases fv will still configure a build system but will not create the expected file structure.
+cases fyn will still configure a build system but will not create the expected file structure.
 
 When `--bare` is used, additional features can still be used opt-in:
 
 ```console
-$ fv init example --bare --description "Hello world" --author-from git --vcs git --python-pin
+$ fyn init example --bare --description "Hello world" --author-from git --vcs git --python-pin
 ```

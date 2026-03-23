@@ -8,14 +8,14 @@
 # ]
 # ///
 
-"""Test `fv publish`.
+"""Test `fyn publish`.
 
 Upload a new version of astral-test-<test case> to one of multiple indexes, exercising
 different options of passing credentials.
 
 Locally, execute the credentials setting script, then run:
 ```shell
-fv run scripts/publish/test_publish.py local
+fyn run scripts/publish/test_publish.py local
 ```
 
 # Setup
@@ -30,7 +30,7 @@ supports, but they both CLI options.
 
 **pypi-keyring**
 ```console
-fv pip install keyring
+fyn pip install keyring
 keyring set https://test.pypi.org/legacy/?astral-test-keyring __token__
 ```
 The query parameter a horrible hack stolen from
@@ -39,17 +39,17 @@ to prevent the other projects from implicitly using the same credentials.
 
 **pypi-text-store**
 ```console
-fv auth login https://test.pypi.org/legacy/?astral-test-text-store --token <token>
+fyn auth login https://test.pypi.org/legacy/?astral-test-text-store --token <token>
 ```
 The query parameter a horrible hack stolen from
 https://github.com/pypa/twine/issues/565#issue-555219267
 to prevent the other projects from implicitly using the same credentials.
 
 **pypi-trusted-publishing-github**
-This one only works in GitHub Actions on astral-sh/fv in `ci.yml` - sorry!
+This one only works in GitHub Actions on astral-sh/fyn in `ci.yml` - sorry!
 
 **pypi-trusted-publishing-gitlab**
-This one only works in GitHub Actions on astral-sh/fv in `ci.yml` - sorry!
+This one only works in GitHub Actions on astral-sh/fyn in `ci.yml` - sorry!
 
 **gitlab**
 The username is astral-test-user, the password is a token.
@@ -94,7 +94,7 @@ PYTHON_VERSION = os.environ.get("UV_TEST_PUBLISH_PYTHON_VERSION", "3.12")
 PYPROJECT_TAIL = """
 authors = [{ name = "konstin", email = "konstin@mailbox.org" }]
 classifiers = ["Topic :: Software Development :: Testing"]
-# Empty for simplicity with the `fv compile` check, anyio still tests,
+# Empty for simplicity with the `fyn compile` check, anyio still tests,
 # optional-dependencies still test the `Requires-Dist` field.
 dependencies = []
 description = "Add your description here"
@@ -106,7 +106,7 @@ maintainers = [{ name = "konstin", email = "konstin@mailbox.org" }]
 optional-dependencies = { "async" = ["anyio>=4,<5"] }
 readme = "README.md"
 requires-python = ">=3.12"
-urls = { "github" = "https://github.com/astral-sh/fv" }
+urls = { "github" = "https://github.com/astral-sh/fyn" }
 
 # https://github.com/pypa/hatch/issues/1828
 [build-system]
@@ -137,7 +137,7 @@ class TargetConfiguration:
         if not self.index:
             return None
         return (
-            "[[tool.fv.index]]\n"
+            "[[tool.fyn.index]]\n"
             + f'name = "{self.index}"\n'
             + f'url = "{self.index_url}"\n'
             + f'publish-url = "{self.publish_url}"\n'
@@ -148,7 +148,7 @@ class TargetConfiguration:
 class Plan:
     uv: Path
     """
-    The fv executable to use.
+    The fyn executable to use.
     """
 
     target: str
@@ -163,19 +163,19 @@ class Plan:
 
     extra_args: list[str]
     """
-    Target-specific extra arguments to `fv publish`.
+    Target-specific extra arguments to `fyn publish`.
     """
 
     env: dict[str, str]
     """
     Target-specific environment variables.
 
-    These get merged into `os.environ` when running `fv publish`, and take
+    These get merged into `os.environ` when running `fyn publish`, and take
     precedence over it.
     """
 
     def full_env(self) -> dict[str, str]:
-        """Return the full environment for running fv publish."""
+        """Return the full environment for running fyn publish."""
         return {**os.environ, **self.env}
 
 
@@ -374,7 +374,7 @@ def build_project_at_version(
         init_py.write_text("x = 1")
 
     # Build the project
-    check_call([fv, "build"], cwd=project_root)
+    check_call([fyn, "build"], cwd=project_root)
     # Test that we ignore unknown any file.
     project_root.joinpath("dist").joinpath(".DS_Store").touch()
 
@@ -388,14 +388,14 @@ def wait_for_index(
     """Check that the index URL was updated, wait up to 100s if necessary.
 
     Often enough the index takes a few seconds until the index is updated after an
-    upload. We need to specifically run this through fv since to query the same cache
-    (invalidation) as the registry client in skip existing in fv publish will later,
+    upload. We need to specifically run this through fyn since to query the same cache
+    (invalidation) as the registry client in skip existing in fyn publish will later,
     just `get_filenames` fails non-deterministically.
     """
     for _ in range(50):
         result = run(
             [
-                plan.fv,
+                plan.fyn,
                 "pip",
                 "compile",
                 "-p",
@@ -417,7 +417,7 @@ def wait_for_index(
         # codeberg sometimes times out
         if result.returncode != 0:
             print(
-                f"fv pip compile not updated, missing 2 files for {version}, "
+                f"fyn pip compile not updated, missing 2 files for {version}, "
                 + f"sleeping for 2s: `{plan.configuration.index_url}`:\n",
                 file=sys.stderr,
             )
@@ -431,7 +431,7 @@ def wait_for_index(
             break
 
         print(
-            f"fv pip compile not updated, missing 2 files for {version}, "
+            f"fyn pip compile not updated, missing 2 files for {version}, "
             + f"sleeping for 2s: `{plan.configuration.index_url}`:\n"
             + "```\n"
             + result.stdout.replace("\\\n    ", "")
@@ -456,7 +456,7 @@ def test_fresh_upload(
     print(f"\nPublish {project_name} for {plan.target}", file=sys.stderr)
 
     version = get_fresh_version(plan)
-    project_dir = build_project_at_version(plan.target, version, plan.fv)
+    project_dir = build_project_at_version(plan.target, version, plan.fyn)
 
     # Upload configuration
     publish_url = plan.configuration.publish_url
@@ -493,7 +493,7 @@ def test_fresh_upload(
         file=sys.stderr,
     )
 
-    args = [plan.fv, "publish", "--publish-url", publish_url, *plan.extra_args]
+    args = [plan.fyn, "publish", "--publish-url", publish_url, *plan.extra_args]
     run(args, cwd=project_dir, env=plan.full_env(), check=True)
 
     if plan.configuration.attestations:
@@ -514,7 +514,7 @@ def test_reupload_same_files(
     # NOTE: Skips targets aren't PyPI or pyx, since PyPI and pyx are the only
     # ones known to have the "same file" behavior tested below.
     # Also skips Trusted Publishing with GitLab, since it uses
-    # a static OIDC token that can't be reused across `fv publish` invocations.
+    # a static OIDC token that can't be reused across `fyn publish` invocations.
     if (
         plan.configuration.publish_url != TEST_PYPI_PUBLISH_URL
         or plan.target.startswith("pyx-")
@@ -532,7 +532,7 @@ def test_reupload_same_files(
     )
     wait_for_index(plan, version)
     args = [
-        plan.fv,
+        plan.fyn,
         "publish",
         "--publish-url",
         plan.configuration.publish_url,
@@ -571,7 +571,7 @@ def test_reupload_with_check_url(
 
     # NOTE: Skips:
     #  - Trusted Publishing to PyPI with GitLab, since GitLab CI uses a static
-    #    OIDC token that can't be reused across `fv publish` invocations.
+    #    OIDC token that can't be reused across `fyn publish` invocations.
     #  - Trusted Publishing to pyx with GitHub, since `--check-url` requires
     #    a read credential for pyx, whereas Trusted Publishing is write-only.
     if plan.target in (
@@ -590,7 +590,7 @@ def test_reupload_with_check_url(
     # Test twine-style and index-style uploads for different packages.
     if index := plan.configuration.index:
         args = [
-            plan.fv,
+            plan.fyn,
             "publish",
             "--index",
             index,
@@ -598,7 +598,7 @@ def test_reupload_with_check_url(
         ]
     else:
         args = [
-            plan.fv,
+            plan.fyn,
             "publish",
             "--publish-url",
             plan.configuration.publish_url,
@@ -639,7 +639,7 @@ def test_reupload_modified_files(
 
     # NOTE: Skips:
     # - Trusted Publishing to pyx/PyPI with GitLab, since GitLab CI uses a static
-    #   OIDC token that can't be reused across `fv publish` invocations.
+    #   OIDC token that can't be reused across `fyn publish` invocations.
     # - Trusted Publishing to pyx with GitHub, since `--check-url` requires
     #   a read credential for pyx, whereas Trusted Publishing is write-only.
     if plan.target in (
@@ -651,7 +651,7 @@ def test_reupload_modified_files(
 
     # Build a different source dist and wheel at the same version, so the upload fails
     modified_project_dir = build_project_at_version(
-        plan.target, version, plan.fv, modified=True
+        plan.target, version, plan.fyn, modified=True
     )
 
     print(
@@ -661,7 +661,7 @@ def test_reupload_modified_files(
     )
     wait_for_index(plan, version)
     args = [
-        plan.fv,
+        plan.fyn,
         "publish",
         "--publish-url",
         plan.configuration.publish_url,
@@ -807,14 +807,14 @@ def main():
     parser.add_argument("--uv")
     args = parser.parse_args()
 
-    if args.fv:
+    if args.fyn:
         # We change the working directory for the subprocess calls, so we have to
         # absolutize the path.
-        uv = Path.cwd().joinpath(args.fv)
+        uv = Path.cwd().joinpath(args.fyn)
     else:
         check_call(["cargo", "build"])
         executable_suffix = ".exe" if os.name == "nt" else ""
-        uv = cwd.parent.parent.joinpath(f"target/debug/fv{executable_suffix}")
+        uv = cwd.parent.parent.joinpath(f"target/debug/fyn{executable_suffix}")
 
     if args.targets == ["local"]:
         targets = list(local_targets)

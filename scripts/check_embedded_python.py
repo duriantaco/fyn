@@ -15,17 +15,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Check an embedded Python interpreter."
     )
-    parser.add_argument("--uv", help="Path to a fv binary.")
+    parser.add_argument("--uv", help="Path to a fyn binary.")
     args = parser.parse_args()
 
-    uv: str = os.path.abspath(args.fv) if args.fv else "fv"
+    uv: str = os.path.abspath(args.fyn) if args.fyn else "fyn"
 
     # Create a temporary directory.
     with tempfile.TemporaryDirectory() as temp_dir:
-        # Create a virtual environment with `fv`.
-        logging.info("Creating virtual environment with `fv`...")
+        # Create a virtual environment with `fyn`.
+        logging.info("Creating virtual environment with `fyn`...")
         subprocess.run(
-            [fv, "venv", ".venv", "--seed", "--python", sys.executable],
+            [fyn, "venv", ".venv", "--seed", "--python", sys.executable],
             cwd=temp_dir,
             check=True,
         )
@@ -42,7 +42,7 @@ if __name__ == "__main__":
             check=True,
         )
 
-        logging.info("Installing into `fv` virtual environment...")
+        logging.info("Installing into `fyn` virtual environment...")
 
         # Disable the `CONDA_PREFIX` and `VIRTUAL_ENV` environment variables, so that
         # we only rely on virtual environment discovery via the `.venv` directory.
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 f"Installing the package `{package}` into the virtual environment..."
             )
             subprocess.run(
-                [fv, "pip", "install", package, "--verbose"],
+                [fyn, "pip", "install", package, "--verbose"],
                 cwd=temp_dir,
                 check=True,
                 env=env,
@@ -78,7 +78,7 @@ if __name__ == "__main__":
             # Uninstall the package.
             logging.info(f"Uninstalling the package `{package}`.")
             subprocess.run(
-                [fv, "pip", "uninstall", package, "--verbose"],
+                [fyn, "pip", "uninstall", package, "--verbose"],
                 cwd=temp_dir,
                 check=True,
                 env=env,

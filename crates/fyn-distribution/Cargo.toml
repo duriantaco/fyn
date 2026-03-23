@@ -1,0 +1,69 @@
+[package]
+name = "fyn-distribution"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-auth = { workspace = true }
+fyn-cache = { workspace = true }
+fyn-cache-info = { workspace = true }
+fyn-client = { workspace = true }
+fyn-configuration = { workspace = true }
+fyn-distribution-filename = { workspace = true }
+fyn-distribution-types = { workspace = true }
+fyn-extract = { workspace = true }
+fyn-flags = { workspace = true }
+fyn-fs = { workspace = true, features = ["tokio"] }
+fyn-git = { workspace = true }
+fyn-git-types = { workspace = true }
+fyn-metadata = { workspace = true }
+fyn-normalize = { workspace = true }
+fyn-pep440 = { workspace = true }
+fyn-pep508 = { workspace = true }
+fyn-platform-tags = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-redacted = { workspace = true }
+fyn-types = { workspace = true }
+fyn-warnings = { workspace = true }
+fyn-workspace = { workspace = true }
+
+anyhow = { workspace = true }
+either = { workspace = true }
+fs-err = { workspace = true }
+futures = { workspace = true }
+nanoid = { workspace = true }
+owo-colors = { workspace = true }
+reqwest = { workspace = true }
+reqwest-middleware = { workspace = true }
+rmp-serde = { workspace = true }
+rustc-hash = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true, features = ["compat"] }
+toml = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+walkdir = { workspace = true }
+zip = { workspace = true }
+
+[dev-dependencies]
+indoc = { workspace = true }
+insta = { workspace = true }
+
+[features]
+default = []
+static = ["fyn-extract/static"]

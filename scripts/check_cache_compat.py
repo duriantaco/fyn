@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Install packages on multiple versions of fv to check for cache compatibility errors.
+Install packages on multiple versions of fyn to check for cache compatibility errors.
 """
 
 from __future__ import annotations
@@ -33,21 +33,21 @@ def install_package(*, uv: str, package: str, flags: list[str]):
 
     logging.info(f"Installing the package {package!r} with {uv!r}.")
     subprocess.run(
-        [fv, "pip", "install", package, "--cache-dir", os.path.join(temp_dir, "cache")]
+        [fyn, "pip", "install", package, "--cache-dir", os.path.join(temp_dir, "cache")]
         + flags,
         cwd=temp_dir,
         check=True,
     )
 
     logging.info(f"Checking that `{package}` is available.")
-    code = subprocess.run([fv, "pip", "show", package], cwd=temp_dir)
+    code = subprocess.run([fyn, "pip", "show", package], cwd=temp_dir)
     if code.returncode != 0:
         raise Exception(f"Could not show {package}.")
 
 
 def clean_cache(*, uv: str):
     subprocess.run(
-        [fv, "cache", "clean", "--cache-dir", os.path.join(temp_dir, "cache")],
+        [fyn, "cache", "clean", "--cache-dir", os.path.join(temp_dir, "cache")],
         cwd=temp_dir,
         check=True,
     )
@@ -63,36 +63,36 @@ def check_cache_with_package(
     # operations in the hope of catching cache load issues. As cache problems are discovered in
     # the future, we should expand coverage with targeted cases.
 
-    # First, install with the previous fv to populate the cache
+    # First, install with the previous fyn to populate the cache
     install_package(uv=uv_previous, package=package, flags=[])
 
-    # Audit with the current fv, this shouldn't hit the cache but is fast
+    # Audit with the current fyn, this shouldn't hit the cache but is fast
     install_package(uv=uv_current, package=package, flags=[])
 
-    # Reinstall with the current fv
+    # Reinstall with the current fyn
     install_package(uv=uv_current, package=package, flags=["--reinstall"])
 
-    # Reinstall with the current fv and refresh a single entry
+    # Reinstall with the current fyn and refresh a single entry
     install_package(
         uv=uv_current,
         package=package,
         flags=["--reinstall-package", package, "--refresh-package", package],
     )
 
-    # Reinstall with the current fv post refresh
+    # Reinstall with the current fyn post refresh
     install_package(uv=uv_current, package=package, flags=["--reinstall"])
 
-    # Reinstall with the current fv post refresh
+    # Reinstall with the current fyn post refresh
     install_package(uv=uv_previous, package=package, flags=["--reinstall"])
 
     # Clear the cache
     clean_cache(uv=uv_previous)
 
-    # Install with the previous fv to populate the cache
+    # Install with the previous fyn to populate the cache
     # Use `--no-binary` to force a local build of the wheel
     install_package(uv=uv_previous, package=package, flags=["--no-binary", package])
 
-    # Reinstall with the current fv
+    # Reinstall with the current fyn
     install_package(uv=uv_current, package=package, flags=["--reinstall"])
 
 
@@ -101,10 +101,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Check a Python interpreter.")
     parser.add_argument(
-        "-c", "--uv-current", help="Path to a current fv binary.", required=True
+        "-c", "--uv-current", help="Path to a current fyn binary.", required=True
     )
     parser.add_argument(
-        "-p", "--uv-previous", help="Path to a previous fv binary.", required=True
+        "-p", "--uv-previous", help="Path to a previous fyn binary.", required=True
     )
     parser.add_argument(
         "-t",

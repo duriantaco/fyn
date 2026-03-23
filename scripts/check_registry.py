@@ -1,4 +1,4 @@
-"""Check that adding fv's python-build-standalone distributions are successfully added
+"""Check that adding fyn's python-build-standalone distributions are successfully added
 and removed from the Windows registry following PEP 514."""
 
 import re
@@ -8,14 +8,14 @@ from argparse import ArgumentParser
 
 # We apply the same download URL/hash redaction to the actual output, too. We don't
 # redact the path inside the runner, if the runner configuration changes
-# (or fv's installation paths), please update the snapshots.
+# (or fyn's installation paths), please update the snapshots.
 expected_registry = [
     # Our company key
     r"""
 Name                           Property
 ----                           --------
 Astral                         DisplayName : Astral Software Inc.
-                               SupportUrl  : https://github.com/astral-sh/fv
+                               SupportUrl  : https://github.com/astral-sh/fyn
 """,
     # The actual Python installations
     r"""
@@ -25,7 +25,7 @@ Astral                         DisplayName : Astral Software Inc.
 Name                           Property
 ----                           --------
 Astral                         DisplayName : Astral Software Inc.
-                               SupportUrl  : https://github.com/astral-sh/fv
+                               SupportUrl  : https://github.com/astral-sh/fyn
 
 
     Hive: HKEY_CURRENT_USER\Software\Python\Astral
@@ -34,7 +34,7 @@ Astral                         DisplayName : Astral Software Inc.
 Name                           Property
 ----                           --------
 CPython3.11.11                 DisplayName     : CPython 3.11.11 (64-bit)
-                               SupportUrl      : https://github.com/astral-sh/fv
+                               SupportUrl      : https://github.com/astral-sh/fyn
                                Version         : 3.11.11
                                SysVersion      : 3.11.11
                                SysArchitecture : 64bit
@@ -47,9 +47,9 @@ CPython3.11.11                 DisplayName     : CPython 3.11.11 (64-bit)
 
 Name                           Property
 ----                           --------
-InstallPath                    (default)              : C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.11.11-windows-x86_64-none
-                               ExecutablePath         : C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.11.11-windows-x86_64-none\python.exe
-                               WindowedExecutablePath : C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.11.11-windows-x86_64-none\pythonw.exe
+InstallPath                    (default)              : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.11.11-windows-x86_64-none
+                               ExecutablePath         : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.11.11-windows-x86_64-none\python.exe
+                               WindowedExecutablePath : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.11.11-windows-x86_64-none\pythonw.exe
 """,
     r"""
     Hive: HKEY_CURRENT_USER\Software\Python\Astral
@@ -58,7 +58,7 @@ InstallPath                    (default)              : C:\Users\runneradmin\App
 Name                           Property
 ----                           --------
 CPython3.12.8                  DisplayName     : CPython 3.12.8 (64-bit)
-                               SupportUrl      : https://github.com/astral-sh/fv
+                               SupportUrl      : https://github.com/astral-sh/fyn
                                Version         : 3.12.8
                                SysVersion      : 3.12.8
                                SysArchitecture : 64bit
@@ -71,9 +71,9 @@ CPython3.12.8                  DisplayName     : CPython 3.12.8 (64-bit)
 
 Name                           Property
 ----                           --------
-InstallPath                    (default)              : C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.12.8-windows-x86_64-none
-                               ExecutablePath         : C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.12.8-windows-x86_64-none\python.exe
-                               WindowedExecutablePath : C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.12.8-windows-x86_64-none\pythonw.exe
+InstallPath                    (default)              : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.12.8-windows-x86_64-none
+                               ExecutablePath         : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.12.8-windows-x86_64-none\python.exe
+                               WindowedExecutablePath : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.12.8-windows-x86_64-none\pythonw.exe
 """,
     r"""
     Hive: HKEY_CURRENT_USER\Software\Python\Astral
@@ -82,7 +82,7 @@ InstallPath                    (default)              : C:\Users\runneradmin\App
 Name                           Property
 ----                           --------
 CPython3.13.1                  DisplayName     : CPython 3.13.1 (64-bit)
-                               SupportUrl      : https://github.com/astral-sh/fv
+                               SupportUrl      : https://github.com/astral-sh/fyn
                                Version         : 3.13.1
                                SysVersion      : 3.13.1
                                SysArchitecture : 64bit
@@ -95,9 +95,9 @@ CPython3.13.1                  DisplayName     : CPython 3.13.1 (64-bit)
 
 Name                           Property
 ----                           --------
-InstallPath                    (default)              : C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.13.1-windows-x86_64-none
-                               ExecutablePath         : C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.13.1-windows-x86_64-none\python.exe
-                               WindowedExecutablePath : C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.13.1-windows-x86_64-none\pythonw.exe
+InstallPath                    (default)              : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.13.1-windows-x86_64-none
+                               ExecutablePath         : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.13.1-windows-x86_64-none\python.exe
+                               WindowedExecutablePath : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.13.1-windows-x86_64-none\pythonw.exe
 """,
 ]
 
@@ -121,9 +121,9 @@ def filter_snapshot(snapshot: str) -> str:
 
 def main(uv: str):
     # `py --list-paths` output
-    py_311_line = r" -V:Astral/CPython3.11.11 C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.11.11-windows-x86_64-none\python.exe"
-    py_312_line = r" -V:Astral/CPython3.12.8 C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.12.8-windows-x86_64-none\python.exe"
-    py_313_line = r" -V:Astral/CPython3.13.1 C:\Users\runneradmin\AppData\Roaming\fv\python\cpython-3.13.1-windows-x86_64-none\python.exe"
+    py_311_line = r" -V:Astral/CPython3.11.11 C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.11.11-windows-x86_64-none\python.exe"
+    py_312_line = r" -V:Astral/CPython3.12.8 C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.12.8-windows-x86_64-none\python.exe"
+    py_313_line = r" -V:Astral/CPython3.13.1 C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.13.1-windows-x86_64-none\python.exe"
 
     # Use the powershell command to get an outside view on the registry values we wrote
     # By default, powershell wraps the output at terminal size
@@ -135,9 +135,9 @@ def main(uv: str):
     # Check 1b: Request installation of already installed interpreters.
     for _ in range(2):
         print("Installing Python 3.11.11, 3.12.8, and 3.13.1")
-        subprocess.check_call([fv, "python", "install", "-v", "--preview", "3.11.11"])
-        subprocess.check_call([fv, "python", "install", "-v", "--preview", "3.12.8"])
-        subprocess.check_call([fv, "python", "install", "-v", "--preview", "3.13.1"])
+        subprocess.check_call([fyn, "python", "install", "-v", "--preview", "3.11.11"])
+        subprocess.check_call([fyn, "python", "install", "-v", "--preview", "3.12.8"])
+        subprocess.check_call([fyn, "python", "install", "-v", "--preview", "3.13.1"])
         # The default shell for a subprocess is not powershell
         actual_registry = subprocess.check_output(
             ["powershell", "-Command", list_registry_command], text=True
@@ -172,7 +172,7 @@ def main(uv: str):
     # Check 2b: Remove a missing interpreter.
     for _ in range(2):
         print("Removing Python 3.11.11")
-        subprocess.check_call([fv, "python", "uninstall", "-v", "--preview", "3.11.11"])
+        subprocess.check_call([fyn, "python", "uninstall", "-v", "--preview", "3.11.11"])
         listed_interpreters = subprocess.check_output(["py", "--list-paths"], text=True)
         py_listed = set(listed_interpreters.splitlines())
         if (
@@ -189,7 +189,7 @@ def main(uv: str):
     # Check 3: Remove all interpreters and check that they are all gone.
     # Check 3a: Clear a used registry.
     # Check 3b: Clear an empty registry.
-    subprocess.check_call([fv, "python", "uninstall", "-v", "--preview", "--all"])
+    subprocess.check_call([fyn, "python", "uninstall", "-v", "--preview", "--all"])
     for _ in range(2):
         print("Removing all Pythons")
         empty_registry = subprocess.check_output(
@@ -214,6 +214,6 @@ def main(uv: str):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--uv", default="./fv.exe")
+    parser.add_argument("--uv", default="./fyn.exe")
     args = parser.parse_args()
-    main(args.fv)
+    main(args.fyn)

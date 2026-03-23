@@ -49,15 +49,15 @@ jobs:
       - name: Download binary
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: Prepare binary
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: Create venv
         # The python version is arbitrary for this test.
         # We only want to ensure the activation script behaves properly
-        run: ./fv venv
+        run: ./fyn venv
 
       - name: Activate venv
         shell: nu {0}
@@ -74,16 +74,16 @@ jobs:
       - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3.3.0
         with:
           miniconda-version: latest
-          activate-environment: fv
+          activate-environment: fyn
           python-version: "3.12"
 
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: Conda info
         shell: bash -el {0}
@@ -93,7 +93,7 @@ jobs:
         shell: bash -el {0}
         run: |
           echo "$CONDA_PREFIX"
-          ./fv pip install anyio
+          ./fyn pip install anyio
 
   integration-test-conda-macos-x86_64:
     name: "conda on macos x86-64"
@@ -106,16 +106,16 @@ jobs:
       - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3.3.0
         with:
           miniconda-version: latest
-          activate-environment: fv
+          activate-environment: fyn
           python-version: "3.12"
 
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-macos-x86_64-${{ inputs.sha }}
+          name: fyn-macos-x86_64-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: Conda info
         shell: bash -el {0}
@@ -125,12 +125,12 @@ jobs:
         shell: bash -el {0}
         run: |
           # greenlet has `macosx_11_0_universal2` wheels. Previously, conda interpreters on Intel
-          # macOS reported the incorrect platform tag `macosx_10_16` causing fv to consider the
+          # macOS reported the incorrect platform tag `macosx_10_16` causing fyn to consider the
           # wheel incompatible. See https://github.com/astral-sh/uv/issues/14267
           #
           # Using `--only-binary` ensures this fails if the platform tags are wrong instead of
           # falling back to a source build.
-          ./fv pip install --no-build 'greenlet==3.3.2'
+          ./fyn pip install --no-build 'greenlet==3.3.2'
 
   integration-test-deadsnakes-39-linux:
     name: "deadsnakes python3.9 on ubuntu"
@@ -152,14 +152,14 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: "Check missing distutils"
         run: |
-          ./fv venv -p 3.9 --python-preference only-system -v 2>&1 | tee log.txt || true
+          ./fyn venv -p 3.9 --python-preference only-system -v 2>&1 | tee log.txt || true
           # We should report that distutils is missing
           grep 'Python installation is missing `distutils`' log.txt
 
@@ -169,7 +169,7 @@ jobs:
 
       - name: "Create a virtualenv"
         run: |
-          ./fv venv -p 3.9 --python-preference only-system -v
+          ./fyn venv -p 3.9 --python-preference only-system -v
 
       - name: "Check version"
         run: |
@@ -177,7 +177,7 @@ jobs:
 
       - name: "Check install"
         run: |
-          ./fv pip install -v anyio
+          ./fyn pip install -v anyio
 
   integration-test-linux-armv7-on-aarch64:
     name: "armv7 on aarch64 linux"
@@ -190,7 +190,7 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-armv7-gnueabihf-${{ inputs.sha }}
+          name: fyn-linux-armv7-gnueabihf-${{ inputs.sha }}
 
       - name: "Install armhf runtime"
         run: |
@@ -200,16 +200,16 @@ jobs:
 
       - name: "Prepare binary"
         run: |
-          chmod +x ./fv
-          chmod +x ./fvx
+          chmod +x ./fyn
+          chmod +x ./fynx
 
-      - name: "Install Python via fv"
+      - name: "Install Python via fyn"
         run: |
-          ./fv python install -v 3.13.12
+          ./fyn python install -v 3.13.12
 
       - name: "Verify hard-float variant selected"
         run: |
-          python_path=$(./fv python find 3.13)
+          python_path=$(./fyn python find 3.13)
           expected="$GITHUB_WORKSPACE/.python/cpython-3.13-linux-armv7-gnueabihf/bin/python3.13"
           if [[ "$python_path" != "$expected" ]]; then
             echo "Expected: $expected"
@@ -219,7 +219,7 @@ jobs:
 
       - name: "Create a virtual environment"
         run: |
-          ./fv venv -c -p 3.13.12 --managed-python --no-python-downloads
+          ./fyn venv -c -p 3.13.12 --managed-python --no-python-downloads
 
   integration-test-free-threaded-windows-x86_64:
     name: "free-threaded on windows"
@@ -230,25 +230,25 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-x86_64-${{ inputs.sha }}
+          name: fyn-windows-x86_64-${{ inputs.sha }}
 
-      - name: "Install free-threaded Python via fv"
+      - name: "Install free-threaded Python via fyn"
         run: |
-          ./fv python install -v 3.13t
+          ./fyn python install -v 3.13t
 
       - name: "Create a virtual environment (stdlib)"
         run: |
-          & (./fv python find 3.13t) -m venv .venv
+          & (./fyn python find 3.13t) -m venv .venv
 
       - name: "Check version (stdlib)"
         run: |
           .venv/Scripts/python --version
 
-      - name: "Create a virtual environment (fv)"
+      - name: "Create a virtual environment (fyn)"
         run: |
-          ./fv venv -c -p 3.13t --managed-python
+          ./fyn venv -c -p 3.13t --managed-python
 
-      - name: "Check version (fv)"
+      - name: "Check version (fyn)"
         run: |
           .venv/Scripts/python --version
 
@@ -258,12 +258,12 @@ jobs:
 
       - name: "Check install"
         run: |
-          ./fv pip install -v anyio
+          ./fyn pip install -v anyio
 
-      - name: "Check fv run"
+      - name: "Check fyn run"
         run: |
-          ./fv run python -c ""
-          ./fv run -p 3.13t python -c ""
+          ./fyn run python -c ""
+          ./fyn run -p 3.13t python -c ""
 
   integration-test-windows-aarch64-implicit:
     name: "aarch64 windows implicit"
@@ -274,25 +274,25 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-aarch64-${{ inputs.sha }}
+          name: fyn-windows-aarch64-${{ inputs.sha }}
 
-      - name: "Install Python via fv (implicitly select x64)"
+      - name: "Install Python via fyn (implicitly select x64)"
         run: |
-          ./fv python install -v 3.13
+          ./fyn python install -v 3.13
 
       - name: "Create a virtual environment (stdlib)"
         run: |
-          & (./fv python find 3.13) -m venv .venv
+          & (./fyn python find 3.13) -m venv .venv
 
       - name: "Check version (stdlib)"
         run: |
           .venv/Scripts/python --version
 
-      - name: "Create a virtual environment (fv)"
+      - name: "Create a virtual environment (fyn)"
         run: |
-          ./fv venv -c -p 3.13 --managed-python
+          ./fyn venv -c -p 3.13 --managed-python
 
-      - name: "Check version (fv)"
+      - name: "Check version (fyn)"
         run: |
           .venv/Scripts/python --version
 
@@ -302,12 +302,12 @@ jobs:
 
       - name: "Check install"
         run: |
-          ./fv pip install -v anyio
+          ./fyn pip install -v anyio
 
-      - name: "Check fv run"
+      - name: "Check fyn run"
         run: |
-          ./fv run python -c ""
-          ./fv run -p 3.13 python -c ""
+          ./fyn run python -c ""
+          ./fyn run -p 3.13 python -c ""
 
   integration-test-windows-aarch64-explicit:
     name: "aarch64 windows explicit"
@@ -318,25 +318,25 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-aarch64-${{ inputs.sha }}
+          name: fyn-windows-aarch64-${{ inputs.sha }}
 
-      - name: "Install Python via fv (explicitly select aarch64)"
+      - name: "Install Python via fyn (explicitly select aarch64)"
         run: |
-          ./fv python install -v cpython-3.13-windows-aarch64-none
+          ./fyn python install -v cpython-3.13-windows-aarch64-none
 
       - name: "Create a virtual environment (stdlib)"
         run: |
-          & (./fv python find 3.13) -m venv .venv
+          & (./fyn python find 3.13) -m venv .venv
 
       - name: "Check version (stdlib)"
         run: |
           .venv/Scripts/python --version
 
-      - name: "Create a virtual environment (fv)"
+      - name: "Create a virtual environment (fyn)"
         run: |
-          ./fv venv -c -p 3.13 --managed-python
+          ./fyn venv -c -p 3.13 --managed-python
 
-      - name: "Check version (fv)"
+      - name: "Check version (fyn)"
         run: |
           .venv/Scripts/python --version
 
@@ -346,12 +346,12 @@ jobs:
 
       - name: "Check install"
         run: |
-          ./fv pip install -v anyio
+          ./fyn pip install -v anyio
 
-      - name: "Check fv run"
+      - name: "Check fyn run"
         run: |
-          ./fv run python -c ""
-          ./fv run -p 3.13 python -c ""
+          ./fyn run python -c ""
+          ./fyn run -p 3.13 python -c ""
 
   integration-test-windows-python-install-manager:
     name: "windows python install manager"
@@ -362,7 +362,7 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-x86_64-${{ inputs.sha }}
+          name: fyn-windows-x86_64-${{ inputs.sha }}
 
       - name: "Install Python via Python Install manager"
         run: |
@@ -374,7 +374,7 @@ jobs:
       # https://github.com/astral-sh/uv/issues/16204
       - name: "Check temporary environment creation"
         run: |
-          ./fv run -p $env:LOCALAPPDATA\Python\pythoncore-3.14-64\python.exe --with numpy python -c "import sys; print(sys.executable)"
+          ./fyn run -p $env:LOCALAPPDATA\Python\pythoncore-3.14-64\python.exe --with numpy python -c "import sys; print(sys.executable)"
 
   # Test PEP 514 integration that installs Python into the Windows registry.
   integration-test-windows-registry:
@@ -389,10 +389,10 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-x86_64-${{ inputs.sha }}
+          name: fyn-windows-x86_64-${{ inputs.sha }}
 
       - name: "Test PEP 514 registration"
-        run: python ./scripts/check_registry.py --uv ./fv.exe
+        run: python ./scripts/check_registry.py --uv ./fyn.exe
 
   integration-test-pypy-linux:
     name: "pypy on linux"
@@ -406,17 +406,17 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: "Install PyPy"
-        run: ./fv python install -v pypy3.9
+        run: ./fyn python install -v pypy3.9
 
       - name: "Create a virtual environment"
         run: |
-          ./fv venv -p pypy3.9 --managed-python
+          ./fyn venv -p pypy3.9 --managed-python
 
       - name: "Check for executables"
         run: |
@@ -457,7 +457,7 @@ jobs:
 
       - name: "Check install"
         run: |
-          ./fv pip install anyio
+          ./fyn pip install anyio
 
   integration-test-pypy-windows-x86_64:
     name: "pypy on windows"
@@ -468,14 +468,14 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-x86_64-${{ inputs.sha }}
+          name: fyn-windows-x86_64-${{ inputs.sha }}
 
       - name: "Install PyPy"
-        run: .\fv.exe python install pypy3.9
+        run: .\fyn.exe python install pypy3.9
 
       - name: "Create a virtual environment"
         run: |
-          .\fv.exe venv -p pypy3.9 --managed-python
+          .\fyn.exe venv -p pypy3.9 --managed-python
 
       - name: "Check for executables"
         shell: python
@@ -516,7 +516,7 @@ jobs:
 
       - name: "Check install"
         run: |
-          .\fv.exe pip install anyio
+          .\fyn.exe pip install anyio
 
   integration-test-graalpy-linux:
     name: "graalpy on linux"
@@ -530,17 +530,17 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: "Install GraalPy"
-        run: ./fv python install -v graalpy
+        run: ./fyn python install -v graalpy
 
       - name: "Create a virtual environment"
         run: |
-          ./fv venv -p graalpy --managed-python
+          ./fyn venv -p graalpy --managed-python
 
       - name: "Check for executables"
         run: |
@@ -581,12 +581,12 @@ jobs:
 
       - name: "Check install"
         run: |
-          ./fv pip install anyio
+          ./fyn pip install anyio
 
       - name: "Check a GraalPy dev version (different version parsing)"
         run: |
           curl -sLf https://github.com/graalvm/graal-languages-ea-builds/releases/download/graalpy-25.0.0-ea.31/graalpy-25.0.0-ea.31-linux-amd64.tar.gz | tar xz
-          ./fv run --no-project -p ./graalpy-25.0.0-dev-linux-amd64/bin/python python --version
+          ./fyn run --no-project -p ./graalpy-25.0.0-dev-linux-amd64/bin/python python --version
 
   integration-test-graalpy-windows-x86_64:
     name: "graalpy on windows"
@@ -597,14 +597,14 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-x86_64-${{ inputs.sha }}
+          name: fyn-windows-x86_64-${{ inputs.sha }}
 
       - name: "Install GraalPy"
-        run: .\fv.exe python install graalpy
+        run: .\fyn.exe python install graalpy
 
       - name: "Create a virtual environment"
         run: |
-          .\fv.exe venv -p graalpy --managed-python
+          .\fyn.exe venv -p graalpy --managed-python
 
       - name: "Check for executables"
         shell: python
@@ -640,7 +640,7 @@ jobs:
 
       - name: "Check install"
         run: |
-          .\fv.exe pip install anyio
+          .\fyn.exe pip install anyio
 
   integration-test-pyodide-linux:
     name: "pyodide on linux"
@@ -654,17 +654,17 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: "Create a native virtual environment"
         run: |
-          ./fv venv venv-native -p 3.12
+          ./fyn venv venv-native -p 3.12
           # We use features added in 0.30.3 but there is no known breakage in
           # newer versions.
-          ./fv pip install -p venv-native/bin/python pyodide-build==0.30.7 pip
+          ./fyn pip install -p venv-native/bin/python pyodide-build==0.30.7 pip
 
       - name: "Install Pyodide interpreter"
         run: |
@@ -677,21 +677,21 @@ jobs:
 
       - name: "Create Pyodide virtual environment"
         run: |
-          ./fv venv -p $PYODIDE_PYTHON venv-pyodide
+          ./fyn venv -p $PYODIDE_PYTHON venv-pyodide
           source ./venv-pyodide/bin/activate
-          ./fv pip install --extra-index-url=$PYODIDE_INDEX --no-build numpy
+          ./fyn pip install --extra-index-url=$PYODIDE_INDEX --no-build numpy
           python -c 'import numpy'
 
-      - name: "Install Pyodide with fv python"
+      - name: "Install Pyodide with fyn python"
         run: |
-          ./fv python install cpython-3.13.2-emscripten-wasm32-musl
+          ./fyn python install cpython-3.13.2-emscripten-wasm32-musl
 
-      - name: "Create a Pyodide virtual environment using fv installed Python"
+      - name: "Create a Pyodide virtual environment using fyn installed Python"
         run: |
-          ./fv venv -p cpython-3.13.2-emscripten-wasm32-musl venv-pyodide2
+          ./fyn venv -p cpython-3.13.2-emscripten-wasm32-musl venv-pyodide2
           # TODO: be able to install Emscripten wheels here...
           source ./venv-pyodide2/bin/activate
-          ./fv pip install packaging
+          ./fyn pip install packaging
           python -c 'import packaging'
 
   integration-test-pyodide-windows:
@@ -708,12 +708,12 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-windows-x86_64-${{ inputs.sha }}
+          name: fyn-windows-x86_64-${{ inputs.sha }}
 
       - name: "Create a native virtual environment"
         run: |
-          .\fv.exe venv venv-native -p 3.13
-          .\fv.exe pip install -p venv-native\Scripts\python.exe pyodide-build==0.31.1 pip
+          .\fyn.exe venv venv-native -p 3.13
+          .\fyn.exe pip install -p venv-native\Scripts\python.exe pyodide-build==0.31.1 pip
 
       - name: "Install Pyodide interpreter"
         run: |
@@ -726,9 +726,9 @@ jobs:
 
       - name: "Create Pyodide virtual environment"
         run: |
-          .\fv.exe venv -p $env:PYODIDE_PYTHON venv-pyodide
+          .\fyn.exe venv -p $env:PYODIDE_PYTHON venv-pyodide
           & .\venv-pyodide\Scripts\Activate.ps1
-          .\fv.exe pip install --extra-index-url=$env:PYODIDE_INDEX --no-build numpy
+          .\fyn.exe pip install --extra-index-url=$env:PYODIDE_INDEX --no-build numpy
           python -c 'import numpy'
 
   integration-test-termux:
@@ -743,15 +743,15 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-musl-${{ inputs.sha }}
+          name: fyn-linux-musl-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
-      - name: "Run fv on Termux"
+      - name: "Run fyn on Termux"
         run: |
           docker run --rm \
-            -v "$PWD/fv:/fv" \
+            -v "$PWD/fyn:/fyn" \
             -v "$PWD/test/integration/termux.sh:/test-termux.sh" \
             ghcr.io/astral-sh/termux-python:latest \
             /entrypoint.sh bash /test-termux.sh
@@ -768,40 +768,40 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: "Install a package without system opt-in"
         run: |
-          ./fv pip install anyio && exit 1 || echo "Failed as expected"
+          ./fyn pip install anyio && exit 1 || echo "Failed as expected"
 
       - name: "Install a package with system opt-in"
         run: |
-          ./fv pip install anyio --system
+          ./fyn pip install anyio --system
 
-      - name: Configure fv to use the system Python by default
+      - name: Configure fyn to use the system Python by default
         run: echo "UV_SYSTEM_PYTHON=1" >> $GITHUB_ENV
 
       - name: "Install a package with system opt-in via the environment"
         run: |
-          ./fv pip install anyio --reinstall
+          ./fyn pip install anyio --reinstall
 
       - name: "Create a project"
         run: |
           # Use Python 3.11 as the minimum required version
-          ./fv init --python 3.11
-          ./fv add anyio
+          ./fyn init --python 3.11
+          ./fyn add anyio
 
       - name: "Sync to the system Python"
-        run: ./fv sync -v --python 3.12
+        run: ./fyn sync -v --python 3.12
         env:
           UV_PROJECT_ENVIRONMENT: "/opt/hostedtoolcache/Python/3.12.7/x64"
 
       - name: "Attempt to sync to the system Python with an incompatible version"
         run: |
-          ./fv sync -v --python 3.11 && { echo "ci: Error; should not succeed"; exit 1; } || { echo "ci: Ok; expected failure"; exit 0; }
+          ./fyn sync -v --python 3.11 && { echo "ci: Error; should not succeed"; exit 1; } || { echo "ci: Ok; expected failure"; exit 0; }
         env:
           UV_PROJECT_ENVIRONMENT: "/opt/hostedtoolcache/Python/3.12.7/x64"
 
@@ -809,7 +809,7 @@ jobs:
         run: |
           mkdir -p /home/runner/example
           touch /home/runner/example/some-file
-          ./fv sync -v && { echo "ci: Error; should not succeed"; exit 1; } || { echo "ci: Ok; expected failure"; exit 0; }
+          ./fyn sync -v && { echo "ci: Error; should not succeed"; exit 1; } || { echo "ci: Ok; expected failure"; exit 0; }
         env:
           UV_PROJECT_ENVIRONMENT: "/home/runner/example"
 
@@ -825,27 +825,27 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: "Install a package without system opt-in"
         run: |
-          ./fv pip install anyio && exit 1 || echo "Failed as expected"
+          ./fyn pip install anyio && exit 1 || echo "Failed as expected"
 
       - name: "Install a package with system opt-in but without free-threaded opt-in"
         run: |
-          ./fv pip install anyio --system --python 3.13 || echo "Failed as expected"
+          ./fyn pip install anyio --system --python 3.13 || echo "Failed as expected"
           # (we need to request 3.13 or we'll discover 3.12 on the system)
 
       - name: "Install a package with system and free-threaded opt-in"
         run: |
-          ./fv pip install anyio --system --python 3.13t
+          ./fyn pip install anyio --system --python 3.13t
 
       - name: "Create a virtual environment"
         run: |
-          ./fv venv -p 3.13t --python-preference only-system
+          ./fyn venv -p 3.13t --python-preference only-system
 
       - name: "Check is free-threaded"
         run: |
@@ -864,7 +864,7 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-musl-${{ inputs.sha }}
+          name: fyn-linux-musl-${{ inputs.sha }}
 
       - name: "Setup WSL"
         uses: Vampire/setup-wsl@6a8db447be7ed35f2f499c02c6e60ff77ef11278 # v6.0.0
@@ -893,21 +893,21 @@ jobs:
           Write-Host "Verifying pyenv-win installation..."
           & "$env:PYENV\bin\pyenv.bat" versions
 
-      - name: "Test fv"
+      - name: "Test fyn"
         shell: wsl-bash {0}
         run: |
           set -x
-          chmod +x ./fv
+          chmod +x ./fyn
 
           # Check that we don't fail on `pyenv-win` shims
-          ./fv python list -v
+          ./fyn python list -v
 
   integration-test-registries:
     name: "registries"
     timeout-minutes: 10
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.head.repo.fork != true }}
-    environment: fv-test-registries
+    environment: fyn-test-registries
     env:
       PYTHON_VERSION: 3.12
     steps:
@@ -923,10 +923,10 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: "Configure AWS credentials"
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
@@ -963,9 +963,9 @@ jobs:
           echo "UV_TEST_GCP_TOKEN=$UV_TEST_GCP_TOKEN" >> $GITHUB_ENV
 
       - name: "Run registry tests with environment variable backend"
-        run: ./fv run --no-project -p "${PYTHON_VERSION}" scripts/registries-test.py --uv ./fv --color always --all --auth-method env
+        run: ./fyn run --no-project -p "${PYTHON_VERSION}" scripts/registries-test.py --uv ./fyn --color always --all --auth-method env
         env:
-          RUST_LOG: fv=debug
+          RUST_LOG: fyn=debug
           UV_TEST_ARTIFACTORY_TOKEN: ${{ secrets.UV_TEST_ARTIFACTORY_TOKEN }}
           UV_TEST_ARTIFACTORY_URL: ${{ secrets.UV_TEST_ARTIFACTORY_URL }}
           UV_TEST_ARTIFACTORY_USERNAME: ${{ secrets.UV_TEST_ARTIFACTORY_USERNAME }}
@@ -987,9 +987,9 @@ jobs:
           UV_TEST_GITLAB_USERNAME: token
 
       - name: "Run registry tests with text store backend"
-        run: ./fv run --no-project -p "${PYTHON_VERSION}" scripts/registries-test.py --uv ./fv --color always --all --auth-method text-store
+        run: ./fyn run --no-project -p "${PYTHON_VERSION}" scripts/registries-test.py --uv ./fyn --color always --all --auth-method text-store
         env:
-          RUST_LOG: fv=debug
+          RUST_LOG: fyn=debug
           UV_TEST_ARTIFACTORY_TOKEN: ${{ secrets.UV_TEST_ARTIFACTORY_TOKEN }}
           UV_TEST_ARTIFACTORY_URL: ${{ secrets.UV_TEST_ARTIFACTORY_URL }}
           UV_TEST_ARTIFACTORY_USERNAME: ${{ secrets.UV_TEST_ARTIFACTORY_USERNAME }}
@@ -1010,8 +1010,8 @@ jobs:
           UV_TEST_GITLAB_URL: ${{ secrets.UV_TEST_GITLAB_URL }}
           UV_TEST_GITLAB_USERNAME: token
 
-  integration-fv-build-backend:
-    name: "fv_build"
+  integration-fyn-build-backend:
+    name: "fyn_build"
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -1026,38 +1026,38 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
         run: |
-          chmod +x ./fv
-          chmod +x ./fvx
+          chmod +x ./fyn
+          chmod +x ./fynx
 
-      - name: "Test fv_build package"
+      - name: "Test fyn_build package"
         run: |
-          # Build the Python package, which is not covered by fv's integration tests since they can't depend on having
+          # Build the Python package, which is not covered by fyn's integration tests since they can't depend on having
           # a Python package (only the binary itself is built before running Rust's tests)
-          ./fv build -v crates/fv-build
+          ./fyn build -v crates/fyn-build
 
           # Test the main path (`build_wheel`) through pip
-          ./fv venv -v --seed
-          ./fv run --no-project python -m pip install -v test/packages/built-by-uv --find-links crates/fv-build/dist --no-index --no-deps
-          ./fv run --no-project python -c "from built_by_uv import greet; print(greet())"
+          ./fyn venv -v --seed
+          ./fyn run --no-project python -m pip install -v test/packages/built-by-uv --find-links crates/fyn-build/dist --no-index --no-deps
+          ./fyn run --no-project python -c "from built_by_uv import greet; print(greet())"
 
-          # Test both `build_wheel` and `build_sdist` through fv
-          ./fv venv -c -v
-          ./fv build -v --force-pep517 test/packages/built-by-uv --find-links crates/fv-build/dist --offline
-          ./fv pip install -v test/packages/built-by-uv/dist/*.tar.gz --find-links crates/fv-build/dist --offline --no-deps
-          ./fv run --no-project python -c "from built_by_uv import greet; print(greet())"
+          # Test both `build_wheel` and `build_sdist` through fyn
+          ./fyn venv -c -v
+          ./fyn build -v --force-pep517 test/packages/built-by-uv --find-links crates/fyn-build/dist --offline
+          ./fyn pip install -v test/packages/built-by-uv/dist/*.tar.gz --find-links crates/fyn-build/dist --offline --no-deps
+          ./fyn run --no-project python -c "from built_by_uv import greet; print(greet())"
 
           # Test both `build_wheel` and `build_sdist` through the official `build`
           rm -rf test/packages/built-by-uv/dist/
-          ./fv venv -c -v
-          ./fv pip install build
-          # Add the fv binary to PATH for `build` to find
-          PATH="$(pwd):$PATH" UV_OFFLINE=1 UV_FIND_LINKS=crates/fv-build/dist ./fv run --no-project python -m build -v --installer uv test/packages/built-by-uv
-          ./fv pip install -v test/packages/built-by-uv/dist/*.tar.gz --find-links crates/fv-build/dist --offline --no-deps
-          ./fv run --no-project python -c "from built_by_uv import greet; print(greet())"
+          ./fyn venv -c -v
+          ./fyn pip install build
+          # Add the fyn binary to PATH for `build` to find
+          PATH="$(pwd):$PATH" UV_OFFLINE=1 UV_FIND_LINKS=crates/fyn-build/dist ./fyn run --no-project python -m build -v --installer uv test/packages/built-by-uv
+          ./fyn pip install -v test/packages/built-by-uv/dist/*.tar.gz --find-links crates/fyn-build/dist --offline --no-deps
+          ./fyn run --no-project python -c "from built_by_uv import greet; print(greet())"
 
   cache-test-ubuntu:
     name: "cache on linux"
@@ -1075,16 +1075,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-linux-libc-${{ inputs.sha }}
+          name: fyn-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: "Download binary for last version"
         run: curl -LsSf "https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz" | tar -xvz
 
       - name: "Check cache compatibility"
-        run: python scripts/check_cache_compat.py --uv-current ./fv --uv-previous ./fv-x86_64-unknown-linux-gnu/uv
+        run: python scripts/check_cache_compat.py --uv-current ./fyn --uv-previous ./fyn-x86_64-unknown-linux-gnu/uv
 
   cache-test-macos-aarch64:
     name: "cache on macos aarch64"
@@ -1098,13 +1098,13 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: fv-macos-aarch64-${{ inputs.sha }}
+          name: fyn-macos-aarch64-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./fv
+        run: chmod +x ./fyn
 
       - name: "Download binary for last version"
         run: curl -LsSf "https://github.com/astral-sh/uv/releases/latest/download/uv-aarch64-apple-darwin.tar.gz" | tar -xvz
 
       - name: "Check cache compatibility"
-        run: python scripts/check_cache_compat.py --uv-current ./fv --uv-previous ./fv-aarch64-apple-darwin/uv
+        run: python scripts/check_cache_compat.py --uv-current ./fyn --uv-previous ./fyn-aarch64-apple-darwin/uv

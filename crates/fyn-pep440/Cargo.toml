@@ -1,0 +1,32 @@
+[package]
+name = "fyn-pep440"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+license = "Apache-2.0 OR BSD-2-Clause"
+include = ["/src", "Changelog.md", "License-Apache", "License-BSD", "Readme.md", "pyproject.toml"]
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+rkyv = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+tracing = { workspace = true, optional = true }
+unicode-width = { workspace = true }
+unscanny = { workspace = true }
+fyn-cache-key = { workspace = true }
+# Adds conversions from [`VersionSpecifiers`] to [`version_ranges::Ranges`]
+version-ranges = { workspace = true, optional = true }
+
+[dev-dependencies]
+indoc = { workspace = true }
+tracing = { workspace = true }
+
+[features]
+# Match the API of the published crate, for compatibility.
+serde = []

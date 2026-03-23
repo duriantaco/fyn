@@ -1,0 +1,39 @@
+[package]
+name = "fyn-cache"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-cache-info = { workspace = true }
+fyn-cache-key = { workspace = true }
+fyn-dirs = { workspace = true }
+fyn-distribution-types = { workspace = true }
+fyn-fs = { workspace = true, features = ["tokio"] }
+fyn-normalize = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-redacted = { workspace = true }
+fyn-static = { workspace = true }
+
+clap = { workspace = true, features = ["derive", "env"], optional = true }
+fs-err = { workspace = true, features = ["tokio"] }
+nanoid = { workspace = true }
+rmp-serde = { workspace = true }
+rustc-hash = { workspace = true }
+same-file = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+walkdir = { workspace = true }

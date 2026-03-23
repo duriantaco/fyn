@@ -1,0 +1,26 @@
+[package]
+name = "fyn-redacted"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ref-cast = { workspace = true }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+url = { workspace = true }
+
+[features]
+schemars = ["dep:schemars"]

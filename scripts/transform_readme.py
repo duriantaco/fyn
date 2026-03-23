@@ -14,7 +14,7 @@ import urllib.parse
 from pathlib import Path
 
 # To be kept in sync with: `docs/index.md`
-URL = "https://github.com/astral-sh/fv/assets/1309177/{}"
+URL = "https://github.com/astral-sh/fyn/assets/1309177/{}"
 URL_LIGHT = URL.format("629e59c0-9c6e-4013-9ad4-adb2bcf5080d")
 URL_DARK = URL.format("03aa9163-1c79-4a87-a31d-7a9311ed9310")
 
@@ -65,16 +65,16 @@ def main(target: str) -> None:
     # Replace the badges with versioned URLs.
     for existing, replacement in [
         (
-            "https://img.shields.io/pypi/v/fv.svg",
-            f"https://img.shields.io/pypi/v/fv/{version}.svg",
+            "https://img.shields.io/pypi/v/fyn.svg",
+            f"https://img.shields.io/pypi/v/fyn/{version}.svg",
         ),
         (
-            "https://img.shields.io/pypi/l/fv.svg",
-            f"https://img.shields.io/pypi/l/fv/{version}.svg",
+            "https://img.shields.io/pypi/l/fyn.svg",
+            f"https://img.shields.io/pypi/l/fyn/{version}.svg",
         ),
         (
-            "https://img.shields.io/pypi/pyversions/fv.svg",
-            f"https://img.shields.io/pypi/pyversions/fv/{version}.svg",
+            "https://img.shields.io/pypi/fynersions/fyn.svg",
+            f"https://img.shields.io/pypi/fynersions/fyn/{version}.svg",
         ),
     ]:
         if existing not in content:
@@ -86,7 +86,7 @@ def main(target: str) -> None:
         url = match.group(1)
         if not url.startswith("http"):
             url = urllib.parse.urljoin(
-                f"https://github.com/astral-sh/fv/blob/{version}/README.md", url
+                f"https://github.com/astral-sh/fyn/blob/{version}/README.md", url
             )
         return f"]({url})"
 

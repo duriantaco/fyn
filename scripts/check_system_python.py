@@ -21,7 +21,7 @@ def install_package(*, uv: str, package: str, version: str = None):
 
     logging.info(f"Installing the package `{requirement}`.")
     subprocess.run(
-        [fv, "pip", "install", requirement, "--system"] + allow_externally_managed,
+        [fyn, "pip", "install", requirement, "--system"] + allow_externally_managed,
         cwd=temp_dir,
         check=True,
     )
@@ -34,7 +34,7 @@ def install_package(*, uv: str, package: str, version: str = None):
     if code.returncode != 0:
         raise Exception(f"Could not import {package}.")
 
-    code = subprocess.run([fv, "pip", "show", package, "--system"])
+    code = subprocess.run([fyn, "pip", "show", package, "--system"])
     if code.returncode != 0:
         raise Exception(f"Could not show {package}.")
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     parser = argparse.ArgumentParser(description="Check a Python interpreter.")
-    parser.add_argument("--uv", help="Path to a fv binary.")
+    parser.add_argument("--uv", help="Path to a fyn binary.")
     parser.add_argument(
         "--externally-managed",
         action="store_true",
@@ -63,11 +63,11 @@ if __name__ == "__main__":
         "--check-path",
         required=False,
         action="store_true",
-        help="Attempt to verify that the PATH is set up so that this tool's python will match the python version that fv would automatically pick up.",
+        help="Attempt to verify that the PATH is set up so that this tool's python will match the python version that fyn would automatically pick up.",
     )
     args = parser.parse_args()
 
-    uv: str = os.path.abspath(args.fv) if args.fv else "fv"
+    uv: str = os.path.abspath(args.fyn) if args.fyn else "fyn"
     allow_externally_managed = (
         ["--break-system-packages"] if args.externally_managed else []
     )
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         # Install the package (`pylint`).
         logging.info("Installing the package `pylint`.")
         subprocess.run(
-            [fv, "pip", "install", pylint_requirement, "--system", "--verbose"]
+            [fyn, "pip", "install", pylint_requirement, "--system", "--verbose"]
             + allow_externally_managed
             + python,
             cwd=temp_dir,
@@ -170,7 +170,7 @@ if __name__ == "__main__":
         # Uninstall the package (`pylint`).
         logging.info("Uninstalling the package `pylint`.")
         subprocess.run(
-            [fv, "pip", "uninstall", "pylint", "--system"]
+            [fyn, "pip", "uninstall", "pylint", "--system"]
             + allow_externally_managed
             + python,
             cwd=temp_dir,
@@ -186,10 +186,10 @@ if __name__ == "__main__":
         if code.returncode == 0:
             raise Exception("The package `pylint` is installed (but shouldn't be).")
 
-        # Create a virtual environment with `fv`.
-        logging.info("Creating virtual environment with `fv`...")
+        # Create a virtual environment with `fyn`.
+        logging.info("Creating virtual environment with `fyn`...")
         subprocess.run(
-            [fv, "venv", ".venv", "--seed", "--python", sys.executable],
+            [fyn, "venv", ".venv", "--seed", "--python", sys.executable],
             cwd=temp_dir,
             check=True,
         )
@@ -206,7 +206,7 @@ if __name__ == "__main__":
             check=True,
         )
 
-        logging.info("Installing into `fv` virtual environment...")
+        logging.info("Installing into `fyn` virtual environment...")
 
         # Disable the `CONDA_PREFIX` and `VIRTUAL_ENV` environment variables, so that
         # we only rely on virtual environment discovery via the `.venv` directory.
@@ -215,7 +215,7 @@ if __name__ == "__main__":
         env["CONDA_PREFIX"] = ""
         env["VIRTUAL_ENV"] = ""
         subprocess.run(
-            [fv, "pip", "install", pylint_requirement, "--verbose"],
+            [fyn, "pip", "install", pylint_requirement, "--verbose"],
             cwd=temp_dir,
             check=True,
             env=env,
@@ -246,7 +246,7 @@ if __name__ == "__main__":
         # Uninstall the package (`pylint`).
         logging.info("Uninstalling the package `pylint`.")
         subprocess.run(
-            [fv, "pip", "uninstall", "pylint", "--verbose"],
+            [fyn, "pip", "uninstall", "pylint", "--verbose"],
             cwd=temp_dir,
             check=True,
             env=env,
@@ -285,7 +285,7 @@ if __name__ == "__main__":
                 uv=uv, package="pydantic_core", version=pydantic_core_version
             )
 
-        # Next, create a virtual environment with `venv`, to ensure that `fv` can
+        # Next, create a virtual environment with `venv`, to ensure that `fyn` can
         # interoperate with `venv` virtual environments.
         shutil.rmtree(os.path.join(temp_dir, ".venv"))
         logging.info("Creating virtual environment with `venv`...")
@@ -298,7 +298,7 @@ if __name__ == "__main__":
         # Install the package (`pylint`) into the virtual environment.
         logging.info("Installing into `venv` virtual environment...")
         subprocess.run(
-            [fv, "pip", "install", pylint_requirement, "--verbose"],
+            [fyn, "pip", "install", pylint_requirement, "--verbose"],
             cwd=temp_dir,
             check=True,
             env=env,
@@ -307,7 +307,7 @@ if __name__ == "__main__":
         # Uninstall the package (`pylint`).
         logging.info("Uninstalling the package `pylint`.")
         subprocess.run(
-            [fv, "pip", "uninstall", "pylint", "--verbose"],
+            [fyn, "pip", "uninstall", "pylint", "--verbose"],
             cwd=temp_dir,
             check=True,
             env=env,

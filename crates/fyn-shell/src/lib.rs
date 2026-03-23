@@ -1,0 +1,446 @@
+pub mod runnable;
+mod shlex;
+pub mod windows;
+
+pub use shlex::{escape_posix_for_single_quotes, shlex_posix, shlex_windows};
+
+use std::env::home_dir;
+use std::path::{Path, PathBuf};
+
+use fyn_fs::Simplified;
+use fyn_static::EnvVars;
+
+#[cfg(unix)]
+use tracing::debug;
+
+/// Shells for which virtualenv activation scripts are available.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[expect(clippy::doc_markdown)]
+pub enum Shell {
+    /// Bourne Again SHell (bash)
+    Bash,
+    /// Friendly Interactive SHell (fish)
+    Fish,
+    /// PowerShell
+    Powershell,
+    /// Cmd (Command Prompt)
+    Cmd,
+    /// Z SHell (zsh)
+    Zsh,
+    /// Nushell
+    Nushell,
+    /// C SHell (csh)
+    Csh,
+    /// Korn SHell (ksh)
+    Ksh,
+}
+
+impl Shell {
+    /// Determine the user's current shell from the environment.
+    ///
+    /// First checks shell-specific environment variables (`NU_VERSION`, `FISH_VERSION`,
+    /// `BASH_VERSION`, `ZSH_VERSION`, `KSH_VERSION`, `PSModulePath`) which are set by the
+    /// respective shells. This takes priority over `SHELL` because on Unix, `SHELL` refers
+    /// to the user's login shell, not the currently running shell.
+    ///
+    /// Falls back to parsing the `SHELL` environment variable if no shell-specific variables
+    /// are found. On Windows, defaults to PowerShell (or Command Prompt if `PROMPT` is set).
+    ///
+    /// Returns `None` if the shell cannot be determined.
+    pub fn from_env() -> Option<Self> {
+        if std::env::var_os(EnvVars::NU_VERSION).is_some() {
+            Some(Self::Nushell)
+        } else if std::env::var_os(EnvVars::FISH_VERSION).is_some() {
+            Some(Self::Fish)
+        } else if std::env::var_os(EnvVars::BASH_VERSION).is_some() {
+            Some(Self::Bash)
+        } else if std::env::var_os(EnvVars::ZSH_VERSION).is_some() {
+            Some(Self::Zsh)
+        } else if std::env::var_os(EnvVars::KSH_VERSION).is_some() {
+            Some(Self::Ksh)
+        } else if std::env::var_os(EnvVars::PS_MODULE_PATH).is_some() {
+            Some(Self::Powershell)
+        } else if let Some(env_shell) = std::env::var_os(EnvVars::SHELL) {
+            Self::from_shell_path(env_shell)
+        } else if cfg!(windows) {
+            // Command Prompt relies on PROMPT for its appearance whereas PowerShell does not.
+            // See: https://stackoverflow.com/a/66415037.
+            if std::env::var_os(EnvVars::PROMPT).is_some() {
+                Some(Self::Cmd)
+            } else {
+                // Fallback to PowerShell if the PROMPT environment variable is not set.
+                Some(Self::Powershell)
+            }
+        } else {
+            // Fallback to detecting the shell from the parent process
+            Self::from_parent_process()
+        }
+    }
+
+    /// Attempt to determine the shell from the parent process.
+    ///
+    /// This is a fallback method for when environment variables don't provide
+    /// enough information about the current shell. It looks at the parent process
+    /// to try to identify which shell is running.
+    ///
+    /// This method currently only works on Unix-like systems. On other platforms,
+    /// it returns `None`.
+    fn from_parent_process() -> Option<Self> {
+        #[cfg(unix)]
+        {
+            // Get the parent process ID
+            let ppid = nix::unistd::getppid();
+            debug!("Detected parent process ID: {ppid}");
+
+            // Try to read the parent process executable path
+            let proc_exe_path = format!("/proc/{ppid}/exe");
+            if let Ok(exe_path) = fs_err::read_link(&proc_exe_path) {
+                debug!("Parent process executable: {}", exe_path.display());
+                if let Some(shell) = Self::from_shell_path(&exe_path) {
+                    return Some(shell);
+                }
+            }
+
+            // If reading exe fails, try reading the comm file
+            let proc_comm_path = format!("/proc/{ppid}/comm");
+            if let Ok(comm) = fs_err::read_to_string(&proc_comm_path) {
+                let comm = comm.trim();
+                debug!("Parent process comm: {comm}");
+                if let Some(shell) = parse_shell_from_path(Path::new(comm)) {
+                    return Some(shell);
+                }
+            }
+
+            debug!("Could not determine shell from parent process");
+            None
+        }
+
+        #[cfg(not(unix))]
+        {
+            None
+        }
+    }
+
+    /// Parse a shell from a path to the executable for the shell.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use crate::shells::Shell;
+    ///
+    /// assert_eq!(Shell::from_shell_path("/bin/bash"), Some(Shell::Bash));
+    /// assert_eq!(Shell::from_shell_path("/usr/bin/zsh"), Some(Shell::Zsh));
+    /// assert_eq!(Shell::from_shell_path("/opt/my_custom_shell"), None);
+    /// ```
+    pub fn from_shell_path(path: impl AsRef<Path>) -> Option<Self> {
+        parse_shell_from_path(path.as_ref())
+    }
+
+    /// Returns `true` if the shell supports a `PATH` update command.
+    pub fn supports_update(self) -> bool {
+        match self {
+            Self::Powershell | Self::Cmd => true,
+            shell => !shell.configuration_files().is_empty(),
+        }
+    }
+
+    /// Return the configuration files that should be modified to append to a shell's `PATH`.
+    ///
+    /// Some of the logic here is based on rustup's rc file detection.
+    ///
+    /// See: <https://github.com/rust-lang/rustup/blob/fede22fea7b160868cece632bd213e6d72f8912f/src/cli/self_update/shell.rs#L197>
+    pub fn configuration_files(self) -> Vec<PathBuf> {
+        let Some(home_dir) = home_dir() else {
+            return vec![];
+        };
+        match self {
+            Self::Bash => {
+                // On Bash, we need to update both `.bashrc` and `.bash_profile`. The former is
+                // sourced for non-login shells, and the latter is sourced for login shells.
+                //
+                // In lieu of `.bash_profile`, shells will also respect `.bash_login` and
+                // `.profile`, if they exist. So we respect those too.
+                vec![
+                    [".bash_profile", ".bash_login", ".profile"]
+                        .iter()
+                        .map(|rc| home_dir.join(rc))
+                        .find(|rc| rc.is_file())
+                        .unwrap_or_else(|| home_dir.join(".bash_profile")),
+                    home_dir.join(".bashrc"),
+                ]
+            }
+            Self::Ksh => {
+                // On Ksh it's standard POSIX `.profile` for login shells, and `.kshrc` for non-login.
+                vec![home_dir.join(".profile"), home_dir.join(".kshrc")]
+            }
+            Self::Zsh => {
+                // On Zsh, we only need to update `.zshenv`. This file is sourced for both login and
+                // non-login shells. However, we match rustup's logic for determining _which_
+                // `.zshenv` to use.
+                //
+                // See: https://github.com/rust-lang/rustup/blob/fede22fea7b160868cece632bd213e6d72f8912f/src/cli/self_update/shell.rs#L197
+                let zsh_dot_dir = std::env::var(EnvVars::ZDOTDIR)
+                    .ok()
+                    .filter(|dir| !dir.is_empty())
+                    .map(PathBuf::from);
+
+                // Attempt to update an existing `.zshenv` file.
+                if let Some(zsh_dot_dir) = zsh_dot_dir.as_ref() {
+                    // If `ZDOTDIR` is set, and `ZDOTDIR/.zshenv` exists, then we update that file.
+                    let zshenv = zsh_dot_dir.join(".zshenv");
+                    if zshenv.is_file() {
+                        return vec![zshenv];
+                    }
+                }
+                // Whether `ZDOTDIR` is set or not, if `~/.zshenv` exists then we update that file.
+                let zshenv = home_dir.join(".zshenv");
+                if zshenv.is_file() {
+                    return vec![zshenv];
+                }
+
+                if let Some(zsh_dot_dir) = zsh_dot_dir.as_ref() {
+                    // If `ZDOTDIR` is set, then we create `ZDOTDIR/.zshenv`.
+                    vec![zsh_dot_dir.join(".zshenv")]
+                } else {
+                    // If `ZDOTDIR` is _not_ set, then we create `~/.zshenv`.
+                    vec![home_dir.join(".zshenv")]
+                }
+            }
+            Self::Fish => {
+                // On Fish, we only need to update `config.fish`. This file is sourced for both
+                // login and non-login shells. However, we must respect Fish's logic, which reads
+                // from `$XDG_CONFIG_HOME/fish/config.fish` if set, and `~/.config/fish/config.fish`
+                // otherwise.
+                if let Some(xdg_home_dir) = std::env::var(EnvVars::XDG_CONFIG_HOME)
+                    .ok()
+                    .filter(|dir| !dir.is_empty())
+                    .map(PathBuf::from)
+                {
+                    vec![xdg_home_dir.join("fish/config.fish")]
+                } else {
+                    vec![home_dir.join(".config/fish/config.fish")]
+                }
+            }
+            Self::Csh => {
+                // On Csh, we need to update both `.cshrc` and `.login`, like Bash.
+                vec![home_dir.join(".cshrc"), home_dir.join(".login")]
+            }
+            // TODO(charlie): Add support for Nushell.
+            Self::Nushell => vec![],
+            // See: [`crate::windows::prepend_path`].
+            Self::Powershell => vec![],
+            // See: [`crate::windows::prepend_path`].
+            Self::Cmd => vec![],
+        }
+    }
+
+    /// Returns `true` if the given path is on the `PATH` in this shell.
+    pub fn contains_path(path: &Path) -> bool {
+        let home_dir = home_dir();
+        std::env::var_os(EnvVars::PATH)
+            .as_ref()
+            .iter()
+            .flat_map(std::env::split_paths)
+            .map(|path| {
+                // If the first component is `~`, expand to the home directory.
+                if let Some(home_dir) = home_dir.as_ref() {
+                    if path
+                        .components()
+                        .next()
+                        .map(std::path::Component::as_os_str)
+                        == Some("~".as_ref())
+                    {
+                        return home_dir.join(path.components().skip(1).collect::<PathBuf>());
+                    }
+                }
+                path
+            })
+            .any(|p| same_file::is_same_file(path, p).unwrap_or(false))
+    }
+
+    /// Returns the command necessary to prepend a directory to the `PATH` in this shell.
+    pub fn prepend_path(self, path: &Path) -> Option<String> {
+        match self {
+            Self::Nushell => None,
+            Self::Bash | Self::Zsh | Self::Ksh => Some(format!(
+                "export PATH=\"{}:$PATH\"",
+                backslash_escape(&path.simplified_display().to_string()),
+            )),
+            Self::Fish => Some(format!(
+                "fish_add_path \"{}\"",
+                backslash_escape(&path.simplified_display().to_string()),
+            )),
+            Self::Csh => Some(format!(
+                "setenv PATH \"{}:$PATH\"",
+                backslash_escape(&path.simplified_display().to_string()),
+            )),
+            Self::Powershell => Some(format!(
+                "$env:PATH = \"{};$env:PATH\"",
+                backtick_escape(&path.simplified_display().to_string()),
+            )),
+            Self::Cmd => Some(format!(
+                "set PATH=\"{};%PATH%\"",
+                backslash_escape(&path.simplified_display().to_string()),
+            )),
+        }
+    }
+}
+
+impl std::fmt::Display for Shell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Bash => write!(f, "Bash"),
+            Self::Fish => write!(f, "Fish"),
+            Self::Powershell => write!(f, "PowerShell"),
+            Self::Cmd => write!(f, "Command Prompt"),
+            Self::Zsh => write!(f, "Zsh"),
+            Self::Nushell => write!(f, "Nushell"),
+            Self::Csh => write!(f, "Csh"),
+            Self::Ksh => write!(f, "Ksh"),
+        }
+    }
+}
+
+/// Parse the shell from the name of the shell executable.
+fn parse_shell_from_path(path: &Path) -> Option<Shell> {
+    let name = path.file_stem()?.to_str()?;
+    match name {
+        "bash" => Some(Shell::Bash),
+        "zsh" => Some(Shell::Zsh),
+        "fish" => Some(Shell::Fish),
+        "csh" => Some(Shell::Csh),
+        "ksh" => Some(Shell::Ksh),
+        "powershell" | "powershell_ise" | "pwsh" => Some(Shell::Powershell),
+        _ => None,
+    }
+}
+
+/// Escape a string for use in a shell command by inserting backslashes.
+fn backslash_escape(s: &str) -> String {
+    let mut escaped = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '\\' | '"' => escaped.push('\\'),
+            _ => {}
+        }
+        escaped.push(c);
+    }
+    escaped
+}
+
+/// Escape a string for use in a `PowerShell` command by inserting backticks.
+fn backtick_escape(s: &str) -> String {
+    let mut escaped = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            // Need to also escape unicode double quotes that PowerShell treats
+            // as the ASCII double quote.
+            '"' | '`' | '\u{201C}' | '\u{201D}' | '\u{201E}' | '$' => escaped.push('`'),
+            _ => {}
+        }
+        escaped.push(c);
+    }
+    escaped
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use fs_err::File;
+    use temp_env::with_vars;
+    use tempfile::tempdir;
+
+    // First option used by std::env::home_dir.
+    const HOME_DIR_ENV_VAR: &str = if cfg!(windows) {
+        EnvVars::USERPROFILE
+    } else {
+        EnvVars::HOME
+    };
+
+    #[test]
+    fn configuration_files_zsh_no_existing_zshenv() {
+        let tmp_home_dir = tempdir().unwrap();
+        let tmp_zdotdir = tempdir().unwrap();
+
+        with_vars(
+            [
+                (EnvVars::ZDOTDIR, None),
+                (HOME_DIR_ENV_VAR, tmp_home_dir.path().to_str()),
+            ],
+            || {
+                assert_eq!(
+                    Shell::Zsh.configuration_files(),
+                    vec![tmp_home_dir.path().join(".zshenv")]
+                );
+            },
+        );
+
+        with_vars(
+            [
+                (EnvVars::ZDOTDIR, tmp_zdotdir.path().to_str()),
+                (HOME_DIR_ENV_VAR, tmp_home_dir.path().to_str()),
+            ],
+            || {
+                assert_eq!(
+                    Shell::Zsh.configuration_files(),
+                    vec![tmp_zdotdir.path().join(".zshenv")]
+                );
+            },
+        );
+    }
+
+    #[test]
+    fn configuration_files_zsh_existing_home_zshenv() {
+        let tmp_home_dir = tempdir().unwrap();
+        File::create(tmp_home_dir.path().join(".zshenv")).unwrap();
+
+        let tmp_zdotdir = tempdir().unwrap();
+
+        with_vars(
+            [
+                (EnvVars::ZDOTDIR, None),
+                (HOME_DIR_ENV_VAR, tmp_home_dir.path().to_str()),
+            ],
+            || {
+                assert_eq!(
+                    Shell::Zsh.configuration_files(),
+                    vec![tmp_home_dir.path().join(".zshenv")]
+                );
+            },
+        );
+
+        with_vars(
+            [
+                (EnvVars::ZDOTDIR, tmp_zdotdir.path().to_str()),
+                (HOME_DIR_ENV_VAR, tmp_home_dir.path().to_str()),
+            ],
+            || {
+                assert_eq!(
+                    Shell::Zsh.configuration_files(),
+                    vec![tmp_home_dir.path().join(".zshenv")]
+                );
+            },
+        );
+    }
+
+    #[test]
+    fn configuration_files_zsh_existing_zdotdir_zshenv() {
+        let tmp_home_dir = tempdir().unwrap();
+
+        let tmp_zdotdir = tempdir().unwrap();
+        File::create(tmp_zdotdir.path().join(".zshenv")).unwrap();
+
+        with_vars(
+            [
+                (EnvVars::ZDOTDIR, tmp_zdotdir.path().to_str()),
+                (HOME_DIR_ENV_VAR, tmp_home_dir.path().to_str()),
+            ],
+            || {
+                assert_eq!(
+                    Shell::Zsh.configuration_files(),
+                    vec![tmp_zdotdir.path().join(".zshenv")]
+                );
+            },
+        );
+    }
+}

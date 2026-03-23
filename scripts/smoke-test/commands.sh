@@ -1,22 +1,22 @@
 # NOTE this is not a real shell-script, it's parsed by `smoke-test/__main__.py` and executed
 # serially via Python for cross-platform support.
 
-# Show the fv version
-fv --version
+# Show the fyn version
+fyn --version
 
 # Use any Python 3.13 version
-fv python pin 3.13
+fyn python pin 3.13
 
-# Create a virtual environment and install a package with `fv pip`
-fv venv -v
-fv pip install ruff -v
+# Create a virtual environment and install a package with `fyn pip`
+fyn venv -v
+fyn pip install ruff -v
 
 # Install a package with extension modules, e.g., `numpy` and make sure it's importable
-fv pip install numpy -v
-fv run --no-project python -c "import numpy; print(numpy.__version__)"
+fyn pip install numpy -v
+fyn run --no-project python -c "import numpy; print(numpy.__version__)"
 
-# Show the `fvx` version
-fvx --version
+# Show the `fynx` version
+fynx --version
 
-# Run a package via `fvx`
-fvx -v ruff --version
+# Run a package via `fynx`
+fynx -v ruff --version

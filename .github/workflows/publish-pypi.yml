@@ -12,38 +12,38 @@ on:
         type: string
 
 jobs:
-  pypi-publish-fv:
-    name: Upload fv to PyPI
+  pypi-publish-fyn:
+    name: Upload fyn to PyPI
     runs-on: ubuntu-latest
     environment:
       name: release
     permissions:
       id-token: write # For PyPI's trusted publishing
     steps:
-      - name: "Install fv"
+      - name: "Install fyn"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: wheels_fv-*
-          path: wheels_fv
+          pattern: wheels_fyn-*
+          path: wheels_fyn
           merge-multiple: true
       - name: Publish to PyPI
-        run: fv publish -v wheels_fv/*
+        run: fyn publish -v wheels_fyn/*
 
-  pypi-publish-fv-build:
-    name: Upload fv-build to PyPI
+  pypi-publish-fyn-build:
+    name: Upload fyn-build to PyPI
     runs-on: ubuntu-latest
     environment:
       name: release
     permissions:
       id-token: write # For PyPI's trusted publishing
     steps:
-      - name: "Install fv"
+      - name: "Install fyn"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: wheels_fv_build-*
-          path: wheels_fv_build
+          pattern: wheels_fyn_build-*
+          path: wheels_fyn_build
           merge-multiple: true
       - name: Publish to PyPI
-        run: fv publish -v wheels_fv_build/*
+        run: fyn publish -v wheels_fyn_build/*

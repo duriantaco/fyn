@@ -1,0 +1,82 @@
+[package]
+name = "fyn-dev"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+publish = false
+
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-cache = { workspace = true, features = ["clap"] }
+fyn-cli = { workspace = true }
+fyn-client = { workspace = true }
+fyn-configuration = { workspace = true }
+fyn-distribution-filename = { workspace = true }
+fyn-distribution-types = { workspace = true }
+fyn-extract = { workspace = true }
+fyn-installer = { workspace = true }
+fyn-macros = { workspace = true }
+fyn-options-metadata = { workspace = true }
+fyn-pep508 = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-preview = { workspace = true }
+fyn-python = { workspace = true }
+fyn-settings = { workspace = true, features = ["schemars"] }
+fyn-static = { workspace = true }
+fyn-workspace = { workspace = true, features = ["schemars"] }
+
+# Any dependencies that are exclusively used in `fyn-dev` should be listed as non-workspace
+# dependencies, to ensure that we're forced to think twice before including them in other crates.
+anstream = { workspace = true }
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive", "wrap_help"] }
+fs-err = { workspace = true, features = ["tokio"] }
+futures = { workspace = true }
+itertools = { workspace = true }
+markdown = { version = "1.0.0" }
+owo-colors = { workspace = true }
+poloto = { version = "19.1.2", optional = true }
+pretty_assertions = { version = "1.4.1" }
+reqwest = { workspace = true, features = ["stream"] }
+resvg = { version = "0.47.0", optional = true }
+schemars = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { version = "0.9.34" }
+tagu = { version = "0.1.6", optional = true }
+tempfile = { workspace = true }
+textwrap = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+tracing = { workspace = true }
+tracing-durations-export = { workspace = true, features = ["plot"] }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+fyn-performance-memory-allocator = { path = "../fyn-performance-memory-allocator", optional = true }
+walkdir = { workspace = true }
+
+[lib]
+name = "fyn_dev"
+
+[[bin]]
+name = "fyn-dev"
+# We don't want to build the dev CLI by default, so we skip it by requiring an off-by-default feature
+required-features = ["dev"]
+
+[features]
+default = ["performance", "fyn-extract/static"]
+# Actually build the dev CLI.
+dev = []
+performance = ["performance-memory-allocator"]
+performance-memory-allocator = ["dep:fyn-performance-memory-allocator"]
+render = ["poloto", "resvg", "tagu"]
+
+[package.metadata.cargo-shear]
+ignored = ["fyn-performance-memory-allocator"]

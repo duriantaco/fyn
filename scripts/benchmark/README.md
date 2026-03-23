@@ -1,13 +1,13 @@
 # benchmark
 
-Benchmarking scripts for fv and other package management tools.
+Benchmarking scripts for fyn and other package management tools.
 
 ## Getting Started
 
 From the `scripts/benchmark` directory:
 
 ```shell
-fv run resolver \
+fyn run resolver \
     --uv-pip \
     --poetry \
     --benchmark \

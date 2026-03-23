@@ -5,19 +5,19 @@
 To list all the packages in the environment:
 
 ```console
-$ fv pip list
+$ fyn pip list
 ```
 
 To list the packages in a JSON format:
 
 ```console
-$ fv pip list --format json
+$ fyn pip list --format json
 ```
 
 To list all the packages in the environment in a `requirements.txt` format:
 
 ```console
-$ fv pip freeze
+$ fyn pip freeze
 ```
 
 ## Inspecting a package
@@ -25,7 +25,7 @@ $ fv pip freeze
 To show information about an installed package, e.g., `numpy`:
 
 ```console
-$ fv pip show numpy
+$ fyn pip show numpy
 ```
 
 Multiple packages can be inspected at once.
@@ -38,5 +38,5 @@ multiple steps.
 To check for conflicts or missing dependencies in the environment:
 
 ```console
-$ fv pip check
+$ fyn pip check
 ```

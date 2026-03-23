@@ -1,0 +1,875 @@
+use std::borrow::Cow;
+use std::str::FromStr;
+
+use jiff::Timestamp;
+use rustc_hash::FxHashMap;
+use serde::{Deserialize, Deserializer, Serialize};
+
+use fyn_normalize::{ExtraName, PackageName};
+use fyn_pep440::{Version, VersionSpecifiers, VersionSpecifiersParseError};
+use fyn_pep508::Requirement;
+use fyn_small_str::SmallString;
+
+use crate::lenient_requirement::LenientVersionSpecifiers;
+use crate::{ProjectStatus, VerbatimParsedUrl};
+
+/// A collection of "files" from `PyPI`'s JSON API for a single package, as served by the
+/// `vnd.pypi.simple.v1` media type.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct PypiSimpleDetail {
+    /// PEP 792 project status information.
+    #[serde(default)]
+    pub project_status: ProjectStatus,
+    /// The list of [`PypiFile`]s available for download sorted by filename.
+    #[serde(deserialize_with = "sorted_simple_json_files")]
+    pub files: Vec<PypiFile>,
+}
+
+/// Deserializes a sequence of "simple" files from `PyPI` and ensures that they
+/// are sorted in a stable order.
+fn sorted_simple_json_files<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<PypiFile>, D::Error> {
+    let mut files = <Vec<PypiFile>>::deserialize(d)?;
+    // While it has not been positively observed, we sort the files
+    // to ensure we have a defined ordering. Otherwise, if we rely on
+    // the API to provide a stable ordering and doesn't, it can lead
+    // non-deterministic behavior elsewhere. (This is somewhat hand-wavy
+    // and a bit of a band-aide, since arguably, the order of this API
+    // response probably shouldn't have an impact on things downstream from
+    // this. That is, if something depends on ordering, then it should
+    // probably be the thing that does the sorting.)
+    files.sort_unstable_by(|f1, f2| f1.filename.cmp(&f2.filename));
+    Ok(files)
+}
+
+/// A single (remote) file belonging to a package, either a wheel or a source distribution, as
+/// served by the `vnd.pypi.simple.v1` media type.
+///
+/// <https://peps.python.org/pep-0691/#project-detail>
+#[derive(Debug, Clone)]
+pub struct PypiFile {
+    pub core_metadata: Option<CoreMetadata>,
+    pub filename: SmallString,
+    pub hashes: Hashes,
+    pub requires_python: Option<Result<VersionSpecifiers, VersionSpecifiersParseError>>,
+    pub size: Option<u64>,
+    pub upload_time: Option<Timestamp>,
+    pub url: SmallString,
+    pub yanked: Option<Box<Yanked>>,
+}
+
+impl<'de> Deserialize<'de> for PypiFile {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct FileVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for FileVisitor {
+            type Value = PypiFile;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a map containing file metadata")
+            }
+
+            fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+            where
+                M: serde::de::MapAccess<'de>,
+            {
+                let mut core_metadata = None;
+                let mut filename = None;
+                let mut hashes = None;
+                let mut requires_python = None;
+                let mut size = None;
+                let mut upload_time = None;
+                let mut url = None;
+                let mut yanked = None;
+
+                while let Some(key) = access.next_key::<Cow<'_, str>>()? {
+                    match &*key {
+                        "core-metadata" | "dist-info-metadata" | "data-dist-info-metadata" => {
+                            if core_metadata.is_none() {
+                                core_metadata = access.next_value()?;
+                            } else {
+                                let _: serde::de::IgnoredAny = access.next_value()?;
+                            }
+                        }
+                        "filename" => filename = Some(access.next_value()?),
+                        "hashes" => hashes = Some(access.next_value()?),
+                        "requires-python" => {
+                            requires_python =
+                                access.next_value::<Option<Cow<'_, str>>>()?.map(|s| {
+                                    LenientVersionSpecifiers::from_str(s.as_ref())
+                                        .map(VersionSpecifiers::from)
+                                });
+                        }
+                        "size" => size = Some(access.next_value()?),
+                        "upload-time" => upload_time = Some(access.next_value()?),
+                        "url" => url = Some(access.next_value()?),
+                        "yanked" => yanked = Some(access.next_value()?),
+                        _ => {
+                            let _: serde::de::IgnoredAny = access.next_value()?;
+                        }
+                    }
+                }
+
+                Ok(PypiFile {
+                    core_metadata,
+                    filename: filename
+                        .ok_or_else(|| serde::de::Error::missing_field("filename"))?,
+                    hashes: hashes.ok_or_else(|| serde::de::Error::missing_field("hashes"))?,
+                    requires_python,
+                    size,
+                    upload_time,
+                    url: url.ok_or_else(|| serde::de::Error::missing_field("url"))?,
+                    yanked,
+                })
+            }
+        }
+
+        deserializer.deserialize_map(FileVisitor)
+    }
+}
+
+/// A collection of "files" from the Simple API.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct PyxSimpleDetail {
+    /// PEP 792 project status information.
+    #[serde(default)]
+    pub project_status: ProjectStatus,
+    /// The list of [`PyxFile`]s available for download sorted by filename.
+    pub files: Vec<PyxFile>,
+    /// The core metadata for the project, keyed by version.
+    #[serde(default)]
+    pub core_metadata: FxHashMap<Version, CoreMetadatum>,
+}
+
+/// A single (remote) file belonging to a package, either a wheel or a source distribution,
+/// as served by the Simple API.
+#[derive(Debug, Clone)]
+pub struct PyxFile {
+    pub core_metadata: Option<CoreMetadata>,
+    pub filename: Option<SmallString>,
+    pub hashes: Hashes,
+    pub requires_python: Option<Result<VersionSpecifiers, VersionSpecifiersParseError>>,
+    pub size: Option<u64>,
+    pub upload_time: Option<Timestamp>,
+    pub url: SmallString,
+    pub yanked: Option<Box<Yanked>>,
+    pub zstd: Option<Zstd>,
+}
+
+impl<'de> Deserialize<'de> for PyxFile {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct FileVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for FileVisitor {
+            type Value = PyxFile;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a map containing file metadata")
+            }
+
+            fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+            where
+                M: serde::de::MapAccess<'de>,
+            {
+                let mut core_metadata = None;
+                let mut filename = None;
+                let mut hashes = None;
+                let mut requires_python = None;
+                let mut size = None;
+                let mut upload_time = None;
+                let mut url = None;
+                let mut yanked = None;
+                let mut zstd = None;
+
+                while let Some(key) = access.next_key::<Cow<'_, str>>()? {
+                    match &*key {
+                        "core-metadata" | "dist-info-metadata" | "data-dist-info-metadata" => {
+                            if core_metadata.is_none() {
+                                core_metadata = access.next_value()?;
+                            } else {
+                                let _: serde::de::IgnoredAny = access.next_value()?;
+                            }
+                        }
+                        "filename" => filename = Some(access.next_value()?),
+                        "hashes" => hashes = Some(access.next_value()?),
+                        "requires-python" => {
+                            requires_python =
+                                access.next_value::<Option<Cow<'_, str>>>()?.map(|s| {
+                                    LenientVersionSpecifiers::from_str(s.as_ref())
+                                        .map(VersionSpecifiers::from)
+                                });
+                        }
+                        "size" => size = access.next_value()?,
+                        "upload-time" => upload_time = Some(access.next_value()?),
+                        "url" => url = Some(access.next_value()?),
+                        "yanked" => yanked = Some(access.next_value()?),
+                        "zstd" => {
+                            zstd = Some(access.next_value()?);
+                        }
+                        _ => {
+                            let _: serde::de::IgnoredAny = access.next_value()?;
+                        }
+                    }
+                }
+
+                Ok(PyxFile {
+                    core_metadata,
+                    filename,
+                    hashes: hashes.ok_or_else(|| serde::de::Error::missing_field("hashes"))?,
+                    requires_python,
+                    size,
+                    upload_time,
+                    url: url.ok_or_else(|| serde::de::Error::missing_field("url"))?,
+                    yanked,
+                    zstd,
+                })
+            }
+        }
+
+        deserializer.deserialize_map(FileVisitor)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct CoreMetadatum {
+    #[serde(default)]
+    pub requires_python: Option<VersionSpecifiers>,
+    #[serde(default)]
+    pub requires_dist: Box<[Requirement<VerbatimParsedUrl>]>,
+    #[serde(default, alias = "provides-extras")]
+    pub provides_extra: Box<[ExtraName]>,
+}
+
+#[derive(Debug, Clone)]
+pub enum CoreMetadata {
+    Bool(bool),
+    Hashes(Hashes),
+}
+
+impl<'de> Deserialize<'de> for CoreMetadata {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        serde_untagged::UntaggedEnumVisitor::new()
+            .bool(|bool| Ok(Self::Bool(bool)))
+            .map(|map| map.deserialize().map(CoreMetadata::Hashes))
+            .deserialize(deserializer)
+    }
+}
+
+impl Serialize for CoreMetadata {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Bool(is_available) => serializer.serialize_bool(*is_available),
+            Self::Hashes(hashes) => hashes.serialize(serializer),
+        }
+    }
+}
+
+impl CoreMetadata {
+    pub fn is_available(&self) -> bool {
+        match self {
+            Self::Bool(is_available) => *is_available,
+            Self::Hashes(_) => true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
+#[rkyv(derive(Debug))]
+pub enum Yanked {
+    Bool(bool),
+    Reason(SmallString),
+}
+
+impl<'de> Deserialize<'de> for Yanked {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        serde_untagged::UntaggedEnumVisitor::new()
+            .bool(|bool| Ok(Self::Bool(bool)))
+            .string(|string| Ok(Self::Reason(SmallString::from(string))))
+            .deserialize(deserializer)
+    }
+}
+
+impl Serialize for Yanked {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Bool(is_yanked) => serializer.serialize_bool(*is_yanked),
+            Self::Reason(reason) => serializer.serialize_str(reason.as_ref()),
+        }
+    }
+}
+
+impl Yanked {
+    pub fn is_yanked(&self) -> bool {
+        match self {
+            Self::Bool(is_yanked) => *is_yanked,
+            Self::Reason(_) => true,
+        }
+    }
+}
+
+impl Default for Yanked {
+    fn default() -> Self {
+        Self::Bool(false)
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Default, Deserialize, Serialize)]
+pub struct Zstd {
+    pub hashes: Hashes,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size: Option<u64>,
+}
+
+/// A dictionary mapping a hash name to a hex encoded digest of the file.
+///
+/// PEP 691 says multiple hashes can be included and the interpretation is left to the client.
+#[derive(Debug, Clone, Eq, PartialEq, Default, Deserialize, Serialize)]
+pub struct Hashes {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub md5: Option<SmallString>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sha256: Option<SmallString>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sha384: Option<SmallString>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sha512: Option<SmallString>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blake2b: Option<SmallString>,
+}
+
+impl Hashes {
+    /// Parse the hash from a fragment, as in: `sha256=6088930bfe239f0e6710546ab9c19c9ef35e29792895fed6e6e31a023a182a61`
+    pub fn parse_fragment(fragment: &str) -> Result<Self, HashError> {
+        let mut parts = fragment.split('=');
+
+        // Extract the key and value.
+        let name = parts
+            .next()
+            .ok_or_else(|| HashError::InvalidFragment(fragment.to_string()))?;
+        let value = parts
+            .next()
+            .ok_or_else(|| HashError::InvalidFragment(fragment.to_string()))?;
+
+        // Ensure there are no more parts.
+        if parts.next().is_some() {
+            return Err(HashError::InvalidFragment(fragment.to_string()));
+        }
+
+        match name {
+            "md5" => Ok(Self {
+                md5: Some(SmallString::from(value)),
+                sha256: None,
+                sha384: None,
+                sha512: None,
+                blake2b: None,
+            }),
+            "sha256" => Ok(Self {
+                md5: None,
+                sha256: Some(SmallString::from(value)),
+                sha384: None,
+                sha512: None,
+                blake2b: None,
+            }),
+            "sha384" => Ok(Self {
+                md5: None,
+                sha256: None,
+                sha384: Some(SmallString::from(value)),
+                sha512: None,
+                blake2b: None,
+            }),
+            "sha512" => Ok(Self {
+                md5: None,
+                sha256: None,
+                sha384: None,
+                sha512: Some(SmallString::from(value)),
+                blake2b: None,
+            }),
+            "blake2b" => Ok(Self {
+                md5: None,
+                sha256: None,
+                sha384: None,
+                sha512: None,
+                blake2b: Some(SmallString::from(value)),
+            }),
+            _ => Err(HashError::UnsupportedHashAlgorithm(fragment.to_string())),
+        }
+    }
+}
+
+impl FromStr for Hashes {
+    type Err = HashError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split(':');
+
+        // Extract the key and value.
+        let name = parts
+            .next()
+            .ok_or_else(|| HashError::InvalidStructure(s.to_string()))?;
+        let value = parts
+            .next()
+            .ok_or_else(|| HashError::InvalidStructure(s.to_string()))?;
+
+        // Ensure there are no more parts.
+        if parts.next().is_some() {
+            return Err(HashError::InvalidStructure(s.to_string()));
+        }
+
+        match name {
+            "md5" => Ok(Self {
+                md5: Some(SmallString::from(value)),
+                sha256: None,
+                sha384: None,
+                sha512: None,
+                blake2b: None,
+            }),
+            "sha256" => Ok(Self {
+                md5: None,
+                sha256: Some(SmallString::from(value)),
+                sha384: None,
+                sha512: None,
+                blake2b: None,
+            }),
+            "sha384" => Ok(Self {
+                md5: None,
+                sha256: None,
+                sha384: Some(SmallString::from(value)),
+                sha512: None,
+                blake2b: None,
+            }),
+            "sha512" => Ok(Self {
+                md5: None,
+                sha256: None,
+                sha384: None,
+                sha512: Some(SmallString::from(value)),
+                blake2b: None,
+            }),
+            "blake2b" => Ok(Self {
+                md5: None,
+                sha256: None,
+                sha384: None,
+                sha512: None,
+                blake2b: Some(SmallString::from(value)),
+            }),
+            _ => Err(HashError::UnsupportedHashAlgorithm(s.to_string())),
+        }
+    }
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Ord,
+    PartialOrd,
+    Eq,
+    PartialEq,
+    Hash,
+    Serialize,
+    Deserialize,
+    rkyv::Archive,
+    rkyv::Deserialize,
+    rkyv::Serialize,
+)]
+#[rkyv(derive(Debug))]
+pub enum HashAlgorithm {
+    Md5,
+    Sha256,
+    Sha384,
+    Sha512,
+    Blake2b,
+}
+
+impl FromStr for HashAlgorithm {
+    type Err = HashError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "md5" => Ok(Self::Md5),
+            "sha256" => Ok(Self::Sha256),
+            "sha384" => Ok(Self::Sha384),
+            "sha512" => Ok(Self::Sha512),
+            "blake2b" => Ok(Self::Blake2b),
+            _ => Err(HashError::UnsupportedHashAlgorithm(s.to_string())),
+        }
+    }
+}
+
+impl std::fmt::Display for HashAlgorithm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Md5 => write!(f, "md5"),
+            Self::Sha256 => write!(f, "sha256"),
+            Self::Sha384 => write!(f, "sha384"),
+            Self::Sha512 => write!(f, "sha512"),
+            Self::Blake2b => write!(f, "blake2b"),
+        }
+    }
+}
+
+/// A hash name and hex encoded digest of the file.
+#[derive(
+    Debug,
+    Clone,
+    Ord,
+    PartialOrd,
+    Eq,
+    PartialEq,
+    Hash,
+    Serialize,
+    Deserialize,
+    rkyv::Archive,
+    rkyv::Deserialize,
+    rkyv::Serialize,
+)]
+#[rkyv(derive(Debug))]
+pub struct HashDigest {
+    pub algorithm: HashAlgorithm,
+    pub digest: SmallString,
+}
+
+impl HashDigest {
+    /// Return the [`HashAlgorithm`] of the digest.
+    pub fn algorithm(&self) -> HashAlgorithm {
+        self.algorithm
+    }
+}
+
+impl std::fmt::Display for HashDigest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.algorithm, self.digest)
+    }
+}
+
+impl FromStr for HashDigest {
+    type Err = HashError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split(':');
+
+        // Extract the key and value.
+        let name = parts
+            .next()
+            .ok_or_else(|| HashError::InvalidStructure(s.to_string()))?;
+        let value = parts
+            .next()
+            .ok_or_else(|| HashError::InvalidStructure(s.to_string()))?;
+
+        // Ensure there are no more parts.
+        if parts.next().is_some() {
+            return Err(HashError::InvalidStructure(s.to_string()));
+        }
+
+        let algorithm = HashAlgorithm::from_str(name)?;
+        let digest = SmallString::from(value);
+
+        Ok(Self { algorithm, digest })
+    }
+}
+
+/// A collection of [`HashDigest`] entities.
+#[derive(
+    Debug,
+    Clone,
+    Ord,
+    PartialOrd,
+    Eq,
+    PartialEq,
+    Hash,
+    Serialize,
+    Deserialize,
+    rkyv::Archive,
+    rkyv::Deserialize,
+    rkyv::Serialize,
+)]
+#[rkyv(derive(Debug))]
+pub struct HashDigests(Box<[HashDigest]>);
+
+impl HashDigests {
+    /// Initialize an empty collection of [`HashDigest`] entities.
+    pub fn empty() -> Self {
+        Self(Box::new([]))
+    }
+
+    /// Return the [`HashDigest`] entities as a slice.
+    pub fn as_slice(&self) -> &[HashDigest] {
+        self.0.as_ref()
+    }
+
+    /// Returns `true` if the [`HashDigests`] are empty.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns the first [`HashDigest`] entity.
+    pub fn first(&self) -> Option<&HashDigest> {
+        self.0.first()
+    }
+
+    /// Return the [`HashDigest`] entities as a vector.
+    pub fn to_vec(&self) -> Vec<HashDigest> {
+        self.0.to_vec()
+    }
+
+    /// Returns an [`Iterator`] over the [`HashDigest`] entities.
+    pub fn iter(&self) -> impl Iterator<Item = &HashDigest> {
+        self.0.iter()
+    }
+
+    /// Sort the underlying [`HashDigest`] entities.
+    pub fn sort_unstable(&mut self) {
+        self.0.sort_unstable();
+    }
+}
+
+/// Convert a set of [`Hashes`] into a list of [`HashDigest`]s.
+impl From<Hashes> for HashDigests {
+    fn from(value: Hashes) -> Self {
+        let mut digests = Vec::with_capacity(
+            usize::from(value.sha512.is_some())
+                + usize::from(value.sha384.is_some())
+                + usize::from(value.sha256.is_some())
+                + usize::from(value.md5.is_some()),
+        );
+        if let Some(sha512) = value.sha512 {
+            digests.push(HashDigest {
+                algorithm: HashAlgorithm::Sha512,
+                digest: sha512,
+            });
+        }
+        if let Some(sha384) = value.sha384 {
+            digests.push(HashDigest {
+                algorithm: HashAlgorithm::Sha384,
+                digest: sha384,
+            });
+        }
+        if let Some(sha256) = value.sha256 {
+            digests.push(HashDigest {
+                algorithm: HashAlgorithm::Sha256,
+                digest: sha256,
+            });
+        }
+        if let Some(md5) = value.md5 {
+            digests.push(HashDigest {
+                algorithm: HashAlgorithm::Md5,
+                digest: md5,
+            });
+        }
+        Self::from(digests)
+    }
+}
+
+impl From<HashDigests> for Hashes {
+    fn from(value: HashDigests) -> Self {
+        let mut hashes = Self::default();
+        for digest in value {
+            match digest.algorithm() {
+                HashAlgorithm::Md5 => hashes.md5 = Some(digest.digest),
+                HashAlgorithm::Sha256 => hashes.sha256 = Some(digest.digest),
+                HashAlgorithm::Sha384 => hashes.sha384 = Some(digest.digest),
+                HashAlgorithm::Sha512 => hashes.sha512 = Some(digest.digest),
+                HashAlgorithm::Blake2b => hashes.blake2b = Some(digest.digest),
+            }
+        }
+        hashes
+    }
+}
+
+impl From<HashDigest> for HashDigests {
+    fn from(value: HashDigest) -> Self {
+        Self(Box::new([value]))
+    }
+}
+
+impl From<&[HashDigest]> for HashDigests {
+    fn from(value: &[HashDigest]) -> Self {
+        Self(Box::from(value))
+    }
+}
+
+impl From<Vec<HashDigest>> for HashDigests {
+    fn from(value: Vec<HashDigest>) -> Self {
+        Self(value.into_boxed_slice())
+    }
+}
+
+impl FromIterator<HashDigest> for HashDigests {
+    fn from_iter<T: IntoIterator<Item = HashDigest>>(iter: T) -> Self {
+        Self(iter.into_iter().collect())
+    }
+}
+
+impl IntoIterator for HashDigests {
+    type Item = HashDigest;
+    type IntoIter = std::vec::IntoIter<HashDigest>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_vec().into_iter()
+    }
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum HashError {
+    #[error("Unexpected hash (expected `<algorithm>:<hash>`): {0}")]
+    InvalidStructure(String),
+
+    #[error("Unexpected fragment (expected `#sha256=...` or similar) on URL: {0}")]
+    InvalidFragment(String),
+
+    #[error(
+        "Unsupported hash algorithm (expected one of: `md5`, `sha256`, `sha384`, `sha512`, or `blake2b`) on: `{0}`"
+    )]
+    UnsupportedHashAlgorithm(String),
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{HashError, Hashes};
+
+    #[test]
+    fn parse_hashes() -> Result<(), HashError> {
+        let hashes: Hashes =
+            "blake2b:af4793213ee66ef8fae3b93b3e29206f6b251e65c97bd91d8e1c5596ef15af0a".parse()?;
+        assert_eq!(
+            hashes,
+            Hashes {
+                md5: None,
+                sha256: None,
+                sha384: None,
+                sha512: None,
+                blake2b: Some(
+                    "af4793213ee66ef8fae3b93b3e29206f6b251e65c97bd91d8e1c5596ef15af0a".into()
+                ),
+            }
+        );
+
+        let hashes: Hashes =
+            "sha512:40627dcf047dadb22cd25ea7ecfe9cbf3bbbad0482ee5920b582f3809c97654f".parse()?;
+        assert_eq!(
+            hashes,
+            Hashes {
+                md5: None,
+                sha256: None,
+                sha384: None,
+                sha512: Some(
+                    "40627dcf047dadb22cd25ea7ecfe9cbf3bbbad0482ee5920b582f3809c97654f".into()
+                ),
+                blake2b: None,
+            }
+        );
+
+        let hashes: Hashes =
+            "sha384:40627dcf047dadb22cd25ea7ecfe9cbf3bbbad0482ee5920b582f3809c97654f".parse()?;
+        assert_eq!(
+            hashes,
+            Hashes {
+                md5: None,
+                sha256: None,
+                sha384: Some(
+                    "40627dcf047dadb22cd25ea7ecfe9cbf3bbbad0482ee5920b582f3809c97654f".into()
+                ),
+                sha512: None,
+                blake2b: None,
+            }
+        );
+
+        let hashes: Hashes =
+            "sha256:40627dcf047dadb22cd25ea7ecfe9cbf3bbbad0482ee5920b582f3809c97654f".parse()?;
+        assert_eq!(
+            hashes,
+            Hashes {
+                md5: None,
+                sha256: Some(
+                    "40627dcf047dadb22cd25ea7ecfe9cbf3bbbad0482ee5920b582f3809c97654f".into()
+                ),
+                sha384: None,
+                sha512: None,
+                blake2b: None,
+            }
+        );
+
+        let hashes: Hashes =
+            "md5:090376d812fb6ac5f171e5938e82e7f2d7adc2b629101cec0db8b267815c85e2".parse()?;
+        assert_eq!(
+            hashes,
+            Hashes {
+                md5: Some(
+                    "090376d812fb6ac5f171e5938e82e7f2d7adc2b629101cec0db8b267815c85e2".into()
+                ),
+                sha256: None,
+                sha384: None,
+                sha512: None,
+                blake2b: None,
+            }
+        );
+
+        let result = "sha256=40627dcf047dadb22cd25ea7ecfe9cbf3bbbad0482ee5920b582f3809c97654f"
+            .parse::<Hashes>();
+        assert!(result.is_err());
+
+        let result = "blake2:55f44b440d491028addb3b88f72207d71eeebfb7b5dbf0643f7c023ae1fba619"
+            .parse::<Hashes>();
+        assert!(result.is_err());
+
+        Ok(())
+    }
+}
+
+/// Response from the Simple API root endpoint (index) listing all available projects,
+/// as served by the `vnd.pypi.simple.v1` media type.
+///
+/// <https://peps.python.org/pep-0691/#specification>
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct PypiSimpleIndex {
+    /// Metadata about the response.
+    pub meta: SimpleIndexMeta,
+    /// The list of projects available in the index.
+    pub projects: Vec<ProjectEntry>,
+}
+
+/// Response from the Pyx Simple API root endpoint listing all available projects,
+/// as served by the `vnd.pyx.simple.v1` media types.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct PyxSimpleIndex {
+    /// Metadata about the response.
+    pub meta: SimpleIndexMeta,
+    /// The list of projects available in the index.
+    pub projects: Vec<ProjectEntry>,
+}
+
+/// Metadata about a Simple API index response.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct SimpleIndexMeta {
+    /// The API version.
+    pub api_version: SmallString,
+}
+
+/// A single project entry in the Simple API index.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ProjectEntry {
+    /// The name of the project.
+    pub name: PackageName,
+}

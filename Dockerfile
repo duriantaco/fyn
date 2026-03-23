@@ -59,13 +59,13 @@ RUN cargo install \
 RUN case "${TARGETPLATFORM}" in \
   "linux/arm64") export JEMALLOC_SYS_WITH_LG_PAGE=16;; \
   esac && \
-  cargo auditable zigbuild --bin fv --bin fvx --target $(cat rust_target.txt) --release
-RUN cp target/$(cat rust_target.txt)/release/fv /fv \
-  && cp target/$(cat rust_target.txt)/release/fvx /fvx
+  cargo auditable zigbuild --bin fyn --bin fynx --target $(cat rust_target.txt) --release
+RUN cp target/$(cat rust_target.txt)/release/fyn /fyn \
+  && cp target/$(cat rust_target.txt)/release/fynx /fynx
 # TODO(konsti): Optimize binary size, with a version that also works when cross compiling
-# RUN strip --strip-all /fv
+# RUN strip --strip-all /fyn
 
 FROM scratch
-COPY --from=build /fv /fvx /
+COPY --from=build /fyn /fynx /
 WORKDIR /io
-ENTRYPOINT ["/fv"]
+ENTRYPOINT ["/fyn"]

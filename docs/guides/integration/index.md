@@ -1,6 +1,6 @@
 # Integration guides
 
-Learn how to integrate fv with other software:
+Learn how to integrate fyn with other software:
 
 - [Using in Docker images](./docker.md)
 - [Using with Jupyter notebooks](./jupyter.md)

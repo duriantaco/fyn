@@ -1,5 +1,5 @@
 # Internals
 
-The internals section provides details about fv's internal components and implementation details.
+The internals section provides details about fyn's internal components and implementation details.
 
 - [Resolver](./resolver.md)

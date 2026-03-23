@@ -1,113 +1,113 @@
 ---
-title: Using fv in Docker
+title: Using fyn in Docker
 description:
-  A complete guide to using fv in Docker to manage Python dependencies while optimizing build times
+  A complete guide to using fyn in Docker to manage Python dependencies while optimizing build times
   and image size via multi-stage builds, intermediate layers, and more.
 ---
 
-# Using fv in Docker
+# Using fyn in Docker
 
 ## Getting started
 
 !!! tip
 
     Check out the [`uv-docker-example`](https://github.com/astral-sh/uv-docker-example) project for
-    an example of best practices when using fv to build an application in Docker.
+    an example of best practices when using fyn to build an application in Docker.
 
-fv provides both _distroless_ Docker images, which are useful for
-[copying fv binaries](#installing-fv) into your own image builds, and images derived from popular
-base images, which are useful for using fv in a container. The distroless images do not contain
-anything but the fv binaries. In contrast, the derived images include an operating system with fv
+fyn provides both _distroless_ Docker images, which are useful for
+[copying fyn binaries](#installing-fyn) into your own image builds, and images derived from popular
+base images, which are useful for using fyn in a container. The distroless images do not contain
+anything but the fyn binaries. In contrast, the derived images include an operating system with fyn
 pre-installed.
 
-As an example, to run fv in a container using a Debian-based image:
+As an example, to run fyn in a container using a Debian-based image:
 
 ```console
-$ docker run --rm -it ghcr.io/oha/fv:debian uv --help
+$ docker run --rm -it ghcr.io/oha/fyn:debian uv --help
 ```
 
 ### Available images
 
 The following distroless images are available:
 
-- `ghcr.io/oha/fv:latest`
-- `ghcr.io/oha/fv:{major}.{minor}.{patch}`, e.g., `ghcr.io/oha/fv:0.10.12`
-- `ghcr.io/oha/fv:{major}.{minor}`, e.g., `ghcr.io/oha/fv:0.8` (the latest patch
+- `ghcr.io/oha/fyn:latest`
+- `ghcr.io/oha/fyn:{major}.{minor}.{patch}`, e.g., `ghcr.io/oha/fyn:0.10.12`
+- `ghcr.io/oha/fyn:{major}.{minor}`, e.g., `ghcr.io/oha/fyn:0.8` (the latest patch
   version)
 
 And the following derived images are available:
 
 <!-- prettier-ignore -->
 - Based on `alpine:3.23`:
-    - `ghcr.io/oha/fv:alpine`
-    - `ghcr.io/oha/fv:alpine3.23`
+    - `ghcr.io/oha/fyn:alpine`
+    - `ghcr.io/oha/fyn:alpine3.23`
 - Based on `alpine:3.22`:
-    - `ghcr.io/oha/fv:alpine3.22`
+    - `ghcr.io/oha/fyn:alpine3.22`
 - Based on `debian:trixie-slim`:
-    - `ghcr.io/oha/fv:debian-slim`
-    - `ghcr.io/oha/fv:trixie-slim`
+    - `ghcr.io/oha/fyn:debian-slim`
+    - `ghcr.io/oha/fyn:trixie-slim`
 - Based on `buildpack-deps:trixie`:
-    - `ghcr.io/oha/fv:debian`
-    - `ghcr.io/oha/fv:trixie`
+    - `ghcr.io/oha/fyn:debian`
+    - `ghcr.io/oha/fyn:trixie`
 - Based on `dhi.io/alpine-base:3.23`:
-    - `ghcr.io/oha/fv:alpine-dhi`
-    - `ghcr.io/oha/fv:alpine3.23-dhi`
+    - `ghcr.io/oha/fyn:alpine-dhi`
+    - `ghcr.io/oha/fyn:alpine3.23-dhi`
 - Based on `dhi.io/debian-base:trixie-debian13`:
-    - `ghcr.io/oha/fv:debian-dhi`
-    - `ghcr.io/oha/fv:trixie-dhi`
+    - `ghcr.io/oha/fyn:debian-dhi`
+    - `ghcr.io/oha/fyn:trixie-dhi`
 - Based on `dhi/python:3.x`:
-    - `ghcr.io/oha/fv:python3.14-dhi`
-    - `ghcr.io/oha/fv:python3.13-dhi`
-    - `ghcr.io/oha/fv:python3.12-dhi`
-    - `ghcr.io/oha/fv:python3.11-dhi`
-    - `ghcr.io/oha/fv:python3.10-dhi`
+    - `ghcr.io/oha/fyn:python3.14-dhi`
+    - `ghcr.io/oha/fyn:python3.13-dhi`
+    - `ghcr.io/oha/fyn:python3.12-dhi`
+    - `ghcr.io/oha/fyn:python3.11-dhi`
+    - `ghcr.io/oha/fyn:python3.10-dhi`
 - Based on `python3.x-alpine`:
-    - `ghcr.io/oha/fv:python3.14-alpine`
-    - `ghcr.io/oha/fv:python3.14-alpine3.23`
-    - `ghcr.io/oha/fv:python3.13-alpine`
-    - `ghcr.io/oha/fv:python3.13-alpine3.23`
-    - `ghcr.io/oha/fv:python3.12-alpine`
-    - `ghcr.io/oha/fv:python3.12-alpine3.23`
-    - `ghcr.io/oha/fv:python3.11-alpine`
-    - `ghcr.io/oha/fv:python3.11-alpine3.23`
-    - `ghcr.io/oha/fv:python3.10-alpine`
-    - `ghcr.io/oha/fv:python3.10-alpine3.23`
-    - `ghcr.io/oha/fv:python3.9-alpine`
-    - `ghcr.io/oha/fv:python3.9-alpine3.22`
+    - `ghcr.io/oha/fyn:python3.14-alpine`
+    - `ghcr.io/oha/fyn:python3.14-alpine3.23`
+    - `ghcr.io/oha/fyn:python3.13-alpine`
+    - `ghcr.io/oha/fyn:python3.13-alpine3.23`
+    - `ghcr.io/oha/fyn:python3.12-alpine`
+    - `ghcr.io/oha/fyn:python3.12-alpine3.23`
+    - `ghcr.io/oha/fyn:python3.11-alpine`
+    - `ghcr.io/oha/fyn:python3.11-alpine3.23`
+    - `ghcr.io/oha/fyn:python3.10-alpine`
+    - `ghcr.io/oha/fyn:python3.10-alpine3.23`
+    - `ghcr.io/oha/fyn:python3.9-alpine`
+    - `ghcr.io/oha/fyn:python3.9-alpine3.22`
 - Based on `python3.x-trixie`:
-    - `ghcr.io/oha/fv:python3.14-trixie`
-    - `ghcr.io/oha/fv:python3.13-trixie`
-    - `ghcr.io/oha/fv:python3.12-trixie`
-    - `ghcr.io/oha/fv:python3.11-trixie`
-    - `ghcr.io/oha/fv:python3.10-trixie`
-    - `ghcr.io/oha/fv:python3.9-trixie`
+    - `ghcr.io/oha/fyn:python3.14-trixie`
+    - `ghcr.io/oha/fyn:python3.13-trixie`
+    - `ghcr.io/oha/fyn:python3.12-trixie`
+    - `ghcr.io/oha/fyn:python3.11-trixie`
+    - `ghcr.io/oha/fyn:python3.10-trixie`
+    - `ghcr.io/oha/fyn:python3.9-trixie`
 - Based on `python3.x-slim-trixie`:
-    - `ghcr.io/oha/fv:python3.14-trixie-slim`
-    - `ghcr.io/oha/fv:python3.13-trixie-slim`
-    - `ghcr.io/oha/fv:python3.12-trixie-slim`
-    - `ghcr.io/oha/fv:python3.11-trixie-slim`
-    - `ghcr.io/oha/fv:python3.10-trixie-slim`
-    - `ghcr.io/oha/fv:python3.9-trixie-slim`
+    - `ghcr.io/oha/fyn:python3.14-trixie-slim`
+    - `ghcr.io/oha/fyn:python3.13-trixie-slim`
+    - `ghcr.io/oha/fyn:python3.12-trixie-slim`
+    - `ghcr.io/oha/fyn:python3.11-trixie-slim`
+    - `ghcr.io/oha/fyn:python3.10-trixie-slim`
+    - `ghcr.io/oha/fyn:python3.9-trixie-slim`
 <!-- prettier-ignore-end -->
 
-As with the distroless image, each derived image is published with fv version tags as
-`ghcr.io/oha/fv:{major}.{minor}.{patch}-{base}` and
-`ghcr.io/oha/fv:{major}.{minor}-{base}`, e.g., `ghcr.io/oha/fv:0.10.12-alpine`.
+As with the distroless image, each derived image is published with fyn version tags as
+`ghcr.io/oha/fyn:{major}.{minor}.{patch}-{base}` and
+`ghcr.io/oha/fyn:{major}.{minor}-{base}`, e.g., `ghcr.io/oha/fyn:0.10.12-alpine`.
 
 In addition, starting with `0.8` each derived image also sets `UV_TOOL_BIN_DIR` to `/usr/local/bin`
-to allow `fv tool install` to work as expected with the default user.
+to allow `fyn tool install` to work as expected with the default user.
 
 For more details, see the [GitHub Container](https://github.com/astral-sh/uv/pkgs/container/uv)
 page.
 
-### Installing fv
+### Installing fyn
 
-Use one of the above images with fv pre-installed or install fv by copying the binary from the
+Use one of the above images with fyn pre-installed or install fyn by copying the binary from the
 official distroless Docker image:
 
 ```dockerfile title="Dockerfile"
 FROM python:3.12-slim-trixie
-COPY --from=ghcr.io/oha/fv:latest /fv /fvx /bin/
+COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
 ```
 
 Or, with the installer:
@@ -119,10 +119,10 @@ FROM python:3.12-slim-trixie
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
 
 # Download the latest installer
-ADD https://astral.sh/fv/install.sh /fv-installer.sh
+ADD https://astral.sh/fyn/install.sh /fyn-installer.sh
 
 # Run the installer then remove it
-RUN sh /fv-installer.sh && rm /fv-installer.sh
+RUN sh /fyn-installer.sh && rm /fyn-installer.sh
 
 # Ensure the installed binary is on the `PATH`
 ENV PATH="/root/.local/bin/:$PATH"
@@ -130,10 +130,10 @@ ENV PATH="/root/.local/bin/:$PATH"
 
 Note this requires `curl` to be available.
 
-In either case, it is best practice to pin to a specific fv version, e.g., with:
+In either case, it is best practice to pin to a specific fyn version, e.g., with:
 
 ```dockerfile
-COPY --from=ghcr.io/oha/fv:0.10.12 /fv /fvx /bin/
+COPY --from=ghcr.io/oha/fyn:0.10.12 /fyn /fynx /bin/
 ```
 
 !!! tip
@@ -145,18 +145,18 @@ COPY --from=ghcr.io/oha/fv:0.10.12 /fv /fvx /bin/
 
     ```Dockerfile
     # e.g., using a hash from a previous release
-    COPY --from=ghcr.io/oha/fv@sha256:2381d6aa60c326b71fd40023f921a0a3b8f91b14d5db6b90402e65a635053709 /fv /fvx /bin/
+    COPY --from=ghcr.io/oha/fyn@sha256:2381d6aa60c326b71fd40023f921a0a3b8f91b14d5db6b90402e65a635053709 /fyn /fynx /bin/
     ```
 
 Or, with the installer:
 
 ```dockerfile
-ADD https://astral.sh/fv/0.10.12/install.sh /fv-installer.sh
+ADD https://astral.sh/fyn/0.10.12/install.sh /fyn-installer.sh
 ```
 
 ### Installing a project
 
-If you're using fv to manage your project, you can copy it into the image and install it:
+If you're using fyn to manage your project, you can copy it into the image and install it:
 
 ```dockerfile title="Dockerfile"
 # Copy the project into the image
@@ -167,7 +167,7 @@ ENV UV_NO_DEV=1
 
 # Sync the project into a new environment, asserting the lockfile is up to date
 WORKDIR /app
-RUN fv sync --locked
+RUN fyn sync --locked
 ```
 
 !!! important
@@ -180,7 +180,7 @@ Then, to start your application by default:
 
 ```dockerfile title="Dockerfile"
 # Presuming there is a `my_app` command provided by the project
-CMD ["fv", "run", "my_app"]
+CMD ["fyn", "run", "my_app"]
 ```
 
 !!! tip
@@ -200,10 +200,10 @@ its binary directory at the front of the path:
 ENV PATH="/app/.venv/bin:$PATH"
 ```
 
-Or, you can use `fv run` for any commands that require the environment:
+Or, you can use `fyn run` for any commands that require the environment:
 
 ```dockerfile title="Dockerfile"
-RUN fv run some_script.py
+RUN fyn run some_script.py
 ```
 
 !!! tip
@@ -220,7 +220,7 @@ on the path:
 
 ```dockerfile title="Dockerfile"
 ENV PATH=/root/.local/bin:$PATH
-RUN fv tool install cowsay
+RUN fyn tool install cowsay
 ```
 
 ```console
@@ -239,13 +239,13 @@ $ docker run -it $(docker build -q .) /bin/bash -c "cowsay -t hello"
 
 !!! note
 
-    The tool bin directory's location can be determined by running the `fv tool dir --bin` command
+    The tool bin directory's location can be determined by running the `fyn tool dir --bin` command
     in the container.
 
     Alternatively, it can be set to a constant location:
 
     ```dockerfile title="Dockerfile"
-    ENV UV_TOOL_BIN_DIR=/opt/fv-bin/
+    ENV UV_TOOL_BIN_DIR=/opt/fyn-bin/
     ```
 
 ## Developing in a container
@@ -328,8 +328,8 @@ to improve startup time (at the cost of increased installation time and image si
 To enable bytecode compilation, use the `--compile-bytecode` flag:
 
 ```dockerfile title="Dockerfile"
-RUN fv python install --compile-bytecode
-RUN fv sync --compile-bytecode
+RUN fyn python install --compile-bytecode
+RUN fyn sync --compile-bytecode
 ```
 
 Alternatively, you can set the `UV_COMPILE_BYTECODE` environment variable to ensure that all
@@ -341,8 +341,8 @@ ENV UV_COMPILE_BYTECODE=1
 
 !!! note
 
-     fv will only compile the standard library of _managed_ Python versions during
-    `fv python install`. The distributor of unmanaged Python versions decides if the
+     fyn will only compile the standard library of _managed_ Python versions during
+    `fyn python install`. The distributor of unmanaged Python versions decides if the
     standard library is pre-compiled. For example, the official `python` image will not
     have a compiled standard library.
 
@@ -354,8 +354,8 @@ improve performance across builds:
 ```dockerfile title="Dockerfile"
 ENV UV_LINK_MODE=copy
 
-RUN --mount=type=cache,target=/root/.cache/fv \
-    fv sync
+RUN --mount=type=cache,target=/root/.cache/fyn \
+    fyn sync
 ```
 
 Changing the [`UV_LINK_MODE`](../../reference/settings.md#link-mode) silences warnings about not
@@ -368,56 +368,56 @@ By default, managed Python installations are not cached before being installed. 
 `UV_PYTHON_CACHE_DIR` can be used in combination with a cache mount:
 
 ```dockerfile title="Dockerfile"
-ENV UV_PYTHON_CACHE_DIR=/root/.cache/fv/python
+ENV UV_PYTHON_CACHE_DIR=/root/.cache/fyn/python
 
-RUN --mount=type=cache,target=/root/.cache/fv \
-    fv python install
+RUN --mount=type=cache,target=/root/.cache/fyn \
+    fyn python install
 ```
 
 !!! note
 
-    The cache directory's location can be determined by running the `fv cache dir` command in the
+    The cache directory's location can be determined by running the `fyn cache dir` command in the
     container.
 
     Alternatively, the cache can be set to a constant location:
 
     ```dockerfile title="Dockerfile"
-    ENV UV_CACHE_DIR=/opt/fv-cache/
+    ENV UV_CACHE_DIR=/opt/fyn-cache/
     ```
 
 ### Intermediate layers
 
-If you're using fv to manage your project, you can improve build times by moving your transitive
+If you're using fyn to manage your project, you can improve build times by moving your transitive
 dependency installation into its own layer via the `--no-install` options.
 
-`fv sync --no-install-project` will install the dependencies of the project but not the project
+`fyn sync --no-install-project` will install the dependencies of the project but not the project
 itself. Since the project changes frequently, but its dependencies are generally static, this can be
 a big time saver.
 
 ```dockerfile title="Dockerfile"
-# Install fv
+# Install fyn
 FROM python:3.12-slim
-COPY --from=ghcr.io/oha/fv:latest /fv /fvx /bin/
+COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
 
 # Change the working directory to the `app` directory
 WORKDIR /app
 
 # Install dependencies
-RUN --mount=type=cache,target=/root/.cache/fv \
-    --mount=type=bind,source=fv.lock,target=fv.lock \
+RUN --mount=type=cache,target=/root/.cache/fyn \
+    --mount=type=bind,source=fyn.lock,target=fyn.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    fv sync --locked --no-install-project
+    fyn sync --locked --no-install-project
 
 # Copy the project into the image
 COPY . /app
 
 # Sync the project
-RUN --mount=type=cache,target=/root/.cache/fv \
-    fv sync --locked
+RUN --mount=type=cache,target=/root/.cache/fyn \
+    fyn sync --locked
 ```
 
 Note that the `pyproject.toml` is required to identify the project root and name, but the project
-_contents_ are not copied into the image until the final `fv sync` command.
+_contents_ are not copied into the image until the final `fyn sync` command.
 
 !!! tip
 
@@ -433,34 +433,34 @@ needed:
 - Use the `--no-install-workspace` flag which excludes the project _and_ any workspace members.
 
 ```dockerfile title="Dockerfile"
-# Install fv
+# Install fyn
 FROM python:3.12-slim
-COPY --from=ghcr.io/oha/fv:latest /fv /fvx /bin/
+COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
 
 WORKDIR /app
 
-RUN --mount=type=cache,target=/root/.cache/fv \
-    --mount=type=bind,source=fv.lock,target=fv.lock \
+RUN --mount=type=cache,target=/root/.cache/fyn \
+    --mount=type=bind,source=fyn.lock,target=fyn.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    fv sync --frozen --no-install-workspace
+    fyn sync --frozen --no-install-workspace
 
 COPY . /app
 
-RUN --mount=type=cache,target=/root/.cache/fv \
-    fv sync --locked
+RUN --mount=type=cache,target=/root/.cache/fyn \
+    fyn sync --locked
 ```
 
-fv cannot assert that the `fv.lock` file is up-to-date without each of the workspace member
+fyn cannot assert that the `fyn.lock` file is up-to-date without each of the workspace member
 `pyproject.toml` files, so we use `--frozen` instead of `--locked` to skip the check during the
 initial sync. The next sync, after all the workspace members have been copied, can still use
 `--locked` and will validate that the lockfile is correct for all workspace members.
 
 ### Non-editable installs
 
-By default, fv installs projects and workspace members in editable mode, such that changes to the
+By default, fyn installs projects and workspace members in editable mode, such that changes to the
 source code are immediately reflected in the environment.
 
-`fv sync` and `fv run` both accept a `--no-editable` flag, which instructs fv to install the project
+`fyn sync` and `fyn run` both accept a `--no-editable` flag, which instructs fyn to install the project
 in non-editable mode, removing any dependency on the source code.
 
 In the context of a multi-stage Docker image, `--no-editable` can be used to include the project in
@@ -470,9 +470,9 @@ source code) into the final image.
 For example:
 
 ```dockerfile title="Dockerfile"
-# Install fv
+# Install fyn
 FROM python:3.12-slim AS builder
-COPY --from=ghcr.io/oha/fv:latest /fv /fvx /bin/
+COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
 
 # Use the system Python across both stages
 ENV UV_PYTHON_DOWNLOADS=0
@@ -481,17 +481,17 @@ ENV UV_PYTHON_DOWNLOADS=0
 WORKDIR /app
 
 # Install dependencies
-RUN --mount=type=cache,target=/root/.cache/fv \
-    --mount=type=bind,source=fv.lock,target=fv.lock \
+RUN --mount=type=cache,target=/root/.cache/fyn \
+    --mount=type=bind,source=fyn.lock,target=fyn.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    fv sync --locked --no-install-project --no-editable
+    fyn sync --locked --no-install-project --no-editable
 
 # Copy the project into the intermediate image
 COPY . /app
 
 # Sync the project
-RUN --mount=type=cache,target=/root/.cache/fv \
-    fv sync --locked --no-editable
+RUN --mount=type=cache,target=/root/.cache/fyn \
+    fyn sync --locked --no-editable
 
 FROM python:3.12-slim
 
@@ -502,13 +502,13 @@ COPY --from=builder /app/.venv /app/.venv
 CMD ["/app/.venv/bin/hello"]
 ```
 
-### Using fv temporarily
+### Using fyn temporarily
 
-If fv isn't needed in the final image, the binary can be mounted in each invocation:
+If fyn isn't needed in the final image, the binary can be mounted in each invocation:
 
 ```dockerfile title="Dockerfile"
-RUN --mount=from=ghcr.io/oha/fv,source=/uv,target=/bin/uv \
-    fv sync
+RUN --mount=from=ghcr.io/oha/fyn,source=/uv,target=/bin/uv \
+    fyn sync
 ```
 
 ## Using the pip interface
@@ -519,7 +519,7 @@ The system Python environment is safe to use this context, since a container is 
 The `--system` flag can be used to install in the system environment:
 
 ```dockerfile title="Dockerfile"
-RUN fv pip install --system ruff
+RUN fyn pip install --system ruff
 ```
 
 To use the system Python environment by default, set the `UV_SYSTEM_PYTHON` variable:
@@ -531,17 +531,17 @@ ENV UV_SYSTEM_PYTHON=1
 Alternatively, a virtual environment can be created and activated:
 
 ```dockerfile title="Dockerfile"
-RUN fv venv /opt/venv
+RUN fyn venv /opt/venv
 # Use the virtual environment automatically
 ENV VIRTUAL_ENV=/opt/venv
 # Place entry points in the environment at the front of the path
 ENV PATH="/opt/venv/bin:$PATH"
 ```
 
-When using a virtual environment, the `--system` flag should be omitted from fv invocations:
+When using a virtual environment, the `--system` flag should be omitted from fyn invocations:
 
 ```dockerfile title="Dockerfile"
-RUN fv pip install ruff
+RUN fyn pip install ruff
 ```
 
 ### Installing requirements
@@ -550,7 +550,7 @@ To install requirements files, copy them into the container:
 
 ```dockerfile title="Dockerfile"
 COPY requirements.txt .
-RUN fv pip install -r requirements.txt
+RUN fyn pip install -r requirements.txt
 ```
 
 ### Installing a project
@@ -561,9 +561,9 @@ not change often) to be cached separately from the project itself (which changes
 
 ```dockerfile title="Dockerfile"
 COPY pyproject.toml .
-RUN fv pip install -r pyproject.toml
+RUN fyn pip install -r pyproject.toml
 COPY . .
-RUN fv pip install -e .
+RUN fyn pip install -e .
 ```
 
 ## Verifying image provenance
@@ -575,8 +575,8 @@ For example, you can verify the attestations with the
 [GitHub CLI tool `gh`](https://cli.github.com/):
 
 ```console
-$ gh attestation verify --owner astral-sh oci://ghcr.io/oha/fv:latest
-Loaded digest sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx for oci://ghcr.io/oha/fv:latest
+$ gh attestation verify --owner astral-sh oci://ghcr.io/oha/fyn:latest
+Loaded digest sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx for oci://ghcr.io/oha/fyn:latest
 Loaded 1 attestation from GitHub API
 
 The following policy criteria will be enforced:
@@ -592,12 +592,12 @@ REPO          PREDICATE_TYPE                  WORKFLOW
 astral-sh/uv  https://slsa.dev/provenance/v1  .github/workflows/build-docker.yml@refs/heads/main
 ```
 
-This tells you that the specific Docker image was built by the official fv GitHub release workflow
+This tells you that the specific Docker image was built by the official fyn GitHub release workflow
 and hasn't been tampered with since.
 
 GitHub attestations build on the [sigstore.dev infrastructure](https://www.sigstore.dev/). As such
 you can also use the [`cosign` command](https://github.com/sigstore/cosign) to verify the
-attestation blob against the (multi-platform) manifest for `fv`:
+attestation blob against the (multi-platform) manifest for `fyn`:
 
 ```console
 $ REPO=astral-sh/uv
@@ -619,5 +619,5 @@ Verified OK
 !!! tip
 
     These examples use `latest`, but best practice is to verify the attestation for a specific
-    version tag, e.g., `ghcr.io/oha/fv:0.10.12`, or (even better) the specific image digest,
-    such as `ghcr.io/oha/fv:0.5.27@sha256:5adf09a5a526f380237408032a9308000d14d5947eafa687ad6c6a2476787b4f`.
+    version tag, e.g., `ghcr.io/oha/fyn:0.10.12`, or (even better) the specific image digest,
+    such as `ghcr.io/oha/fyn:0.5.27@sha256:5adf09a5a526f380237408032a9308000d14d5947eafa687ad6c6a2476787b4f`.

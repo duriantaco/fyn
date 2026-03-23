@@ -1,31 +1,31 @@
-# Installing fv
+# Installing fyn
 
 ## Installation methods
 
-Install fv with our standalone installers or your package manager of choice.
+Install fyn with our standalone installers or your package manager of choice.
 
 ### Standalone installer
 
-fv provides a standalone installer to download and install fv:
+fyn provides a standalone installer to download and install fyn:
 
 === "macOS and Linux"
 
     Use `curl` to download the script and execute it with `sh`:
 
     ```console
-    $ curl -LsSf https://astral.sh/fv/install.sh | sh
+    $ curl -LsSf https://astral.sh/fyn/install.sh | sh
     ```
 
     If your system doesn't have `curl`, you can use `wget`:
 
     ```console
-    $ wget -qO- https://astral.sh/fv/install.sh | sh
+    $ wget -qO- https://astral.sh/fyn/install.sh | sh
     ```
 
     Request a specific version by including it in the URL:
 
     ```console
-    $ curl -LsSf https://astral.sh/fv/0.10.12/install.sh | sh
+    $ curl -LsSf https://astral.sh/fyn/0.10.12/install.sh | sh
     ```
 
 === "Windows"
@@ -33,7 +33,7 @@ fv provides a standalone installer to download and install fv:
     Use `irm` to download the script and execute it with `iex`:
 
     ```pwsh-session
-    PS> powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/fv/install.ps1 | iex"
+    PS> powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/fyn/install.ps1 | iex"
     ```
 
     Changing the [execution policy](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.4#powershell-execution-policies) allows running a script from the internet.
@@ -41,7 +41,7 @@ fv provides a standalone installer to download and install fv:
     Request a specific version by including it in the URL:
 
     ```pwsh-session
-    PS> powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/fv/0.10.12/install.ps1 | iex"
+    PS> powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/fyn/0.10.12/install.ps1 | iex"
     ```
 
 !!! tip
@@ -51,85 +51,85 @@ fv provides a standalone installer to download and install fv:
     === "macOS and Linux"
 
         ```console
-        $ curl -LsSf https://astral.sh/fv/install.sh | less
+        $ curl -LsSf https://astral.sh/fyn/install.sh | less
         ```
 
     === "Windows"
 
         ```pwsh-session
-        PS> powershell -c "irm https://astral.sh/fv/install.ps1 | more"
+        PS> powershell -c "irm https://astral.sh/fyn/install.ps1 | more"
         ```
 
     Alternatively, the installer or binaries can be downloaded directly from [GitHub](#github-releases).
 
 See the reference documentation on the [installer](../reference/installer.md) for details on
-customizing your fv installation.
+customizing your fyn installation.
 
 ### PyPI
 
-For convenience, fv is published to [PyPI](https://pypi.org/project/fv/).
+For convenience, fyn is published to [PyPI](https://pypi.org/project/fyn/).
 
-If installing from PyPI, we recommend installing fv into an isolated environment, e.g., with `pipx`:
+If installing from PyPI, we recommend installing fyn into an isolated environment, e.g., with `pipx`:
 
 ```console
-$ pipx install fv
+$ pipx install fyn
 ```
 
 However, `pip` can also be used:
 
 ```console
-$ pip install fv
+$ pip install fyn
 ```
 
 !!! note
 
-    fv ships with prebuilt distributions (wheels) for many platforms; if a wheel is not available for a given
-    platform, fv will be built from source, which requires a Rust toolchain. See the
-    [contributing setup guide](https://github.com/oha/fv/blob/main/CONTRIBUTING.md#setup)
-    for details on building fv from source.
+    fyn ships with prebuilt distributions (wheels) for many platforms; if a wheel is not available for a given
+    platform, fyn will be built from source, which requires a Rust toolchain. See the
+    [contributing setup guide](https://github.com/oha/fyn/blob/main/CONTRIBUTING.md#setup)
+    for details on building fyn from source.
 
 ### Homebrew
 
-fv is available in the core Homebrew packages.
+fyn is available in the core Homebrew packages.
 
 ```console
-$ brew install fv
+$ brew install fyn
 ```
 
 ### MacPorts
 
-fv is available via [MacPorts](https://ports.macports.org/port/fv/).
+fyn is available via [MacPorts](https://ports.macports.org/port/fyn/).
 
 ```console
-$ sudo port install fv
+$ sudo port install fyn
 ```
 
 ### WinGet
 
-fv is available via [WinGet](https://winstall.app/apps/oha.fv).
+fyn is available via [WinGet](https://winstall.app/apps/oha.fyn).
 
 ```console
-$ winget install --id=oha.fv  -e
+$ winget install --id=oha.fyn  -e
 ```
 
 ### Scoop
 
-fv is available via [Scoop](https://scoop.sh/#/apps?q=fv).
+fyn is available via [Scoop](https://scoop.sh/#/apps?q=fyn).
 
 ```console
-$ scoop install main/fv
+$ scoop install main/fyn
 ```
 
 ### Docker
 
-fv provides a Docker image at
-[`ghcr.io/oha/fv`](https://github.com/astral-sh/uv/pkgs/container/uv).
+fyn provides a Docker image at
+[`ghcr.io/oha/fyn`](https://github.com/astral-sh/uv/pkgs/container/uv).
 
-See our guide on [using fv in Docker](../guides/integration/docker.md) for more details.
+See our guide on [using fyn in Docker](../guides/integration/docker.md) for more details.
 
 ### GitHub Releases
 
-fv release artifacts can be downloaded directly from
+fyn release artifacts can be downloaded directly from
 [GitHub Releases](https://github.com/astral-sh/uv/releases).
 
 Each release page includes binaries for all supported platforms as well as instructions for using
@@ -137,34 +137,34 @@ the standalone installer via `github.com` instead of `astral.sh`.
 
 ### Cargo
 
-fv is available via [crates.io](https://crates.io).
+fyn is available via [crates.io](https://crates.io).
 
 ```console
-$ cargo install --locked fv
+$ cargo install --locked fyn
 ```
 
 !!! note
 
-    This method builds fv from source, which requires a compatible Rust toolchain.
+    This method builds fyn from source, which requires a compatible Rust toolchain.
 
-## Upgrading fv
+## Upgrading fyn
 
-When fv is installed via the standalone installer, it can update itself on-demand:
+When fyn is installed via the standalone installer, it can update itself on-demand:
 
 ```console
-$ fv self update
+$ fyn self update
 ```
 
 !!! tip
 
-    Updating fv will re-run the installer and can modify your shell profiles. To disable this
+    Updating fyn will re-run the installer and can modify your shell profiles. To disable this
     behavior, set `UV_NO_MODIFY_PATH=1`.
 
 When another installation method is used, self-updates are disabled. Use the package manager's
 upgrade method instead. For example, with `pip`:
 
 ```console
-$ pip install --upgrade fv
+$ pip install --upgrade fyn
 ```
 
 ## Shell autocompletion
@@ -173,30 +173,30 @@ $ pip install --upgrade fv
 
     You can run `echo $SHELL` to help you determine your shell.
 
-To enable shell autocompletion for fv commands, run one of the following:
+To enable shell autocompletion for fyn commands, run one of the following:
 
 === "Bash"
 
     ```bash
-    echo 'eval "$(fv generate-shell-completion bash)"' >> ~/.bashrc
+    echo 'eval "$(fyn generate-shell-completion bash)"' >> ~/.bashrc
     ```
 
 === "Zsh"
 
     ```bash
-    echo 'eval "$(fv generate-shell-completion zsh)"' >> ~/.zshrc
+    echo 'eval "$(fyn generate-shell-completion zsh)"' >> ~/.zshrc
     ```
 
 === "fish"
 
     ```bash
-    echo 'fv generate-shell-completion fish | source' > ~/.config/fish/completions/fv.fish
+    echo 'fyn generate-shell-completion fish | source' > ~/.config/fish/completions/fyn.fish
     ```
 
 === "Elvish"
 
     ```bash
-    echo 'eval (fv generate-shell-completion elvish | slurp)' >> ~/.elvish/rc.elv
+    echo 'eval (fyn generate-shell-completion elvish | slurp)' >> ~/.elvish/rc.elv
     ```
 
 === "PowerShell / pwsh"
@@ -205,33 +205,33 @@ To enable shell autocompletion for fv commands, run one of the following:
     if (!(Test-Path -Path $PROFILE)) {
       New-Item -ItemType File -Path $PROFILE -Force
     }
-    Add-Content -Path $PROFILE -Value '(& fv generate-shell-completion powershell) | Out-String | Invoke-Expression'
+    Add-Content -Path $PROFILE -Value '(& fyn generate-shell-completion powershell) | Out-String | Invoke-Expression'
     ```
 
-To enable shell autocompletion for fvx, run one of the following:
+To enable shell autocompletion for fynx, run one of the following:
 
 === "Bash"
 
     ```bash
-    echo 'eval "$(fvx --generate-shell-completion bash)"' >> ~/.bashrc
+    echo 'eval "$(fynx --generate-shell-completion bash)"' >> ~/.bashrc
     ```
 
 === "Zsh"
 
     ```bash
-    echo 'eval "$(fvx --generate-shell-completion zsh)"' >> ~/.zshrc
+    echo 'eval "$(fynx --generate-shell-completion zsh)"' >> ~/.zshrc
     ```
 
 === "fish"
 
     ```bash
-    echo 'fvx --generate-shell-completion fish | source' > ~/.config/fish/completions/fvx.fish
+    echo 'fynx --generate-shell-completion fish | source' > ~/.config/fish/completions/fynx.fish
     ```
 
 === "Elvish"
 
     ```bash
-    echo 'eval (fvx --generate-shell-completion elvish | slurp)' >> ~/.elvish/rc.elv
+    echo 'eval (fynx --generate-shell-completion elvish | slurp)' >> ~/.elvish/rc.elv
     ```
 
 === "PowerShell / pwsh"
@@ -240,51 +240,51 @@ To enable shell autocompletion for fvx, run one of the following:
     if (!(Test-Path -Path $PROFILE)) {
       New-Item -ItemType File -Path $PROFILE -Force
     }
-    Add-Content -Path $PROFILE -Value '(& fvx --generate-shell-completion powershell) | Out-String | Invoke-Expression'
+    Add-Content -Path $PROFILE -Value '(& fynx --generate-shell-completion powershell) | Out-String | Invoke-Expression'
     ```
 
 Then restart the shell or source the shell config file.
 
 ## Uninstallation
 
-If you need to remove fv from your system, follow these steps:
+If you need to remove fyn from your system, follow these steps:
 
 1.  Clean up stored data (optional):
 
     ```console
-    $ fv cache clean
-    $ rm -r "$(fv python dir)"
-    $ rm -r "$(fv tool dir)"
+    $ fyn cache clean
+    $ rm -r "$(fyn python dir)"
+    $ rm -r "$(fyn tool dir)"
     ```
 
     !!! tip
 
-        Before removing the binaries, you may want to remove any data that fv has stored. See the
-        [storage reference](../reference/storage.md) for details on where fv stores data.
+        Before removing the binaries, you may want to remove any data that fyn has stored. See the
+        [storage reference](../reference/storage.md) for details on where fyn stores data.
 
-2.  Remove the fv, fvx, and fvw binaries:
+2.  Remove the fyn, fynx, and fynw binaries:
 
     === "macOS and Linux"
 
         ```console
-        $ rm ~/.local/bin/fv ~/.local/bin/fvx
+        $ rm ~/.local/bin/fyn ~/.local/bin/fynx
         ```
 
     === "Windows"
 
         ```pwsh-session
-        PS> rm $HOME\.local\bin\fv.exe
-        PS> rm $HOME\.local\bin\fvx.exe
-        PS> rm $HOME\.local\bin\fvw.exe
+        PS> rm $HOME\.local\bin\fyn.exe
+        PS> rm $HOME\.local\bin\fynx.exe
+        PS> rm $HOME\.local\bin\fynw.exe
         ```
 
     !!! note
 
-        Prior to 0.5.0, fv was installed into `~/.cargo/bin`. The binaries can be removed from there to
+        Prior to 0.5.0, fyn was installed into `~/.cargo/bin`. The binaries can be removed from there to
         uninstall. Upgrading from an older version will not automatically remove the binaries from
         `~/.cargo/bin`.
 
 ## Next steps
 
 See the [first steps](./first-steps.md) or jump straight to the [guides](../guides/index.md) to
-start using fv.
+start using fyn.

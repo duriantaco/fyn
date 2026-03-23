@@ -1,0 +1,45 @@
+[package]
+name = "fyn-dispatch"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-build-backend = { workspace = true }
+fyn-build-frontend = { workspace = true }
+fyn-cache = { workspace = true }
+fyn-client = { workspace = true }
+fyn-configuration = { workspace = true }
+fyn-distribution = { workspace = true }
+fyn-distribution-filename = { workspace = true }
+fyn-distribution-types = { workspace = true }
+fyn-git = { workspace = true }
+fyn-install-wheel = { workspace = true }
+fyn-installer = { workspace = true }
+fyn-platform-tags = { workspace = true }
+fyn-preview = { workspace = true }
+fyn-pypi-types = { workspace = true }
+fyn-python = { workspace = true }
+fyn-resolver = { workspace = true }
+fyn-types = { workspace = true }
+fyn-version = { workspace = true }
+fyn-workspace = { workspace = true }
+
+anyhow = { workspace = true }
+futures = { workspace = true }
+itertools = { workspace = true }
+rustc-hash = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }

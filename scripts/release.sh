@@ -11,22 +11,22 @@ echo "Updating metadata with rooster..."
 cd "$project_root"
 
 # Update the changelog
-fvx --python 3.12 rooster@0.1.1 release "$@"
+fynx --python 3.12 rooster@0.1.1 release "$@"
 
 # Bump library crate versions
-fv run "$project_root/scripts/bump-workspace-crate-versions.py"
+fyn run "$project_root/scripts/bump-workspace-crate-versions.py"
 
 echo "Updating crate READMEs..."
-fv run "$project_root/scripts/generate-crate-readmes.py"
+fyn run "$project_root/scripts/generate-crate-readmes.py"
 
 echo "Updating lockfiles..."
 cargo update -p uv
-pushd crates/fv-trampoline; cargo update -p uv-trampoline; popd
-fv lock
+pushd crates/fyn-trampoline; cargo update -p uv-trampoline; popd
+fyn lock
 
 echo "Generating JSON schema..."
 cargo dev generate-json-schema
 
 echo "Creating release branch..."
-git checkout -b "release/$(fv version --short)"
-git commit -am "Bump version to $(fv version --short)"
+git checkout -b "release/$(fyn version --short)"
+git commit -am "Bump version to $(fyn version --short)"

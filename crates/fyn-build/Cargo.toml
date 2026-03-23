@@ -1,0 +1,25 @@
+[package]
+name = "fyn-build"
+version = "0.10.12"
+description = "A Python build backend"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[dependencies]
+fyn-build-backend = { workspace = true }
+fyn-logging = { workspace = true }
+fyn-preview = { workspace = true }
+fyn-version = { workspace = true }
+fyn-static = { workspace = true }
+
+anstream = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+
+[lints]
+workspace = true

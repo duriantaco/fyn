@@ -1,16 +1,16 @@
 ---
-title: Using fv with marimo
+title: Using fyn with marimo
 description:
-  A complete guide to using fv with marimo notebooks for interactive computing, script execution,
+  A complete guide to using fyn with marimo notebooks for interactive computing, script execution,
   and data apps.
 ---
 
-# Using fv with marimo
+# Using fyn with marimo
 
 [marimo](https://github.com/marimo-team/marimo) is an open-source Python notebook that blends
 interactive computing with the reproducibility and reusability of traditional software, letting you
 version with Git, run as scripts, and share as apps. Because marimo notebooks are stored as pure
-Python scripts, they are able to integrate tightly with fv.
+Python scripts, they are able to integrate tightly with fyn.
 
 You can readily use marimo as a standalone tool, as self-contained scripts, in projects, and in
 non-project environments.
@@ -21,39 +21,39 @@ For ad-hoc access to marimo notebooks, start a marimo server at any time in an i
 with:
 
 ```console
-$ fvx marimo edit
+$ fynx marimo edit
 ```
 
 Start a specific notebook with:
 
 ```console
-$ fvx marimo edit my_notebook.py
+$ fynx marimo edit my_notebook.py
 ```
 
 ## Using marimo with inline script metadata
 
 Because marimo notebooks are stored as Python scripts, they can encapsulate their own dependencies
-using inline script metadata, via fv's [support for scripts](../../guides/scripts.md). For example,
+using inline script metadata, via fyn's [support for scripts](../../guides/scripts.md). For example,
 to add `numpy` as a dependency to your notebook, use this command:
 
 ```console
-$ fv add --script my_notebook.py numpy
+$ fyn add --script my_notebook.py numpy
 ```
 
 To interactively edit a notebook containing inline script metadata, use:
 
 ```console
-$ fvx marimo edit --sandbox my_notebook.py
+$ fynx marimo edit --sandbox my_notebook.py
 ```
 
-marimo will automatically use fv to start your notebook in an isolated virtual environment with your
+marimo will automatically use fyn to start your notebook in an isolated virtual environment with your
 script's dependencies. Packages installed from the marimo UI will automatically be added to the
 notebook's script metadata.
 
 You can optionally run these notebooks as Python scripts, without opening an interactive session:
 
 ```console
-$ fv run my_notebook.py
+$ fyn run my_notebook.py
 ```
 
 ## Using marimo within a project
@@ -63,17 +63,17 @@ notebook with access to the project's virtual environment via the following comm
 is a project dependency):
 
 ```console
-$ fv run marimo edit my_notebook.py
+$ fyn run marimo edit my_notebook.py
 ```
 
 To make additional packages available to your notebook, either add them to your project with
-`fv add`, or use marimo's built-in package installation UI, which will invoke `fv add` on your
+`fyn add`, or use marimo's built-in package installation UI, which will invoke `fyn add` on your
 behalf.
 
 If marimo is not a project dependency, you can still run a notebook with the following command:
 
 ```console
-$ fv run --with marimo marimo edit my_notebook.py
+$ fyn run --with marimo marimo edit my_notebook.py
 ```
 
 This will let you import your project's modules while editing your notebook. However, packages
@@ -86,14 +86,14 @@ To run marimo in a virtual environment that isn't associated with a
 [project](../../concepts/projects/index.md), add marimo to the environment directly:
 
 ```console
-$ fv venv
-$ fv pip install numpy
-$ fv pip install marimo
-$ fv run marimo edit
+$ fyn venv
+$ fyn pip install numpy
+$ fyn pip install marimo
+$ fyn run marimo edit
 ```
 
 From here, `import numpy` will work within the notebook, and marimo's UI installer will add packages
-to the environment with `fv pip install` on your behalf.
+to the environment with `fyn pip install` on your behalf.
 
 ## Running marimo notebooks as scripts
 
@@ -101,7 +101,7 @@ Regardless of how your dependencies are managed (with inline script metadata, wi
 with a non-project environment), you can run marimo notebooks as scripts with:
 
 ```console
-$ fv run my_notebook.py
+$ fyn run my_notebook.py
 ```
 
 This executes your notebook as a Python script, without opening an interactive session in your

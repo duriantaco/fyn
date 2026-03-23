@@ -1,0 +1,25 @@
+[package]
+name = "fyn-cache-key"
+version = "0.0.32"
+description = "This is an internal component crate of fyn"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fyn-redacted = { workspace = true }
+
+hex = { workspace = true }
+memchr = { workspace = true }
+percent-encoding = { workspace = true }
+seahash = { workspace = true }
+url = { workspace = true }

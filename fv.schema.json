@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CombinedOptions",
-  "description": "Metadata and configuration for fv.",
+  "description": "Metadata and configuration for fyn.",
   "type": "object",
   "properties": {
     "add-bounds": {
@@ -23,7 +23,7 @@
       }
     },
     "build-backend": {
-      "description": "Configuration for the fv build backend.\n\nNote that those settings only apply when using the `uv_build` backend, other build backends\n(such as hatchling) have their own configuration.",
+      "description": "Configuration for the fyn build backend.\n\nNote that those settings only apply when using the `uv_build` backend, other build backends\n(such as hatchling) have their own configuration.",
       "anyOf": [
         {
           "$ref": "#/definitions/BuildBackendSettings"
@@ -41,11 +41,11 @@
       }
     },
     "cache-dir": {
-      "description": "Path to the cache directory.\n\nDefaults to `$XDG_CACHE_HOME/fv` or `$HOME/.cache/fv` on Linux and macOS, and\n`%LOCALAPPDATA%\\uv\\cache` on Windows.",
+      "description": "Path to the cache directory.\n\nDefaults to `$XDG_CACHE_HOME/fyn` or `$HOME/.cache/fyn` on Linux and macOS, and\n`%LOCALAPPDATA%\\uv\\cache` on Windows.",
       "type": ["string", "null"]
     },
     "cache-keys": {
-      "description": "The keys to consider when caching builds for the project.\n\nCache keys enable you to specify the files or directories that should trigger a rebuild when\nmodified. By default, fv will rebuild a project whenever the `pyproject.toml`, `setup.py`,\nor `setup.cfg` files in the project directory are modified, or if a `src` directory is\nadded or removed, i.e.:\n\n```toml\ncache-keys = [{ file = \"pyproject.toml\" }, { file = \"setup.py\" }, { file = \"setup.cfg\" }, { dir = \"src\" }]\n```\n\nAs an example: if a project uses dynamic metadata to read its dependencies from a\n`requirements.txt` file, you can specify `cache-keys = [{ file = \"requirements.txt\" }, { file = \"pyproject.toml\" }]`\nto ensure that the project is rebuilt whenever the `requirements.txt` file is modified (in\naddition to watching the `pyproject.toml`).\n\nGlobs are supported, following the syntax of the [`glob`](https://docs.rs/glob/0.3.1/glob/struct.Pattern.html)\ncrate. For example, to invalidate the cache whenever a `.toml` file in the project directory\nor any of its subdirectories is modified, you can specify `cache-keys = [{ file = \"**/*.toml\" }]`.\nNote that the use of globs can be expensive, as fv may need to walk the filesystem to\ndetermine whether any files have changed.\n\nCache keys can also include version control information. For example, if a project uses\n`setuptools_scm` to read its version from a Git commit, you can specify `cache-keys = [{ git = { commit = true }, { file = \"pyproject.toml\" }]`\nto include the current Git commit hash in the cache key (in addition to the\n`pyproject.toml`). Git tags are also supported via `cache-keys = [{ git = { commit = true, tags = true } }]`.\n\nCache keys can also include environment variables. For example, if a project relies on\n`MACOSX_DEPLOYMENT_TARGET` or other environment variables to determine its behavior, you can\nspecify `cache-keys = [{ env = \"MACOSX_DEPLOYMENT_TARGET\" }]` to invalidate the cache\nwhenever the environment variable changes.\n\nCache keys only affect the project defined by the `pyproject.toml` in which they're\nspecified (as opposed to, e.g., affecting all members in a workspace), and all paths and\nglobs are interpreted as relative to the project directory.",
+      "description": "The keys to consider when caching builds for the project.\n\nCache keys enable you to specify the files or directories that should trigger a rebuild when\nmodified. By default, fyn will rebuild a project whenever the `pyproject.toml`, `setup.py`,\nor `setup.cfg` files in the project directory are modified, or if a `src` directory is\nadded or removed, i.e.:\n\n```toml\ncache-keys = [{ file = \"pyproject.toml\" }, { file = \"setup.py\" }, { file = \"setup.cfg\" }, { dir = \"src\" }]\n```\n\nAs an example: if a project uses dynamic metadata to read its dependencies from a\n`requirements.txt` file, you can specify `cache-keys = [{ file = \"requirements.txt\" }, { file = \"pyproject.toml\" }]`\nto ensure that the project is rebuilt whenever the `requirements.txt` file is modified (in\naddition to watching the `pyproject.toml`).\n\nGlobs are supported, following the syntax of the [`glob`](https://docs.rs/glob/0.3.1/glob/struct.Pattern.html)\ncrate. For example, to invalidate the cache whenever a `.toml` file in the project directory\nor any of its subdirectories is modified, you can specify `cache-keys = [{ file = \"**/*.toml\" }]`.\nNote that the use of globs can be expensive, as fyn may need to walk the filesystem to\ndetermine whether any files have changed.\n\nCache keys can also include version control information. For example, if a project uses\n`setuptools_scm` to read its version from a Git commit, you can specify `cache-keys = [{ git = { commit = true }, { file = \"pyproject.toml\" }]`\nto include the current Git commit hash in the cache key (in addition to the\n`pyproject.toml`). Git tags are also supported via `cache-keys = [{ git = { commit = true, tags = true } }]`.\n\nCache keys can also include environment variables. For example, if a project relies on\n`MACOSX_DEPLOYMENT_TARGET` or other environment variables to determine its behavior, you can\nspecify `cache-keys = [{ env = \"MACOSX_DEPLOYMENT_TARGET\" }]` to invalidate the cache\nwhenever the environment variable changes.\n\nCache keys only affect the project defined by the `pyproject.toml` in which they're\nspecified (as opposed to, e.g., affecting all members in a workspace), and all paths and\nglobs are interpreted as relative to the project directory.",
       "type": ["array", "null"],
       "items": {
         "$ref": "#/definitions/CacheKey"
@@ -63,17 +63,17 @@
       ]
     },
     "compile-bytecode": {
-      "description": "Compile Python files to bytecode after installation.\n\nBy default, fv does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);\ninstead, compilation is performed lazily the first time a module is imported. For use-cases\nin which start time is critical, such as CLI applications and Docker containers, this option\ncan be enabled to trade longer installation times for faster start times.\n\nWhen enabled, fv will process the entire site-packages directory (including packages that\nare not being modified by the current operation) for consistency. Like pip, it will also\nignore errors.",
+      "description": "Compile Python files to bytecode after installation.\n\nBy default, fyn does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);\ninstead, compilation is performed lazily the first time a module is imported. For use-cases\nin which start time is critical, such as CLI applications and Docker containers, this option\ncan be enabled to trade longer installation times for faster start times.\n\nWhen enabled, fyn will process the entire site-packages directory (including packages that\nare not being modified by the current operation) for consistency. Like pip, it will also\nignore errors.",
       "type": ["boolean", "null"]
     },
     "concurrent-builds": {
-      "description": "The maximum number of source distributions that fv will build concurrently at any given\ntime.\n\nDefaults to the number of available CPU cores.",
+      "description": "The maximum number of source distributions that fyn will build concurrently at any given\ntime.\n\nDefaults to the number of available CPU cores.",
       "type": ["integer", "null"],
       "format": "uint",
       "minimum": 1
     },
     "concurrent-downloads": {
-      "description": "The maximum number of in-flight concurrent downloads that fv will perform at any given\ntime.",
+      "description": "The maximum number of in-flight concurrent downloads that fyn will perform at any given\ntime.",
       "type": ["integer", "null"],
       "format": "uint",
       "minimum": 1
@@ -136,10 +136,10 @@
       ]
     },
     "dependency-groups": {
-      "description": "Additional settings for `dependency-groups`.\n\nCurrently this can only be used to add `requires-python` constraints\nto dependency groups (typically to inform fv that your dev tooling\nhas a higher python requirement than your actual project).\n\nThis cannot be used to define dependency groups, use the top-level\n`[dependency-groups]` table for that.",
+      "description": "Additional settings for `dependency-groups`.\n\nCurrently this can only be used to add `requires-python` constraints\nto dependency groups (typically to inform fyn that your dev tooling\nhas a higher python requirement than your actual project).\n\nThis cannot be used to define dependency groups, use the top-level\n`[dependency-groups]` table for that.",
       "anyOf": [
         {
-          "$ref": "#/definitions/ToolUvDependencyGroups"
+          "$ref": "#/definitions/ToofynDependencyGroups"
         },
         {
           "type": "null"
@@ -219,7 +219,7 @@
       ]
     },
     "extra-index-url": {
-      "description": "Extra URLs of package indexes to use, in addition to `--index-url`.\n\nAccepts either a repository compliant with [PEP 503](https://peps.python.org/pep-0503/)\n(the simple repository API), or a local directory laid out in the same format.\n\nAll indexes provided via this flag take priority over the index specified by\n[`index_url`](#index-url) or [`index`](#index) with `default = true`. When multiple indexes\nare provided, earlier values take priority.\n\nTo control fv's resolution strategy when multiple indexes are present, see\n[`index_strategy`](#index-strategy).\n\n(Deprecated: use `index` instead.)",
+      "description": "Extra URLs of package indexes to use, in addition to `--index-url`.\n\nAccepts either a repository compliant with [PEP 503](https://peps.python.org/pep-0503/)\n(the simple repository API), or a local directory laid out in the same format.\n\nAll indexes provided via this flag take priority over the index specified by\n[`index_url`](#index-url) or [`index`](#index) with `default = true`. When multiple indexes\nare provided, earlier values take priority.\n\nTo control fyn's resolution strategy when multiple indexes are present, see\n[`index_strategy`](#index-strategy).\n\n(Deprecated: use `index` instead.)",
       "type": ["array", "null"],
       "items": {
         "$ref": "#/definitions/IndexUrl"
@@ -233,7 +233,7 @@
       }
     },
     "fork-strategy": {
-      "description": "The strategy to use when selecting multiple versions of a given package across Python\nversions and platforms.\n\nBy default, fv will optimize for selecting the latest version of each package for each\nsupported Python version (`requires-python`), while minimizing the number of selected\nversions across platforms.\n\nUnder `fewest`, fv will minimize the number of selected versions for each package,\npreferring older versions that are compatible with a wider range of supported Python\nversions or platforms.",
+      "description": "The strategy to use when selecting multiple versions of a given package across Python\nversions and platforms.\n\nBy default, fyn will optimize for selecting the latest version of each package for each\nsupported Python version (`requires-python`), while minimizing the number of selected\nversions across platforms.\n\nUnder `fewest`, fyn will minimize the number of selected versions for each package,\npreferring older versions that are compatible with a wider range of supported Python\nversions or platforms.",
       "anyOf": [
         {
           "$ref": "#/definitions/ForkStrategy"
@@ -266,7 +266,7 @@
       ]
     },
     "index": {
-      "description": "The indexes to use when resolving dependencies.\n\nAccepts either a repository compliant with [PEP 503](https://peps.python.org/pep-0503/)\n(the simple repository API), or a local directory laid out in the same format.\n\nIndexes are considered in the order in which they're defined, such that the first-defined\nindex has the highest priority. Further, the indexes provided by this setting are given\nhigher priority than any indexes specified via [`index_url`](#index-url) or\n[`extra_index_url`](#extra-index-url). fv will only consider the first index that contains\na given package, unless an alternative [index strategy](#index-strategy) is specified.\n\nIf an index is marked as `explicit = true`, it will be used exclusively for the\ndependencies that select it explicitly via `[tool.fv.sources]`, as in:\n\n```toml\n[[tool.fv.index]]\nname = \"pytorch\"\nurl = \"https://download.pytorch.org/whl/cu121\"\nexplicit = true\n\n[tool.fv.sources]\ntorch = { index = \"pytorch\" }\n```\n\nIf an index is marked as `default = true`, it will be moved to the end of the prioritized list, such that it is\ngiven the lowest priority when resolving packages. Additionally, marking an index as default will disable the\nPyPI default index.",
+      "description": "The indexes to use when resolving dependencies.\n\nAccepts either a repository compliant with [PEP 503](https://peps.python.org/pep-0503/)\n(the simple repository API), or a local directory laid out in the same format.\n\nIndexes are considered in the order in which they're defined, such that the first-defined\nindex has the highest priority. Further, the indexes provided by this setting are given\nhigher priority than any indexes specified via [`index_url`](#index-url) or\n[`extra_index_url`](#extra-index-url). fyn will only consider the first index that contains\na given package, unless an alternative [index strategy](#index-strategy) is specified.\n\nIf an index is marked as `explicit = true`, it will be used exclusively for the\ndependencies that select it explicitly via `[tool.fyn.sources]`, as in:\n\n```toml\n[[tool.fyn.index]]\nname = \"pytorch\"\nurl = \"https://download.pytorch.org/whl/cu121\"\nexplicit = true\n\n[tool.fyn.sources]\ntorch = { index = \"pytorch\" }\n```\n\nIf an index is marked as `default = true`, it will be moved to the end of the prioritized list, such that it is\ngiven the lowest priority when resolving packages. Additionally, marking an index as default will disable the\nPyPI default index.",
       "type": ["array", "null"],
       "default": null,
       "items": {
@@ -274,7 +274,7 @@
       }
     },
     "index-strategy": {
-      "description": "The strategy to use when resolving against multiple index URLs.\n\nBy default, fv will stop at the first index on which a given package is available, and\nlimit resolutions to those present on that first index (`first-index`). This prevents\n\"dependency confusion\" attacks, whereby an attacker can upload a malicious package under the\nsame name to an alternate index.",
+      "description": "The strategy to use when resolving against multiple index URLs.\n\nBy default, fyn will stop at the first index on which a given package is available, and\nlimit resolutions to those present on that first index (`first-index`). This prevents\n\"dependency confusion\" attacks, whereby an attacker can upload a malicious package under the\nsame name to an alternate index.",
       "anyOf": [
         {
           "$ref": "#/definitions/IndexStrategy"
@@ -296,7 +296,7 @@
       ]
     },
     "keyring-provider": {
-      "description": "Attempt to use `keyring` for authentication for index URLs.\n\nAt present, only `--keyring-provider subprocess` is supported, which configures fv to\nuse the `keyring` CLI to handle authentication.",
+      "description": "Attempt to use `keyring` for authentication for index URLs.\n\nAt present, only `--keyring-provider subprocess` is supported, which configures fyn to\nuse the `keyring` CLI to handle authentication.",
       "anyOf": [
         {
           "$ref": "#/definitions/KeyringProviderType"
@@ -307,7 +307,7 @@
       ]
     },
     "link-mode": {
-      "description": "The method to use when installing packages from the global cache.\n\nDefaults to `clone` (also known as Copy-on-Write) on macOS and Linux, and `hardlink` on\nWindows.\n\nWARNING: The use of symlink link mode is discouraged, as they create tight coupling between\nthe cache and the target environment. For example, clearing the cache (`fv cache clean`)\nwill break all installed packages by way of removing the underlying source files. Use\nsymlinks with caution.",
+      "description": "The method to use when installing packages from the global cache.\n\nDefaults to `clone` (also known as Copy-on-Write) on macOS and Linux, and `hardlink` on\nWindows.\n\nWARNING: The use of symlink link mode is discouraged, as they create tight coupling between\nthe cache and the target environment. For example, clearing the cache (`fyn cache clean`)\nwill break all installed packages by way of removing the underlying source files. Use\nsymlinks with caution.",
       "anyOf": [
         {
           "$ref": "#/definitions/LinkMode"
@@ -318,11 +318,11 @@
       ]
     },
     "managed": {
-      "description": "Whether the project is managed by fv. If `false`, fv will ignore the project when\n`fv run` is invoked.",
+      "description": "Whether the project is managed by fyn. If `false`, fyn will ignore the project when\n`fyn run` is invoked.",
       "type": ["boolean", "null"]
     },
     "native-tls": {
-      "description": "Whether to load TLS certificates from the platform's native certificate store.\n\nBy default, fv loads certificates from the bundled `webpki-roots` crate. The\n`webpki-roots` are a reliable set of trust roots from Mozilla, and including them in fv\nimproves portability and performance (especially on macOS).\n\nHowever, in some cases, you may want to use the platform's native certificate store,\nespecially if you're relying on a corporate trust root (e.g., for a mandatory proxy) that's\nincluded in your system's certificate store.",
+      "description": "Whether to load TLS certificates from the platform's native certificate store.\n\nBy default, fyn loads certificates from the bundled `webpki-roots` crate. The\n`webpki-roots` are a reliable set of trust roots from Mozilla, and including them in fyn\nimproves portability and performance (especially on macOS).\n\nHowever, in some cases, you may want to use the platform's native certificate store,\nespecially if you're relying on a corporate trust root (e.g., for a mandatory proxy) that's\nincluded in your system's certificate store.",
       "type": ["boolean", "null"]
     },
     "no-binary": {
@@ -374,11 +374,11 @@
       }
     },
     "no-sources": {
-      "description": "Ignore the `tool.fv.sources` table when resolving dependencies. Used to lock against the\nstandards-compliant, publishable package metadata, as opposed to using any local or Git\nsources.",
+      "description": "Ignore the `tool.fyn.sources` table when resolving dependencies. Used to lock against the\nstandards-compliant, publishable package metadata, as opposed to using any local or Git\nsources.",
       "type": ["boolean", "null"]
     },
     "no-sources-package": {
-      "description": "Ignore `tool.fv.sources` for the specified packages.",
+      "description": "Ignore `tool.fyn.sources` for the specified packages.",
       "type": ["array", "null"],
       "items": {
         "$ref": "#/definitions/PackageName"
@@ -410,7 +410,7 @@
       ]
     },
     "prerelease": {
-      "description": "The strategy to use when considering pre-release versions.\n\nBy default, fv will accept pre-releases for packages that _only_ publish pre-releases,\nalong with first-party requirements that contain an explicit pre-release marker in the\ndeclared specifiers (`if-necessary-or-explicit`).",
+      "description": "The strategy to use when considering pre-release versions.\n\nBy default, fyn will accept pre-releases for packages that _only_ publish pre-releases,\nalong with first-party requirements that contain an explicit pre-release marker in the\ndeclared specifiers (`if-necessary-or-explicit`).",
       "anyOf": [
         {
           "$ref": "#/definitions/PrereleaseMode"
@@ -459,7 +459,7 @@
       "type": ["string", "null"]
     },
     "python-preference": {
-      "description": "Whether to prefer using Python installations that are already present on the system, or\nthose that are downloaded and installed by fv.",
+      "description": "Whether to prefer using Python installations that are already present on the system, or\nthose that are downloaded and installed by fyn.",
       "anyOf": [
         {
           "$ref": "#/definitions/PythonPreference"
@@ -488,7 +488,7 @@
       }
     },
     "required-version": {
-      "description": "Enforce a requirement on the version of fv.\n\nIf the version of fv does not meet the requirement at runtime, fv will exit\nwith an error.\n\nAccepts a [PEP 440](https://peps.python.org/pep-0440/) specifier, like `==0.5.0` or `>=0.5.0`.",
+      "description": "Enforce a requirement on the version of fyn.\n\nIf the version of fyn does not meet the requirement at runtime, fyn will exit\nwith an error.\n\nAccepts a [PEP 440](https://peps.python.org/pep-0440/) specifier, like `==0.5.0` or `>=0.5.0`.",
       "anyOf": [
         {
           "$ref": "#/definitions/RequiredVersion"
@@ -499,7 +499,7 @@
       ]
     },
     "resolution": {
-      "description": "The strategy to use when selecting between the different compatible versions for a given\npackage requirement.\n\nBy default, fv will use the latest compatible version of each package (`highest`).",
+      "description": "The strategy to use when selecting between the different compatible versions for a given\npackage requirement.\n\nBy default, fyn will use the latest compatible version of each package (`highest`).",
       "anyOf": [
         {
           "$ref": "#/definitions/ResolutionMode"
@@ -510,10 +510,10 @@
       ]
     },
     "sources": {
-      "description": "The sources to use when resolving dependencies.\n\n`tool.fv.sources` enriches the dependency metadata with additional sources, incorporated\nduring development. A dependency source can be a Git repository, a URL, a local path, or an\nalternative registry.\n\nSee [Dependencies](https://docs.astral.sh/fv/concepts/projects/dependencies/) for more.",
+      "description": "The sources to use when resolving dependencies.\n\n`tool.fyn.sources` enriches the dependency metadata with additional sources, incorporated\nduring development. A dependency source can be a Git repository, a URL, a local path, or an\nalternative registry.\n\nSee [Dependencies](https://docs.astral.sh/fyn/concepts/projects/dependencies/) for more.",
       "anyOf": [
         {
-          "$ref": "#/definitions/ToolUvSources"
+          "$ref": "#/definitions/ToofynSources"
         },
         {
           "type": "null"
@@ -521,7 +521,7 @@
       ]
     },
     "torch-backend": {
-      "description": "The backend to use when fetching packages in the PyTorch ecosystem.\n\nWhen set, fv will ignore the configured index URLs for packages in the PyTorch ecosystem,\nand will instead use the defined backend.\n\nFor example, when set to `cpu`, fv will use the CPU-only PyTorch index; when set to `cu126`,\nuv will use the PyTorch index for CUDA 12.6.\n\nThe `auto` mode will attempt to detect the appropriate PyTorch index based on the currently\ninstalled CUDA drivers.\n\nThis setting is only respected by `fv pip` commands.\n\nThis option is in preview and may change in any future release.",
+      "description": "The backend to use when fetching packages in the PyTorch ecosystem.\n\nWhen set, fyn will ignore the configured index URLs for packages in the PyTorch ecosystem,\nand will instead use the defined backend.\n\nFor example, when set to `cpu`, fyn will use the CPU-only PyTorch index; when set to `cu126`,\nuv will use the PyTorch index for CUDA 12.6.\n\nThe `auto` mode will attempt to detect the appropriate PyTorch index based on the currently\ninstalled CUDA drivers.\n\nThis setting is only respected by `fyn pip` commands.\n\nThis option is in preview and may change in any future release.",
       "anyOf": [
         {
           "$ref": "#/definitions/TorchMode"
@@ -532,7 +532,7 @@
       ]
     },
     "trusted-publishing": {
-      "description": "Configure trusted publishing.\n\nBy default, fv checks for trusted publishing when running in a supported environment, but\nignores it if it isn't configured.\n\nuv's supported environments for trusted publishing include GitHub Actions and GitLab CI/CD.",
+      "description": "Configure trusted publishing.\n\nBy default, fyn checks for trusted publishing when running in a supported environment, but\nignores it if it isn't configured.\n\nuv's supported environments for trusted publishing include GitHub Actions and GitLab CI/CD.",
       "anyOf": [
         {
           "$ref": "#/definitions/TrustedPublishing"
@@ -557,7 +557,7 @@
       "description": "The workspace definition for the project, if any.",
       "anyOf": [
         {
-          "$ref": "#/definitions/ToolUvWorkspace"
+          "$ref": "#/definitions/ToofynWorkspace"
         },
         {
           "type": "null"
@@ -586,7 +586,7 @@
           "const": "minor"
         },
         {
-          "description": "Pin the exact version, e.g., `==1.2.3`.\n\nThis option is not recommended, as versions are already pinned in the fv lockfile.",
+          "description": "Pin the exact version, e.g., `==1.2.3`.\n\nThis option is not recommended, as versions are already pinned in the fyn lockfile.",
           "type": "string",
           "const": "exact"
         }
@@ -611,28 +611,28 @@
       "description": "When to use authentication.",
       "oneOf": [
         {
-          "description": "Authenticate when necessary.\n\nIf credentials are provided, they will be used. Otherwise, an unauthenticated request will\nbe attempted first. If the request fails, fv will search for credentials. If credentials are\nfound, an authenticated request will be attempted.",
+          "description": "Authenticate when necessary.\n\nIf credentials are provided, they will be used. Otherwise, an unauthenticated request will\nbe attempted first. If the request fails, fyn will search for credentials. If credentials are\nfound, an authenticated request will be attempted.",
           "type": "string",
           "const": "auto"
         },
         {
-          "description": "Always authenticate.\n\nIf credentials are not provided, fv will eagerly search for credentials. If credentials\ncannot be found, fv will error instead of attempting an unauthenticated request.",
+          "description": "Always authenticate.\n\nIf credentials are not provided, fyn will eagerly search for credentials. If credentials\ncannot be found, fyn will error instead of attempting an unauthenticated request.",
           "type": "string",
           "const": "always"
         },
         {
-          "description": "Never authenticate.\n\nIf credentials are provided, fv will error. fv will not search for credentials.",
+          "description": "Never authenticate.\n\nIf credentials are provided, fyn will error. fyn will not search for credentials.",
           "type": "string",
           "const": "never"
         }
       ]
     },
     "BuildBackendSettings": {
-      "description": "Settings for the fv build backend (`uv_build`).\n\nNote that those settings only apply when using the `uv_build` backend, other build backends\n(such as hatchling) have their own configuration.\n\nAll options that accept globs use the portable glob patterns from\n[PEP 639](https://packaging.python.org/en/latest/specifications/glob-patterns/).",
+      "description": "Settings for the fyn build backend (`uv_build`).\n\nNote that those settings only apply when using the `uv_build` backend, other build backends\n(such as hatchling) have their own configuration.\n\nAll options that accept globs use the portable glob patterns from\n[PEP 639](https://packaging.python.org/en/latest/specifications/glob-patterns/).",
       "type": "object",
       "properties": {
         "data": {
-          "description": "Data includes for wheels.\n\nEach entry is a directory, whose contents are copied to the matching directory in the wheel\nin `<name>-<version>.data/(purelib|platlib|headers|scripts|data)`. Upon installation, this\ndata is moved to its target location, as defined by\n<https://docs.python.org/3.12/library/sysconfig.html#installation-paths>. Usually, small\ndata files are included by placing them in the Python module instead of using data includes.\n\n- `scripts`: Installed to the directory for executables, `<venv>/bin` on Unix or\n  `<venv>\\Scripts` on Windows. This directory is added to `PATH` when the virtual\n  environment  is activated or when using `fv run`, so this data type can be used to install\n  additional binaries. Consider using `project.scripts` instead for Python entrypoints.\n- `data`: Installed over the virtualenv environment root.\n\n    Warning: This may override existing files!\n\n- `headers`: Installed to the include directory. Compilers building Python packages\n  with this package as build requirement use the include directory to find additional header\n  files.\n- `purelib` and `platlib`: Installed to the `site-packages` directory. It is not recommended\n  to use these two options.",
+          "description": "Data includes for wheels.\n\nEach entry is a directory, whose contents are copied to the matching directory in the wheel\nin `<name>-<version>.data/(purelib|platlib|headers|scripts|data)`. Upon installation, this\ndata is moved to its target location, as defined by\n<https://docs.python.org/3.12/library/sysconfig.html#installation-paths>. Usually, small\ndata files are included by placing them in the Python module instead of using data includes.\n\n- `scripts`: Installed to the directory for executables, `<venv>/bin` on Unix or\n  `<venv>\\Scripts` on Windows. This directory is added to `PATH` when the virtual\n  environment  is activated or when using `fyn run`, so this data type can be used to install\n  additional binaries. Consider using `project.scripts` instead for Python entrypoints.\n- `data`: Installed over the virtualenv environment root.\n\n    Warning: This may override existing files!\n\n- `headers`: Installed to the include directory. Compilers building Python packages\n  with this package as build requirement use the include directory to find additional header\n  files.\n- `purelib` and `platlib`: Installed to the `site-packages` directory. It is not recommended\n  to use these two options.",
           "allOf": [
             {
               "$ref": "#/definitions/WheelDataIncludes"
@@ -900,7 +900,7 @@
       "type": "object",
       "properties": {
         "authenticate": {
-          "description": "When fv should use authentication for requests to the index.\n\n```toml\n[[tool.fv.index]]\nname = \"my-index\"\nurl = \"https://<omitted>/simple\"\nauthenticate = \"always\"\n```",
+          "description": "When fyn should use authentication for requests to the index.\n\n```toml\n[[tool.fyn.index]]\nname = \"my-index\"\nurl = \"https://<omitted>/simple\"\nauthenticate = \"always\"\n```",
           "allOf": [
             {
               "$ref": "#/definitions/AuthPolicy"
@@ -909,7 +909,7 @@
           "default": "auto"
         },
         "cache-control": {
-          "description": "Cache control configuration for this index.\n\nWhen set, these headers will override the server's cache control headers\nfor both package metadata requests and artifact downloads.\n\n```toml\n[[tool.fv.index]]\nname = \"my-index\"\nurl = \"https://<omitted>/simple\"\ncache-control = { api = \"max-age=600\", files = \"max-age=3600\" }\n```",
+          "description": "Cache control configuration for this index.\n\nWhen set, these headers will override the server's cache control headers\nfor both package metadata requests and artifact downloads.\n\n```toml\n[[tool.fyn.index]]\nname = \"my-index\"\nurl = \"https://<omitted>/simple\"\ncache-control = { api = \"max-age=600\", files = \"max-age=3600\" }\n```",
           "anyOf": [
             {
               "$ref": "#/definitions/IndexCacheControl"
@@ -921,12 +921,12 @@
           "default": null
         },
         "default": {
-          "description": "Mark the index as the default index.\n\nBy default, fv uses PyPI as the default index, such that even if additional indexes are\ndefined via `[[tool.fv.index]]`, PyPI will still be used as a fallback for packages that\naren't found elsewhere. To disable the PyPI default, set `default = true` on at least one\nother index.\n\nMarking an index as default will move it to the front of the list of indexes, such that it\nis given the highest priority when resolving packages.",
+          "description": "Mark the index as the default index.\n\nBy default, fyn uses PyPI as the default index, such that even if additional indexes are\ndefined via `[[tool.fyn.index]]`, PyPI will still be used as a fallback for packages that\naren't found elsewhere. To disable the PyPI default, set `default = true` on at least one\nother index.\n\nMarking an index as default will move it to the front of the list of indexes, such that it\nis given the highest priority when resolving packages.",
           "type": "boolean",
           "default": false
         },
         "explicit": {
-          "description": "Mark the index as explicit.\n\nExplicit indexes will _only_ be used when explicitly requested via a `[tool.fv.sources]`\ndefinition, as in:\n\n```toml\n[[tool.fv.index]]\nname = \"pytorch\"\nurl = \"https://download.pytorch.org/whl/cu121\"\nexplicit = true\n\n[tool.fv.sources]\ntorch = { index = \"pytorch\" }\n```",
+          "description": "Mark the index as explicit.\n\nExplicit indexes will _only_ be used when explicitly requested via a `[tool.fyn.sources]`\ndefinition, as in:\n\n```toml\n[[tool.fyn.index]]\nname = \"pytorch\"\nurl = \"https://download.pytorch.org/whl/cu121\"\nexplicit = true\n\n[tool.fyn.sources]\ntorch = { index = \"pytorch\" }\n```",
           "type": "boolean",
           "default": false
         },
@@ -940,7 +940,7 @@
           "default": "simple"
         },
         "ignore-error-codes": {
-          "description": "Status codes that fv should ignore when deciding whether\nto continue searching in the next index after a failure.\n\n```toml\n[[tool.fv.index]]\nname = \"my-index\"\nurl = \"https://<omitted>/simple\"\nignore-error-codes = [401, 403]\n```",
+          "description": "Status codes that fyn should ignore when deciding whether\nto continue searching in the next index after a failure.\n\n```toml\n[[tool.fyn.index]]\nname = \"my-index\"\nurl = \"https://<omitted>/simple\"\nignore-error-codes = [401, 403]\n```",
           "type": ["array", "null"],
           "default": null,
           "items": {
@@ -948,7 +948,7 @@
           }
         },
         "name": {
-          "description": "The name of the index.\n\nIndex names can be used to reference indexes elsewhere in the configuration. For example,\nyou can pin a package to a specific index by name:\n\n```toml\n[[tool.fv.index]]\nname = \"pytorch\"\nurl = \"https://download.pytorch.org/whl/cu121\"\n\n[tool.fv.sources]\ntorch = { index = \"pytorch\" }\n```",
+          "description": "The name of the index.\n\nIndex names can be used to reference indexes elsewhere in the configuration. For example,\nyou can pin a package to a specific index by name:\n\n```toml\n[[tool.fyn.index]]\nname = \"pytorch\"\nurl = \"https://download.pytorch.org/whl/cu121\"\n\n[tool.fyn.sources]\ntorch = { index = \"pytorch\" }\n```",
           "anyOf": [
             {
               "$ref": "#/definitions/IndexName"
@@ -959,7 +959,7 @@
           ]
         },
         "publish-url": {
-          "description": "The URL of the upload endpoint.\n\nWhen using `fv publish --index <name>`, this URL is used for publishing.\n\nA configuration for the default index PyPI would look as follows:\n\n```toml\n[[tool.fv.index]]\nname = \"pypi\"\nurl = \"https://pypi.org/simple\"\npublish-url = \"https://upload.pypi.org/legacy/\"\n```",
+          "description": "The URL of the upload endpoint.\n\nWhen using `fyn publish --index <name>`, this URL is used for publishing.\n\nA configuration for the default index PyPI would look as follows:\n\n```toml\n[[tool.fyn.index]]\nname = \"pypi\"\nurl = \"https://pypi.org/simple\"\npublish-url = \"https://upload.pypi.org/legacy/\"\n```",
           "anyOf": [
             {
               "$ref": "#/definitions/DisplaySafeUrl"
@@ -1137,7 +1137,7 @@
       "required": ["name"]
     },
     "PipOptions": {
-      "description": "Settings that are specific to the `fv pip` command-line interface.\n\nThese values will be ignored when running commands outside the `fv pip` namespace (e.g.,\n`fv lock`, `fvx`).",
+      "description": "Settings that are specific to the `fyn pip` command-line interface.\n\nThese values will be ignored when running commands outside the `fyn pip` namespace (e.g.,\n`fyn lock`, `fynx`).",
       "type": "object",
       "properties": {
         "all-extras": {
@@ -1145,7 +1145,7 @@
           "type": ["boolean", "null"]
         },
         "allow-empty-requirements": {
-          "description": "Allow `fv pip sync` with empty requirements, which will clear the environment of all\npackages.",
+          "description": "Allow `fyn pip sync` with empty requirements, which will clear the environment of all\npackages.",
           "type": ["boolean", "null"]
         },
         "annotation-style": {
@@ -1160,11 +1160,11 @@
           ]
         },
         "break-system-packages": {
-          "description": "Allow fv to modify an `EXTERNALLY-MANAGED` Python installation.\n\nWARNING: `--break-system-packages` is intended for use in continuous integration (CI)\nenvironments, when installing into Python installations that are managed by an external\npackage manager, like `apt`. It should be used with caution, as such Python installations\nexplicitly recommend against modifications by other package managers (like fv or pip).",
+          "description": "Allow fyn to modify an `EXTERNALLY-MANAGED` Python installation.\n\nWARNING: `--break-system-packages` is intended for use in continuous integration (CI)\nenvironments, when installing into Python installations that are managed by an external\npackage manager, like `apt`. It should be used with caution, as such Python installations\nexplicitly recommend against modifications by other package managers (like fyn or pip).",
           "type": ["boolean", "null"]
         },
         "compile-bytecode": {
-          "description": "Compile Python files to bytecode after installation.\n\nBy default, fv does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);\ninstead, compilation is performed lazily the first time a module is imported. For use-cases\nin which start time is critical, such as CLI applications and Docker containers, this option\ncan be enabled to trade longer installation times for faster start times.\n\nWhen enabled, fv will process the entire site-packages directory (including packages that\nare not being modified by the current operation) for consistency. Like pip, it will also\nignore errors.",
+          "description": "Compile Python files to bytecode after installation.\n\nBy default, fyn does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);\ninstead, compilation is performed lazily the first time a module is imported. For use-cases\nin which start time is critical, such as CLI applications and Docker containers, this option\ncan be enabled to trade longer installation times for faster start times.\n\nWhen enabled, fyn will process the entire site-packages directory (including packages that\nare not being modified by the current operation) for consistency. Like pip, it will also\nignore errors.",
           "type": ["boolean", "null"]
         },
         "config-settings": {
@@ -1190,7 +1190,7 @@
           ]
         },
         "custom-compile-command": {
-          "description": "The header comment to include at the top of the output file generated by `fv pip compile`.\n\nUsed to reflect custom build scripts and commands that wrap `fv pip compile`.",
+          "description": "The header comment to include at the top of the output file generated by `fyn pip compile`.\n\nUsed to reflect custom build scripts and commands that wrap `fyn pip compile`.",
           "type": ["string", "null"]
         },
         "dependency-metadata": {
@@ -1201,11 +1201,11 @@
           }
         },
         "emit-build-options": {
-          "description": "Include `--no-binary` and `--only-binary` entries in the output file generated by `fv pip compile`.",
+          "description": "Include `--no-binary` and `--only-binary` entries in the output file generated by `fyn pip compile`.",
           "type": ["boolean", "null"]
         },
         "emit-find-links": {
-          "description": "Include `--find-links` entries in the output file generated by `fv pip compile`.",
+          "description": "Include `--find-links` entries in the output file generated by `fyn pip compile`.",
           "type": ["boolean", "null"]
         },
         "emit-index-annotation": {
@@ -1213,7 +1213,7 @@
           "type": ["boolean", "null"]
         },
         "emit-index-url": {
-          "description": "Include `--index-url` and `--extra-index-url` entries in the output file generated by `fv pip compile`.",
+          "description": "Include `--index-url` and `--extra-index-url` entries in the output file generated by `fyn pip compile`.",
           "type": ["boolean", "null"]
         },
         "emit-marker-expression": {
@@ -1272,7 +1272,7 @@
           ]
         },
         "extra-index-url": {
-          "description": "Extra URLs of package indexes to use, in addition to `--index-url`.\n\nAccepts either a repository compliant with [PEP 503](https://peps.python.org/pep-0503/)\n(the simple repository API), or a local directory laid out in the same format.\n\nAll indexes provided via this flag take priority over the index specified by\n[`index_url`](#index-url). When multiple indexes are provided, earlier values take priority.\n\nTo control fv's resolution strategy when multiple indexes are present, see\n[`index_strategy`](#index-strategy).",
+          "description": "Extra URLs of package indexes to use, in addition to `--index-url`.\n\nAccepts either a repository compliant with [PEP 503](https://peps.python.org/pep-0503/)\n(the simple repository API), or a local directory laid out in the same format.\n\nAll indexes provided via this flag take priority over the index specified by\n[`index_url`](#index-url). When multiple indexes are provided, earlier values take priority.\n\nTo control fyn's resolution strategy when multiple indexes are present, see\n[`index_strategy`](#index-strategy).",
           "type": ["array", "null"],
           "items": {
             "$ref": "#/definitions/IndexUrl"
@@ -1286,7 +1286,7 @@
           }
         },
         "fork-strategy": {
-          "description": "The strategy to use when selecting multiple versions of a given package across Python\nversions and platforms.\n\nBy default, fv will optimize for selecting the latest version of each package for each\nsupported Python version (`requires-python`), while minimizing the number of selected\nversions across platforms.\n\nUnder `fewest`, fv will minimize the number of selected versions for each package,\npreferring older versions that are compatible with a wider range of supported Python\nversions or platforms.",
+          "description": "The strategy to use when selecting multiple versions of a given package across Python\nversions and platforms.\n\nBy default, fyn will optimize for selecting the latest version of each package for each\nsupported Python version (`requires-python`), while minimizing the number of selected\nversions across platforms.\n\nUnder `fewest`, fyn will minimize the number of selected versions for each package,\npreferring older versions that are compatible with a wider range of supported Python\nversions or platforms.",
           "anyOf": [
             {
               "$ref": "#/definitions/ForkStrategy"
@@ -1308,7 +1308,7 @@
           }
         },
         "index-strategy": {
-          "description": "The strategy to use when resolving against multiple index URLs.\n\nBy default, fv will stop at the first index on which a given package is available, and\nlimit resolutions to those present on that first index (`first-index`). This prevents\n\"dependency confusion\" attacks, whereby an attacker can upload a malicious package under the\nsame name to an alternate index.",
+          "description": "The strategy to use when resolving against multiple index URLs.\n\nBy default, fyn will stop at the first index on which a given package is available, and\nlimit resolutions to those present on that first index (`first-index`). This prevents\n\"dependency confusion\" attacks, whereby an attacker can upload a malicious package under the\nsame name to an alternate index.",
           "anyOf": [
             {
               "$ref": "#/definitions/IndexStrategy"
@@ -1330,7 +1330,7 @@
           ]
         },
         "keyring-provider": {
-          "description": "Attempt to use `keyring` for authentication for index URLs.\n\nAt present, only `--keyring-provider subprocess` is supported, which configures fv to\nuse the `keyring` CLI to handle authentication.",
+          "description": "Attempt to use `keyring` for authentication for index URLs.\n\nAt present, only `--keyring-provider subprocess` is supported, which configures fyn to\nuse the `keyring` CLI to handle authentication.",
           "anyOf": [
             {
               "$ref": "#/definitions/KeyringProviderType"
@@ -1341,7 +1341,7 @@
           ]
         },
         "link-mode": {
-          "description": "The method to use when installing packages from the global cache.\n\nDefaults to `clone` (also known as Copy-on-Write) on macOS and Linux, and `hardlink` on\nWindows.\n\nWARNING: The use of symlink link mode is discouraged, as they create tight coupling between\nthe cache and the target environment. For example, clearing the cache (`fv cache clean`)\nwill break all installed packages by way of removing the underlying source files. Use\nsymlinks with caution.",
+          "description": "The method to use when installing packages from the global cache.\n\nDefaults to `clone` (also known as Copy-on-Write) on macOS and Linux, and `hardlink` on\nWindows.\n\nWARNING: The use of symlink link mode is discouraged, as they create tight coupling between\nthe cache and the target environment. For example, clearing the cache (`fyn cache clean`)\nwill break all installed packages by way of removing the underlying source files. Use\nsymlinks with caution.",
           "anyOf": [
             {
               "$ref": "#/definitions/LinkMode"
@@ -1352,7 +1352,7 @@
           ]
         },
         "no-annotate": {
-          "description": "Exclude comment annotations indicating the source of each package from the output file\ngenerated by `fv pip compile`.",
+          "description": "Exclude comment annotations indicating the source of each package from the output file\ngenerated by `fyn pip compile`.",
           "type": ["boolean", "null"]
         },
         "no-binary": {
@@ -1396,7 +1396,7 @@
           }
         },
         "no-header": {
-          "description": "Exclude the comment header at the top of output file generated by `fv pip compile`.",
+          "description": "Exclude the comment header at the top of output file generated by `fyn pip compile`.",
           "type": ["boolean", "null"]
         },
         "no-index": {
@@ -1404,11 +1404,11 @@
           "type": ["boolean", "null"]
         },
         "no-sources": {
-          "description": "Ignore the `tool.fv.sources` table when resolving dependencies. Used to lock against the\nstandards-compliant, publishable package metadata, as opposed to using any local or Git\nsources.",
+          "description": "Ignore the `tool.fyn.sources` table when resolving dependencies. Used to lock against the\nstandards-compliant, publishable package metadata, as opposed to using any local or Git\nsources.",
           "type": ["boolean", "null"]
         },
         "no-sources-package": {
-          "description": "Ignore `tool.fv.sources` for the specified packages.",
+          "description": "Ignore `tool.fyn.sources` for the specified packages.",
           "type": ["array", "null"],
           "items": {
             "$ref": "#/definitions/PackageName"
@@ -1419,7 +1419,7 @@
           "type": ["boolean", "null"]
         },
         "no-strip-markers": {
-          "description": "Include environment markers in the output file generated by `fv pip compile`.\n\nBy default, uv strips environment markers, as the resolution generated by `compile` is\nonly guaranteed to be correct for the target environment.",
+          "description": "Include environment markers in the output file generated by `fyn pip compile`.\n\nBy default, uv strips environment markers, as the resolution generated by `compile` is\nonly guaranteed to be correct for the target environment.",
           "type": ["boolean", "null"]
         },
         "only-binary": {
@@ -1430,7 +1430,7 @@
           }
         },
         "output-file": {
-          "description": "Write the requirements generated by `fv pip compile` to the given `requirements.txt` file.\n\nIf the file already exists, the existing versions will be preferred when resolving\ndependencies, unless `--upgrade` is also specified.",
+          "description": "Write the requirements generated by `fyn pip compile` to the given `requirements.txt` file.\n\nIf the file already exists, the existing versions will be preferred when resolving\ndependencies, unless `--upgrade` is also specified.",
           "type": ["string", "null"]
         },
         "prefix": {
@@ -1438,7 +1438,7 @@
           "type": ["string", "null"]
         },
         "prerelease": {
-          "description": "The strategy to use when considering pre-release versions.\n\nBy default, fv will accept pre-releases for packages that _only_ publish pre-releases,\nalong with first-party requirements that contain an explicit pre-release marker in the\ndeclared specifiers (`if-necessary-or-explicit`).",
+          "description": "The strategy to use when considering pre-release versions.\n\nBy default, fyn will accept pre-releases for packages that _only_ publish pre-releases,\nalong with first-party requirements that contain an explicit pre-release marker in the\ndeclared specifiers (`if-necessary-or-explicit`).",
           "anyOf": [
             {
               "$ref": "#/definitions/PrereleaseMode"
@@ -1449,7 +1449,7 @@
           ]
         },
         "python": {
-          "description": "The Python interpreter into which packages should be installed.\n\nBy default, fv installs into the virtual environment in the current working directory or\nany parent directory. The `--python` option allows you to specify a different interpreter,\nwhich is intended for use in continuous integration (CI) environments or other automated\nworkflows.\n\nSupported formats:\n- `3.10` looks for an installed Python 3.10 in the registry on Windows (see\n  `py --list-paths`), or `python3.10` on Linux and macOS.\n- `python3.10` or `python.exe` looks for a binary with the given name in `PATH`.\n- `/home/ferris/.local/bin/python3.10` uses the exact Python at the given path.",
+          "description": "The Python interpreter into which packages should be installed.\n\nBy default, fyn installs into the virtual environment in the current working directory or\nany parent directory. The `--python` option allows you to specify a different interpreter,\nwhich is intended for use in continuous integration (CI) environments or other automated\nworkflows.\n\nSupported formats:\n- `3.10` looks for an installed Python 3.10 in the registry on Windows (see\n  `py --list-paths`), or `python3.10` on Linux and macOS.\n- `python3.10` or `python.exe` looks for a binary with the given name in `PATH`.\n- `/home/ferris/.local/bin/python3.10` uses the exact Python at the given path.",
           "type": ["string", "null"]
         },
         "python-platform": {
@@ -1490,7 +1490,7 @@
           "type": ["boolean", "null"]
         },
         "resolution": {
-          "description": "The strategy to use when selecting between the different compatible versions for a given\npackage requirement.\n\nBy default, fv will use the latest compatible version of each package (`highest`).",
+          "description": "The strategy to use when selecting between the different compatible versions for a given\npackage requirement.\n\nBy default, fyn will use the latest compatible version of each package (`highest`).",
           "anyOf": [
             {
               "$ref": "#/definitions/ResolutionMode"
@@ -1505,7 +1505,7 @@
           "type": ["boolean", "null"]
         },
         "system": {
-          "description": "Install packages into the system Python environment.\n\nBy default, fv installs into the virtual environment in the current working directory or\nany parent directory. The `--system` option instructs uv to instead use the first Python\nfound in the system `PATH`.\n\nWARNING: `--system` is intended for use in continuous integration (CI) environments and\nshould be used with caution, as it can modify the system Python installation.",
+          "description": "Install packages into the system Python environment.\n\nBy default, fyn installs into the virtual environment in the current working directory or\nany parent directory. The `--system` option instructs uv to instead use the first Python\nfound in the system `PATH`.\n\nWARNING: `--system` is intended for use in continuous integration (CI) environments and\nshould be used with caution, as it can modify the system Python installation.",
           "type": ["boolean", "null"]
         },
         "target": {
@@ -1513,7 +1513,7 @@
           "type": ["string", "null"]
         },
         "torch-backend": {
-          "description": "The backend to use when fetching packages in the PyTorch ecosystem.\n\nWhen set, fv will ignore the configured index URLs for packages in the PyTorch ecosystem,\nand will instead use the defined backend.\n\nFor example, when set to `cpu`, fv will use the CPU-only PyTorch index; when set to `cu126`,\nuv will use the PyTorch index for CUDA 12.6.\n\nThe `auto` mode will attempt to detect the appropriate PyTorch index based on the currently\ninstalled CUDA drivers.\n\nThis setting is only respected by `fv pip` commands.\n\nThis option is in preview and may change in any future release.",
+          "description": "The backend to use when fetching packages in the PyTorch ecosystem.\n\nWhen set, fyn will ignore the configured index URLs for packages in the PyTorch ecosystem,\nand will instead use the defined backend.\n\nFor example, when set to `cpu`, fyn will use the CPU-only PyTorch index; when set to `cu126`,\nuv will use the PyTorch index for CUDA 12.6.\n\nThe `auto` mode will attempt to detect the appropriate PyTorch index based on the currently\ninstalled CUDA drivers.\n\nThis setting is only respected by `fyn pip` commands.\n\nThis option is in preview and may change in any future release.",
           "anyOf": [
             {
               "$ref": "#/definitions/TorchMode"
@@ -1715,7 +1715,7 @@
       "type": "string"
     },
     "Source": {
-      "description": "A `tool.fv.sources` value.",
+      "description": "A `tool.fyn.sources` value.",
       "anyOf": [
         {
           "description": "A remote Git repository, available over HTTPS or SSH.\n\nExample:\n```toml\nflask = { git = \"https://github.com/pallets/flask\", tag = \"3.0.0\" }\n```",
@@ -2224,19 +2224,19 @@
         }
       ]
     },
-    "ToolUvDependencyGroups": {
+    "ToofynDependencyGroups": {
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/DependencyGroupSettings"
       }
     },
-    "ToolUvSources": {
+    "ToofynSources": {
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/Sources"
       }
     },
-    "ToolUvWorkspace": {
+    "ToofynWorkspace": {
       "type": "object",
       "properties": {
         "exclude": {

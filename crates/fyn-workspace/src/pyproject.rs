@@ -1,0 +1,2011 @@
+//! Reads the following fields from `pyproject.toml`:
+//!
+//! * `project.{dependencies,optional-dependencies}`
+//! * `tool.fyn.sources`
+//! * `tool.fyn.workspace`
+//!
+//! Then lowers them into a dependency specification.
+
+#[cfg(feature = "schemars")]
+use std::borrow::Cow;
+use std::collections::BTreeMap;
+use std::fmt::Formatter;
+use std::ops::Deref;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
+
+use fyn_build_backend::BuildBackendSettings;
+use fyn_configuration::GitLfsSetting;
+use fyn_distribution_types::{Index, IndexName, RequirementSource};
+use fyn_fs::{PortablePathBuf, relative_to};
+use fyn_git_types::GitReference;
+use fyn_macros::OptionsMetadata;
+use fyn_normalize::{DefaultGroups, ExtraName, GroupName, PackageName};
+use fyn_options_metadata::{OptionSet, OptionsMetadata, Visit};
+use fyn_pep440::{Version, VersionSpecifiers};
+use fyn_pep508::MarkerTree;
+use fyn_pypi_types::{
+    Conflicts, DependencyGroups, SchemaConflicts, SupportedEnvironments, VerbatimParsedUrl,
+};
+use fyn_redacted::DisplaySafeUrl;
+use glob::Pattern;
+use owo_colors::OwoColorize;
+use rustc_hash::{FxBuildHasher, FxHashSet};
+use serde::de::SeqAccess;
+use serde::{Deserialize, Deserializer, Serialize};
+use thiserror::Error;
+use tracing::instrument;
+
+#[derive(Error, Debug)]
+pub enum PyprojectTomlError {
+    #[error(transparent)]
+    Toml(#[from] toml::de::Error),
+    #[error(
+        "`pyproject.toml` is using the `[project]` table, but the required `project.name` field is not set"
+    )]
+    MissingName,
+    #[error(
+        "`pyproject.toml` is using the `[project]` table, but the required `project.version` field is neither set nor present in the `project.dynamic` list"
+    )]
+    MissingVersion,
+}
+
+/// Helper function to deserialize a map while ensuring all keys are unique.
+fn deserialize_unique_map<'de, D, K, V, F>(
+    deserializer: D,
+    error_msg: F,
+) -> Result<BTreeMap<K, V>, D::Error>
+where
+    D: Deserializer<'de>,
+    K: Deserialize<'de> + Ord + std::fmt::Display,
+    V: Deserialize<'de>,
+    F: FnOnce(&K) -> String,
+{
+    struct Visitor<K, V, F>(F, std::marker::PhantomData<(K, V)>);
+
+    impl<'de, K, V, F> serde::de::Visitor<'de> for Visitor<K, V, F>
+    where
+        K: Deserialize<'de> + Ord + std::fmt::Display,
+        V: Deserialize<'de>,
+        F: FnOnce(&K) -> String,
+    {
+        type Value = BTreeMap<K, V>;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("a map with unique keys")
+        }
+
+        fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+        where
+            M: serde::de::MapAccess<'de>,
+        {
+            use std::collections::btree_map::Entry;
+
+            let mut map = BTreeMap::new();
+            while let Some((key, value)) = access.next_entry::<K, V>()? {
+                match map.entry(key) {
+                    Entry::Occupied(entry) => {
+                        return Err(serde::de::Error::custom((self.0)(entry.key())));
+                    }
+                    Entry::Vacant(entry) => {
+                        entry.insert(value);
+                    }
+                }
+            }
+            Ok(map)
+        }
+    }
+
+    deserializer.deserialize_map(Visitor(error_msg, std::marker::PhantomData))
+}
+
+/// A `pyproject.toml` as specified in PEP 517.
+#[derive(Deserialize, Debug, Clone)]
+#[cfg_attr(test, derive(Serialize))]
+#[serde(rename_all = "kebab-case")]
+pub struct PyProjectToml {
+    /// PEP 621-compliant project metadata.
+    pub project: Option<Project>,
+    /// Tool-specific metadata.
+    pub tool: Option<Tool>,
+    /// Non-project dependency groups, as defined in PEP 735.
+    pub dependency_groups: Option<DependencyGroups>,
+    /// The raw unserialized document.
+    #[serde(skip)]
+    pub raw: String,
+
+    /// Used to determine whether a `build-system` section is present.
+    #[serde(default, skip_serializing)]
+    pub build_system: Option<serde::de::IgnoredAny>,
+}
+
+impl PyProjectToml {
+    /// Parse a `PyProjectToml` from a raw TOML string.
+    #[instrument("toml::from_str workspace", skip_all, fields(path = %_path.as_ref().display()))]
+    pub fn from_string(raw: String, _path: impl AsRef<Path>) -> Result<Self, PyprojectTomlError> {
+        let pyproject = toml::from_str(&raw).map_err(PyprojectTomlError::Toml)?;
+        Ok(Self { raw, ..pyproject })
+    }
+
+    /// Returns `true` if the project should be considered a Python package, as opposed to a
+    /// non-package ("virtual") project.
+    pub fn is_package(&self, require_build_system: bool) -> bool {
+        // If `tool.fyn.package` is set, defer to that explicit setting.
+        if let Some(is_package) = self.tool_fyn_package() {
+            return is_package;
+        }
+
+        // Otherwise, a project is assumed to be a package if `build-system` is present.
+        self.build_system.is_some() || !require_build_system
+    }
+
+    /// Returns the value of `tool.fyn.package` if set.
+    fn tool_fyn_package(&self) -> Option<bool> {
+        self.tool
+            .as_ref()
+            .and_then(|tool| tool.fyn.as_ref())
+            .and_then(|fyn| fyn.package)
+    }
+
+    /// Returns `true` if the project uses a dynamic version.
+    pub fn is_dynamic(&self) -> bool {
+        self.project
+            .as_ref()
+            .is_some_and(|project| project.version.is_none())
+    }
+
+    /// Returns whether the project manifest contains any script table.
+    pub fn has_scripts(&self) -> bool {
+        if let Some(ref project) = self.project {
+            project.gui_scripts.is_some() || project.scripts.is_some()
+        } else {
+            false
+        }
+    }
+
+    /// Returns the set of conflicts for the project.
+    pub fn conflicts(&self) -> Conflicts {
+        let empty = Conflicts::empty();
+        let Some(project) = self.project.as_ref() else {
+            return empty;
+        };
+        let Some(tool) = self.tool.as_ref() else {
+            return empty;
+        };
+        let Some(toolfyn) = tool.fyn.as_ref() else {
+            return empty;
+        };
+        let Some(conflicting) = toolfyn.conflicts.as_ref() else {
+            return empty;
+        };
+        conflicting.to_conflicts_with_package_name(&project.name)
+    }
+}
+
+// Ignore raw document in comparison.
+impl PartialEq for PyProjectToml {
+    fn eq(&self, other: &Self) -> bool {
+        self.project.eq(&other.project) && self.tool.eq(&other.tool)
+    }
+}
+
+impl Eq for PyProjectToml {}
+
+impl AsRef<[u8]> for PyProjectToml {
+    fn as_ref(&self) -> &[u8] {
+        self.raw.as_bytes()
+    }
+}
+
+/// PEP 621 project metadata (`project`).
+///
+/// See <https://packaging.python.org/en/latest/specifications/pyproject-toml>.
+#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(test, derive(Serialize))]
+#[serde(rename_all = "kebab-case", try_from = "ProjectWire")]
+pub struct Project {
+    /// The name of the project
+    pub name: PackageName,
+    /// The version of the project
+    pub version: Option<Version>,
+    /// The Python versions this project is compatible with.
+    pub requires_python: Option<VersionSpecifiers>,
+    /// The dependencies of the project.
+    pub dependencies: Option<Vec<String>>,
+    /// The optional dependencies of the project.
+    pub optional_dependencies: Option<BTreeMap<ExtraName, Vec<String>>>,
+
+    /// Used to determine whether a `gui-scripts` section is present.
+    #[serde(default, skip_serializing)]
+    pub(crate) gui_scripts: Option<serde::de::IgnoredAny>,
+    /// Used to determine whether a `scripts` section is present.
+    #[serde(default, skip_serializing)]
+    pub(crate) scripts: Option<serde::de::IgnoredAny>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "kebab-case")]
+struct ProjectWire {
+    name: Option<PackageName>,
+    version: Option<Version>,
+    dynamic: Option<Vec<String>>,
+    requires_python: Option<VersionSpecifiers>,
+    dependencies: Option<Vec<String>>,
+    optional_dependencies: Option<BTreeMap<ExtraName, Vec<String>>>,
+    gui_scripts: Option<serde::de::IgnoredAny>,
+    scripts: Option<serde::de::IgnoredAny>,
+}
+
+impl TryFrom<ProjectWire> for Project {
+    type Error = PyprojectTomlError;
+
+    fn try_from(value: ProjectWire) -> Result<Self, Self::Error> {
+        // If `[project.name]` is not present, show a dedicated error message.
+        let name = value.name.ok_or(PyprojectTomlError::MissingName)?;
+
+        // If `[project.version]` is not present (or listed in `[project.dynamic]`), show a dedicated error message.
+        if value.version.is_none()
+            && !value
+                .dynamic
+                .as_ref()
+                .is_some_and(|dynamic| dynamic.iter().any(|field| field == "version"))
+        {
+            return Err(PyprojectTomlError::MissingVersion);
+        }
+
+        Ok(Self {
+            name,
+            version: value.version,
+            requires_python: value.requires_python,
+            dependencies: value.dependencies,
+            optional_dependencies: value.optional_dependencies,
+            gui_scripts: value.gui_scripts,
+            scripts: value.scripts,
+        })
+    }
+}
+
+#[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Serialize))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub struct Tool {
+    pub fyn: Option<Toolfyn>,
+}
+
+/// Validates the `tool.fyn.index` field.
+///
+/// This custom deserializer function checks for:
+/// - Duplicate index names
+/// - Multiple indexes marked as default
+fn deserialize_index_vec<'de, D>(deserializer: D) -> Result<Option<Vec<Index>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let indexes = Option::<Vec<Index>>::deserialize(deserializer)?;
+    if let Some(indexes) = indexes.as_ref() {
+        let mut seen_names = FxHashSet::with_capacity_and_hasher(indexes.len(), FxBuildHasher);
+        let mut seen_default = false;
+        for index in indexes {
+            if let Some(name) = index.name.as_ref() {
+                if !seen_names.insert(name) {
+                    return Err(serde::de::Error::custom(format!(
+                        "duplicate index name `{name}`"
+                    )));
+                }
+            }
+            if index.default {
+                if seen_default {
+                    return Err(serde::de::Error::custom(
+                        "found multiple indexes with `default = true`; only one index may be marked as default",
+                    ));
+                }
+                seen_default = true;
+            }
+        }
+    }
+    Ok(indexes)
+}
+
+// NOTE(charlie): When adding fields to this struct, mark them as ignored on `Options` in
+// `crates/fyn-settings/src/settings.rs`.
+#[derive(Deserialize, OptionsMetadata, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Serialize))]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub struct Toolfyn {
+    /// The sources to use when resolving dependencies.
+    ///
+    /// `tool.fyn.sources` enriches the dependency metadata with additional sources, incorporated
+    /// during development. A dependency source can be a Git repository, a URL, a local path, or an
+    /// alternative registry.
+    ///
+    /// See [Dependencies](../concepts/projects/dependencies.md) for more.
+    #[option(
+        default = "{}",
+        value_type = "dict",
+        example = r#"
+            [tool.fyn.sources]
+            httpx = { git = "https://github.com/encode/httpx", tag = "0.27.0" }
+            pytest = { url = "https://files.pythonhosted.org/packages/6b/77/7440a06a8ead44c7757a64362dd22df5760f9b12dc5f11b6188cd2fc27a0/pytest-8.3.3-py3-none-any.whl" }
+            pydantic = { path = "/path/to/pydantic", editable = true }
+        "#
+    )]
+    pub sources: Option<ToolfynSources>,
+
+    /// The indexes to use when resolving dependencies.
+    ///
+    /// Accepts either a repository compliant with [PEP 503](https://peps.python.org/pep-0503/)
+    /// (the simple repository API), or a local directory laid out in the same format.
+    ///
+    /// Indexes are considered in the order in which they're defined, such that the first-defined
+    /// index has the highest priority. Further, the indexes provided by this setting are given
+    /// higher priority than any indexes specified via [`index_url`](#index-url) or
+    /// [`extra_index_url`](#extra-index-url). fyn will only consider the first index that contains
+    /// a given package, unless an alternative [index strategy](#index-strategy) is specified.
+    ///
+    /// If an index is marked as `explicit = true`, it will be used exclusively for the
+    /// dependencies that select it explicitly via `[tool.fyn.sources]`, as in:
+    ///
+    /// ```toml
+    /// [[tool.fyn.index]]
+    /// name = "pytorch"
+    /// url = "https://download.pytorch.org/whl/cu121"
+    /// explicit = true
+    ///
+    /// [tool.fyn.sources]
+    /// torch = { index = "pytorch" }
+    /// ```
+    ///
+    /// If an index is marked as `default = true`, it will be moved to the end of the prioritized list, such that it is
+    /// given the lowest priority when resolving packages. Additionally, marking an index as default will disable the
+    /// PyPI default index.
+    #[option(
+        default = "[]",
+        value_type = "dict",
+        example = r#"
+            [[tool.fyn.index]]
+            name = "pytorch"
+            url = "https://download.pytorch.org/whl/cu121"
+        "#
+    )]
+    #[serde(deserialize_with = "deserialize_index_vec", default)]
+    pub index: Option<Vec<Index>>,
+
+    /// Project tasks that can be run via `fyn run <name>`.
+    ///
+    /// Each task is either a command string or a table with `cmd`, `chain`,
+    /// `description`, and `env` fields.
+    #[option(
+        default = "{}",
+        value_type = "dict",
+        example = r#"
+            [tool.fyn.tasks]
+            test = "pytest -xvs"
+            lint = "ruff check ."
+            format = { cmd = "ruff format .", description = "Format code" }
+            check = { chain = ["lint", "test"], description = "Lint then test" }
+        "#
+    )]
+    pub tasks: Option<ToolfynTasks>,
+
+    /// The workspace definition for the project, if any.
+    #[option_group]
+    pub workspace: Option<ToolfynWorkspace>,
+
+    /// Whether the project is managed by fyn. If `false`, fyn will ignore the project when
+    /// `fyn run` is invoked.
+    #[option(
+        default = r#"true"#,
+        value_type = "bool",
+        example = r#"
+            managed = false
+        "#
+    )]
+    pub managed: Option<bool>,
+
+    /// Whether the project should be considered a Python package, or a non-package ("virtual")
+    /// project.
+    ///
+    /// Packages are built and installed into the virtual environment in editable mode and thus
+    /// require a build backend, while virtual projects are _not_ built or installed; instead, only
+    /// their dependencies are included in the virtual environment.
+    ///
+    /// Creating a package requires that a `build-system` is present in the `pyproject.toml`, and
+    /// that the project adheres to a structure that adheres to the build backend's expectations
+    /// (e.g., a `src` layout).
+    #[option(
+        default = r#"true"#,
+        value_type = "bool",
+        example = r#"
+            package = false
+        "#
+    )]
+    pub package: Option<bool>,
+
+    /// The list of `dependency-groups` to install by default.
+    ///
+    /// Can also be the literal `"all"` to default enable all groups.
+    #[option(
+        default = r#"["dev"]"#,
+        value_type = r#"str | list[str]"#,
+        example = r#"
+            default-groups = ["docs"]
+        "#
+    )]
+    pub default_groups: Option<DefaultGroups>,
+
+    /// Additional settings for `dependency-groups`.
+    ///
+    /// Currently this can only be used to add `requires-python` constraints
+    /// to dependency groups (typically to inform fyn that your dev tooling
+    /// has a higher python requirement than your actual project).
+    ///
+    /// This cannot be used to define dependency groups, use the top-level
+    /// `[dependency-groups]` table for that.
+    #[option(
+        default = "[]",
+        value_type = "dict",
+        example = r#"
+            [tool.fyn.dependency-groups]
+            my-group = {requires-python = ">=3.12"}
+        "#
+    )]
+    pub dependency_groups: Option<ToolfynDependencyGroups>,
+
+    /// The project's development dependencies.
+    ///
+    /// Development dependencies will be installed by default in `fyn run` and `fyn sync`, but will
+    /// not appear in the project's published metadata.
+    ///
+    /// Use of this field is not recommend anymore. Instead, use the `dependency-groups.dev` field
+    /// which is a standardized way to declare development dependencies. The contents of
+    /// `tool.fyn.dev-dependencies` and `dependency-groups.dev` are combined to determine the final
+    /// requirements of the `dev` dependency group.
+    #[cfg_attr(
+        feature = "schemars",
+        schemars(
+            with = "Option<Vec<String>>",
+            description = "PEP 508-style requirements, e.g., `ruff==0.5.0`, or `ruff @ https://...`."
+        )
+    )]
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            dev-dependencies = ["ruff==0.5.0"]
+        "#
+    )]
+    pub dev_dependencies: Option<Vec<fyn_pep508::Requirement<VerbatimParsedUrl>>>,
+
+    /// Overrides to apply when resolving the project's dependencies.
+    ///
+    /// Overrides are used to force selection of a specific version of a package, regardless of the
+    /// version requested by any other package, and regardless of whether choosing that version
+    /// would typically constitute an invalid resolution.
+    ///
+    /// While constraints are _additive_, in that they're combined with the requirements of the
+    /// constituent packages, overrides are _absolute_, in that they completely replace the
+    /// requirements of any constituent packages.
+    ///
+    /// Including a package as an override will _not_ trigger installation of the package on its
+    /// own; instead, the package must be requested elsewhere in the project's first-party or
+    /// transitive dependencies.
+    ///
+    /// !!! note
+    ///     In `fyn lock`, `fyn sync`, and `fyn run`, fyn will only read `override-dependencies` from
+    ///     the `pyproject.toml` at the workspace root, and will ignore any declarations in other
+    ///     workspace members or `fyn.toml` files.
+    #[cfg_attr(
+        feature = "schemars",
+        schemars(
+            with = "Option<Vec<String>>",
+            description = "PEP 508-style requirements, e.g., `ruff==0.5.0`, or `ruff @ https://...`."
+        )
+    )]
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            # Always install Werkzeug 2.3.0, regardless of whether transitive dependencies request
+            # a different version.
+            override-dependencies = ["werkzeug==2.3.0"]
+        "#
+    )]
+    pub override_dependencies: Option<Vec<fyn_pep508::Requirement<VerbatimParsedUrl>>>,
+
+    /// Dependencies to exclude when resolving the project's dependencies.
+    ///
+    /// Excludes are used to prevent a package from being selected during resolution,
+    /// regardless of whether it's requested by any other package. When a package is excluded,
+    /// it will be omitted from the dependency list entirely.
+    ///
+    /// Including a package as an exclusion will prevent it from being installed, even if
+    /// it's requested by transitive dependencies. This can be useful for removing optional
+    /// dependencies or working around packages with broken dependencies.
+    ///
+    /// !!! note
+    ///     In `fyn lock`, `fyn sync`, and `fyn run`, fyn will only read `exclude-dependencies` from
+    ///     the `pyproject.toml` at the workspace root, and will ignore any declarations in other
+    ///     workspace members or `fyn.toml` files.
+    #[cfg_attr(
+        feature = "schemars",
+        schemars(
+            with = "Option<Vec<String>>",
+            description = "Package names to exclude, e.g., `werkzeug`, `numpy`."
+        )
+    )]
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            # Exclude Werkzeug from being installed, even if transitive dependencies request it.
+            exclude-dependencies = ["werkzeug"]
+        "#
+    )]
+    pub exclude_dependencies: Option<Vec<PackageName>>,
+
+    /// Constraints to apply when resolving the project's dependencies.
+    ///
+    /// Constraints are used to restrict the versions of dependencies that are selected during
+    /// resolution.
+    ///
+    /// Including a package as a constraint will _not_ trigger installation of the package on its
+    /// own; instead, the package must be requested elsewhere in the project's first-party or
+    /// transitive dependencies.
+    ///
+    /// !!! note
+    ///     In `fyn lock`, `fyn sync`, and `fyn run`, fyn will only read `constraint-dependencies` from
+    ///     the `pyproject.toml` at the workspace root, and will ignore any declarations in other
+    ///     workspace members or `fyn.toml` files.
+    #[cfg_attr(
+        feature = "schemars",
+        schemars(
+            with = "Option<Vec<String>>",
+            description = "PEP 508-style requirements, e.g., `ruff==0.5.0`, or `ruff @ https://...`."
+        )
+    )]
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            # Ensure that the grpcio version is always less than 1.65, if it's requested by a
+            # direct or transitive dependency.
+            constraint-dependencies = ["grpcio<1.65"]
+        "#
+    )]
+    pub constraint_dependencies: Option<Vec<fyn_pep508::Requirement<VerbatimParsedUrl>>>,
+
+    /// Constraints to apply when solving build dependencies.
+    ///
+    /// Build constraints are used to restrict the versions of build dependencies that are selected
+    /// when building a package during resolution or installation.
+    ///
+    /// Including a package as a constraint will _not_ trigger installation of the package during
+    /// a build; instead, the package must be requested elsewhere in the project's build dependency
+    /// graph.
+    ///
+    /// !!! note
+    ///     In `fyn lock`, `fyn sync`, and `fyn run`, fyn will only read `build-constraint-dependencies` from
+    ///     the `pyproject.toml` at the workspace root, and will ignore any declarations in other
+    ///     workspace members or `fyn.toml` files.
+    #[cfg_attr(
+        feature = "schemars",
+        schemars(
+            with = "Option<Vec<String>>",
+            description = "PEP 508-style requirements, e.g., `ruff==0.5.0`, or `ruff @ https://...`."
+        )
+    )]
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            # Ensure that the setuptools v60.0.0 is used whenever a package has a build dependency
+            # on setuptools.
+            build-constraint-dependencies = ["setuptools==60.0.0"]
+        "#
+    )]
+    pub build_constraint_dependencies: Option<Vec<fyn_pep508::Requirement<VerbatimParsedUrl>>>,
+
+    /// A list of supported environments against which to resolve dependencies.
+    ///
+    /// By default, fyn will resolve for all possible environments during a `fyn lock` operation.
+    /// However, you can restrict the set of supported environments to improve performance and avoid
+    /// unsatisfiable branches in the solution space.
+    ///
+    /// These environments will also be respected when `fyn pip compile` is invoked with the
+    /// `--universal` flag.
+    #[cfg_attr(
+        feature = "schemars",
+        schemars(
+            with = "Option<Vec<String>>",
+            description = "A list of environment markers, e.g., `python_version >= '3.6'`."
+        )
+    )]
+    #[option(
+        default = "[]",
+        value_type = "str | list[str]",
+        example = r#"
+            # Resolve for macOS, but not for Linux or Windows.
+            environments = ["sys_platform == 'darwin'"]
+        "#
+    )]
+    pub environments: Option<SupportedEnvironments>,
+
+    /// A list of required platforms, for packages that lack source distributions.
+    ///
+    /// When a package does not have a source distribution, it's availability will be limited to
+    /// the platforms supported by its built distributions (wheels). For example, if a package only
+    /// publishes wheels for Linux, then it won't be installable on macOS or Windows.
+    ///
+    /// By default, fyn requires each package to include at least one wheel that is compatible with
+    /// the designated Python version. The `required-environments` setting can be used to ensure that
+    /// the resulting resolution contains wheels for specific platforms, or fails if no such wheels
+    /// are available.
+    ///
+    /// While the `environments` setting _limits_ the set of environments that fyn will consider when
+    /// resolving dependencies, `required-environments` _expands_ the set of platforms that fyn _must_
+    /// support when resolving dependencies.
+    ///
+    /// For example, `environments = ["sys_platform == 'darwin'"]` would limit fyn to solving for
+    /// macOS (and ignoring Linux and Windows). On the other hand, `required-environments = ["sys_platform == 'darwin'"]`
+    /// would _require_ that any package without a source distribution include a wheel for macOS in
+    /// order to be installable.
+    #[cfg_attr(
+        feature = "schemars",
+        schemars(
+            with = "Option<Vec<String>>",
+            description = "A list of environment markers, e.g., `sys_platform == 'darwin'."
+        )
+    )]
+    #[option(
+        default = "[]",
+        value_type = "str | list[str]",
+        example = r#"
+            # Require that the package is available on the following platforms:
+            required-environments = [
+                # macOS on Apple Silicon (ARM)
+                "sys_platform == 'darwin' and platform_machine == 'arm64'",
+                # Linux on x86_64 (Intel/AMD)
+                "sys_platform == 'linux' and platform_machine == 'x86_64'",
+                # Windows on x86_64 (Intel/AMD)
+                "sys_platform == 'win32' and platform_machine == 'AMD64'",
+            ]
+        "#
+    )]
+    pub required_environments: Option<SupportedEnvironments>,
+
+    /// Declare collections of extras or dependency groups that are conflicting
+    /// (i.e., mutually exclusive).
+    ///
+    /// It's useful to declare conflicts when two or more extras have mutually
+    /// incompatible dependencies. For example, extra `foo` might depend
+    /// on `numpy==2.0.0` while extra `bar` depends on `numpy==2.1.0`. While these
+    /// dependencies conflict, it may be the case that users are not expected to
+    /// activate both `foo` and `bar` at the same time, making it possible to
+    /// generate a universal resolution for the project despite the incompatibility.
+    ///
+    /// By making such conflicts explicit, fyn can generate a universal resolution
+    /// for a project, taking into account that certain combinations of extras and
+    /// groups are mutually exclusive. In exchange, installation will fail if a
+    /// user attempts to activate both conflicting extras.
+    #[cfg_attr(
+        feature = "schemars",
+        schemars(description = "A list of sets of conflicting groups or extras.")
+    )]
+    #[option(
+        default = r#"[]"#,
+        value_type = "list[list[dict]]",
+        example = r#"
+            # Require that `package[extra1]` and `package[extra2]` are resolved
+            # in different forks so that they cannot conflict with one another.
+            conflicts = [
+                [
+                    { extra = "extra1" },
+                    { extra = "extra2" },
+                ]
+            ]
+
+            # Require that the dependency groups `group1` and `group2`
+            # are resolved in different forks so that they cannot conflict
+            # with one another.
+            conflicts = [
+                [
+                    { group = "group1" },
+                    { group = "group2" },
+                ]
+            ]
+        "#
+    )]
+    pub conflicts: Option<SchemaConflicts>,
+
+    // Only exists on this type for schema and docs generation, the build backend settings are
+    // never merged in a workspace and read separately by the backend code.
+    /// Configuration for the fyn build backend.
+    ///
+    /// Note that those settings only apply when using the `fyn_build` backend, other build backends
+    /// (such as hatchling) have their own configuration.
+    #[option_group]
+    pub build_backend: Option<BuildBackendSettingsSchema>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Serialize))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub struct ToolfynSources(BTreeMap<PackageName, Sources>);
+
+impl ToolfynSources {
+    /// Returns the underlying `BTreeMap` of package names to sources.
+    pub fn inner(&self) -> &BTreeMap<PackageName, Sources> {
+        &self.0
+    }
+
+    /// Convert the [`ToolfynSources`] into its inner `BTreeMap`.
+    #[must_use]
+    pub fn into_inner(self) -> BTreeMap<PackageName, Sources> {
+        self.0
+    }
+}
+
+/// Ensure that all keys in the TOML table are unique.
+impl<'de> serde::de::Deserialize<'de> for ToolfynSources {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_unique_map(deserializer, |key: &PackageName| {
+            format!("duplicate sources for package `{key}`")
+        })
+        .map(ToolfynSources)
+    }
+}
+
+/// A map of task names to their definitions, as declared in `[tool.fyn.tasks]`.
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Serialize))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub struct ToolfynTasks(pub BTreeMap<String, TaskDefinition>);
+
+impl ToolfynTasks {
+    /// Return a reference to the task with the given name, if it exists.
+    pub fn get(&self, name: &str) -> Option<&TaskDefinition> {
+        self.0.get(name)
+    }
+
+    /// Iterate over all task names and definitions.
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &TaskDefinition)> {
+        self.0.iter()
+    }
+
+    /// Returns `true` if no tasks are defined.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
+impl<'de> serde::de::Deserialize<'de> for ToolfynTasks {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let map = BTreeMap::<String, TaskDefinition>::deserialize(deserializer)?;
+        Ok(Self(map))
+    }
+}
+
+/// A task that can be run via `fyn run <name>`.
+///
+/// Supports both a simple string form (`"pytest -xvs"`) and a table form
+/// with optional fields like `description`, `chain`, and `env`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Serialize))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub enum TaskDefinition {
+    /// A plain command string, e.g. `test = "pytest -xvs"`.
+    Cmd(String),
+    /// A table with structured options.
+    Detailed(DetailedTask),
+}
+
+impl TaskDefinition {
+    /// Return a short summary for display in `--list-tasks`.
+    pub fn description(&self) -> &str {
+        match self {
+            Self::Cmd(cmd) => cmd.as_str(),
+            Self::Detailed(task) => task
+                .description
+                .as_deref()
+                .or(task.cmd.as_deref())
+                .unwrap_or("(chain)"),
+        }
+    }
+}
+
+impl<'de> serde::de::Deserialize<'de> for TaskDefinition {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = toml::Value::deserialize(deserializer)?;
+        match value {
+            toml::Value::String(s) => Ok(Self::Cmd(s)),
+            toml::Value::Table(t) => {
+                let task: DetailedTask = toml::Value::Table(t)
+                    .try_into()
+                    .map_err(serde::de::Error::custom)?;
+                Ok(Self::Detailed(task))
+            }
+            _ => Err(serde::de::Error::custom(
+                "expected a string or table for task definition",
+            )),
+        }
+    }
+}
+
+/// A detailed task definition with optional extras.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[cfg_attr(test, derive(Serialize))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+pub struct DetailedTask {
+    /// The command to run. Mutually exclusive with `chain`.
+    pub cmd: Option<String>,
+    /// A list of other task names to run in sequence.
+    pub chain: Option<Vec<String>>,
+    /// A human-readable description, shown in `--list-tasks`.
+    pub description: Option<String>,
+    /// Environment variables to set when running this task.
+    pub env: Option<BTreeMap<String, String>>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Serialize))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub struct ToolfynDependencyGroups(BTreeMap<GroupName, DependencyGroupSettings>);
+
+impl ToolfynDependencyGroups {
+    /// Returns the underlying `BTreeMap` of group names to settings.
+    pub fn inner(&self) -> &BTreeMap<GroupName, DependencyGroupSettings> {
+        &self.0
+    }
+
+    /// Convert the [`ToolfynDependencyGroups`] into its inner `BTreeMap`.
+    #[must_use]
+    pub fn into_inner(self) -> BTreeMap<GroupName, DependencyGroupSettings> {
+        self.0
+    }
+}
+
+/// Ensure that all keys in the TOML table are unique.
+impl<'de> serde::de::Deserialize<'de> for ToolfynDependencyGroups {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_unique_map(deserializer, |key: &GroupName| {
+            format!("duplicate settings for dependency group `{key}`")
+        })
+        .map(ToolfynDependencyGroups)
+    }
+}
+
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Serialize))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+pub struct DependencyGroupSettings {
+    /// Version of python to require when installing this group
+    #[cfg_attr(feature = "schemars", schemars(with = "Option<String>"))]
+    pub requires_python: Option<VersionSpecifiers>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged, rename_all = "kebab-case")]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub enum ExtraBuildDependencyWire {
+    Unannotated(fyn_pep508::Requirement<VerbatimParsedUrl>),
+    #[serde(rename_all = "kebab-case")]
+    Annotated {
+        requirement: fyn_pep508::Requirement<VerbatimParsedUrl>,
+        match_runtime: bool,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    deny_unknown_fields,
+    from = "ExtraBuildDependencyWire",
+    into = "ExtraBuildDependencyWire"
+)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub struct ExtraBuildDependency {
+    pub requirement: fyn_pep508::Requirement<VerbatimParsedUrl>,
+    pub match_runtime: bool,
+}
+
+impl From<ExtraBuildDependency> for fyn_pep508::Requirement<VerbatimParsedUrl> {
+    fn from(value: ExtraBuildDependency) -> Self {
+        value.requirement
+    }
+}
+
+impl From<ExtraBuildDependencyWire> for ExtraBuildDependency {
+    fn from(wire: ExtraBuildDependencyWire) -> Self {
+        match wire {
+            ExtraBuildDependencyWire::Unannotated(requirement) => Self {
+                requirement,
+                match_runtime: false,
+            },
+            ExtraBuildDependencyWire::Annotated {
+                requirement,
+                match_runtime,
+            } => Self {
+                requirement,
+                match_runtime,
+            },
+        }
+    }
+}
+
+impl From<ExtraBuildDependency> for ExtraBuildDependencyWire {
+    fn from(item: ExtraBuildDependency) -> Self {
+        Self::Annotated {
+            requirement: item.requirement,
+            match_runtime: item.match_runtime,
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub struct ExtraBuildDependencies(BTreeMap<PackageName, Vec<ExtraBuildDependency>>);
+
+impl std::ops::Deref for ExtraBuildDependencies {
+    type Target = BTreeMap<PackageName, Vec<ExtraBuildDependency>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for ExtraBuildDependencies {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl IntoIterator for ExtraBuildDependencies {
+    type Item = (PackageName, Vec<ExtraBuildDependency>);
+    type IntoIter = std::collections::btree_map::IntoIter<PackageName, Vec<ExtraBuildDependency>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl FromIterator<(PackageName, Vec<ExtraBuildDependency>)> for ExtraBuildDependencies {
+    fn from_iter<T: IntoIterator<Item = (PackageName, Vec<ExtraBuildDependency>)>>(
+        iter: T,
+    ) -> Self {
+        Self(iter.into_iter().collect())
+    }
+}
+
+/// Ensure that all keys in the TOML table are unique.
+impl<'de> serde::de::Deserialize<'de> for ExtraBuildDependencies {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_unique_map(deserializer, |key: &PackageName| {
+            format!("duplicate extra-build-dependencies for `{key}`")
+        })
+        .map(ExtraBuildDependencies)
+    }
+}
+
+#[derive(Deserialize, OptionsMetadata, Default, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Serialize))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case", deny_unknown_fields)]
+pub struct ToolfynWorkspace {
+    /// Packages to include as workspace members.
+    ///
+    /// Supports both globs and explicit paths.
+    ///
+    /// For more information on the glob syntax, refer to the [`glob` documentation](https://docs.rs/glob/latest/glob/struct.Pattern.html).
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            members = ["member1", "path/to/member2", "libs/*"]
+        "#
+    )]
+    pub members: Option<Vec<SerdePattern>>,
+    /// Packages to exclude as workspace members. If a package matches both `members` and
+    /// `exclude`, it will be excluded.
+    ///
+    /// Supports both globs and explicit paths.
+    ///
+    /// For more information on the glob syntax, refer to the [`glob` documentation](https://docs.rs/glob/latest/glob/struct.Pattern.html).
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            exclude = ["member1", "path/to/member2", "libs/*"]
+        "#
+    )]
+    pub exclude: Option<Vec<SerdePattern>>,
+}
+
+/// (De)serialize globs as strings.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SerdePattern(Pattern);
+
+impl serde::ser::Serialize for SerdePattern {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        self.0.as_str().serialize(serializer)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for SerdePattern {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct Visitor;
+
+        impl serde::de::Visitor<'_> for Visitor {
+            type Value = SerdePattern;
+
+            fn expecting(&self, f: &mut Formatter) -> std::fmt::Result {
+                f.write_str("a string")
+            }
+
+            fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<Self::Value, E> {
+                Pattern::from_str(v)
+                    .map(SerdePattern)
+                    .map_err(serde::de::Error::custom)
+            }
+        }
+
+        deserializer.deserialize_str(Visitor)
+    }
+}
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for SerdePattern {
+    fn schema_name() -> Cow<'static, str> {
+        Cow::Borrowed("SerdePattern")
+    }
+
+    fn json_schema(generator: &mut schemars::generate::SchemaGenerator) -> schemars::Schema {
+        <String as schemars::JsonSchema>::json_schema(generator)
+    }
+}
+
+impl Deref for SerdePattern {
+    type Target = Pattern;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case", try_from = "SourcesWire")]
+pub struct Sources(#[cfg_attr(feature = "schemars", schemars(with = "SourcesWire"))] Vec<Source>);
+
+impl Sources {
+    /// Return an [`Iterator`] over the sources.
+    ///
+    /// If the iterator contains multiple entries, they will always use disjoint markers.
+    ///
+    /// The iterator will contain at most one registry source.
+    pub fn iter(&self) -> impl Iterator<Item = &Source> {
+        self.0.iter()
+    }
+
+    /// Returns `true` if the sources list is empty.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns the number of sources in the list.
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl FromIterator<Source> for Sources {
+    fn from_iter<T: IntoIterator<Item = Source>>(iter: T) -> Self {
+        Self(iter.into_iter().collect())
+    }
+}
+
+impl IntoIterator for Sources {
+    type Item = Source;
+    type IntoIter = std::vec::IntoIter<Source>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema), schemars(untagged))]
+enum SourcesWire {
+    One(Source),
+    Many(Vec<Source>),
+}
+
+impl<'de> serde::de::Deserialize<'de> for SourcesWire {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = SourcesWire;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a single source (as a map) or list of sources")
+            }
+
+            fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                let sources = serde::de::Deserialize::deserialize(
+                    serde::de::value::SeqAccessDeserializer::new(seq),
+                )?;
+                Ok(SourcesWire::Many(sources))
+            }
+
+            fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
+            where
+                M: serde::de::MapAccess<'de>,
+            {
+                let source = serde::de::Deserialize::deserialize(
+                    serde::de::value::MapAccessDeserializer::new(&mut map),
+                )?;
+                Ok(SourcesWire::One(source))
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
+impl TryFrom<SourcesWire> for Sources {
+    type Error = SourceError;
+
+    fn try_from(wire: SourcesWire) -> Result<Self, Self::Error> {
+        match wire {
+            SourcesWire::One(source) => Ok(Self(vec![source])),
+            SourcesWire::Many(sources) => {
+                for (lhs, rhs) in sources.iter().zip(sources.iter().skip(1)) {
+                    if lhs.extra() != rhs.extra() {
+                        continue;
+                    }
+                    if lhs.group() != rhs.group() {
+                        continue;
+                    }
+
+                    let lhs = lhs.marker();
+                    let rhs = rhs.marker();
+                    if !lhs.is_disjoint(rhs) {
+                        let Some(left) = lhs.contents().map(|contents| contents.to_string()) else {
+                            return Err(SourceError::MissingMarkers);
+                        };
+
+                        let Some(right) = rhs.contents().map(|contents| contents.to_string())
+                        else {
+                            return Err(SourceError::MissingMarkers);
+                        };
+
+                        let mut hint = lhs.negate();
+                        hint.and(rhs);
+                        let hint = hint
+                            .contents()
+                            .map(|contents| contents.to_string())
+                            .unwrap_or_else(|| "true".to_string());
+
+                        return Err(SourceError::OverlappingMarkers(left, right, hint));
+                    }
+                }
+
+                // Ensure that there is at least one source.
+                if sources.is_empty() {
+                    return Err(SourceError::EmptySources);
+                }
+
+                Ok(Self(sources))
+            }
+        }
+    }
+}
+
+/// A `tool.fyn.sources` value.
+#[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case", untagged, deny_unknown_fields)]
+pub enum Source {
+    /// A remote Git repository, available over HTTPS or SSH.
+    ///
+    /// Example:
+    /// ```toml
+    /// flask = { git = "https://github.com/pallets/flask", tag = "3.0.0" }
+    /// ```
+    Git {
+        /// The repository URL (without the `git+` prefix).
+        git: DisplaySafeUrl,
+        /// The path to the directory with the `pyproject.toml`, if it's not in the archive root.
+        subdirectory: Option<PortablePathBuf>,
+        // Only one of the three may be used; we'll validate this later and emit a custom error.
+        rev: Option<String>,
+        tag: Option<String>,
+        branch: Option<String>,
+        /// Whether to use Git LFS when cloning the repository.
+        lfs: Option<bool>,
+        #[serde(
+            skip_serializing_if = "fyn_pep508::marker::ser::is_empty",
+            serialize_with = "fyn_pep508::marker::ser::serialize",
+            default
+        )]
+        marker: MarkerTree,
+        extra: Option<ExtraName>,
+        group: Option<GroupName>,
+    },
+    /// A remote `http://` or `https://` URL, either a wheel (`.whl`) or a source distribution
+    /// (`.zip`, `.tar.gz`).
+    ///
+    /// Example:
+    /// ```toml
+    /// flask = { url = "https://files.pythonhosted.org/packages/61/80/ffe1da13ad9300f87c93af113edd0638c75138c42a0994becfacac078c06/flask-3.0.3-py3-none-any.whl" }
+    /// ```
+    Url {
+        url: DisplaySafeUrl,
+        /// For source distributions, the path to the directory with the `pyproject.toml`, if it's
+        /// not in the archive root.
+        subdirectory: Option<PortablePathBuf>,
+        #[serde(
+            skip_serializing_if = "fyn_pep508::marker::ser::is_empty",
+            serialize_with = "fyn_pep508::marker::ser::serialize",
+            default
+        )]
+        marker: MarkerTree,
+        extra: Option<ExtraName>,
+        group: Option<GroupName>,
+    },
+    /// The path to a dependency, either a wheel (a `.whl` file), source distribution (a `.zip` or
+    /// `.tar.gz` file), or source tree (i.e., a directory containing a `pyproject.toml` or
+    /// `setup.py` file in the root).
+    Path {
+        path: PortablePathBuf,
+        /// `false` by default.
+        editable: Option<bool>,
+        /// Whether to treat the dependency as a buildable Python package (`true`) or as a virtual
+        /// package (`false`). If `false`, the package will not be built or installed, but its
+        /// dependencies will be included in the virtual environment.
+        ///
+        /// When omitted, the package status is inferred based on the presence of a `[build-system]`
+        /// in the project's `pyproject.toml`.
+        package: Option<bool>,
+        #[serde(
+            skip_serializing_if = "fyn_pep508::marker::ser::is_empty",
+            serialize_with = "fyn_pep508::marker::ser::serialize",
+            default
+        )]
+        marker: MarkerTree,
+        extra: Option<ExtraName>,
+        group: Option<GroupName>,
+    },
+    /// A dependency pinned to a specific index, e.g., `torch` after setting `torch` to `https://download.pytorch.org/whl/cu118`.
+    Registry {
+        index: IndexName,
+        #[serde(
+            skip_serializing_if = "fyn_pep508::marker::ser::is_empty",
+            serialize_with = "fyn_pep508::marker::ser::serialize",
+            default
+        )]
+        marker: MarkerTree,
+        extra: Option<ExtraName>,
+        group: Option<GroupName>,
+    },
+    /// A dependency on another package in the workspace.
+    Workspace {
+        /// When set to `false`, the package will be fetched from the remote index, rather than
+        /// included as a workspace package.
+        workspace: bool,
+        /// Whether the package should be installed as editable. Defaults to `true`.
+        editable: Option<bool>,
+        #[serde(
+            skip_serializing_if = "fyn_pep508::marker::ser::is_empty",
+            serialize_with = "fyn_pep508::marker::ser::serialize",
+            default
+        )]
+        marker: MarkerTree,
+        extra: Option<ExtraName>,
+        group: Option<GroupName>,
+    },
+}
+
+/// A custom deserialization implementation for [`Source`]. This is roughly equivalent to
+/// `#[serde(untagged)]`, but provides more detailed error messages.
+impl<'de> Deserialize<'de> for Source {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize, Debug, Clone)]
+        #[serde(rename_all = "kebab-case", deny_unknown_fields)]
+        struct CatchAll {
+            git: Option<DisplaySafeUrl>,
+            subdirectory: Option<PortablePathBuf>,
+            rev: Option<String>,
+            tag: Option<String>,
+            branch: Option<String>,
+            lfs: Option<bool>,
+            url: Option<DisplaySafeUrl>,
+            path: Option<PortablePathBuf>,
+            editable: Option<bool>,
+            package: Option<bool>,
+            index: Option<IndexName>,
+            workspace: Option<bool>,
+            #[serde(
+                skip_serializing_if = "fyn_pep508::marker::ser::is_empty",
+                serialize_with = "fyn_pep508::marker::ser::serialize",
+                default
+            )]
+            marker: MarkerTree,
+            extra: Option<ExtraName>,
+            group: Option<GroupName>,
+        }
+
+        // Attempt to deserialize as `CatchAll`.
+        let CatchAll {
+            git,
+            subdirectory,
+            rev,
+            tag,
+            branch,
+            lfs,
+            url,
+            path,
+            editable,
+            package,
+            index,
+            workspace,
+            marker,
+            extra,
+            group,
+        } = CatchAll::deserialize(deserializer)?;
+
+        // If both `extra` and `group` are set, return an error.
+        if extra.is_some() && group.is_some() {
+            return Err(serde::de::Error::custom(
+                "cannot specify both `extra` and `group`",
+            ));
+        }
+
+        // If the `git` field is set, we're dealing with a Git source.
+        if let Some(git) = git {
+            if index.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `git` and `index`",
+                ));
+            }
+            if workspace.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `git` and `workspace`",
+                ));
+            }
+            if path.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `git` and `path`",
+                ));
+            }
+            if url.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `git` and `url`",
+                ));
+            }
+            if editable.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `git` and `editable`",
+                ));
+            }
+            if package.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `git` and `package`",
+                ));
+            }
+
+            // At most one of `rev`, `tag`, or `branch` may be set.
+            match (rev.as_ref(), tag.as_ref(), branch.as_ref()) {
+                (None, None, None) => {}
+                (Some(_), None, None) => {}
+                (None, Some(_), None) => {}
+                (None, None, Some(_)) => {}
+                _ => {
+                    return Err(serde::de::Error::custom(
+                        "expected at most one of `rev`, `tag`, or `branch`",
+                    ));
+                }
+            }
+
+            // If the user prefixed the URL with `git+`, strip it.
+            let git = if let Some(git) = git.as_str().strip_prefix("git+") {
+                DisplaySafeUrl::parse(git).map_err(serde::de::Error::custom)?
+            } else {
+                git
+            };
+
+            return Ok(Self::Git {
+                git,
+                subdirectory,
+                rev,
+                tag,
+                branch,
+                lfs,
+                marker,
+                extra,
+                group,
+            });
+        }
+
+        // If the `url` field is set, we're dealing with a URL source.
+        if let Some(url) = url {
+            if index.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `url` and `index`",
+                ));
+            }
+            if workspace.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `url` and `workspace`",
+                ));
+            }
+            if path.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `url` and `path`",
+                ));
+            }
+            if git.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `url` and `git`",
+                ));
+            }
+            if rev.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `url` and `rev`",
+                ));
+            }
+            if tag.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `url` and `tag`",
+                ));
+            }
+            if branch.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `url` and `branch`",
+                ));
+            }
+            if editable.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `url` and `editable`",
+                ));
+            }
+            if package.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `url` and `package`",
+                ));
+            }
+
+            return Ok(Self::Url {
+                url,
+                subdirectory,
+                marker,
+                extra,
+                group,
+            });
+        }
+
+        // If the `path` field is set, we're dealing with a path source.
+        if let Some(path) = path {
+            if index.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `path` and `index`",
+                ));
+            }
+            if workspace.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `path` and `workspace`",
+                ));
+            }
+            if git.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `path` and `git`",
+                ));
+            }
+            if url.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `path` and `url`",
+                ));
+            }
+            if rev.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `path` and `rev`",
+                ));
+            }
+            if tag.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `path` and `tag`",
+                ));
+            }
+            if branch.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `path` and `branch`",
+                ));
+            }
+
+            // A project must be packaged in order to be installed as editable.
+            if editable == Some(true) && package == Some(false) {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `editable = true` and `package = false`",
+                ));
+            }
+
+            return Ok(Self::Path {
+                path,
+                editable,
+                package,
+                marker,
+                extra,
+                group,
+            });
+        }
+
+        // If the `index` field is set, we're dealing with a registry source.
+        if let Some(index) = index {
+            if workspace.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `index` and `workspace`",
+                ));
+            }
+            if git.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `index` and `git`",
+                ));
+            }
+            if url.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `index` and `url`",
+                ));
+            }
+            if path.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `index` and `path`",
+                ));
+            }
+            if rev.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `index` and `rev`",
+                ));
+            }
+            if tag.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `index` and `tag`",
+                ));
+            }
+            if branch.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `index` and `branch`",
+                ));
+            }
+            if editable.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `index` and `editable`",
+                ));
+            }
+            if package.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `index` and `package`",
+                ));
+            }
+
+            return Ok(Self::Registry {
+                index,
+                marker,
+                extra,
+                group,
+            });
+        }
+
+        // If the `workspace` field is set, we're dealing with a workspace source.
+        if let Some(workspace) = workspace {
+            if index.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `workspace` and `index`",
+                ));
+            }
+            if git.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `workspace` and `git`",
+                ));
+            }
+            if url.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `workspace` and `url`",
+                ));
+            }
+            if path.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `workspace` and `path`",
+                ));
+            }
+            if rev.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `workspace` and `rev`",
+                ));
+            }
+            if tag.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `workspace` and `tag`",
+                ));
+            }
+            if branch.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `workspace` and `branch`",
+                ));
+            }
+            if package.is_some() {
+                return Err(serde::de::Error::custom(
+                    "cannot specify both `workspace` and `package`",
+                ));
+            }
+
+            return Ok(Self::Workspace {
+                workspace,
+                editable,
+                marker,
+                extra,
+                group,
+            });
+        }
+
+        // If none of the fields are set, we're dealing with an error.
+        Err(serde::de::Error::custom(
+            "expected one of `git`, `url`, `path`, `index`, or `workspace`",
+        ))
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum SourceError {
+    #[error("Failed to resolve Git reference: `{0}`")]
+    UnresolvedReference(String),
+    #[error("Workspace dependency `{0}` must refer to local directory, not a Git repository")]
+    WorkspacePackageGit(String),
+    #[error("Workspace dependency `{0}` must refer to local directory, not a URL")]
+    WorkspacePackageUrl(String),
+    #[error("Workspace dependency `{0}` must refer to local directory, not a file")]
+    WorkspacePackageFile(String),
+    #[error(
+        "`{0}` did not resolve to a Git repository, but a Git reference (`--rev {1}`) was provided."
+    )]
+    UnusedRev(String, String),
+    #[error(
+        "`{0}` did not resolve to a Git repository, but a Git reference (`--tag {1}`) was provided."
+    )]
+    UnusedTag(String, String),
+    #[error(
+        "`{0}` did not resolve to a Git repository, but a Git reference (`--branch {1}`) was provided."
+    )]
+    UnusedBranch(String, String),
+    #[error(
+        "`{0}` did not resolve to a Git repository, but a Git extension (`--lfs`) was provided."
+    )]
+    UnusedLfs(String),
+    #[error(
+        "`{0}` did not resolve to a local directory, but the `--editable` flag was provided. Editable installs are only supported for local directories."
+    )]
+    UnusedEditable(String),
+    #[error("Failed to resolve absolute path")]
+    Absolute(#[from] std::io::Error),
+    #[error("Path contains invalid characters: `{}`", _0.display())]
+    NonUtf8Path(PathBuf),
+    #[error("Source markers must be disjoint, but the following markers overlap: `{0}` and `{1}`.\n\n{hint}{colon} replace `{1}` with `{2}`.", hint = "hint".bold().cyan(), colon = ":".bold()
+    )]
+    OverlappingMarkers(String, String, String),
+    #[error(
+        "When multiple sources are provided, each source must include a platform marker (e.g., `marker = \"sys_platform == 'linux'\"`)"
+    )]
+    MissingMarkers,
+    #[error("Must provide at least one source")]
+    EmptySources,
+}
+
+impl Source {
+    pub fn from_requirement(
+        name: &PackageName,
+        source: RequirementSource,
+        workspace: bool,
+        editable: Option<bool>,
+        index: Option<IndexName>,
+        rev: Option<String>,
+        tag: Option<String>,
+        branch: Option<String>,
+        lfs: GitLfsSetting,
+        root: &Path,
+        existing_sources: Option<&BTreeMap<PackageName, Sources>>,
+    ) -> Result<Option<Self>, SourceError> {
+        // If the user specified a Git reference for a non-Git source, try existing Git sources before erroring.
+        if !matches!(source, RequirementSource::Git { .. })
+            && (branch.is_some()
+                || tag.is_some()
+                || rev.is_some()
+                || matches!(lfs, GitLfsSetting::Enabled { .. }))
+        {
+            if let Some(sources) = existing_sources {
+                if let Some(package_sources) = sources.get(name) {
+                    for existing_source in package_sources.iter() {
+                        if let Self::Git {
+                            git,
+                            subdirectory,
+                            marker,
+                            extra,
+                            group,
+                            ..
+                        } = existing_source
+                        {
+                            return Ok(Some(Self::Git {
+                                git: git.clone(),
+                                subdirectory: subdirectory.clone(),
+                                rev,
+                                tag,
+                                branch,
+                                lfs: lfs.into(),
+                                marker: *marker,
+                                extra: extra.clone(),
+                                group: group.clone(),
+                            }));
+                        }
+                    }
+                }
+            }
+            if let Some(rev) = rev {
+                return Err(SourceError::UnusedRev(name.to_string(), rev));
+            }
+            if let Some(tag) = tag {
+                return Err(SourceError::UnusedTag(name.to_string(), tag));
+            }
+            if let Some(branch) = branch {
+                return Err(SourceError::UnusedBranch(name.to_string(), branch));
+            }
+            if matches!(lfs, GitLfsSetting::Enabled { from_env: false }) {
+                return Err(SourceError::UnusedLfs(name.to_string()));
+            }
+        }
+
+        // If we resolved a non-path source, and user specified an `--editable` flag, error.
+        if !workspace {
+            if !matches!(source, RequirementSource::Directory { .. }) {
+                if editable == Some(true) {
+                    return Err(SourceError::UnusedEditable(name.to_string()));
+                }
+            }
+        }
+
+        // If the source is a workspace package, error if the user tried to specify a source.
+        if workspace {
+            return match source {
+                RequirementSource::Registry { .. } | RequirementSource::Directory { .. } => {
+                    Ok(Some(Self::Workspace {
+                        workspace: true,
+                        editable,
+                        marker: MarkerTree::TRUE,
+                        extra: None,
+                        group: None,
+                    }))
+                }
+                RequirementSource::Url { .. } => {
+                    Err(SourceError::WorkspacePackageUrl(name.to_string()))
+                }
+                RequirementSource::Git { .. } => {
+                    Err(SourceError::WorkspacePackageGit(name.to_string()))
+                }
+                RequirementSource::Path { .. } => {
+                    Err(SourceError::WorkspacePackageFile(name.to_string()))
+                }
+            };
+        }
+
+        let source = match source {
+            RequirementSource::Registry { index: Some(_), .. } => {
+                return Ok(None);
+            }
+            RequirementSource::Registry { index: None, .. } => {
+                if let Some(index) = index {
+                    Self::Registry {
+                        index,
+                        marker: MarkerTree::TRUE,
+                        extra: None,
+                        group: None,
+                    }
+                } else {
+                    return Ok(None);
+                }
+            }
+            RequirementSource::Path { install_path, .. } => Self::Path {
+                editable: None,
+                package: None,
+                path: PortablePathBuf::from(
+                    relative_to(&install_path, root)
+                        .or_else(|_| std::path::absolute(&install_path))
+                        .map_err(SourceError::Absolute)?
+                        .into_boxed_path(),
+                ),
+                marker: MarkerTree::TRUE,
+                extra: None,
+                group: None,
+            },
+            RequirementSource::Directory {
+                install_path,
+                editable: is_editable,
+                ..
+            } => Self::Path {
+                editable: editable.or(is_editable),
+                package: None,
+                path: PortablePathBuf::from(
+                    relative_to(&install_path, root)
+                        .or_else(|_| std::path::absolute(&install_path))
+                        .map_err(SourceError::Absolute)?
+                        .into_boxed_path(),
+                ),
+                marker: MarkerTree::TRUE,
+                extra: None,
+                group: None,
+            },
+            RequirementSource::Url {
+                location,
+                subdirectory,
+                ..
+            } => Self::Url {
+                url: location,
+                subdirectory: subdirectory.map(PortablePathBuf::from),
+                marker: MarkerTree::TRUE,
+                extra: None,
+                group: None,
+            },
+            RequirementSource::Git {
+                git, subdirectory, ..
+            } => {
+                if rev.is_none() && tag.is_none() && branch.is_none() {
+                    let rev = match git.reference() {
+                        GitReference::Branch(rev) => Some(rev),
+                        GitReference::Tag(rev) => Some(rev),
+                        GitReference::BranchOrTag(rev) => Some(rev),
+                        GitReference::BranchOrTagOrCommit(rev) => Some(rev),
+                        GitReference::NamedRef(rev) => Some(rev),
+                        GitReference::DefaultBranch => None,
+                    };
+                    Self::Git {
+                        rev: rev.cloned(),
+                        tag,
+                        branch,
+                        lfs: lfs.into(),
+                        git: git.repository().clone(),
+                        subdirectory: subdirectory.map(PortablePathBuf::from),
+                        marker: MarkerTree::TRUE,
+                        extra: None,
+                        group: None,
+                    }
+                } else {
+                    Self::Git {
+                        rev,
+                        tag,
+                        branch,
+                        lfs: lfs.into(),
+                        git: git.repository().clone(),
+                        subdirectory: subdirectory.map(PortablePathBuf::from),
+                        marker: MarkerTree::TRUE,
+                        extra: None,
+                        group: None,
+                    }
+                }
+            }
+        };
+
+        Ok(Some(source))
+    }
+
+    /// Return the [`MarkerTree`] for the source.
+    pub fn marker(&self) -> MarkerTree {
+        match self {
+            Self::Git { marker, .. } => *marker,
+            Self::Url { marker, .. } => *marker,
+            Self::Path { marker, .. } => *marker,
+            Self::Registry { marker, .. } => *marker,
+            Self::Workspace { marker, .. } => *marker,
+        }
+    }
+
+    /// Return the extra name for the source.
+    pub fn extra(&self) -> Option<&ExtraName> {
+        match self {
+            Self::Git { extra, .. } => extra.as_ref(),
+            Self::Url { extra, .. } => extra.as_ref(),
+            Self::Path { extra, .. } => extra.as_ref(),
+            Self::Registry { extra, .. } => extra.as_ref(),
+            Self::Workspace { extra, .. } => extra.as_ref(),
+        }
+    }
+
+    /// Return the dependency group name for the source.
+    pub fn group(&self) -> Option<&GroupName> {
+        match self {
+            Self::Git { group, .. } => group.as_ref(),
+            Self::Url { group, .. } => group.as_ref(),
+            Self::Path { group, .. } => group.as_ref(),
+            Self::Registry { group, .. } => group.as_ref(),
+            Self::Workspace { group, .. } => group.as_ref(),
+        }
+    }
+}
+
+/// The type of a dependency in a `pyproject.toml`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DependencyType {
+    /// A dependency in `project.dependencies`.
+    Production,
+    /// A dependency in `tool.fyn.dev-dependencies`.
+    Dev,
+    /// A dependency in `project.optional-dependencies.{0}`.
+    Optional(ExtraName),
+    /// A dependency in `dependency-groups.{0}`.
+    Group(GroupName),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Serialize))]
+pub struct BuildBackendSettingsSchema;
+
+impl<'de> Deserialize<'de> for BuildBackendSettingsSchema {
+    fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(Self)
+    }
+}
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for BuildBackendSettingsSchema {
+    fn schema_name() -> Cow<'static, str> {
+        BuildBackendSettings::schema_name()
+    }
+
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        BuildBackendSettings::json_schema(generator)
+    }
+}
+
+impl OptionsMetadata for BuildBackendSettingsSchema {
+    fn record(visit: &mut dyn Visit) {
+        BuildBackendSettings::record(visit);
+    }
+
+    fn documentation() -> Option<&'static str> {
+        BuildBackendSettings::documentation()
+    }
+
+    fn metadata() -> OptionSet
+    where
+        Self: Sized + 'static,
+    {
+        BuildBackendSettings::metadata()
+    }
+}

@@ -3,12 +3,12 @@
 ## The `pyproject.toml`
 
 Python project metadata is defined in a
-[`pyproject.toml`](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) file. fv
+[`pyproject.toml`](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) file. fyn
 requires this file to identify the root directory of a project.
 
 !!! tip
 
-    `fv init` can be used to create a new project. See [Creating projects](./init.md) for
+    `fyn init` can be used to create a new project. See [Creating projects](./init.md) for
     details.
 
 A minimal project definition includes a name and version:
@@ -28,41 +28,41 @@ Additional project metadata and configuration includes:
 
 ## The project environment
 
-When working on a project with fv, fv will create a virtual environment as needed. While some fv
-commands will create a temporary environment (e.g., `fv run --isolated`), fv also manages a
+When working on a project with fyn, fyn will create a virtual environment as needed. While some fyn
+commands will create a temporary environment (e.g., `fyn run --isolated`), fyn also manages a
 persistent environment with the project and its dependencies in a `.venv` directory next to the
 `pyproject.toml`. It is stored inside the project to make it easy for editors to find — they need
 the environment to give code completions and type hints. It is not recommended to include the
 `.venv` directory in version control; it is automatically excluded from `git` with an internal
 `.gitignore` file.
 
-To run a command in the project environment, use `fv run`. Alternatively the project environment can
+To run a command in the project environment, use `fyn run`. Alternatively the project environment can
 be activated as normal for a virtual environment.
 
-When `fv run` is invoked, it will create the project environment if it does not exist yet or ensure
+When `fyn run` is invoked, it will create the project environment if it does not exist yet or ensure
 it is up-to-date if it exists. The project environment can also be explicitly created with
-`fv sync`. See the [locking and syncing](./sync.md) documentation for details.
+`fyn sync`. See the [locking and syncing](./sync.md) documentation for details.
 
-It is _not_ recommended to modify the project environment manually, e.g., with `fv pip install`. For
-project dependencies, use `fv add` to add a package to the environment. For one-off requirements,
-use [`fvx`](../../guides/tools.md) or
-[`fv run --with`](./run.md#requesting-additional-dependencies).
+It is _not_ recommended to modify the project environment manually, e.g., with `fyn pip install`. For
+project dependencies, use `fyn add` to add a package to the environment. For one-off requirements,
+use [`fynx`](../../guides/tools.md) or
+[`fyn run --with`](./run.md#requesting-additional-dependencies).
 
 !!! tip
 
-    If you don't want fv to manage the project environment, set [`managed = false`](../../reference/settings.md#managed)
+    If you don't want fyn to manage the project environment, set [`managed = false`](../../reference/settings.md#managed)
     to disable automatic locking and syncing of the project. For example:
 
     ```toml title="pyproject.toml"
-    [tool.fv]
+    [tool.fyn]
     managed = false
     ```
 
 ## The lockfile
 
-fv creates a `fv.lock` file next to the `pyproject.toml`.
+fyn creates a `fyn.lock` file next to the `pyproject.toml`.
 
-`fv.lock` is a _universal_ or _cross-platform_ lockfile that captures the packages that would be
+`fyn.lock` is a _universal_ or _cross-platform_ lockfile that captures the packages that would be
 installed across all possible Python markers such as operating system, architecture, and Python
 version.
 
@@ -75,12 +75,12 @@ A lockfile ensures that developers working on the project are using a consistent
 versions. Additionally, it ensures when deploying the project as an application that the exact set
 of used package versions is known.
 
-The lockfile is [automatically created and updated](./sync.md#automatic-lock-and-sync) during fv
-invocations that use the project environment, i.e., `fv sync` and `fv run`. The lockfile may also be
-explicitly updated using `fv lock`.
+The lockfile is [automatically created and updated](./sync.md#automatic-lock-and-sync) during fyn
+invocations that use the project environment, i.e., `fyn sync` and `fyn run`. The lockfile may also be
+explicitly updated using `fyn lock`.
 
-`fv.lock` is a human-readable TOML file but is managed by fv and should not be edited manually. The
-`fv.lock` format is specific to fv and not usable by other tools.
+`fyn.lock` is a human-readable TOML file but is managed by fyn and should not be edited manually. The
+`fyn.lock` format is specific to fyn and not usable by other tools.
 
 ### Relationship to `pylock.toml`
 
@@ -88,17 +88,17 @@ In [PEP 751](https://peps.python.org/pep-0751/), Python standardized a new resol
 `pylock.toml`.
 
 `pylock.toml` is a resolution output format intended to replace `requirements.txt` (e.g., in the
-context of `fv pip compile`, whereby a "locked" `requirements.txt` file is generated from a set of
+context of `fyn pip compile`, whereby a "locked" `requirements.txt` file is generated from a set of
 input requirements). `pylock.toml` is standardized and tool-agnostic, such that in the future,
-`pylock.toml` files generated by fv could be installed by other tools, and vice versa.
+`pylock.toml` files generated by fyn could be installed by other tools, and vice versa.
 
-Some of fv's functionality cannot be expressed in the `pylock.toml` format; as such, fv will
-continue to use the `fv.lock` format within the project interface.
+Some of fyn's functionality cannot be expressed in the `pylock.toml` format; as such, fyn will
+continue to use the `fyn.lock` format within the project interface.
 
-However, fv supports `pylock.toml` as an export target and in the `fv pip` CLI. For example:
+However, fyn supports `pylock.toml` as an export target and in the `fyn pip` CLI. For example:
 
-- To export a `fv.lock` to the `pylock.toml` format, run: `fv export -o pylock.toml`
+- To export a `fyn.lock` to the `pylock.toml` format, run: `fyn export -o pylock.toml`
 - To generate a `pylock.toml` file from a set of requirements, run:
-  `fv pip compile requirements.in -o pylock.toml`
-- To install from a `pylock.toml` file, run: `fv pip sync pylock.toml` or
-  `fv pip install -r pylock.toml`
+  `fyn pip compile requirements.in -o pylock.toml`
+- To install from a `pylock.toml` file, run: `fyn pip sync pylock.toml` or
+  `fyn pip install -r pylock.toml`

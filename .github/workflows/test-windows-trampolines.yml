@@ -23,7 +23,7 @@ jobs:
       - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
 
       - name: "Check windows crate versions match"
-        run: fv run --no-project scripts/check-trampoline-version-consistency.py
+        run: fyn run --no-project scripts/check-trampoline-version-consistency.py
 
   # Separate jobs for the nightly crate
   windows-trampoline-check:
@@ -49,10 +49,10 @@ jobs:
 
       - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2
         with:
-          workspaces: ${{ env.UV_WORKSPACE }}/crates/fv-trampoline
+          workspaces: ${{ env.UV_WORKSPACE }}/crates/fyn-trampoline
 
       - name: "Install Rust toolchain"
-        working-directory: ${{ env.UV_WORKSPACE }}/crates/fv-trampoline
+        working-directory: ${{ env.UV_WORKSPACE }}/crates/fyn-trampoline
         run: |
           rustup target add ${{ matrix.target-arch }}-pc-windows-msvc
           rustup component add rust-src --target ${{ matrix.target-arch }}-pc-windows-msvc
@@ -63,15 +63,15 @@ jobs:
           tool: cargo-bloat
 
       - name: "rustfmt"
-        working-directory: ${{ env.UV_WORKSPACE }}/crates/fv-trampoline
+        working-directory: ${{ env.UV_WORKSPACE }}/crates/fyn-trampoline
         run: cargo fmt --check
 
       - name: "Clippy"
-        working-directory: ${{ env.UV_WORKSPACE }}/crates/fv-trampoline
+        working-directory: ${{ env.UV_WORKSPACE }}/crates/fyn-trampoline
         run: cargo clippy --all-features --locked --target x86_64-pc-windows-msvc --tests -- -D warnings
 
       - name: "Bloat Check"
-        working-directory: ${{ env.UV_WORKSPACE }}/crates/fv-trampoline
+        working-directory: ${{ env.UV_WORKSPACE }}/crates/fyn-trampoline
         run: |
           $output = cargo bloat --release --target x86_64-pc-windows-msvc
           $filteredOutput = $output | Select-String -Pattern 'core::fmt::write|core::fmt::getcount' -NotMatch
@@ -107,9 +107,9 @@ jobs:
           Copy-Item -Path "${{ github.workspace }}" -Destination "$Env:UV_WORKSPACE" -Recurse
       - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2
         with:
-          workspaces: ${{ env.UV_WORKSPACE }}/crates/fv-trampoline
+          workspaces: ${{ env.UV_WORKSPACE }}/crates/fyn-trampoline
       - name: "Install Rust toolchain"
-        working-directory: ${{ env.UV_WORKSPACE }}/crates/fv-trampoline
+        working-directory: ${{ env.UV_WORKSPACE }}/crates/fyn-trampoline
         run: |
           rustup target add ${{ matrix.target-arch }}-pc-windows-msvc
           rustup component add rust-src --target ${{ matrix.target-arch }}-pc-windows-msvc
@@ -117,16 +117,16 @@ jobs:
         working-directory: ${{ env.UV_WORKSPACE }}
         run: |
           rustup target add ${{ matrix.target-arch }}-pc-windows-msvc
-          cargo test -p fv-trampoline-builder --target ${{ matrix.target-arch }}-pc-windows-msvc
+          cargo test -p fyn-trampoline-builder --target ${{ matrix.target-arch }}-pc-windows-msvc
       # Build and copy the new binaries
       - name: "Build"
-        working-directory: ${{ env.UV_WORKSPACE }}/crates/fv-trampoline
+        working-directory: ${{ env.UV_WORKSPACE }}/crates/fyn-trampoline
         run: |
           cargo build --target ${{ matrix.target-arch }}-pc-windows-msvc
-          cp target/${{ matrix.target-arch }}-pc-windows-msvc/debug/fv-trampoline-console.exe ../fv-trampoline-builder/trampolines/fv-trampoline-${{ matrix.target-arch }}-console.exe
-          cp target/${{ matrix.target-arch }}-pc-windows-msvc/debug/fv-trampoline-gui.exe ../fv-trampoline-builder/trampolines/fv-trampoline-${{ matrix.target-arch }}-gui.exe
+          cp target/${{ matrix.target-arch }}-pc-windows-msvc/debug/fyn-trampoline-console.exe ../fyn-trampoline-builder/trampolines/fyn-trampoline-${{ matrix.target-arch }}-console.exe
+          cp target/${{ matrix.target-arch }}-pc-windows-msvc/debug/fyn-trampoline-gui.exe ../fyn-trampoline-builder/trampolines/fyn-trampoline-${{ matrix.target-arch }}-gui.exe
       - name: "Test new binaries"
         working-directory: ${{ env.UV_WORKSPACE }}
         run: |
           # We turn off the default "production" test feature since these are debug binaries
-          cargo test -p fv-trampoline-builder --target ${{ matrix.target-arch }}-pc-windows-msvc --no-default-features
+          cargo test -p fyn-trampoline-builder --target ${{ matrix.target-arch }}-pc-windows-msvc --no-default-features

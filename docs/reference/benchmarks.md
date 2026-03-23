@@ -1,6 +1,6 @@
 # Benchmarks
 
-fv's performance is continually benchmarked against previous releases, and regularly compared to
+fyn's performance is continually benchmarked against previous releases, and regularly compared to
 other tools in the space, like pip and Poetry.
 
 The latest benchmarks and details on the benchmarking process can be found in the

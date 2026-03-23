@@ -4,9 +4,9 @@ Projects help manage Python code spanning multiple files.
 
 !!! tip
 
-    Looking for an introduction to creating a project with fv? See the [projects guide](../../guides/projects.md) first.
+    Looking for an introduction to creating a project with fyn? See the [projects guide](../../guides/projects.md) first.
 
-Working on projects is a core part of the fv experience. Learn more about using projects:
+Working on projects is a core part of the fyn experience. Learn more about using projects:
 
 - [Understanding project structure and files](./layout.md)
 - [Creating new projects](./init.md)
