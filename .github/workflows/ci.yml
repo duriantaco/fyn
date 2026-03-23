@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   plan:
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubuntu-latest
     outputs:
       test-code: ${{ steps.plan.outputs.test_code }}
       check-schema: ${{ steps.plan.outputs.check_schema }}
@@ -403,7 +403,7 @@ jobs:
       - check-generated-files
       - test
       - build-dev-binaries
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
       - name: "Check required jobs passed"
         run: |
