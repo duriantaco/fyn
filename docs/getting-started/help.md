@@ -27,8 +27,8 @@ To view the long help menu for a specific command, e.g., for `fyn init`:
 $ fyn help init
 ```
 
-When using the long help menu, fyn will attempt to use `less` or `more` to "page" the output so it is
-not all displayed at once. To exit the pager, press `q`.
+When using the long help menu, fyn will attempt to use `less` or `more` to "page" the output so it
+is not all displayed at once. To exit the pager, press `q`.
 
 ## Displaying verbose output
 
@@ -76,11 +76,6 @@ The reference documentation contains a
 
 ## Open an issue on GitHub
 
-The [issue tracker](https://github.com/astral-sh/uv/issues) on GitHub is a good place to report bugs
-and request features. Make sure to search for similar issues first, as it is common for someone else
-to encounter the same problem.
-
-## Chat on Discord
-
-Astral has a [Discord server](https://discord.com/invite/astral-sh), which is a great place to ask
-questions, learn more about fyn, and engage with other community members.
+The [issue tracker](https://github.com/oha/fyn/issues) on GitHub is a good place to report bugs and
+request features. Make sure to search for similar issues first, as it is common for someone else to
+encounter the same problem.

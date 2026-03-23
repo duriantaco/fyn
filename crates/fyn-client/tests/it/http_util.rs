@@ -62,7 +62,7 @@ pub(crate) fn generate_self_signed_certs() -> Result<SelfSigned> {
         .push(ExtendedKeyUsagePurpose::ServerAuth);
     params
         .distinguished_name
-        .push(DnType::OrganizationName, "Astral Software Inc.");
+        .push(DnType::OrganizationName, "fyn contributors");
     params
         .distinguished_name
         .push(DnType::CommonName, "uv-test-server");
@@ -98,7 +98,7 @@ pub(crate) fn generate_self_signed_certs_with_ca() -> Result<(SelfSigned, SelfSi
     ca_params.key_usages.push(KeyUsagePurpose::CrlSign);
     ca_params
         .distinguished_name
-        .push(DnType::OrganizationName, "Astral Software Inc.");
+        .push(DnType::OrganizationName, "fyn contributors");
     ca_params
         .distinguished_name
         .push(DnType::CommonName, "uv-test-ca");
@@ -126,7 +126,7 @@ pub(crate) fn generate_self_signed_certs_with_ca() -> Result<(SelfSigned, SelfSi
         .push(ExtendedKeyUsagePurpose::ServerAuth);
     server_params
         .distinguished_name
-        .push(DnType::OrganizationName, "Astral Software Inc.");
+        .push(DnType::OrganizationName, "fyn contributors");
     server_params
         .distinguished_name
         .push(DnType::CommonName, "uv-test-server");
@@ -156,7 +156,7 @@ pub(crate) fn generate_self_signed_certs_with_ca() -> Result<(SelfSigned, SelfSi
         .push(ExtendedKeyUsagePurpose::ClientAuth);
     client_params
         .distinguished_name
-        .push(DnType::OrganizationName, "Astral Software Inc.");
+        .push(DnType::OrganizationName, "fyn contributors");
     client_params
         .distinguished_name
         .push(DnType::CommonName, "uv-test-client");

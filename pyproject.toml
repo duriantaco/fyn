@@ -39,7 +39,6 @@ readme = "README.md"
 Repository = "https://github.com/oha/fyn"
 Changelog = "https://github.com/oha/fyn/blob/main/CHANGELOG.md"
 Releases = "https://github.com/oha/fyn/releases"
-Discord = "https://discord.gg/astral-sh"
 
 [tool.maturin]
 bindings = "bin"

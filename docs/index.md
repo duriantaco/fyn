@@ -18,7 +18,7 @@ An extremely fast Python package and project manager, written in Rust.
 
 - A single tool to replace `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`, `twine`, `virtualenv`, and
   more.
-- [10-100x faster](https://github.com/astral-sh/uv/blob/main/BENCHMARKS.md) than `pip`.
+- [10-100x faster](https://github.com/oha/fyn/blob/main/BENCHMARKS.md) than `pip`.
 - Provides [comprehensive project management](#projects), with a
   [universal lockfile](./concepts/projects/layout.md#the-lockfile).
 - [Runs scripts](#scripts), with support for
@@ -32,8 +32,7 @@ An extremely fast Python package and project manager, written in Rust.
 - Installable without Rust or Python via `curl` or `pip`.
 - Supports macOS, Linux, and Windows.
 
-fyn is backed by [Astral](https://astral.sh), the creators of
-[Ruff](https://github.com/astral-sh/ruff).
+fyn is an independent community fork of [uv](https://github.com/astral-sh/uv).
 
 ## Installation
 
@@ -205,8 +204,8 @@ fyn extends their interfaces with advanced features, such as dependency version 
 platform-independent resolutions, reproducible resolutions, alternative resolution strategies, and
 more.
 
-Migrate to fyn without changing your existing workflows — and experience a 10-100x speedup — with the
-`fyn pip` interface.
+Migrate to fyn without changing your existing workflows — and experience a 10-100x speedup — with
+the `fyn pip` interface.
 
 Compile requirements into a platform-independent requirements file:
 

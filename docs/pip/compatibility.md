@@ -6,9 +6,9 @@ Informally, the intent is such that existing `pip` and `pip-tools` users can swi
 making meaningful changes to their packaging workflows; and, in most cases, swapping out
 `pip install` for `fyn pip install` should "just work".
 
-However, fyn is _not_ intended to be an _exact_ clone of `pip`, and the further you stray from common
-`pip` workflows, the more likely you are to encounter differences in behavior. In some cases, those
-differences may be known and intentional; in others, they may be the result of implementation
+However, fyn is _not_ intended to be an _exact_ clone of `pip`, and the further you stray from
+common `pip` workflows, the more likely you are to encounter differences in behavior. In some cases,
+those differences may be known and intentional; in others, they may be the result of implementation
 details; and in others, they may be bugs.
 
 This document outlines the known differences between fyn and `pip`, along with rationale,
@@ -34,9 +34,9 @@ drawbacks:
    behavior, and many users may _not_ expect fyn to read configuration files intended for other
    tools.
 
-Instead, fyn supports its own environment variables, like `UV_INDEX_URL`. fyn also supports persistent
-configuration in a `fyn.toml` file or a `[tool.fyn.pip]` section of `pyproject.toml`. For more
-information, see [Configuration files](../concepts/configuration-files.md).
+Instead, fyn supports its own environment variables, like `UV_INDEX_URL`. fyn also supports
+persistent configuration in a `fyn.toml` file or a `[tool.fyn.pip]` section of `pyproject.toml`. For
+more information, see [Configuration files](../concepts/configuration-files.md).
 
 ## Pre-release compatibility
 
@@ -74,8 +74,8 @@ and are instead focused on behavior for a _single_ version specifier.
 ## Packages that exist on multiple indexes
 
 In both fyn and `pip`, users can specify multiple package indexes from which to search for the
-available versions of a given package. However, fyn and `pip` differ in how they handle packages that
-exist on multiple indexes.
+available versions of a given package. However, fyn and `pip` differ in how they handle packages
+that exist on multiple indexes.
 
 For example, imagine that a company publishes an internal version of `requests` on a private index
 (`--extra-index-url`), but also allows installing packages from PyPI by default. In this case, the
@@ -139,7 +139,7 @@ fyn pip install wheel && fyn pip install --no-build-isolation biopython==1.77
 ```
 
 For a list of packages that are known to fail under PEP 517 build isolation, see
-[#2252](https://github.com/astral-sh/uv/issues/2252).
+[#2252](https://github.com/oha/fyn/issues/2252).
 
 ## Transitive URL dependencies
 
@@ -153,9 +153,9 @@ dependency during resolution. (Note that PyPI does not allow published packages 
 dependencies; other registries may be more permissive.)
 
 Second, if a constraint (`--constraint`) or override (`--override`) is defined using a direct URL
-dependency, and the constrained package has a direct URL dependency of its own, fyn _may_ reject that
-transitive direct URL dependency during resolution, if the URL isn't referenced elsewhere in the set
-of input requirements.
+dependency, and the constrained package has a direct URL dependency of its own, fyn _may_ reject
+that transitive direct URL dependency during resolution, if the URL isn't referenced elsewhere in
+the set of input requirements.
 
 If fyn rejects a transitive URL dependency, the best course of action is to provide the URL
 dependency as a direct dependency in the relevant `pyproject.toml` or `requirement.in` file, as the
@@ -261,8 +261,8 @@ typing-extensions==4.10.0
     #   pydantic-core
 ```
 
-When fyn resolutions differ from `pip` in undesirable ways, it's often a sign that the specifiers are
-too loose, and that the user should consider tightening them. For example, in the case of
+When fyn resolutions differ from `pip` in undesirable ways, it's often a sign that the specifiers
+are too loose, and that the user should consider tightening them. For example, in the case of
 `starlette` and `fastapi`, the user could require `fastapi>=0.110.0`.
 
 ## `pip check`
@@ -289,7 +289,7 @@ Additionally, pip will fall back to the `user` install scheme if it detects that
 have write permissions to the target directory, as is the case on some systems when installing into
 the system Python. fyn does not implement any such fallback.
 
-For more, see [#2077](https://github.com/astral-sh/uv/issues/2077).
+For more, see [#2077](https://github.com/oha/fyn/issues/2077).
 
 ## `--only-binary` enforcement
 
@@ -300,10 +300,10 @@ from PyPI and other registries.
 However, when a dependency is provided as a direct URL (e.g., `fyn pip install https://...`), pip
 does _not_ enforce `--only-binary`, and will build source distributions for all such packages.
 
-fyn, meanwhile, _does_ enforce `--only-binary` for direct URL dependencies, with one exception: given
-`fyn pip install https://... --only-binary flask`, fyn _will_ build the source distribution at the
-given URL if it cannot infer the package name ahead of time, since fyn can't determine whether the
-package is "allowed" in such cases without building its metadata.
+fyn, meanwhile, _does_ enforce `--only-binary` for direct URL dependencies, with one exception:
+given `fyn pip install https://... --only-binary flask`, fyn _will_ build the source distribution at
+the given URL if it cannot infer the package name ahead of time, since fyn can't determine whether
+the package is "allowed" in such cases without building its metadata.
 
 Both pip and fyn allow editables requirements to be built and installed even when `--only-binary` is
 provided. For example, `fyn pip install -e . --only-binary :all:` is allowed.
@@ -327,8 +327,8 @@ fyn respects `manylinux_compatible`, but only tests against the current glibc ve
 the return value of `manylinux_compatible` globally.
 
 In other words, if `manylinux_compatible` returns `True`, fyn will treat the system as
-`manylinux`-compatible; if it returns `False`, fyn will treat the system as `manylinux`-incompatible,
-without calling `manylinux_compatible` for every glibc version.
+`manylinux`-compatible; if it returns `False`, fyn will treat the system as
+`manylinux`-incompatible, without calling `manylinux_compatible` for every glibc version.
 
 This approach is not a complete implementation of the spec, but is compatible with common blanket
 `manylinux_compatible` implementations like
@@ -383,8 +383,8 @@ does support a large subset.
 Missing options and subcommands are prioritized based on user demand and the complexity of the
 implementation, and tend to be tracked in individual issues. For example:
 
-- [`--trusted-host`](https://github.com/astral-sh/uv/issues/1339)
-- [`--user`](https://github.com/astral-sh/uv/issues/2077)
+- [`--trusted-host`](https://github.com/oha/fyn/issues/1339)
+- [`--user`](https://github.com/oha/fyn/issues/2077)
 
 If you encounter a missing option or subcommand, please search the issue tracker to see if it has
 already been reported, and if not, consider opening a new issue. Feel free to upvote any existing
@@ -402,16 +402,16 @@ authentication. fyn attaches authentication to all requests for hosts with crede
 
 ## `egg` support
 
-fyn does not support features that are considered legacy or deprecated in `pip`. For example, fyn does
-not support `.egg`-style distributions.
+fyn does not support features that are considered legacy or deprecated in `pip`. For example, fyn
+does not support `.egg`-style distributions.
 
 However, fyn does have partial support for (1) `.egg-info`-style distributions (which are
 occasionally found in Docker images and Conda environments) and (2) legacy editable
 `.egg-link`-style distributions.
 
 Specifically, fyn does not support installing new `.egg-info`- or `.egg-link`-style distributions,
-but will respect any such existing distributions during resolution, list them with `fyn pip list` and
-`fyn pip freeze`, and uninstall them with `fyn pip uninstall`.
+but will respect any such existing distributions during resolution, list them with `fyn pip list`
+and `fyn pip freeze`, and uninstall them with `fyn pip uninstall`.
 
 ## Build constraints
 
@@ -431,13 +431,14 @@ dependency on `setuptools`, use `--build-constraint`, rather than `--constraint`
 There are a few small but notable differences in the default behaviors of `pip compile` and
 `pip-tools`.
 
-By default, fyn does not write the compiled requirements to an output file. Instead, fyn requires that
-the user specify an output file explicitly with the `-o` or `--output-file` option.
+By default, fyn does not write the compiled requirements to an output file. Instead, fyn requires
+that the user specify an output file explicitly with the `-o` or `--output-file` option.
 
-By default, fyn strips extras when outputting the compiled requirements. In other words, fyn defaults
-to `--strip-extras`, while `pip-compile` defaults to `--no-strip-extras`. `pip-compile` is scheduled
-to change this default in the next major release (v8.0.0), at which point both tools will default to
-`--strip-extras`. To retain extras with fyn, pass the `--no-strip-extras` flag to `fyn pip compile`.
+By default, fyn strips extras when outputting the compiled requirements. In other words, fyn
+defaults to `--strip-extras`, while `pip-compile` defaults to `--no-strip-extras`. `pip-compile` is
+scheduled to change this default in the next major release (v8.0.0), at which point both tools will
+default to `--strip-extras`. To retain extras with fyn, pass the `--no-strip-extras` flag to
+`fyn pip compile`.
 
 By default, fyn does not write any index URLs to the output file, while `pip-compile` outputs any
 `--index-url` or `--extra-index-url` that does not match the default (PyPI). To include index URLs

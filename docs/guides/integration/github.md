@@ -10,8 +10,12 @@ description:
 ## Installation
 
 For use with GitHub Actions, we recommend the official
-[`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv) action, which installs uv, adds it to
+[`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv) action, which installs fyn, adds it to
 PATH, (optionally) persists the cache, and more, with support for all fyn-supported platforms.
+
+!!! note
+
+    The `astral-sh/setup-uv` action is maintained by Astral and is compatible with fyn.
 
 To install the latest version of fyn:
 
@@ -347,9 +351,9 @@ steps:
 
 fyn can be used to build and publish your package to PyPI from GitHub Actions. We provide a
 standalone example alongside this guide in
-[astral-sh/trusted-publishing-examples](https://github.com/astral-sh/trusted-publishing-examples).
-The workflow uses [trusted publishing](https://docs.pypi.org/trusted-publishers/), so no credentials
-need to be configured.
+[oha/trusted-publishing-examples](https://github.com/oha/trusted-publishing-examples). The workflow
+uses [trusted publishing](https://docs.pypi.org/trusted-publishers/), so no credentials need to be
+configured.
 
 In the example workflow, we use a script to test that the source distribution and the wheel are both
 functional and we didn't miss any files. This step is recommended, but optional.

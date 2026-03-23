@@ -13,19 +13,19 @@ fyn provides a standalone installer to download and install fyn:
     Use `curl` to download the script and execute it with `sh`:
 
     ```console
-    $ curl -LsSf https://astral.sh/fyn/install.sh | sh
+    $ curl -LsSf https://github.com/oha/fyn/releases/latest/download/install.sh | sh
     ```
 
     If your system doesn't have `curl`, you can use `wget`:
 
     ```console
-    $ wget -qO- https://astral.sh/fyn/install.sh | sh
+    $ wget -qO- https://github.com/oha/fyn/releases/latest/download/install.sh | sh
     ```
 
     Request a specific version by including it in the URL:
 
     ```console
-    $ curl -LsSf https://astral.sh/fyn/0.10.12/install.sh | sh
+    $ curl -LsSf https://github.com/oha/fyn/releases/download/0.10.12/install.sh | sh
     ```
 
 === "Windows"
@@ -33,7 +33,7 @@ fyn provides a standalone installer to download and install fyn:
     Use `irm` to download the script and execute it with `iex`:
 
     ```pwsh-session
-    PS> powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/fyn/install.ps1 | iex"
+    PS> powershell -ExecutionPolicy ByPass -c "irm https://github.com/oha/fyn/releases/latest/download/install.ps1 | iex"
     ```
 
     Changing the [execution policy](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.4#powershell-execution-policies) allows running a script from the internet.
@@ -41,7 +41,7 @@ fyn provides a standalone installer to download and install fyn:
     Request a specific version by including it in the URL:
 
     ```pwsh-session
-    PS> powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/fyn/0.10.12/install.ps1 | iex"
+    PS> powershell -ExecutionPolicy ByPass -c "irm https://github.com/oha/fyn/releases/download/0.10.12/install.ps1 | iex"
     ```
 
 !!! tip
@@ -51,13 +51,13 @@ fyn provides a standalone installer to download and install fyn:
     === "macOS and Linux"
 
         ```console
-        $ curl -LsSf https://astral.sh/fyn/install.sh | less
+        $ curl -LsSf https://github.com/oha/fyn/releases/latest/download/install.sh | less
         ```
 
     === "Windows"
 
         ```pwsh-session
-        PS> powershell -c "irm https://astral.sh/fyn/install.ps1 | more"
+        PS> powershell -c "irm https://github.com/oha/fyn/releases/latest/download/install.ps1 | more"
         ```
 
     Alternatively, the installer or binaries can be downloaded directly from [GitHub](#github-releases).
@@ -69,7 +69,8 @@ customizing your fyn installation.
 
 For convenience, fyn is published to [PyPI](https://pypi.org/project/fyn/).
 
-If installing from PyPI, we recommend installing fyn into an isolated environment, e.g., with `pipx`:
+If installing from PyPI, we recommend installing fyn into an isolated environment, e.g., with
+`pipx`:
 
 ```console
 $ pipx install fyn
@@ -122,18 +123,17 @@ $ scoop install main/fyn
 
 ### Docker
 
-fyn provides a Docker image at
-[`ghcr.io/oha/fyn`](https://github.com/astral-sh/uv/pkgs/container/uv).
+fyn provides a Docker image at [`ghcr.io/oha/fyn`](https://github.com/oha/fyn/pkgs/container/fyn).
 
 See our guide on [using fyn in Docker](../guides/integration/docker.md) for more details.
 
 ### GitHub Releases
 
 fyn release artifacts can be downloaded directly from
-[GitHub Releases](https://github.com/astral-sh/uv/releases).
+[GitHub Releases](https://github.com/oha/fyn/releases).
 
 Each release page includes binaries for all supported platforms as well as instructions for using
-the standalone installer via `github.com` instead of `astral.sh`.
+the standalone installer via GitHub.
 
 ### Cargo
 

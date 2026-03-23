@@ -7,7 +7,7 @@ Learn how to migrate from other tools to fyn:
 !!! note
 
     Other guides, such as migrating from another project management tool, or from pip to `fyn pip`
-    are not yet available. See [#5200](https://github.com/astral-sh/uv/issues/5200) to track
+    are not yet available. See [#5200](https://github.com/oha/fyn/issues/5200) to track
     progress.
 
 Or, explore the [integration guides](../integration/index.md) to learn how to use fyn with other

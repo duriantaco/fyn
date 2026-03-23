@@ -607,7 +607,7 @@ if __name__ == "__main__":
             .push(ExtendedKeyUsagePurpose::CodeSigning);
         params
             .distinguished_name
-            .push(DnType::OrganizationName, "Astral Software Inc.");
+            .push(DnType::OrganizationName, "fyn contributors");
         params
             .distinguished_name
             .push(DnType::CommonName, "fyn-test-signer");

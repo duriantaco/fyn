@@ -14,8 +14,8 @@ expected_registry = [
     r"""
 Name                           Property
 ----                           --------
-Astral                         DisplayName : Astral Software Inc.
-                               SupportUrl  : https://github.com/astral-sh/fyn
+fyn                            DisplayName : fyn contributors
+                               SupportUrl  : https://github.com/oha/fyn
 """,
     # The actual Python installations
     r"""
@@ -24,17 +24,17 @@ Astral                         DisplayName : Astral Software Inc.
 
 Name                           Property
 ----                           --------
-Astral                         DisplayName : Astral Software Inc.
-                               SupportUrl  : https://github.com/astral-sh/fyn
+fyn                            DisplayName : fyn contributors
+                               SupportUrl  : https://github.com/oha/fyn
 
 
-    Hive: HKEY_CURRENT_USER\Software\Python\Astral
+    Hive: HKEY_CURRENT_USER\Software\Python\fyn
 
 
 Name                           Property
 ----                           --------
 CPython3.11.11                 DisplayName     : CPython 3.11.11 (64-bit)
-                               SupportUrl      : https://github.com/astral-sh/fyn
+                               SupportUrl      : https://github.com/oha/fyn
                                Version         : 3.11.11
                                SysVersion      : 3.11.11
                                SysArchitecture : 64bit
@@ -42,7 +42,7 @@ CPython3.11.11                 DisplayName     : CPython 3.11.11 (64-bit)
                                DownloadSha256  : <downloadSha256>
 
 
-    Hive: HKEY_CURRENT_USER\Software\Python\Astral\CPython3.11.11
+    Hive: HKEY_CURRENT_USER\Software\Python\fyn\CPython3.11.11
 
 
 Name                           Property
@@ -52,13 +52,13 @@ InstallPath                    (default)              : C:\Users\runneradmin\App
                                WindowedExecutablePath : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.11.11-windows-x86_64-none\pythonw.exe
 """,
     r"""
-    Hive: HKEY_CURRENT_USER\Software\Python\Astral
+    Hive: HKEY_CURRENT_USER\Software\Python\fyn
 
 
 Name                           Property
 ----                           --------
 CPython3.12.8                  DisplayName     : CPython 3.12.8 (64-bit)
-                               SupportUrl      : https://github.com/astral-sh/fyn
+                               SupportUrl      : https://github.com/oha/fyn
                                Version         : 3.12.8
                                SysVersion      : 3.12.8
                                SysArchitecture : 64bit
@@ -66,7 +66,7 @@ CPython3.12.8                  DisplayName     : CPython 3.12.8 (64-bit)
                                DownloadSha256  : <downloadSha256>
 
 
-    Hive: HKEY_CURRENT_USER\Software\Python\Astral\CPython3.12.8
+    Hive: HKEY_CURRENT_USER\Software\Python\fyn\CPython3.12.8
 
 
 Name                           Property
@@ -76,13 +76,13 @@ InstallPath                    (default)              : C:\Users\runneradmin\App
                                WindowedExecutablePath : C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.12.8-windows-x86_64-none\pythonw.exe
 """,
     r"""
-    Hive: HKEY_CURRENT_USER\Software\Python\Astral
+    Hive: HKEY_CURRENT_USER\Software\Python\fyn
 
 
 Name                           Property
 ----                           --------
 CPython3.13.1                  DisplayName     : CPython 3.13.1 (64-bit)
-                               SupportUrl      : https://github.com/astral-sh/fyn
+                               SupportUrl      : https://github.com/oha/fyn
                                Version         : 3.13.1
                                SysVersion      : 3.13.1
                                SysArchitecture : 64bit
@@ -90,7 +90,7 @@ CPython3.13.1                  DisplayName     : CPython 3.13.1 (64-bit)
                                DownloadSha256  : <downloadSha256>
 
 
-    Hive: HKEY_CURRENT_USER\Software\Python\Astral\CPython3.13.1
+    Hive: HKEY_CURRENT_USER\Software\Python\fyn\CPython3.13.1
 
 
 Name                           Property
@@ -121,9 +121,9 @@ def filter_snapshot(snapshot: str) -> str:
 
 def main(uv: str):
     # `py --list-paths` output
-    py_311_line = r" -V:Astral/CPython3.11.11 C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.11.11-windows-x86_64-none\python.exe"
-    py_312_line = r" -V:Astral/CPython3.12.8 C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.12.8-windows-x86_64-none\python.exe"
-    py_313_line = r" -V:Astral/CPython3.13.1 C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.13.1-windows-x86_64-none\python.exe"
+    py_311_line = r" -V:fyn/CPython3.11.11 C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.11.11-windows-x86_64-none\python.exe"
+    py_312_line = r" -V:fyn/CPython3.12.8 C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.12.8-windows-x86_64-none\python.exe"
+    py_313_line = r" -V:fyn/CPython3.13.1 C:\Users\runneradmin\AppData\Roaming\fyn\python\cpython-3.13.1-windows-x86_64-none\python.exe"
 
     # Use the powershell command to get an outside view on the registry values we wrote
     # By default, powershell wraps the output at terminal size
@@ -172,7 +172,9 @@ def main(uv: str):
     # Check 2b: Remove a missing interpreter.
     for _ in range(2):
         print("Removing Python 3.11.11")
-        subprocess.check_call([fyn, "python", "uninstall", "-v", "--preview", "3.11.11"])
+        subprocess.check_call(
+            [fyn, "python", "uninstall", "-v", "--preview", "3.11.11"]
+        )
         listed_interpreters = subprocess.check_output(["py", "--list-paths"], text=True)
         py_listed = set(listed_interpreters.splitlines())
         if (

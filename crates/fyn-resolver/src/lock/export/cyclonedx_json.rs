@@ -305,7 +305,7 @@ pub fn from_lock<'lock>(
             .map(|package| component_builder.create_component(package, PackageType::Root, None)),
         timestamp: cyclonedx_bom::prelude::DateTime::now().ok(),
         tools: Some(Tools::List(vec![Tool {
-            vendor: Some(NormalizedString::new("Astral Software Inc.")),
+            vendor: Some(NormalizedString::new("fyn contributors")),
             name: Some(NormalizedString::new("fyn")),
             version: Some(NormalizedString::new(fyn_version::version())),
             hashes: None,
