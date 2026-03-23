@@ -57,7 +57,7 @@ A complete listing would look like:
 ├── .venv
 │   ├── bin
 │   ├── lib
-│   └── fynenv.cfg
+│   └── pyvenv.cfg
 ├── .python-version
 ├── README.md
 ├── main.py

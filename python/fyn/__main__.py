@@ -15,7 +15,7 @@ def _detect_virtualenv() -> str:
         return value
 
     # Otherwise, check if we're in a venv
-    venv_marker = os.path.join(sys.prefix, "fynenv.cfg")
+    venv_marker = os.path.join(sys.prefix, "pyvenv.cfg")
 
     if os.path.exists(venv_marker):
         return sys.prefix

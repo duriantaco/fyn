@@ -182,7 +182,7 @@ security concern (`C` has not been reviewed, neither was `B==3`). It's possible 
 installation if that happens, but a late error, possibly during deployment, is a bad user
 experience. There is already a case where fyn fails on installation, packages with no source
 distribution and only platform specific wheels incompatible with the current platform. While fyn has
-[required environments](https://docs.astral.sh/fyn/concepts/resolution/#required-environments) as
+[required environments](https://docs.astral.sh/uv/concepts/resolution/#required-environments) as
 mitigation, this requires a not well known configuration option, and questions around (un)supported
 environments are one of the most common problem for fyn users. A similar situation with source
 distributions should be avoided.
@@ -199,7 +199,7 @@ are constrained to a specific torch version, and the runtime torch version must 
 version. These are currently a pain point across all package managers, as all major package managers
 from pip to fyn cache source distribution builds. fyn supports multiple builds depending on the
 version of the already installed package using
-[ `tool.fyn.extra-build-dependencies`](https://docs.astral.sh/fyn/concepts/projects/config/#augmenting-build-dependencies)
+[ `tool.fyn.extra-build-dependencies`](https://docs.astral.sh/uv/concepts/projects/config/#augmenting-build-dependencies)
 with `match-runtime = true`. This is a workaround that needs to be made on the user side for each
 affected package, instead of library developers declaring this requirement, which would be possible
 with native standards support.
