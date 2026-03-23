@@ -9,7 +9,7 @@ requires-python = ">=3.7"
 version = "0.1.0"
 keywords = []
 authors = [
-  { name = "Astral Software Inc.", email = "hey@astral.sh" },
+  { name = "fyn contributors" },
 ]
 dependencies = [
   "keyring"

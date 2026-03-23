@@ -10,7 +10,7 @@ requires-python = ">=3.7"
 license = "MIT"
 keywords = []
 authors = [
-  { name = "Astral Software Inc.", email = "hey@astral.sh" },
+  { name = "fyn contributors" },
 ]
 classifiers = []
 dependencies = ["first-local"]

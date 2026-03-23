@@ -828,7 +828,7 @@ fn compile_pyproject_toml_poetry() -> Result<()> {
 name = "poetry-editable"
 version = "0.1.0"
 description = ""
-authors = ["Astral Software Inc. <hey@astral.sh>"]
+authors = ["fyn contributors"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -887,13 +887,13 @@ fn compile_pyproject_toml_poetry_empty_dependencies() -> Result<()> {
 name = "poetry-editable"
 version = "0.1.0"
 description = ""
-authors = ["Astral Software Inc. <hey@astral.sh>"]
+authors = ["fyn contributors"]
 
 [tool.poetry]
 name = "poetry-editable"
 version = "0.1.0"
 description = ""
-authors = ["Astral Software Inc. <hey@astral.sh>"]
+authors = ["fyn contributors"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -938,13 +938,13 @@ fn compile_pyproject_toml_poetry_invalid_dependencies() -> Result<()> {
 name = "poetry-editable"
 version = "0.1.0"
 description = ""
-authors = ["Astral Software Inc. <hey@astral.sh>"]
+authors = ["fyn contributors"]
 
 [tool.poetry]
 name = "poetry-editable"
 version = "0.1.0"
 description = ""
-authors = ["Astral Software Inc. <hey@astral.sh>"]
+authors = ["fyn contributors"]
 
 [project.dependencies]
 python = "^3.12"

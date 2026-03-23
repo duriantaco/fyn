@@ -3,7 +3,7 @@ name = "flit-editable"
 version = "0.1.0"
 description = "Example Flit project"
 authors = [
-    {name = "konstin", email = "konstin@mailbox.org"},
+    {name = "fyn contributors"},
 ]
 dependencies = []
 requires-python = ">=3.11"

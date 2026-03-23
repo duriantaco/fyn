@@ -92,7 +92,7 @@ PYTHON_VERSION = os.environ.get("UV_TEST_PUBLISH_PYTHON_VERSION", "3.12")
 # `pyproject.toml` contents using all supported metadata fields, except for the
 # generated header with `[project]`, name and version.
 PYPROJECT_TAIL = """
-authors = [{ name = "konstin", email = "konstin@mailbox.org" }]
+authors = [{ name = "fyn contributors" }]
 classifiers = ["Topic :: Software Development :: Testing"]
 # Empty for simplicity with the `fyn compile` check, anyio still tests,
 # optional-dependencies still test the `Requires-Dist` field.
@@ -102,7 +102,7 @@ dynamic = ["gui-scripts", "scripts"]
 keywords = ["test", "publish"]
 license = "MIT OR Apache-2.0"
 license-files = ["LICENSE*"]
-maintainers = [{ name = "konstin", email = "konstin@mailbox.org" }]
+maintainers = [{ name = "fyn contributors" }]
 optional-dependencies = { "async" = ["anyio>=4,<5"] }
 readme = "README.md"
 requires-python = ">=3.12"

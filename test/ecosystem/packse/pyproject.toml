@@ -2,7 +2,7 @@
 name = "packse"
 version = "0.0.0"
 description = ""
-authors = [{ name = "Astral Software Inc.", email = "hey@astral.sh" }]
+authors = [{ name = "fyn contributors" }]
 readme = "README.md"
 keywords = [
   "fyn", "packse", "requirements", "packaging", "testing"

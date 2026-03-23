@@ -5161,7 +5161,7 @@ fn cyclonedx_export_basic() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -5243,7 +5243,7 @@ fn cyclonedx_export_direct_url() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -5326,7 +5326,7 @@ fn cyclonedx_export_git_dependency() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -5408,7 +5408,7 @@ fn cyclonedx_export_no_dependencies() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -5481,7 +5481,7 @@ fn cyclonedx_export_mixed_source_types() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -5591,7 +5591,7 @@ fn cyclonedx_export_project_extra() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -5677,7 +5677,7 @@ fn cyclonedx_export_project_extra_with_optional_flag() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -5820,7 +5820,7 @@ fn cyclonedx_export_with_workspace_member() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -5970,7 +5970,7 @@ fn cyclonedx_export_workspace_non_root() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -6077,7 +6077,7 @@ fn cyclonedx_export_workspace_with_extras() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -6153,7 +6153,7 @@ fn cyclonedx_export_workspace_with_extras() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -6312,7 +6312,7 @@ fn cyclonedx_export_workspace_frozen() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -6474,7 +6474,7 @@ fn cyclonedx_export_workspace_all_packages() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -6633,7 +6633,7 @@ fn cyclonedx_export_all_packages_non_workspace_root_dependency() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -6772,7 +6772,7 @@ fn cyclonedx_export_workspace_mixed_dependencies() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -6917,7 +6917,7 @@ fn cyclonedx_export_dependency_marker() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7020,7 +7020,7 @@ fn cyclonedx_export_multiple_dependency_markers() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7146,7 +7146,7 @@ fn cyclonedx_export_dependency_extra() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7283,7 +7283,7 @@ fn cyclonedx_export_prune() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7468,7 +7468,7 @@ fn cyclonedx_export_group() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7539,7 +7539,7 @@ fn cyclonedx_export_group() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7592,7 +7592,7 @@ fn cyclonedx_export_group() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7701,7 +7701,7 @@ fn cyclonedx_export_non_project() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7746,7 +7746,7 @@ fn cyclonedx_export_non_project() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7848,7 +7848,7 @@ fn cyclonedx_export_no_emit() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -7925,7 +7925,7 @@ fn cyclonedx_export_no_emit() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -8048,7 +8048,7 @@ fn cyclonedx_export_relative_path() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -8142,7 +8142,7 @@ fn cyclonedx_export_cyclic_dependencies() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -8346,7 +8346,7 @@ fn cyclonedx_export_dev_dependencies() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -8418,7 +8418,7 @@ fn cyclonedx_export_dev_dependencies() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -8478,7 +8478,7 @@ fn cyclonedx_export_dev_dependencies() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -8582,7 +8582,7 @@ fn cyclonedx_export_all_packages_conflicting_workspace_members() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -8715,7 +8715,7 @@ fn cyclonedx_export_alternative_registry() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }
@@ -8936,7 +8936,7 @@ fn cyclonedx_export_virtual_workspace_fixture() -> Result<()> {
         "timestamp": "[TIMESTAMP]",
         "tools": [
           {
-            "vendor": "Astral Software Inc.",
+            "vendor": "fyn contributors",
             "name": "fyn",
             "version": "[VERSION]"
           }

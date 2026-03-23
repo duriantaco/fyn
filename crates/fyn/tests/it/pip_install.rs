@@ -911,7 +911,7 @@ fn install_pyproject_toml_poetry() -> Result<()> {
 name = "poetry-editable"
 version = "0.1.0"
 description = ""
-authors = ["Astral Software Inc. <hey@astral.sh>"]
+authors = ["fyn contributors"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

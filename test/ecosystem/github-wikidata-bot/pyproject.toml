@@ -5,8 +5,7 @@ requires-python = ">=3.12"
 license = { text = "BSD-2-Clause-Patent" }
 description = "Updates Wikidata entries using metadata from github"
 authors = [
-    { name = "konstin", email = "konstin@mailbox.org" },
-    { name = "Michael Schönitzer", email = "michael@schoenitzer.de" },
+    { name = "fyn contributors" },
 ]
 dependencies = [
     "CacheControl[filecache]>=0.14,<0.15",

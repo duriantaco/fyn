@@ -1135,7 +1135,7 @@ mod tests {
             requires_python = ">=3.12"
             license = { file = "License.txt" }
             authors = [{ name = "Ferris the crab", email = "ferris@rustacean.net" }]
-            maintainers = [{ name = "Konsti", email = "konstin@mailbox.org" }]
+            maintainers = [{ name = "fyn contributors" }]
             keywords = ["demo", "example", "package"]
             classifiers = [
                 "Development Status :: 6 - Mature",
@@ -1196,8 +1196,7 @@ mod tests {
         Requires-Dist: sqlalchemy[asyncio]>=2.0.35,<3
         Requires-Dist: pymysql>=1.1.1,<2 ; extra == 'mysql'
         Requires-Dist: psycopg>=3.2.2,<4 ; extra == 'postgres'
-        Maintainer: Konsti
-        Maintainer-email: Konsti <konstin@mailbox.org>
+        Maintainer: fyn contributors
         Project-URL: Homepage, https://github.com/astral-sh/uv
         Project-URL: Repository, https://astral.sh
         Provides-Extra: mysql
@@ -1318,7 +1317,7 @@ mod tests {
             requires_python = ">=3.12"
             license = { file = "License.txt" }
             authors = [{ name = "Ferris the crab", email = "ferris@rustacean.net" }]
-            maintainers = [{ name = "Konsti", email = "konstin@mailbox.org" }]
+            maintainers = [{ name = "fyn contributors" }]
             keywords = ["demo", "example", "package"]
             classifiers = [
                 "Development Status :: 6 - Mature",
@@ -1386,8 +1385,7 @@ mod tests {
         Requires-Dist: hello-world[postgres] ; extra == 'databases'
         Requires-Dist: pymysql>=1.1.1,<2 ; extra == 'mysql'
         Requires-Dist: psycopg>=3.2.2,<4 ; sys_platform == 'linux' and extra == 'postgres'
-        Maintainer: Konsti
-        Maintainer-email: Konsti <konstin@mailbox.org>
+        Maintainer: fyn contributors
         Project-URL: Homepage, https://github.com/astral-sh/uv
         Project-URL: Repository, https://astral.sh
         Provides-Extra: all
