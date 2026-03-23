@@ -6,10 +6,10 @@ the lockfile into the [project environment](./layout.md#the-project-environment)
 
 ## Automatic lock and sync
 
-Locking and syncing are _automatic_ in fyn. For example, when `fyn run` is used, the project is locked
-and synced before invoking the requested command. This ensures the project environment is always
-up-to-date. Similarly, commands which read the lockfile, such as `fyn tree`, will automatically
-update it before running.
+Locking and syncing are _automatic_ in fyn. For example, when `fyn run` is used, the project is
+locked and synced before invoking the requested command. This ensures the project environment is
+always up-to-date. Similarly, commands which read the lockfile, such as `fyn tree`, will
+automatically update it before running.
 
 To disable automatic locking, use the `--locked` option:
 

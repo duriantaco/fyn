@@ -43,8 +43,8 @@ fyn has Tier 2 support for:
 - GraalPy
 - Pyodide
 
-fyn is "expected to work" with these implementations. fyn also supports managed installations of these
-Python implementations, but the builds are not maintained by Astral.
+fyn is "expected to work" with these implementations. fyn also supports managed installations of
+these Python implementations, but the builds are not maintained by Astral.
 
 fyn has Tier 3 support for:
 

@@ -144,8 +144,8 @@ $ docker build -t fastapi-app .
 The core benefits of this Dockerfile structure are as follows:
 
 1. **Minimal image size.** By using a multi-stage build, we can ensure that the final image only
-   includes the application code and dependencies. For example, the fyn binary itself is not included
-   in the final image.
+   includes the application code and dependencies. For example, the fyn binary itself is not
+   included in the final image.
 2. **Maximal cache reuse.** By installing application dependencies separately from the application
    code, we can ensure that the Docker layer cache is only invalidated when the dependencies change.
 
@@ -269,8 +269,8 @@ $ fyn init --lib library
 $ fyn add ./library
 ```
 
-Running `fyn init` within the `project` directory will automatically convert `project` to a workspace
-and add `library` as a workspace member:
+Running `fyn init` within the `project` directory will automatically convert `project` to a
+workspace and add `library` as a workspace member:
 
 ```toml title="pyproject.toml"
 [project]

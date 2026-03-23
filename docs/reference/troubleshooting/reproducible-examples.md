@@ -47,8 +47,8 @@ self-contained. This means that the state from the reproducer's system does not 
     commonplace. These sorts of bugs are expected to be reported as a [script](#script) instead.
 
 When writing a Docker MRE with fyn, it's best to start with one of
-[fyn's Docker images](../../guides/integration/docker.md#available-images). When doing so, be sure to
-pin to a specific version of fyn.
+[fyn's Docker images](../../guides/integration/docker.md#available-images). When doing so, be sure
+to pin to a specific version of fyn.
 
 ```Dockerfile
 FROM ghcr.io/oha/fyn:0.5.24-debian-slim

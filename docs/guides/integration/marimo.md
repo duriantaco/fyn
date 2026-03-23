@@ -46,8 +46,8 @@ To interactively edit a notebook containing inline script metadata, use:
 $ fynx marimo edit --sandbox my_notebook.py
 ```
 
-marimo will automatically use fyn to start your notebook in an isolated virtual environment with your
-script's dependencies. Packages installed from the marimo UI will automatically be added to the
+marimo will automatically use fyn to start your notebook in an isolated virtual environment with
+your script's dependencies. Packages installed from the marimo UI will automatically be added to the
 notebook's script metadata.
 
 You can optionally run these notebooks as Python scripts, without opening an interactive session:

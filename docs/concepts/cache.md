@@ -7,23 +7,24 @@ been accessed in prior runs.
 
 The specifics of fyn's caching semantics vary based on the nature of the dependency:
 
-- **For registry dependencies** (like those downloaded from PyPI), fyn respects HTTP caching headers.
+- **For registry dependencies** (like those downloaded from PyPI), fyn respects HTTP caching
+  headers.
 - **For direct URL dependencies**, fyn respects HTTP caching headers, and also caches based on the
   URL itself.
 - **For Git dependencies**, fyn caches based on the fully-resolved Git commit hash. As such,
   `fyn pip compile` will pin Git dependencies to a specific commit hash when writing the resolved
   dependency set.
-- **For local dependencies**, fyn caches based on the last-modified time of the source archive (i.e.,
-  the local `.whl` or `.tar.gz` file). For directories, fyn caches based on the last-modified time of
-  the `pyproject.toml`, `setup.py`, or `setup.cfg` file.
+- **For local dependencies**, fyn caches based on the last-modified time of the source archive
+  (i.e., the local `.whl` or `.tar.gz` file). For directories, fyn caches based on the last-modified
+  time of the `pyproject.toml`, `setup.py`, or `setup.cfg` file.
 
 If you're running into caching issues, fyn includes a few escape hatches:
 
 - To clear the cache entirely, run `fyn cache clean`. To clear the cache for a specific package, run
   `fyn cache clean <package-name>`. For example, `fyn cache clean ruff` will clear the cache for the
   `ruff` package.
-- To force fyn to revalidate cached data for all dependencies, pass `--refresh` to any command (e.g.,
-  `fyn sync --refresh` or `fyn pip install --refresh ...`).
+- To force fyn to revalidate cached data for all dependencies, pass `--refresh` to any command
+  (e.g., `fyn sync --refresh` or `fyn pip install --refresh ...`).
 - To force fyn to revalidate cached data for a specific dependency pass `--refresh-package` to any
   command (e.g., `fyn sync --refresh-package ruff` or `fyn pip install --refresh-package ruff ...`).
 - To force fyn to ignore existing installed versions, pass `--reinstall` to any installation command
@@ -108,9 +109,9 @@ cache-keys = [{ file = "pyproject.toml" }, { dir = "src" }]
 Note that the `dir` key will only track changes to the directory itself, and not arbitrary changes
 within the directory.
 
-As an escape hatch, if a project uses `dynamic` metadata that isn't covered by `tool.fyn.cache-keys`,
-you can instruct fyn to _always_ rebuild and reinstall it by adding the project to the
-`tool.fyn.reinstall-package` list:
+As an escape hatch, if a project uses `dynamic` metadata that isn't covered by
+`tool.fyn.cache-keys`, you can instruct fyn to _always_ rebuild and reinstall it by adding the
+project to the `tool.fyn.reinstall-package` list:
 
 ```toml title="pyproject.toml"
 [tool.fyn]
@@ -122,10 +123,10 @@ package's `pyproject.toml`, `setup.py`, or `setup.cfg` file has changed.
 
 ## Cache safety
 
-It's safe to run multiple fyn commands concurrently, even against the same virtual environment. fyn's
-cache is designed to be thread-safe and append-only, and thus robust to multiple concurrent readers
-and writers. fyn applies a file-based lock to the target virtual environment when installing, to
-avoid concurrent modifications across processes.
+It's safe to run multiple fyn commands concurrently, even against the same virtual environment.
+fyn's cache is designed to be thread-safe and append-only, and thus robust to multiple concurrent
+readers and writers. fyn applies a file-based lock to the target virtual environment when
+installing, to avoid concurrent modifications across processes.
 
 Note that it's _never_ safe to modify the cache directly (e.g., by removing a file or directory).
 
@@ -173,8 +174,8 @@ fyn determines the cache directory according to, in order:
 1. A temporary cache directory, if `--no-cache` was requested.
 2. The specific cache directory specified via `--cache-dir`, `UV_CACHE_DIR`, or
    [`tool.fyn.cache-dir`](../reference/settings.md#cache-dir).
-3. A system-appropriate cache directory, e.g., `$XDG_CACHE_HOME/fyn` or `$HOME/.cache/fyn` on Unix and
-   `%LOCALAPPDATA%\fyn\cache` on Windows
+3. A system-appropriate cache directory, e.g., `$XDG_CACHE_HOME/fyn` or `$HOME/.cache/fyn` on Unix
+   and `%LOCALAPPDATA%\fyn\cache` on Windows
 
 !!! note
 
@@ -192,8 +193,8 @@ into the environment and will instead need to fallback to slow copy operations.
 
 The fyn cache is composed of a number of buckets (e.g., a bucket for wheels, a bucket for source
 distributions, a bucket for Git repositories, and so on). Each bucket is versioned, such that if a
-release contains a breaking change to the cache format, fyn will not attempt to read from or write to
-an incompatible cache bucket.
+release contains a breaking change to the cache format, fyn will not attempt to read from or write
+to an incompatible cache bucket.
 
 For example, fyn 0.4.13 included a breaking change to the core metadata bucket. As such, the bucket
 version was increased from v12 to v13. Within a cache version, changes are guaranteed to be both

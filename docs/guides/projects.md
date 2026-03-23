@@ -198,8 +198,8 @@ version.
 
 Prior to every `fyn run` invocation, fyn will verify that the lockfile is up-to-date with the
 `pyproject.toml`, and that the environment is up-to-date with the lockfile, keeping your project
-in-sync without the need for manual intervention. `fyn run` guarantees that your command is run in an
-environment with all required dependencies at their locked versions.
+in-sync without the need for manual intervention. `fyn run` guarantees that your command is run in
+an environment with all required dependencies at their locked versions.
 
 !!! note
 

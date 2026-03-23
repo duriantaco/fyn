@@ -8,8 +8,8 @@ description:
 # Using fyn with Jupyter
 
 The [Jupyter](https://jupyter.org/) notebook is a popular tool for interactive computing, data
-analysis, and visualization. You can use Jupyter with fyn in a few different ways, either to interact
-with a project, or as a standalone tool.
+analysis, and visualization. You can use Jupyter with fyn in a few different ways, either to
+interact with a project, or as a standalone tool.
 
 ## Using Jupyter within a project
 
@@ -60,10 +60,11 @@ From there, start the server with:
 $ fyn run --with jupyter jupyter lab
 ```
 
-When creating a notebook, select the `project` kernel from the dropdown. Then use `!fyn add pydantic`
-to add `pydantic` to the project's dependencies, or `!fyn pip install pydantic` to install `pydantic`
-into the project's virtual environment without persisting the change to the project `pyproject.toml`
-or `fyn.lock` files. Either command will make `import pydantic` work within the notebook.
+When creating a notebook, select the `project` kernel from the dropdown. Then use
+`!fyn add pydantic` to add `pydantic` to the project's dependencies, or `!fyn pip install pydantic`
+to install `pydantic` into the project's virtual environment without persisting the change to the
+project `pyproject.toml` or `fyn.lock` files. Either command will make `import pydantic` work within
+the notebook.
 
 ### Installing packages without a kernel
 
@@ -97,14 +98,14 @@ virtual environment. However, such modifications will _not_ be reflected in the 
 ## Using Jupyter as a standalone tool
 
 If you ever need ad hoc access to a notebook (i.e., to run a Python snippet interactively), you can
-start a Jupyter server at any time with `fyn tool run jupyter lab`. This will run a Jupyter server in
-an isolated environment.
+start a Jupyter server at any time with `fyn tool run jupyter lab`. This will run a Jupyter server
+in an isolated environment.
 
 ## Using Jupyter with a non-project environment
 
 If you need to run Jupyter in a virtual environment that isn't associated with a
-[project](../../concepts/projects/index.md) (e.g., has no `pyproject.toml` or `fyn.lock`), you can do
-so by adding Jupyter to the environment directly. For example:
+[project](../../concepts/projects/index.md) (e.g., has no `pyproject.toml` or `fyn.lock`), you can
+do so by adding Jupyter to the environment directly. For example:
 
 === "macOS and Linux"
 

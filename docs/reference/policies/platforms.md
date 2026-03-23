@@ -30,8 +30,8 @@ following platforms:
 - FreeBSD (x86_64)
 - Windows (i686)
 
-fyn provides official binaries on GitHub and pre-built wheels on [PyPI](https://pypi.org/project/fyn/)
-for its Tier 1 and Tier 2 platforms.
+fyn provides official binaries on GitHub and pre-built wheels on
+[PyPI](https://pypi.org/project/fyn/) for its Tier 1 and Tier 2 platforms.
 
 Tier 2 platforms are continuously built, but the fyn test suite is not run on them and stability may
 vary in practice.

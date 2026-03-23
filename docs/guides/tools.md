@@ -192,8 +192,8 @@ $ python -c "import ruff"
 This isolation is important for reducing interactions and conflicts between dependencies of tools,
 scripts, and projects.
 
-Unlike `fynx`, `fyn tool install` operates on a _package_ and will install all executables provided by
-the tool.
+Unlike `fynx`, `fyn tool install` operates on a _package_ and will install all executables provided
+by the tool.
 
 For example, the following will install the `http`, `https`, and `httpie` executables:
 
@@ -242,8 +242,8 @@ $ fyn tool upgrade ruff
 ```
 
 Tool upgrades will respect the version constraints provided when installing the tool. For example,
-`fyn tool install ruff >=0.3,<0.4` followed by `fyn tool upgrade ruff` will upgrade Ruff to the latest
-version in the range `>=0.3,<0.4`.
+`fyn tool install ruff >=0.3,<0.4` followed by `fyn tool upgrade ruff` will upgrade Ruff to the
+latest version in the range `>=0.3,<0.4`.
 
 To instead replace the version constraints, re-install the tool with `fyn tool install`:
 
@@ -298,8 +298,8 @@ For example, below is an example running a Command Prompt script.
 $ fyn tool run --from nuitka==2.6.7 nuitka.cmd --version
 ```
 
-In addition, you don't need to specify the extension. `fynx` will automatically look for files ending
-in `.ps1`, `.cmd`, and `.bat` in that order of execution on your behalf.
+In addition, you don't need to specify the extension. `fynx` will automatically look for files
+ending in `.ps1`, `.cmd`, and `.bat` in that order of execution on your behalf.
 
 ```console
 $ fyn tool run --from nuitka==2.6.7 nuitka --version

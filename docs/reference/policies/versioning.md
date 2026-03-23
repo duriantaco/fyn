@@ -2,8 +2,9 @@
 
 fyn is widely used in production and is stable software.
 
-fyn uses a custom versioning scheme in which the minor version number is bumped for breaking changes,
-and the patch version number is bumped for bug fixes, enhancements, and other non-breaking changes.
+fyn uses a custom versioning scheme in which the minor version number is bumped for breaking
+changes, and the patch version number is bumped for bug fixes, enhancements, and other non-breaking
+changes.
 
 The care we take in backwards-incompatible changes is proportional to the expected real-world
 impact, not a function of arbitrary version numbering policies. We value the ability to iterate on
@@ -29,8 +30,8 @@ on every fyn release, regardless of changes to the crate.
 
 ## Cache versioning
 
-Cache versions are considered internal to fyn, and so may be changed in a minor or patch release. See
-[Cache versioning](../../concepts/cache.md#cache-versioning) for more.
+Cache versions are considered internal to fyn, and so may be changed in a minor or patch release.
+See [Cache versioning](../../concepts/cache.md#cache-versioning) for more.
 
 ## Lockfile versioning
 

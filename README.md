@@ -214,8 +214,8 @@ Pinned `.python-version` to `3.11`
 
 fyn provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands.
 
-Migrate to fyn without changing your existing workflows — and experience a 10-100x speedup — with the
-`fyn pip` interface.
+Migrate to fyn without changing your existing workflows — and experience a 10-100x speedup — with
+the `fyn pip` interface.
 
 Compile requirements into a platform-independent requirements file:
 
@@ -316,12 +316,12 @@ freely on the same project.
 
 See [MANIFESTO.md](MANIFESTO.md) for the full comparison, or the table below for a quick summary:
 
-| Feature                            | fyn                        | fyn                  |
+| Feature                            | fyn                       | fyn                 |
 | ---------------------------------- | ------------------------- | ------------------- |
 | Telemetry (linehaul)               | Sends OS, Python, CI info | None                |
-| Task runner                        | Not available             | `[tool.fyn.tasks]`   |
-| `shell` command                    | Not available             | `fyn shell`          |
-| `upgrade` command                  | Must chain two commands   | `fyn upgrade`        |
+| Task runner                        | Not available             | `[tool.fyn.tasks]`  |
+| `shell` command                    | Not available             | `fyn shell`         |
+| `upgrade` command                  | Must chain two commands   | `fyn upgrade`       |
 | Cache size limit                   | No limit                  | `UV_CACHE_MAX_SIZE` |
 | Custom lockfile name               | Not available             | `UV_LOCKFILE`       |
 | Explicit index for transitive deps | Broken                    | Fixed               |
@@ -329,9 +329,9 @@ See [MANIFESTO.md](MANIFESTO.md) for the full comparison, or the table below for
 
 ## Acknowledgements
 
-fyn's dependency resolver uses [PubGrub](https://github.com/pubgrub-rs/pubgrub) under the hood. We're
-grateful to the PubGrub maintainers, especially [Jacob Finkelman](https://github.com/Eh2406), for
-their support.
+fyn's dependency resolver uses [PubGrub](https://github.com/pubgrub-rs/pubgrub) under the hood.
+We're grateful to the PubGrub maintainers, especially [Jacob Finkelman](https://github.com/Eh2406),
+for their support.
 
 fyn's core is derived from [uv](https://github.com/astral-sh/uv) by Astral.
 

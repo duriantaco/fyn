@@ -11,8 +11,8 @@ versioned and maintained as separate Python packages, all in the same Git reposi
 In a workspace, each package defines its own `pyproject.toml`, but the workspace shares a single
 lockfile, ensuring that the workspace operates with a consistent set of dependencies.
 
-As such, `fyn lock` operates on the entire workspace at once, while `fyn run` and `fyn sync` operate on
-the workspace root by default, though both accept a `--package` argument, allowing you to run a
+As such, `fyn lock` operates on the entire workspace at once, while `fyn run` and `fyn sync` operate
+on the workspace root by default, though both accept a `--package` argument, allowing you to run a
 command in a particular workspace member from any workspace directory.
 
 ## Getting started

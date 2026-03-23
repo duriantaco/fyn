@@ -312,8 +312,8 @@ We'll discuss the commands necessary to automate these imports below.
 
 ### The fyn lockfile
 
-fyn uses a lockfile (`fyn.lock`) file to lock package versions. The format of this file is specific to
-fyn, allowing fyn to support advanced features. It replaces `requirements.txt` files.
+fyn uses a lockfile (`fyn.lock`) file to lock package versions. The format of this file is specific
+to fyn, allowing fyn to support advanced features. It replaces `requirements.txt` files.
 
 The lockfile will be automatically created and populated when adding dependencies, but you can
 explicitly create it with `fyn lock`.
@@ -447,8 +447,9 @@ When importing requirements on local paths or Git repositories, for example:
 git-dep @ git+https://github.com/astral-sh/git-dep
 ```
 
-fyn will map them to [dependency sources](../../concepts/projects/dependencies.md#dependency-sources)
-in the `[tool.fyn.sources]` table of the `pyproject.toml`:
+fyn will map them to
+[dependency sources](../../concepts/projects/dependencies.md#dependency-sources) in the
+`[tool.fyn.sources]` table of the `pyproject.toml`:
 
 ```toml title="pyproject.toml"
 [project]
@@ -466,10 +467,10 @@ git-dep = { git = "https://github.com/astral-sh/git-dep" }
 
 ### Project environments
 
-Unlike `pip`, fyn is not centered around the concept of an "active" virtual environment. Instead, fyn
-uses a dedicated virtual environment for each project in a `.venv` directory. This environment is
-automatically managed, so when you run a command, like `fyn add`, the environment is synced with the
-project dependencies.
+Unlike `pip`, fyn is not centered around the concept of an "active" virtual environment. Instead,
+fyn uses a dedicated virtual environment for each project in a `.venv` directory. This environment
+is automatically managed, so when you run a command, like `fyn add`, the environment is synced with
+the project dependencies.
 
 The preferred way to execute commands in the environment is with `fyn run`, e.g.:
 

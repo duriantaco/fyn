@@ -149,8 +149,8 @@ $ fyn init --script example.py --python 3.12
 
 The inline metadata format allows the dependencies for a script to be declared in the script itself.
 
-fyn supports adding and updating inline script metadata for you. Use `fyn add --script` to declare the
-dependencies for the script:
+fyn supports adding and updating inline script metadata for you. Use `fyn add --script` to declare
+the dependencies for the script:
 
 ```console
 $ fyn add --script example.py 'requests<3' 'rich'
@@ -174,7 +174,8 @@ data = resp.json()
 pprint([(k, v["title"]) for k, v in data.items()][:10])
 ```
 
-fyn will automatically create an environment with the dependencies necessary to run the script, e.g.:
+fyn will automatically create an environment with the dependencies necessary to run the script,
+e.g.:
 
 ```console
 $ fyn run example.py
@@ -213,8 +214,8 @@ print(Point)
 
     The `dependencies` field must be provided even if empty.
 
-`fyn run` will search for and use the required Python version. The Python version will download if it
-is not installed — see the documentation on [Python versions](../concepts/python-versions.md) for
+`fyn run` will search for and use the required Python version. The Python version will download if
+it is not installed — see the documentation on [Python versions](../concepts/python-versions.md) for
 more details.
 
 ## Using a shebang to create an executable file
@@ -283,8 +284,9 @@ $ fyn lock --script example.py
 Running `fyn lock --script` will create a `.lock` file adjacent to the script (e.g.,
 `example.py.lock`).
 
-Once locked, subsequent operations like `fyn run --script`, `fyn add --script`, `fyn export --script`,
-and `fyn tree --script` will reuse the locked dependencies, updating the lockfile if necessary.
+Once locked, subsequent operations like `fyn run --script`, `fyn add --script`,
+`fyn export --script`, and `fyn tree --script` will reuse the locked dependencies, updating the
+lockfile if necessary.
 
 If no such lockfile is present, commands like `fyn export --script` will still function as expected,
 but will not create a lockfile.

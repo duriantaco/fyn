@@ -13,7 +13,8 @@ requirements, is equivalent to the
 in the worst case you have to try all possible combinations of all versions of all packages and
 there are no general, fast algorithms. In practice, this is misleading for a number of reasons:
 
-- The slowest part of resolution in fyn is loading package and version metadata, even if it's cached.
+- The slowest part of resolution in fyn is loading package and version metadata, even if it's
+  cached.
 - There are many possible solutions, but some are preferable to others. For example, we generally
   prefer using the latest version of packages.
 - Package dependencies are complex, e.g., there are contiguous versions ranges — not arbitrary
@@ -29,8 +30,8 @@ there are no general, fast algorithms. In practice, this is misleading for a num
   decisions are made through prioritization.
 
 fyn uses [pubgrub-rs](https://github.com/pubgrub-rs/pubgrub), the Rust implementation of
-[PubGrub](https://nex3.medium.com/pubgrub-2fb6470504f), an incremental version solver. PubGrub in fyn
-works in the following steps:
+[PubGrub](https://nex3.medium.com/pubgrub-2fb6470504f), an incremental version solver. PubGrub in
+fyn works in the following steps:
 
 - Start with a partial solution that declares which packages versions have been selected and which
   are undecided. Initially, only a virtual root package is decided.
@@ -40,8 +41,8 @@ works in the following steps:
   when they were first seen (i.e. order in a file), making the resolution deterministic.
 - A version is picked for the selected package. The version must works with all specifiers from the
   requirements in the partial solution and must not be previously marked as incompatible. The
-  resolver prefers versions from a lockfile (`fyn.lock` or `-o requirements.txt`) and those installed
-  in the current environment. Versions are checked from highest to lowest (unless using an
+  resolver prefers versions from a lockfile (`fyn.lock` or `-o requirements.txt`) and those
+  installed in the current environment. Versions are checked from highest to lowest (unless using an
   alternative [resolution strategy](../../concepts/resolution.md#resolution-strategy)).
 - All requirements of the selected package version are added to the undecided packages. fyn
   prefetches their metadata in the background to improve performance.
@@ -109,18 +110,18 @@ identical packages are merged to keep the number of forks low.
     took ...`.
 
 One difficulty in a forking resolver is that where splits occur is dependent on the order packages
-are seen, which is in turn dependent on the preferences, e.g., from `fyn.lock`. So it is possible for
-the resolver to solve the requirements with specific forks, write this to the lockfile, and when the
-resolver is invoked again, a different solution is found because the preferences result in different
-fork points. To avoid this, the `resolution-markers` of each fork and each package that diverges
-between forks is written to the lockfile. When performing a new resolution, the forks from the
-lockfile are used to ensure the resolution is stable. When requirements change, new forks may be
+are seen, which is in turn dependent on the preferences, e.g., from `fyn.lock`. So it is possible
+for the resolver to solve the requirements with specific forks, write this to the lockfile, and when
+the resolver is invoked again, a different solution is found because the preferences result in
+different fork points. To avoid this, the `resolution-markers` of each fork and each package that
+diverges between forks is written to the lockfile. When performing a new resolution, the forks from
+the lockfile are used to ensure the resolution is stable. When requirements change, new forks may be
 added to the saved forks.
 
 ## Wheel tags
 
-While fyn's resolution is universal with respect to environment markers, this doesn't extend to wheel
-tags. Wheel tags can encode the Python version, Python implementation, operating system, and
+While fyn's resolution is universal with respect to environment markers, this doesn't extend to
+wheel tags. Wheel tags can encode the Python version, Python implementation, operating system, and
 architecture. For example, `torch-2.4.0-cp312-cp312-manylinux2014_aarch64.whl` is only compatible
 with CPython 3.12 on arm64 Linux with `glibc>=2.17` (per the `manylinux2014` policy), while
 `tqdm-4.66.4-py3-none-any.whl` works with all Python 3 versions and interpreters on any operating
@@ -282,9 +283,9 @@ fyn requires that URLs are either declared directly (in the project, in a
 directly), or by other URL dependencies. fyn discovers all URL dependencies and their transitive URL
 dependencies ahead of the resolution and pins all packages to the URLs and the versions they imply.
 
-fyn does not allow URLs in index packages. This has two reasons: One is a security and predictability
-aspect, that forbids registry distributions to point to non-registry distributions and helps
-auditing which URLs can be accessed. For example, when only using one index URL and no URL
+fyn does not allow URLs in index packages. This has two reasons: One is a security and
+predictability aspect, that forbids registry distributions to point to non-registry distributions
+and helps auditing which URLs can be accessed. For example, when only using one index URL and no URL
 dependencies, fyn will not install any package from outside the index.
 
 The other is that URLs can add additional versions to the resolution. Say the root package depends
@@ -311,10 +312,10 @@ multiple solutions. Generally, a desirable solution prioritizes use the highest 
 dependencies over those for indirect dependencies, it avoids backtracking to very old versions and
 can be installed on a target machine.
 
-Internally, fyn represent each package with a given package name as a number of virtual packages, for
-example, one package for each activated extra, for dependency groups, or for having a marker. While
-PubGrub needs to choose a version for each virtual package, fyn's prioritization works on the package
-name level.
+Internally, fyn represent each package with a given package name as a number of virtual packages,
+for example, one package for each activated extra, for dependency groups, or for having a marker.
+While PubGrub needs to choose a version for each virtual package, fyn's prioritization works on the
+package name level.
 
 Whenever we encounter a requirement on a package, we match it to a priority. The root package and
 URL requirements have the highest priority, then singleton requirements with the `==` operator, as

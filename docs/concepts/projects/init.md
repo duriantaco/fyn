@@ -9,10 +9,10 @@ flag can be used to create a project for a library instead.
 ## Target directory
 
 fyn will create a project in the working directory, or, in a target directory by providing a name,
-e.g., `fyn init foo`. The working directory can be modified with the `--directory` option, which will
-cause the target directory path to be interpreted relative to the specified working directory. If
-there's already a project in the target directory, i.e., if there's a `pyproject.toml`, fyn will exit
-with an error.
+e.g., `fyn init foo`. The working directory can be modified with the `--directory` option, which
+will cause the target directory path to be interpreted relative to the specified working directory.
+If there's already a project in the target directory, i.e., if there's a `pyproject.toml`, fyn will
+exit with an error.
 
 ## Applications
 
@@ -323,7 +323,8 @@ example-bare
 └── pyproject.toml
 ```
 
-fyn will also not add extra metadata to the `pyproject.toml`, such as the `description` or `authors`.
+fyn will also not add extra metadata to the `pyproject.toml`, such as the `description` or
+`authors`.
 
 ```toml
 [project]

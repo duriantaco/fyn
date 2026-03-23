@@ -80,8 +80,8 @@ The storage directory can be configured with `UV_PYTHON_INSTALL_DIR`. (It must b
 
 ### Snapshot testing
 
-fyn uses [insta](https://insta.rs/) for snapshot testing. It's recommended (but not necessary) to use
-`cargo-insta` for a better snapshot review experience. See the
+fyn uses [insta](https://insta.rs/) for snapshot testing. It's recommended (but not necessary) to
+use `cargo-insta` for a better snapshot review experience. See the
 [installation guide](https://insta.rs/docs/cli/) for more information.
 
 In tests, you can use `fyn_snapshot!` macro to simplify creating snapshots for fyn commands. For
@@ -217,8 +217,8 @@ it applies to fyn, too.
 We provide diverse sets of requirements for testing and benchmarking the resolver in
 `test/requirements` and for the installer in `test/requirements/compiled`.
 
-You can use `scripts/benchmark` to benchmark predefined workloads between fyn versions and with other
-tools, e.g., from the `scripts/benchmark` directory:
+You can use `scripts/benchmark` to benchmark predefined workloads between fyn versions and with
+other tools, e.g., from the `scripts/benchmark` directory:
 
 ```shell
 fyn run resolver \

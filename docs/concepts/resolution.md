@@ -353,8 +353,8 @@ number of selected versions and (2) selecting the latest-possible version for ea
 former leads to greater consistency across platforms, while the latter leads to use of newer package
 versions where possible.
 
-By default (`--fork-strategy requires-python`), fyn will optimize for selecting the latest version of
-each package for each supported Python version, while minimizing the number of selected versions
+By default (`--fork-strategy requires-python`), fyn will optimize for selecting the latest version
+of each package for each supported Python version, while minimizing the number of selected versions
 across platforms.
 
 For example, when resolving `numpy` with a Python requirement of `>=3.8`, fyn would select the
@@ -423,16 +423,17 @@ determine its dependencies. This metadata is often available as a static file in
 however, for packages that only provide source distributions, the metadata may not be available
 upfront.
 
-In such cases, fyn has to build the package to determine its metadata (e.g., by invoking `setup.py`).
-This can introduce a performance penalty during resolution. Further, it imposes the requirement that
-the package can be built on all platforms, which may not be true.
+In such cases, fyn has to build the package to determine its metadata (e.g., by invoking
+`setup.py`). This can introduce a performance penalty during resolution. Further, it imposes the
+requirement that the package can be built on all platforms, which may not be true.
 
 For example, you may have a package that should only be built and installed on Linux, but doesn't
 build successfully on macOS or Windows. While fyn can construct a perfectly valid lockfile for this
 scenario, doing so would require building the package, which would fail on non-Linux platforms.
 
-The `tool.fyn.dependency-metadata` table can be used to provide static metadata for such dependencies
-upfront, thereby allowing fyn to skip the build step and use the provided metadata instead.
+The `tool.fyn.dependency-metadata` table can be used to provide static metadata for such
+dependencies upfront, thereby allowing fyn to skip the build step and use the provided metadata
+instead.
 
 For example, to provide metadata for `chumpy` upfront, include its `dependency-metadata` in the
 `pyproject.toml`:
@@ -513,8 +514,8 @@ $ fyn lock
       And because your project requires myproject[extra1] and myproject[extra2], we can conclude that your projects's requirements are unsatisfiable.
 ```
 
-To work around this, fyn supports explicit declaration of conflicts. If you specify that `extra1` and
-`extra2` are conflicting, fyn will resolve them separately. Specify conflicts in the `tool.fyn`
+To work around this, fyn supports explicit declaration of conflicts. If you specify that `extra1`
+and `extra2` are conflicting, fyn will resolve them separately. Specify conflicts in the `tool.fyn`
 section:
 
 ```toml title="pyproject.toml"
@@ -794,8 +795,8 @@ reading and extracting archives in the following formats:
 
 ## Lockfile versioning
 
-The `fyn.lock` file uses a versioned schema. The schema version is included in the `version` field of
-the lockfile.
+The `fyn.lock` file uses a versioned schema. The schema version is included in the `version` field
+of the lockfile.
 
 Any given version of fyn can read and write lockfiles with the same schema version, but will reject
 lockfiles with a greater schema version. For example, if your fyn version supports schema v1,

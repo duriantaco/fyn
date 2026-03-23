@@ -39,8 +39,8 @@ hint will not be available for all build failures.
 ## Confirming that a build failure is specific to fyn
 
 Build failures are usually related to your system and the build backend. It is rare that a build
-failure is specific to fyn. You can confirm that the build failure is not related to fyn by attempting
-to reproduce it with pip:
+failure is specific to fyn. You can confirm that the build failure is not related to fyn by
+attempting to reproduce it with pip:
 
 ```console
 $ fyn venv -p 3.13 --seed
@@ -92,10 +92,10 @@ make the necessary adjustments to your system for the build to succeed.
 
 ## Why does fyn build a package?
 
-When generating the cross-platform lockfile, fyn needs to determine the dependencies of all packages,
-even those only installed on other platforms. fyn tries to avoid package builds during resolution. It
-uses any wheel if exist for that version, then tries to find static metadata in the source
-distribution (mainly pyproject.toml with static `project.version`, `project.dependencies` and
+When generating the cross-platform lockfile, fyn needs to determine the dependencies of all
+packages, even those only installed on other platforms. fyn tries to avoid package builds during
+resolution. It uses any wheel if exist for that version, then tries to find static metadata in the
+source distribution (mainly pyproject.toml with static `project.version`, `project.dependencies` and
 `project.optional-dependencies` or METADATA v2.2+). Only if all of that fails, it builds the
 package.
 
@@ -290,8 +290,8 @@ Constraints can also be defined for indirect dependencies using `constraints.txt
 
 ### Old Version of a build dependency is used
 
-If a package fails to build because `fyn` selects an incompatible or outdated version of a build-time
-dependency, you can enforce constraints specifically for build dependencies. The
+If a package fails to build because `fyn` selects an incompatible or outdated version of a
+build-time dependency, you can enforce constraints specifically for build dependencies. The
 [`build-constraint-dependencies`](../settings.md#build-constraint-dependencies) setting (or an
 analogous `build-constraints.txt` file) can be used to ensure that `fyn` selects an appropriate
 version of a given build requirements.
@@ -331,6 +331,6 @@ numpy<1.23; python_version < "3.10"
 ### Package is only usable on a specific platform
 
 If locking fails due to building a package that is only usable on another platform, you can
-[provide dependency metadata manually](../settings.md#dependency-metadata) to skip the build. fyn can
-not verify this information, so it is important to specify correct metadata when using this
+[provide dependency metadata manually](../settings.md#dependency-metadata) to skip the build. fyn
+can not verify this information, so it is important to specify correct metadata when using this
 override.

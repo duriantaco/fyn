@@ -65,14 +65,14 @@ If authentication is found for a single index URL or net location (scheme, host,
 be cached for the duration of the command and used for other queries to that index or net location.
 Authentication is not cached across invocations of fyn.
 
-When using `fyn add`, fyn _will not_ persist index credentials to the `pyproject.toml` or `fyn.lock`.
-These files are often included in source control and distributions, so it is generally unsafe to
-include credentials in them. However, fyn _will_ persist credentials for direct URLs, i.e.,
-`package @ https://username:password:example.com/foo.whl`, as there is not currently a way to
+When using `fyn add`, fyn _will not_ persist index credentials to the `pyproject.toml` or
+`fyn.lock`. These files are often included in source control and distributions, so it is generally
+unsafe to include credentials in them. However, fyn _will_ persist credentials for direct URLs,
+i.e., `package @ https://username:password:example.com/foo.whl`, as there is not currently a way to
 otherwise provide those credentials.
 
-If credentials were attached to an index URL during `fyn add`, fyn may fail to fetch dependencies from
-indexes which require authentication on subsequent operations. See the
+If credentials were attached to an index URL during `fyn add`, fyn may fail to fetch dependencies
+from indexes which require authentication on subsequent operations. See the
 [index authentication documentation](../indexes.md#authentication) for details on persistent
 authentication for indexes.
 

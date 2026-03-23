@@ -32,8 +32,7 @@ The following distroless images are available:
 
 - `ghcr.io/oha/fyn:latest`
 - `ghcr.io/oha/fyn:{major}.{minor}.{patch}`, e.g., `ghcr.io/oha/fyn:0.10.12`
-- `ghcr.io/oha/fyn:{major}.{minor}`, e.g., `ghcr.io/oha/fyn:0.8` (the latest patch
-  version)
+- `ghcr.io/oha/fyn:{major}.{minor}`, e.g., `ghcr.io/oha/fyn:0.8` (the latest patch version)
 
 And the following derived images are available:
 
@@ -91,8 +90,8 @@ And the following derived images are available:
 <!-- prettier-ignore-end -->
 
 As with the distroless image, each derived image is published with fyn version tags as
-`ghcr.io/oha/fyn:{major}.{minor}.{patch}-{base}` and
-`ghcr.io/oha/fyn:{major}.{minor}-{base}`, e.g., `ghcr.io/oha/fyn:0.10.12-alpine`.
+`ghcr.io/oha/fyn:{major}.{minor}.{patch}-{base}` and `ghcr.io/oha/fyn:{major}.{minor}-{base}`, e.g.,
+`ghcr.io/oha/fyn:0.10.12-alpine`.
 
 In addition, starting with `0.8` each derived image also sets `UV_TOOL_BIN_DIR` to `/usr/local/bin`
 to allow `fyn tool install` to work as expected with the default user.
@@ -460,8 +459,8 @@ initial sync. The next sync, after all the workspace members have been copied, c
 By default, fyn installs projects and workspace members in editable mode, such that changes to the
 source code are immediately reflected in the environment.
 
-`fyn sync` and `fyn run` both accept a `--no-editable` flag, which instructs fyn to install the project
-in non-editable mode, removing any dependency on the source code.
+`fyn sync` and `fyn run` both accept a `--no-editable` flag, which instructs fyn to install the
+project in non-editable mode, removing any dependency on the source code.
 
 In the context of a multi-stage Docker image, `--no-editable` can be used to include the project in
 the synced virtual environment from one stage, then copy the virtual environment alone (and not the

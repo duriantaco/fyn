@@ -1,7 +1,7 @@
 # Features
 
-fyn provides essential features for Python development — from installing Python and hacking on simple
-scripts to working on large projects that support multiple Python versions and platforms.
+fyn provides essential features for Python development — from installing Python and hacking on
+simple scripts to working on large projects that support multiple Python versions and platforms.
 
 fyn's interface can be broken down into sections, which are usable independently or together.
 

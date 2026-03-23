@@ -18,9 +18,9 @@ pre-built artifacts that can be installed directly.
 
 ## Using `fyn build`
 
-`fyn build` can be used to build both source distributions and binary distributions for your project.
-By default, `fyn build` will build the project in the current directory, and place the built
-artifacts in a `dist/` subdirectory:
+`fyn build` can be used to build both source distributions and binary distributions for your
+project. By default, `fyn build` will build the project in the current directory, and place the
+built artifacts in a `dist/` subdirectory:
 
 ```console
 $ fyn build
@@ -32,8 +32,8 @@ example-0.1.0.tar.gz
 You can build the project in a different directory by providing a path to `fyn build`, e.g.,
 `fyn build path/to/project`.
 
-`fyn build` will first build a source distribution, and then build a binary distribution (wheel) from
-that source distribution.
+`fyn build` will first build a source distribution, and then build a binary distribution (wheel)
+from that source distribution.
 
 You can limit `fyn build` to building a source distribution with `fyn build --sdist`, a binary
 distribution with `fyn build --wheel`, or build both distributions from source with

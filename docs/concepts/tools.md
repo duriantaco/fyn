@@ -48,8 +48,8 @@ tool is uninstalled. If the environment is manually deleted, the tool will fail 
 
 Unless a specific version is requested, `fyn tool install` will install the latest available of the
 requested tool. `fynx` will use the latest available version of the requested tool _on the first
-invocation_. After that, `fynx` will use the cached version of the tool unless a different version is
-requested, the cache is pruned, or the cache is refreshed.
+invocation_. After that, `fynx` will use the cached version of the tool unless a different version
+is requested, the cache is pruned, or the cache is refreshed.
 
 For example, to run a specific version of Ruff:
 
@@ -253,8 +253,8 @@ by a Python package. Tool executables are symlinked into the
 
 The [executable directory](../reference/storage.md#executable-directory) must be in the `PATH`
 variable for tool executables to be available from the shell. If it is not in the `PATH`, a warning
-will be displayed. The `fyn tool update-shell` command can be used to add the executable directory to
-the `PATH` in common shell configuration files.
+will be displayed. The `fyn tool update-shell` command can be used to add the executable directory
+to the `PATH` in common shell configuration files.
 
 ### Overwriting executables
 

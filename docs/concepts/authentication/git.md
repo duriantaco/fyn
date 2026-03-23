@@ -43,8 +43,8 @@ resulting in successful subsequent fetches of the dependency. However, if you do
 credential helper or the project is used on a machine without credentials seeded, fyn will fail to
 fetch the dependency.
 
-You _may_ force fyn to persist Git credentials by passing the `--raw` option to `fyn add`. However, we
-strongly recommend setting up a [credential helper](#git-credential-helpers) instead.
+You _may_ force fyn to persist Git credentials by passing the `--raw` option to `fyn add`. However,
+we strongly recommend setting up a [credential helper](#git-credential-helpers) instead.
 
 ## Git credential helpers
 

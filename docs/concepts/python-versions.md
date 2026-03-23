@@ -53,9 +53,9 @@ This behavior can be
 
 ### Python version files
 
-The `.python-version` file can be used to create a default Python version request. fyn searches for a
-`.python-version` file in the working directory and each of its parents. If none is found, fyn will
-check the user-level configuration directory. Any of the request formats described above can be
+The `.python-version` file can be used to create a default Python version request. fyn searches for
+a `.python-version` file in the working directory and each of its parents. If none is found, fyn
+will check the user-level configuration directory. Any of the request formats described above can be
 used, though use of a version number is recommended for interoperability with other tools.
 
 A `.python-version` file can be created in the current directory with the
@@ -111,10 +111,10 @@ $ fyn python install pypy
 All the [Python version request](#requesting-a-version) formats are supported except those that are
 used for requesting local interpreters such as a file path.
 
-By default `fyn python install` will verify that a managed Python version is installed or install the
-latest version. If a `.python-version` file is present, fyn will install the Python version listed in
-the file. A project that requires multiple Python versions may define a `.python-versions` file. If
-present, fyn will install all the Python versions listed in the file.
+By default `fyn python install` will verify that a managed Python version is installed or install
+the latest version. If a `.python-version` file is present, fyn will install the Python version
+listed in the file. A project that requires multiple Python versions may define a `.python-versions`
+file. If present, fyn will install all the Python versions listed in the file.
 
 !!! important
 
@@ -145,8 +145,8 @@ When installing Python executables, fyn will only overwrite an existing executab
 by fyn — e.g., if `~/.local/bin/python3.12` exists already fyn will not overwrite it without the
 `--force` flag.
 
-fyn will update executables that it manages. However, it will prefer the latest patch version of each
-Python minor version by default. For example:
+fyn will update executables that it manages. However, it will prefer the latest patch version of
+each Python minor version by default. For example:
 
 ```console
 $ fyn python install 3.12.7  # Adds `python3.12` to `~/.local/bin`
@@ -211,9 +211,9 @@ used to create a virtual environment, it will not be automatically upgraded.
 
 ## Project Python versions
 
-fyn will respect Python requirements defined in `requires-python` in the `pyproject.toml` file during
-project command invocations. The first Python version that is compatible with the requirement will
-be used, unless a version is otherwise requested, e.g., via a `.python-version` file or the
+fyn will respect Python requirements defined in `requires-python` in the `pyproject.toml` file
+during project command invocations. The first Python version that is compatible with the requirement
+will be used, unless a version is otherwise requested, e.g., via a `.python-version` file or the
 `--python` flag.
 
 ## Viewing available Python versions
@@ -307,8 +307,8 @@ queried for metadata to ensure it meets the [requested Python version](#requesti
 the query fails, the executable will be skipped. If the executable satisfies the request, it is used
 without inspecting additional executables.
 
-When searching for a managed Python version, fyn will prefer newer versions first. When searching for
-a system Python version, fyn will use the first compatible version — not the newest version.
+When searching for a managed Python version, fyn will prefer newer versions first. When searching
+for a system Python version, fyn will use the first compatible version — not the newest version.
 
 If a Python version cannot be found on the system, fyn will check for a compatible managed Python
 version download.
@@ -451,9 +451,9 @@ distributions from the Astral
 [Mise](https://mise.jdx.dev/lang/python.html) and
 [bazelbuild/rules_python](https://github.com/bazelbuild/rules_python).
 
-The fyn Python distributions are self-contained, highly-portable, and performant. While Python can be
-built from source, as in tools like `pyenv`, doing so requires preinstalled system dependencies, and
-creating optimized, performant builds (e.g., with PGO and LTO enabled) is very slow.
+The fyn Python distributions are self-contained, highly-portable, and performant. While Python can
+be built from source, as in tools like `pyenv`, doing so requires preinstalled system dependencies,
+and creating optimized, performant builds (e.g., with PGO and LTO enabled) is very slow.
 
 These distributions have some behavior quirks, generally as a consequence of portability; see the
 [`python-build-standalone` quirks](https://gregoryszorc.com/docs/python-build-standalone/main/quirks.html)
@@ -479,8 +479,8 @@ Both macOS and Windows support running x86_64 binaries on aarch64 through transp
 This is called [Rosetta 2](https://support.apple.com/en-gb/102527) or
 [Windows on ARM (WoA) emulation](https://learn.microsoft.com/en-us/windows/arm/apps-on-arm-x86-emulation).
 It's possible to use x86_64 fyn on aarch64, and also possible to use an x86_64 Python interpreter on
-aarch64. Either fyn binary can use either Python interpreter, but a Python interpreter needs packages
-for its architecture, either all x86_64 or all aarch64.
+aarch64. Either fyn binary can use either Python interpreter, but a Python interpreter needs
+packages for its architecture, either all x86_64 or all aarch64.
 
 ## Registration in the Windows registry
 

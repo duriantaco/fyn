@@ -169,8 +169,8 @@ Use the `UV_TOOL_BIN_DIR` environment variable to configure the tool executable 
 
 ### The fyn executable
 
-When using fyn's [standalone installer](./installer.md) to install fyn, the `fyn` and `fynx` executables
-are installed into the [executable directory](#executable-directory).
+When using fyn's [standalone installer](./installer.md) to install fyn, the `fyn` and `fynx`
+executables are installed into the [executable directory](#executable-directory).
 
 Use the `UV_INSTALL_DIR` environment variable to configure fyn's installation directory.
 

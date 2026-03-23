@@ -74,9 +74,9 @@ $ fyn export --format pylock.toml
 
 ## CycloneDX SBOM format
 
-fyn can export your project's dependency lockfile as a Software Bill of Materials (SBOM) in CycloneDX
-format. SBOMs provide a comprehensive inventory of all software components in your application,
-which is useful for security auditing, compliance, and supply chain transparency.
+fyn can export your project's dependency lockfile as a Software Bill of Materials (SBOM) in
+CycloneDX format. SBOMs provide a comprehensive inventory of all software components in your
+application, which is useful for security auditing, compliance, and supply chain transparency.
 
 !!! important
 

@@ -9,8 +9,8 @@ description:
 
 If Python is already installed on your system, fyn will
 [detect and use](#using-existing-python-versions) it without configuration. However, fyn can also
-install and manage Python versions. fyn [automatically installs](#automatic-python-downloads) missing
-Python versions as needed — you don't need to install Python to get started.
+install and manage Python versions. fyn [automatically installs](#automatic-python-downloads)
+missing Python versions as needed — you don't need to install Python to get started.
 
 ## Getting started
 
@@ -24,15 +24,15 @@ $ fyn python install
 
     Python does not publish official distributable binaries. As such, uv uses distributions from the Astral [`python-build-standalone`](https://github.com/astral-sh/python-build-standalone) project. See the [Python distributions](../concepts/python-versions.md#managed-python-distributions) documentation for more details.
 
-Once Python is installed, it will be used by `fyn` commands automatically. fyn also adds the installed
-version to your `PATH`:
+Once Python is installed, it will be used by `fyn` commands automatically. fyn also adds the
+installed version to your `PATH`:
 
 ```console
 $ python3.13
 ```
 
-fyn only installs a _versioned_ executable by default. To install `python` and `python3` executables,
-include the experimental `--default` option:
+fyn only installs a _versioned_ executable by default. To install `python` and `python3`
+executables, include the experimental `--default` option:
 
 ```console
 $ fyn python install --default

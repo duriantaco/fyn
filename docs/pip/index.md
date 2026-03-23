@@ -3,8 +3,8 @@
 fyn provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands. These
 commands work directly with the virtual environment, in contrast to fyn's primary interfaces where
 the virtual environment is managed automatically. The `fyn pip` interface exposes the speed and
-functionality of fyn to power users and projects that are not ready to transition away from `pip` and
-`pip-tools`.
+functionality of fyn to power users and projects that are not ready to transition away from `pip`
+and `pip-tools`.
 
 The following sections discuss the basics of using `fyn pip`:
 

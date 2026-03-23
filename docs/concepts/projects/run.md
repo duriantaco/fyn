@@ -9,8 +9,8 @@ environment:
 $ fyn run python -c "import example"
 ```
 
-When using `run`, fyn will ensure that the project environment is up-to-date before running the given
-command.
+When using `run`, fyn will ensure that the project environment is up-to-date before running the
+given command.
 
 The given command can be provided by the project environment or exist outside of it, e.g.:
 
@@ -93,8 +93,8 @@ process the requested command runs in.
 
 On Unix systems, fyn will forward most signals (with the exception of SIGKILL, SIGCHLD, SIGIO, and
 SIGPOLL) to the child process. Since terminals send SIGINT to the foreground process group on
-Ctrl-C, fyn will only forward a SIGINT to the child process if it is sent more than once or the child
-process group differs from fyn's.
+Ctrl-C, fyn will only forward a SIGINT to the child process if it is sent more than once or the
+child process group differs from fyn's.
 
 On Windows, these concepts do not apply and fyn ignores Ctrl-C events, deferring handling to the
 child process so it can exit cleanly.

@@ -4,8 +4,8 @@
 [uv](https://github.com/astral-sh/uv), which is the fastest Python package installer around- without
 telemetry, missing features added, and bugs fixed.
 
-If you've used uv, you already know fyn. Same commands, same speed, easy migration. Just fewer things
-phoning home.
+If you've used uv, you already know fyn. Same commands, same speed, easy migration. Just fewer
+things phoning home.
 
 ## Why fork uv?
 
@@ -38,12 +38,12 @@ sends `fyn/0.10.13`. That's it.
 
 ## fyn vs uv — feature comparison
 
-| Feature                           | uv                             | fyn                  |
+| Feature                           | uv                             | fyn                 |
 | --------------------------------- | ------------------------------ | ------------------- |
 | Speed (10-100x faster than pip)   | Yes                            | Yes                 |
 | Telemetry / system profiling      | Sends OS, Python, CPU, CI info | None                |
-| `shell` command                   | Not available                  | `fyn shell`          |
-| `upgrade` command                 | Must chain two commands        | `fyn upgrade`        |
+| `shell` command                   | Not available                  | `fyn shell`         |
+| `upgrade` command                 | Must chain two commands        | `fyn upgrade`       |
 | Cache size limit                  | No limit                       | `UV_CACHE_MAX_SIZE` |
 | Private index for transitive deps | Broken                         | Fixed               |
 | Env vars in index URLs            | Only in requirements.txt       | Everywhere          |
@@ -51,7 +51,7 @@ sends `fyn/0.10.13`. That's it.
 | `remove --group` sync behavior    | Wipes other group packages     | Fixed               |
 | Drop-in replacement for pip       | Yes                            | Yes                 |
 | Python version management         | Yes                            | Yes                 |
-| Lockfile support                  | Yes (`uv.lock`)                | Yes (`fyn.lock`)     |
+| Lockfile support                  | Yes (`uv.lock`)                | Yes (`fyn.lock`)    |
 
 ## Roadmap
 

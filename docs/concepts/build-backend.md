@@ -47,17 +47,17 @@ To create a new project that uses the fyn build backend, use `fyn init`:
 $ fyn init
 ```
 
-When the project is built, e.g., with [`fyn build`](../guides/package.md), the fyn build backend will
-be used to create the source distribution and wheel.
+When the project is built, e.g., with [`fyn build`](../guides/package.md), the fyn build backend
+will be used to create the source distribution and wheel.
 
 ## Bundled build backend
 
 The build backend is published as a separate package (`uv_build`) that is optimized for portability
-and small binary size. However, the `fyn` executable also includes a copy of the build backend, which
-will be used during builds performed by fyn, e.g., during `fyn build`, if its version is compatible
-with the `uv_build` requirement. If it's not compatible, a compatible version of the `uv_build`
-package will be used. Other build frontends, such as `python -m build`, will always use the
-`uv_build` package, typically choosing the latest compatible version.
+and small binary size. However, the `fyn` executable also includes a copy of the build backend,
+which will be used during builds performed by fyn, e.g., during `fyn build`, if its version is
+compatible with the `uv_build` requirement. If it's not compatible, a compatible version of the
+`uv_build` package will be used. Other build frontends, such as `python -m build`, will always use
+the `uv_build` package, typically choosing the latest compatible version.
 
 ## Modules
 
@@ -180,8 +180,8 @@ namespace = true
 
 The build backend also supports building type stub packages, which are identified by the `-stubs`
 suffix on the package or module name, e.g., `foo-stubs`. The module name for type stub packages must
-end in `-stubs`, so fyn will not normalize the `-` to an underscore. Additionally, fyn will search for
-a `__init__.pyi` file. For example, the project structure would be:
+end in `-stubs`, so fyn will not normalize the `-` to an underscore. Additionally, fyn will search
+for a `__init__.pyi` file. For example, the project structure would be:
 
 ```text
 pyproject.toml
@@ -209,7 +209,8 @@ When building a source distribution, the following files and directories are inc
 - The [module](#modules) under
   [`tool.fyn.build-backend.module-root`](../reference/settings.md#build-backend_module-root).
 - The files referenced by `project.license-files` and `project.readme`.
-- All directories under [`tool.fyn.build-backend.data`](../reference/settings.md#build-backend_data).
+- All directories under
+  [`tool.fyn.build-backend.data`](../reference/settings.md#build-backend_data).
 - All files matching patterns from
   [`tool.fyn.build-backend.source-include`](../reference/settings.md#build-backend_source-include).
 
@@ -223,8 +224,9 @@ When building a wheel, the following files and directories are included:
   [`tool.fyn.build-backend.module-root`](../reference/settings.md#build-backend_module-root)
 - The files referenced by `project.license-files`, which are copied into the `.dist-info` directory.
 - The `project.readme`, which is copied into the project metadata.
-- All directories under [`tool.fyn.build-backend.data`](../reference/settings.md#build-backend_data),
-  which are copied into the `.data` directory.
+- All directories under
+  [`tool.fyn.build-backend.data`](../reference/settings.md#build-backend_data), which are copied
+  into the `.data` directory.
 
 From these,
 [`tool.fyn.build-backend.source-exclude`](../reference/settings.md#build-backend_source-exclude),

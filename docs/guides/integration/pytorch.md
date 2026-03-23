@@ -462,10 +462,10 @@ $ # With an environment variable.
 $ UV_TORCH_BACKEND=auto fyn pip install torch
 ```
 
-When enabled, fyn will query for the installed CUDA driver, AMD GPU versions, and Intel GPU presence,
-then use the most-compatible PyTorch index for all relevant packages (e.g., `torch`, `torchvision`,
-etc.). If no such GPU is found, fyn will fall back to the CPU-only index. fyn will continue to respect
-existing index configuration for any packages outside the PyTorch ecosystem.
+When enabled, fyn will query for the installed CUDA driver, AMD GPU versions, and Intel GPU
+presence, then use the most-compatible PyTorch index for all relevant packages (e.g., `torch`,
+`torchvision`, etc.). If no such GPU is found, fyn will fall back to the CPU-only index. fyn will
+continue to respect existing index configuration for any packages outside the PyTorch ecosystem.
 
 You can also select a specific backend (e.g., CUDA 12.8) with `--torch-backend=cu126` (or
 `UV_TORCH_BACKEND=cu126`):

@@ -22,9 +22,9 @@ installed previously on the same machine.
 
 ## Cold Installation
 
-Benchmarking package installation (e.g., `fyn sync`) with a cold cache. This is equivalent to running
-`fyn sync` on a new machine or in CI (assuming that the package manager cache is not shared across
-runs).
+Benchmarking package installation (e.g., `fyn sync`) with a cold cache. This is equivalent to
+running `fyn sync` on a new machine or in CI (assuming that the package manager cache is not shared
+across runs).
 
 ## Warm Resolution
 

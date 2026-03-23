@@ -33,13 +33,13 @@ disable this behavior, use `UV_NO_MODIFY_PATH`. For example:
 $ curl -LsSf https://astral.sh/fyn/install.sh | env UV_NO_MODIFY_PATH=1 sh
 ```
 
-If installed with `UV_NO_MODIFY_PATH`, subsequent operations, like `fyn self update`, will not modify
-your shell profiles.
+If installed with `UV_NO_MODIFY_PATH`, subsequent operations, like `fyn self update`, will not
+modify your shell profiles.
 
 ## Unmanaged installations
 
-In ephemeral environments like CI, use `UV_UNMANAGED_INSTALL` to install fyn to a specific path while
-preventing the installer from modifying shell profiles or environment variables:
+In ephemeral environments like CI, use `UV_UNMANAGED_INSTALL` to install fyn to a specific path
+while preventing the installer from modifying shell profiles or environment variables:
 
 ```console
 $ curl -LsSf https://astral.sh/fyn/install.sh | env UV_UNMANAGED_INSTALL="/custom/path" sh

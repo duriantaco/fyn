@@ -8,7 +8,8 @@ Dependencies of the project are defined in several fields:
 - [`project.optional-dependencies`](#optional-dependencies): Published optional dependencies, or
   "extras".
 - [`dependency-groups`](#dependency-groups): Local dependencies for development.
-- [`tool.fyn.sources`](#dependency-sources): Alternative sources for dependencies during development.
+- [`tool.fyn.sources`](#dependency-sources): Alternative sources for dependencies during
+  development.
 
 !!! note
 
@@ -548,8 +549,8 @@ explicit = true
 
 ### Disabling sources
 
-To instruct fyn to ignore the `tool.fyn.sources` table (e.g., to simulate resolving with the package's
-published metadata), use the `--no-sources` flag:
+To instruct fyn to ignore the `tool.fyn.sources` table (e.g., to simulate resolving with the
+package's published metadata), use the `--no-sources` flag:
 
 ```console
 $ fyn lock --no-sources
@@ -647,8 +648,9 @@ To add a development dependency, use the `--dev` flag:
 $ fyn add --dev pytest
 ```
 
-fyn uses the `[dependency-groups]` table (as defined in [PEP 735](https://peps.python.org/pep-0735/))
-for declaration of development dependencies. The above command will create a `dev` group:
+fyn uses the `[dependency-groups]` table (as defined in
+[PEP 735](https://peps.python.org/pep-0735/)) for declaration of development dependencies. The above
+command will create a `dev` group:
 
 ```toml title="pyproject.toml"
 [dependency-groups]
@@ -725,7 +727,8 @@ An included group's dependencies cannot conflict with the other dependencies dec
 ### Default groups
 
 By default, fyn includes the `dev` dependency group in the environment (e.g., during `fyn run` or
-`fyn sync`). The default groups to include can be changed using the `tool.fyn.default-groups` setting.
+`fyn sync`). The default groups to include can be changed using the `tool.fyn.default-groups`
+setting.
 
 ```toml title="pyproject.toml"
 [tool.fyn]
@@ -804,8 +807,8 @@ requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 ```
 
-By default, fyn will respect `tool.fyn.sources` when resolving build dependencies. For example, to use
-a local version of `setuptools` for building, add the source to `tool.fyn.sources`:
+By default, fyn will respect `tool.fyn.sources` when resolving build dependencies. For example, to
+use a local version of `setuptools` for building, add the source to `tool.fyn.sources`:
 
 ```toml title="pyproject.toml"
 [project]

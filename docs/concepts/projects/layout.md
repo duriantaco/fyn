@@ -36,16 +36,16 @@ the environment to give code completions and type hints. It is not recommended t
 `.venv` directory in version control; it is automatically excluded from `git` with an internal
 `.gitignore` file.
 
-To run a command in the project environment, use `fyn run`. Alternatively the project environment can
-be activated as normal for a virtual environment.
+To run a command in the project environment, use `fyn run`. Alternatively the project environment
+can be activated as normal for a virtual environment.
 
 When `fyn run` is invoked, it will create the project environment if it does not exist yet or ensure
 it is up-to-date if it exists. The project environment can also be explicitly created with
 `fyn sync`. See the [locking and syncing](./sync.md) documentation for details.
 
-It is _not_ recommended to modify the project environment manually, e.g., with `fyn pip install`. For
-project dependencies, use `fyn add` to add a package to the environment. For one-off requirements,
-use [`fynx`](../../guides/tools.md) or
+It is _not_ recommended to modify the project environment manually, e.g., with `fyn pip install`.
+For project dependencies, use `fyn add` to add a package to the environment. For one-off
+requirements, use [`fynx`](../../guides/tools.md) or
 [`fyn run --with`](./run.md#requesting-additional-dependencies).
 
 !!! tip
@@ -76,11 +76,11 @@ versions. Additionally, it ensures when deploying the project as an application 
 of used package versions is known.
 
 The lockfile is [automatically created and updated](./sync.md#automatic-lock-and-sync) during fyn
-invocations that use the project environment, i.e., `fyn sync` and `fyn run`. The lockfile may also be
-explicitly updated using `fyn lock`.
+invocations that use the project environment, i.e., `fyn sync` and `fyn run`. The lockfile may also
+be explicitly updated using `fyn lock`.
 
-`fyn.lock` is a human-readable TOML file but is managed by fyn and should not be edited manually. The
-`fyn.lock` format is specific to fyn and not usable by other tools.
+`fyn.lock` is a human-readable TOML file but is managed by fyn and should not be edited manually.
+The `fyn.lock` format is specific to fyn and not usable by other tools.
 
 ### Relationship to `pylock.toml`
 

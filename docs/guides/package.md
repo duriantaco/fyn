@@ -1,6 +1,7 @@
 ---
 title: Building and publishing a package
-description: A guide to using fyn to build and publish Python packages to a package index, like PyPI.
+description:
+  A guide to using fyn to build and publish Python packages to a package index, like PyPI.
 ---
 
 # Building and publishing a package
@@ -158,10 +159,10 @@ Even though `fyn publish` retries failed uploads, it can happen that publishing 
 with some files uploaded and some files still missing. With PyPI, you can retry the exact same
 command, existing identical files will be ignored. With other registries, use
 `--check-url <index url>` with the index URL (not the publishing URL) the packages belong to. When
-using `--index`, the index URL is used as check URL. fyn will skip uploading files that are identical
-to files in the registry, and it will also handle raced parallel uploads. Note that existing files
-need to match exactly with those previously uploaded to the registry, this avoids accidentally
-publishing source distribution and wheels with different contents for the same version.
+using `--index`, the index URL is used as check URL. fyn will skip uploading files that are
+identical to files in the registry, and it will also handle raced parallel uploads. Note that
+existing files need to match exactly with those previously uploaded to the registry, this avoids
+accidentally publishing source distribution and wheels with different contents for the same version.
 
 ### Uploading attestations with your package
 
@@ -177,8 +178,8 @@ publishing source distribution and wheels with different contents for the same v
     `fyn publish` does not currently generate attestations; attestations must
     be created separately before publishing.
 
-`fyn publish` supports uploading [attestations](https://peps.python.org/pep-0740/) to registries that
-support them, like PyPI.
+`fyn publish` supports uploading [attestations](https://peps.python.org/pep-0740/) to registries
+that support them, like PyPI.
 
 fyn will automatically discover and match attestations. For example, given the following `dist/`
 directory, `fyn publish` will upload the attestations along with their corresponding distributions:

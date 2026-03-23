@@ -18,8 +18,8 @@ To lock dependencies declared in a `pyproject.toml`:
 $ fyn pip compile pyproject.toml -o requirements.txt
 ```
 
-Note by default the `fyn pip compile` output is just displayed and `--output-file` / `-o` argument is
-needed to write to a file.
+Note by default the `fyn pip compile` output is just displayed and `--output-file` / `-o` argument
+is needed to write to a file.
 
 To lock dependencies declared in a `requirements.in`:
 
