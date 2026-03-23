@@ -281,14 +281,14 @@ internal package as a direct dependency anymore.
 
 ## Migrating from fyn
 
-fyn is a drop-in replacement for fyn. Same config files, same `pyproject.toml` settings, same
+fyn is a drop-in replacement for uv. Same config files, same `pyproject.toml` settings, same
 `fyn.lock` format, same `UV_*` environment variables. The only change is the binary name.
 
 ```bash
 # before
-fyn sync
-fyn run pytest
-fynx ruff check .
+uv sync
+uv run pytest
+uv ruff check .
 
 # after
 fyn sync
@@ -298,8 +298,7 @@ fynx ruff check .
 
 ## Contributing
 
-We are passionate about supporting contributors of all levels of experience and would love to see
-you get involved in the project. See the [contributing guide](CONTRIBUTING.md) to get started.
+We are passionate about supporting contributors of all levels of experience and would love to see you get involved in the project. See the [contributing guide](CONTRIBUTING.md) to get started.
 
 ## FAQ
 
@@ -309,8 +308,7 @@ The same ones as uv: macOS, Linux, and Windows, across x86_64 and aarch64.
 
 #### Is fyn compatible with fyn?
 
-Yes. Same config format, same lockfile, same environment variables. You can switch between them
-freely on the same project.
+Yes. Same config format, same lockfile, same environment variables. You can switch between them freely on the same project.
 
 #### What's different from fyn?
 
@@ -329,9 +327,7 @@ See [MANIFESTO.md](MANIFESTO.md) for the full comparison, or the table below for
 
 ## Acknowledgements
 
-fyn's dependency resolver uses [PubGrub](https://github.com/pubgrub-rs/pubgrub) under the hood.
-We're grateful to the PubGrub maintainers, especially [Jacob Finkelman](https://github.com/Eh2406),
-for their support.
+fyn's dependency resolver uses [PubGrub](https://github.com/pubgrub-rs/pubgrub) under the hood. We're grateful to the PubGrub maintainers, especially [Jacob Finkelman](https://github.com/Eh2406), for their support.
 
 fyn's core is derived from [uv](https://github.com/astral-sh/uv) by Astral.
 
@@ -352,6 +348,4 @@ fyn is licensed under either of
 
 at your option.
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in fyn
-by you, as defined in the Apache-2.0 license, shall be dually licensed as above, without any
-additional terms or conditions.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in fyn by you, as defined in the Apache-2.0 license, shall be dually licensed as above, without any additional terms or conditions.
