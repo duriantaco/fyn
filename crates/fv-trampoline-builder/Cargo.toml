@@ -1,0 +1,39 @@
+[package]
+name = "fv-trampoline-builder"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+include = ["src/**/*", "trampolines/*.exe", "Cargo.toml", "README.md"]
+
+[features]
+default = ["production"]
+
+# Expect tests to run against production builds of `fv-trampoline` binaries, rather than debug builds
+production = []
+
+[lints]
+workspace = true
+
+[dependencies]
+fv-fs = { workspace = true }
+fs-err = {workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+zip = { workspace = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { workspace = true }
+
+[dev-dependencies]
+assert_cmd = { workspace = true }
+assert_fs = { workspace = true }
+anyhow = { workspace = true }
+fs-err = { workspace = true }
+rcgen = { workspace = true }
+which = { workspace = true }

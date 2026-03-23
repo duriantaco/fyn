@@ -1,13 +1,13 @@
-# The `uv auth` CLI
+# The `fv auth` CLI
 
-uv provides a high-level interface for storing and retrieving credentials from services.
+fv provides a high-level interface for storing and retrieving credentials from services.
 
 ## Logging in to a service
 
-To add credentials for service, use the `uv auth login` command:
+To add credentials for service, use the `fv auth login` command:
 
 ```console
-$ uv auth login example.com
+$ fv auth login example.com
 ```
 
 This will prompt for the credentials.
@@ -21,12 +21,12 @@ The credentials can also be provided using the `--username` and `--password` opt
     stdin, e.g., for `--password`:
 
     ```console
-    $ echo 'my-password' | uv auth login example.com --password -
+    $ echo 'my-password' | fv auth login example.com --password -
     ```
 
     The same pattern can be used with `--token`.
 
-Once credentials are added, uv will use them for packaging operations that require fetching content
+Once credentials are added, fv will use them for packaging operations that require fetching content
 from the given service. At this time, only HTTPS Basic authentication is supported. The credentials
 will not yet be used for Git requests.
 
@@ -36,10 +36,10 @@ will not yet be used for Git requests.
 
 ## Logging out of a service
 
-To remove credentials, use the `uv auth logout` command:
+To remove credentials, use the `fv auth logout` command:
 
 ```console
-$ uv auth logout example.com
+$ fv auth logout example.com
 ```
 
 !!! note
@@ -49,21 +49,21 @@ $ uv auth logout example.com
 
 ## Showing credentials for a service
 
-To show the credential stored for a given URL, use the `uv auth token` command:
+To show the credential stored for a given URL, use the `fv auth token` command:
 
 ```console
-$ uv auth token example.com
+$ fv auth token example.com
 ```
 
 If a username was used to log in, it will need to be provided as well, e.g.:
 
 ```console
-$ uv auth token --username foo example.com
+$ fv auth token --username foo example.com
 ```
 
 ## Configuring the storage backend
 
-Credentials are persisted to the uv [credentials store](./http.md#the-uv-credentials-store).
+Credentials are persisted to the fv [credentials store](./http.md#the-fv-credentials-store).
 
 By default, credentials are written to a plaintext file. An encrypted system-native storage backend
 can be enabled with `UV_PREVIEW_FEATURES=native-auth`.

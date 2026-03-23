@@ -1,163 +1,169 @@
-# uv
-
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![image](https://img.shields.io/pypi/v/uv.svg)](https://pypi.python.org/pypi/uv)
-[![image](https://img.shields.io/pypi/l/uv.svg)](https://pypi.python.org/pypi/uv)
-[![image](https://img.shields.io/pypi/pyversions/uv.svg)](https://pypi.python.org/pypi/uv)
-[![Actions status](https://github.com/astral-sh/uv/actions/workflows/ci.yml/badge.svg)](https://github.com/astral-sh/uv/actions)
-[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?logo=discord&logoColor=white)](https://discord.gg/astral-sh)
+# fv
 
 An extremely fast Python package and project manager, written in Rust.
 
-<p align="center">
-  <picture align="center">
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/astral-sh/uv/assets/1309177/03aa9163-1c79-4a87-a31d-7a9311ed9310">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/astral-sh/uv/assets/1309177/629e59c0-9c6e-4013-9ad4-adb2bcf5080d">
-    <img alt="Shows a bar chart with benchmark results." src="https://github.com/astral-sh/uv/assets/1309177/629e59c0-9c6e-4013-9ad4-adb2bcf5080d">
-  </picture>
-</p>
-
-<p align="center">
-  <i>Installing <a href="https://trio.readthedocs.io/">Trio</a>'s dependencies with a warm cache.</i>
-</p>
+**fv** is an independent Python package manager built on [uv](https://github.com/astral-sh/uv)'s
+foundation, with telemetry removed, new features added, and long-standing bugs fixed. See
+[MANIFESTO.md](MANIFESTO.md) for the full story.
 
 ## Highlights
 
 - A single tool to replace `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`, `twine`, `virtualenv`, and
   more.
-- [10-100x faster](https://github.com/astral-sh/uv/blob/main/BENCHMARKS.md) than `pip`.
-- Provides [comprehensive project management](#projects), with a
-  [universal lockfile](https://docs.astral.sh/uv/concepts/projects/layout#the-lockfile).
-- [Runs scripts](#scripts), with support for
-  [inline dependency metadata](https://docs.astral.sh/uv/guides/scripts#declaring-script-dependencies).
+- 10-100x faster than `pip`.
+- Provides [comprehensive project management](#projects), with a universal lockfile.
+- Built-in [task runner](#task-runner) — define and run project tasks in `pyproject.toml`.
+- [Activates virtual environments](#shell-activation) with `fv shell`.
+- [Upgrades dependencies](#upgrade-dependencies) in one command with `fv upgrade`.
+- [Runs scripts](#scripts), with support for inline dependency metadata.
 - [Installs and manages](#python-versions) Python versions.
 - [Runs and installs](#tools) tools published as Python packages.
 - Includes a [pip-compatible interface](#the-pip-interface) for a performance boost with a familiar
   CLI.
-- Supports Cargo-style [workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces) for
-  scalable projects.
-- Disk-space efficient, with a [global cache](https://docs.astral.sh/uv/concepts/cache) for
-  dependency deduplication.
-- Installable without Rust or Python via `curl` or `pip`.
+- Supports Cargo-style workspaces for scalable projects.
+- Disk-space efficient, with a global cache for dependency deduplication.
+- No telemetry — your installs are your business.
 - Supports macOS, Linux, and Windows.
-
-uv is backed by [Astral](https://astral.sh), the creators of
-[Ruff](https://github.com/astral-sh/ruff) and [ty](https://github.com/astral-sh/ty).
 
 ## Installation
 
-Install uv with our standalone installers:
-
-```bash
-# On macOS and Linux.
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-```bash
-# On Windows.
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-
-Or, from [PyPI](https://pypi.org/project/uv/):
+From [PyPI](https://pypi.org/project/fv/):
 
 ```bash
 # With pip.
-pip install uv
+pip install fv
 ```
 
 ```bash
 # Or pipx.
-pipx install uv
+pipx install fv
 ```
 
-If installed via the standalone installer, uv can update itself to the latest version:
+Or build from source:
 
 ```bash
-uv self update
+cargo install --path crates/fv
 ```
 
-See the [installation documentation](https://docs.astral.sh/uv/getting-started/installation/) for
-details and alternative installation methods.
-
-## Documentation
-
-uv's documentation is available at [docs.astral.sh/uv](https://docs.astral.sh/uv).
-
-Additionally, the command line reference documentation can be viewed with `uv help`.
+See the command line reference documentation with `fv help`.
 
 ## Features
 
 ### Projects
 
-uv manages project dependencies and environments, with support for lockfiles, workspaces, and more,
+fv manages project dependencies and environments, with support for lockfiles, workspaces, and more,
 similar to `rye` or `poetry`:
 
 ```console
-$ uv init example
+$ fv init example
 Initialized project `example` at `/home/user/example`
 
 $ cd example
 
-$ uv add ruff
+$ fv add ruff
 Creating virtual environment at: .venv
 Resolved 2 packages in 170ms
-   Built example @ file:///home/user/example
-Prepared 2 packages in 627ms
 Installed 2 packages in 1ms
- + example==0.1.0 (from file:///home/user/example)
  + ruff==0.5.0
 
-$ uv run ruff check
+$ fv run ruff check
 All checks passed!
 
-$ uv lock
+$ fv lock
 Resolved 2 packages in 0.33ms
 
-$ uv sync
+$ fv sync
 Resolved 2 packages in 0.70ms
 Checked 1 package in 0.02ms
 ```
 
-See the [project documentation](https://docs.astral.sh/uv/guides/projects/) to get started.
+### Task runner
 
-uv also supports building and publishing projects, even if they're not managed with uv. See the
-[publish guide](https://docs.astral.sh/uv/guides/publish/) to learn more.
+Define tasks in your `pyproject.toml` and run them with `fv run`:
+
+```toml
+[tool.fv.tasks]
+test = "pytest -xvs"
+lint = "ruff check ."
+format = { cmd = "ruff format .", description = "Format code" }
+check = { chain = ["lint", "test"], description = "Lint then test" }
+```
+
+```console
+$ fv run test
+# runs pytest -xvs
+
+$ fv run test -- -k mytest
+# extra args are passed through
+
+$ fv run --list-tasks
+Available tasks:
+  check    Lint then test
+  format   Format code
+  lint     ruff check .
+  test     pytest -xvs
+```
+
+### Shell activation
+
+Activate the project's virtual environment in a new shell:
+
+```console
+$ fv shell
+success: Activated virtual environment at .venv
+Type exit to deactivate.
+```
+
+Works with bash, zsh, fish, nushell, powershell, and cmd.
+
+### Upgrade dependencies
+
+Upgrade all or specific dependencies in one command:
+
+```console
+$ fv upgrade
+info: Upgrading all dependencies...
+success: Dependencies upgraded successfully.
+
+$ fv upgrade requests flask
+info: Upgrading: requests, flask
+success: Dependencies upgraded successfully.
+```
+
+Supports `--dry-run` and `--no-sync`.
 
 ### Scripts
 
-uv manages dependencies and environments for single-file scripts.
+fv manages dependencies and environments for single-file scripts.
 
 Create a new script and add inline metadata declaring its dependencies:
 
 ```console
-$ echo 'import requests; print(requests.get("https://astral.sh"))' > example.py
+$ echo 'import requests; print(requests.get("https://example.com"))' > example.py
 
-$ uv add --script example.py requests
+$ fv add --script example.py requests
 Updated `example.py`
 ```
 
 Then, run the script in an isolated virtual environment:
 
 ```console
-$ uv run example.py
+$ fv run example.py
 Reading inline script metadata from: example.py
 Installed 5 packages in 12ms
 <Response [200]>
 ```
 
-See the [scripts documentation](https://docs.astral.sh/uv/guides/scripts/) to get started.
-
 ### Tools
 
-uv executes and installs command-line tools provided by Python packages, similar to `pipx`.
+fv executes and installs command-line tools provided by Python packages, similar to `pipx`.
 
-Run a tool in an ephemeral environment using `uvx` (an alias for `uv tool run`):
+Run a tool in an ephemeral environment using `fvx` (an alias for `fv tool run`):
 
 ```console
-$ uvx pycowsay 'hello world!'
+$ fvx pycowsay 'hello world!'
 Resolved 1 package in 167ms
 Installed 1 package in 9ms
- + pycowsay==0.0.0.2
   """
 
   ------------
@@ -170,10 +176,10 @@ Installed 1 package in 9ms
            ||     ||
 ```
 
-Install a tool with `uv tool install`:
+Install a tool with `fv tool install`:
 
 ```console
-$ uv tool install ruff
+$ fv tool install ruff
 Resolved 1 package in 6ms
 Installed 1 package in 2ms
  + ruff==0.5.0
@@ -183,63 +189,38 @@ $ ruff --version
 ruff 0.5.0
 ```
 
-See the [tools documentation](https://docs.astral.sh/uv/guides/tools/) to get started.
-
 ### Python versions
 
-uv installs Python and allows quickly switching between versions.
+fv installs Python and allows quickly switching between versions.
 
 Install multiple Python versions:
 
 ```console
-$ uv python install 3.12 3.13 3.14
+$ fv python install 3.12 3.13 3.14
 Installed 3 versions in 972ms
- + cpython-3.12.12-macos-aarch64-none (python3.12)
- + cpython-3.13.9-macos-aarch64-none (python3.13)
- + cpython-3.14.0-macos-aarch64-none (python3.14)
-
-```
-
-Download Python versions as needed:
-
-```console
-$ uv venv --python 3.12.0
-Using Python 3.12.0
-Creating virtual environment at: .venv
-Activate with: source .venv/bin/activate
-
-$ uv run --python pypy@3.8 -- python --version
-Python 3.8.16 (a9dbdca6fc3286b0addd2240f11d97d8e8de187a, Dec 29 2022, 11:45:30)
-[PyPy 7.3.11 with GCC Apple LLVM 13.1.6 (clang-1316.0.21.2.5)] on darwin
-Type "help", "copyright", "credits" or "license" for more information.
->>>>
+ + cpython-3.12.12-macos-aarch64-none
+ + cpython-3.13.9-macos-aarch64-none
+ + cpython-3.14.0-macos-aarch64-none
 ```
 
 Use a specific Python version in the current directory:
 
 ```console
-$ uv python pin 3.11
+$ fv python pin 3.11
 Pinned `.python-version` to `3.11`
 ```
 
-See the [Python installation documentation](https://docs.astral.sh/uv/guides/install-python/) to get
-started.
-
 ### The pip interface
 
-uv provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands.
+fv provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands.
 
-uv extends their interfaces with advanced features, such as dependency version overrides,
-platform-independent resolutions, reproducible resolutions, alternative resolution strategies, and
-more.
-
-Migrate to uv without changing your existing workflows — and experience a 10-100x speedup — with the
-`uv pip` interface.
+Migrate to fv without changing your existing workflows — and experience a 10-100x speedup — with the
+`fv pip` interface.
 
 Compile requirements into a platform-independent requirements file:
 
 ```console
-$ uv pip compile requirements.in \
+$ fv pip compile requirements.in \
    --universal \
    --output-file requirements.txt
 Resolved 43 packages in 12ms
@@ -248,7 +229,7 @@ Resolved 43 packages in 12ms
 Create a virtual environment:
 
 ```console
-$ uv venv
+$ fv venv
 Using Python 3.12.3
 Creating virtual environment at: .venv
 Activate with: source .venv/bin/activate
@@ -257,60 +238,113 @@ Activate with: source .venv/bin/activate
 Install the locked requirements:
 
 ```console
-$ uv pip sync requirements.txt
+$ fv pip sync requirements.txt
 Resolved 43 packages in 11ms
 Installed 43 packages in 208ms
  + babel==2.15.0
- + black==24.4.2
  + certifi==2024.7.4
  ...
 ```
 
-See the [pip interface documentation](https://docs.astral.sh/uv/pip/index/) to get started.
+### Cache size limit
+
+Keep your cache from growing unbounded:
+
+```bash
+export UV_CACHE_MAX_SIZE=2G
+```
+
+Oldest entries are automatically pruned after every command when the cache exceeds the limit.
+Supports `K`, `M`, `G`, and `T` suffixes.
+
+### Custom lockfile name
+
+Use different lockfiles for different environments:
+
+```bash
+UV_LOCKFILE=linux.lock fv lock
+UV_LOCKFILE=macos.lock fv lock
+```
+
+### Private index support
+
+Environment variables work in index URLs — useful for private indexes with credentials:
+
+```toml
+[[tool.fv.index]]
+name = "private"
+url = "https://${PYPI_TOKEN}@pypi.example.com/simple/"
+```
+
+Explicit indexes are also respected for transitive dependencies — you don't have to list every
+internal package as a direct dependency anymore.
+
+## Migrating from fv
+
+fv is a drop-in replacement for fv. Same config files, same `pyproject.toml` settings, same
+`fv.lock` format, same `UV_*` environment variables. The only change is the binary name.
+
+```bash
+# before
+fv sync
+fv run pytest
+fvx ruff check .
+
+# after
+fv sync
+fv run pytest
+fvx ruff check .
+```
 
 ## Contributing
 
 We are passionate about supporting contributors of all levels of experience and would love to see
-you get involved in the project. See the
-[contributing guide](https://github.com/astral-sh/uv?tab=contributing-ov-file#contributing) to get
-started.
+you get involved in the project. See the [contributing guide](CONTRIBUTING.md) to get started.
 
 ## FAQ
 
-#### How do you pronounce uv?
+#### What platforms does fv support?
 
-It's pronounced as "you - vee" ([`/juː viː/`](https://en.wikipedia.org/wiki/Help:IPA/English#Key))
+The same ones as uv: macOS, Linux, and Windows, across x86_64 and aarch64.
 
-#### How should I stylize uv?
+#### Is fv compatible with fv?
 
-Just "uv", please. See the [style guide](./STYLE.md#styling-uv) for details.
+Yes. Same config format, same lockfile, same environment variables. You can switch between them
+freely on the same project.
 
-#### What platforms does uv support?
+#### What's different from fv?
 
-See uv's [platform support](https://docs.astral.sh/uv/reference/platforms/) document.
+See [MANIFESTO.md](MANIFESTO.md) for the full comparison, or the table below for a quick summary:
 
-#### Is uv ready for production?
-
-Yes, uv is stable and widely used in production. See uv's
-[versioning policy](https://docs.astral.sh/uv/reference/versioning/) document for details.
+| Feature                            | fv                        | fv                  |
+| ---------------------------------- | ------------------------- | ------------------- |
+| Telemetry (linehaul)               | Sends OS, Python, CI info | None                |
+| Task runner                        | Not available             | `[tool.fv.tasks]`   |
+| `shell` command                    | Not available             | `fv shell`          |
+| `upgrade` command                  | Must chain two commands   | `fv upgrade`        |
+| Cache size limit                   | No limit                  | `UV_CACHE_MAX_SIZE` |
+| Custom lockfile name               | Not available             | `UV_LOCKFILE`       |
+| Explicit index for transitive deps | Broken                    | Fixed               |
+| Env vars in index URLs             | Only in requirements.txt  | Everywhere          |
 
 ## Acknowledgements
 
-uv's dependency resolver uses [PubGrub](https://github.com/pubgrub-rs/pubgrub) under the hood. We're
+fv's dependency resolver uses [PubGrub](https://github.com/pubgrub-rs/pubgrub) under the hood. We're
 grateful to the PubGrub maintainers, especially [Jacob Finkelman](https://github.com/Eh2406), for
 their support.
 
-uv's Git implementation is based on [Cargo](https://github.com/rust-lang/cargo).
+fv's core is derived from [uv](https://github.com/astral-sh/uv) by Astral.
 
-Some of uv's optimizations are inspired by the great work we've seen in [pnpm](https://pnpm.io/),
+fv's Git implementation is based on [Cargo](https://github.com/rust-lang/cargo).
+
+Some of fv's optimizations are inspired by the great work we've seen in [pnpm](https://pnpm.io/),
 [Orogene](https://github.com/orogene/orogene), and [Bun](https://github.com/oven-sh/bun). We've also
 learned a lot from Nathaniel J. Smith's [Posy](https://github.com/njsmith/posy) and adapted its
-[trampoline](https://github.com/njsmith/posy/tree/main/src/trampolines/windows-trampolines/posy-trampoline)
-for Windows support.
+trampoline for Windows support.
 
 ## License
 
-uv is licensed under either of
+fv is licensed under either of
 
 - Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
   <https://www.apache.org/licenses/LICENSE-2.0>)
@@ -318,12 +352,6 @@ uv is licensed under either of
 
 at your option.
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in uv
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in fv
 by you, as defined in the Apache-2.0 license, shall be dually licensed as above, without any
 additional terms or conditions.
-
-<div align="center">
-  <a target="_blank" href="https://astral.sh" style="background:none">
-    <img src="https://raw.githubusercontent.com/astral-sh/uv/main/assets/svg/Astral.svg" alt="Made by Astral">
-  </a>
-</div>

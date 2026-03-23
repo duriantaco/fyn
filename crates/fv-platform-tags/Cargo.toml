@@ -1,0 +1,29 @@
+[package]
+name = "fv-platform-tags"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fv-small-str = { workspace = true }
+
+bitflags = { workspace = true }
+memchr = { workspace = true }
+rkyv = { workspace = true}
+rustc-hash = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }

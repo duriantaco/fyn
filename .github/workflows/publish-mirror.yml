@@ -1,4 +1,4 @@
-# Publish uv releases to a mirror
+# Publish fv releases to a mirror
 #
 # Assumed to run as a subworkflow of .github/workflows/release.yml as a custom publish job
 name: publish-mirror
@@ -33,7 +33,7 @@ jobs:
           AWS_ENDPOINT_URL: https://${{ secrets.MIRROR_R2_CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
           AWS_DEFAULT_REGION: auto
           R2_BUCKET: ${{ secrets.MIRROR_R2_BUCKET_NAME }}
-          PROJECT: uv
+          PROJECT: fv
         run: |
           aws s3 cp --recursive --output table --color on \
             --exclude '*' \

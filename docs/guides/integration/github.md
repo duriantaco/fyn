@@ -1,52 +1,52 @@
 ---
-title: Using uv in GitHub Actions
+title: Using fv in GitHub Actions
 description:
-  A guide to using uv in GitHub Actions, including installation, setting up Python, installing
+  A guide to using fv in GitHub Actions, including installation, setting up Python, installing
   dependencies, and more.
 ---
 
-# Using uv in GitHub Actions
+# Using fv in GitHub Actions
 
 ## Installation
 
 For use with GitHub Actions, we recommend the official
 [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv) action, which installs uv, adds it to
-PATH, (optionally) persists the cache, and more, with support for all uv-supported platforms.
+PATH, (optionally) persists the cache, and more, with support for all fv-supported platforms.
 
-To install the latest version of uv:
+To install the latest version of fv:
 
 ```yaml title="example.yml" hl_lines="11 12"
 name: Example
 
 jobs:
-  uv-example:
+  fv-example:
     name: python
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install uv
+      - name: Install fv
         uses: astral-sh/setup-uv@v7
 ```
 
-It is considered best practice to pin to a specific uv version, e.g., with:
+It is considered best practice to pin to a specific fv version, e.g., with:
 
 ```yaml title="example.yml" hl_lines="14 15"
 name: Example
 
 jobs:
-  uv-example:
+  fv-example:
     name: python
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install uv
+      - name: Install fv
         uses: astral-sh/setup-uv@v7
         with:
-          # Install a specific version of uv.
+          # Install a specific version of fv.
           version: "0.10.12"
 ```
 
@@ -58,18 +58,18 @@ Python can be installed with the `python install` command:
 name: Example
 
 jobs:
-  uv-example:
+  fv-example:
     name: python
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install uv
+      - name: Install fv
         uses: astral-sh/setup-uv@v7
 
       - name: Set up Python
-        run: uv python install
+        run: fv python install
 ```
 
 This will respect the Python version pinned in the project.
@@ -85,7 +85,7 @@ option to use the pinned version for the project:
 name: Example
 
 jobs:
-  uv-example:
+  fv-example:
     name: python
     runs-on: ubuntu-latest
 
@@ -97,7 +97,7 @@ jobs:
         with:
           python-version-file: ".python-version"
 
-      - name: Install uv
+      - name: Install fv
         uses: astral-sh/setup-uv@v7
 ```
 
@@ -108,7 +108,7 @@ the project's `requires-python` constraint:
 name: Example
 
 jobs:
-  uv-example:
+  fv-example:
     name: python
     runs-on: ubuntu-latest
 
@@ -120,7 +120,7 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
-      - name: Install uv
+      - name: Install fv
         uses: astral-sh/setup-uv@v7
 ```
 
@@ -145,7 +145,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install uv and set the Python version
+      - name: Install fv and set the Python version
         uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
@@ -172,29 +172,29 @@ jobs:
 
 ## Syncing and running
 
-Once uv and Python are installed, the project can be installed with `uv sync` and commands can be
-run in the environment with `uv run`:
+Once fv and Python are installed, the project can be installed with `fv sync` and commands can be
+run in the environment with `fv run`:
 
 ```yaml title="example.yml" hl_lines="15 17-22"
 name: Example
 
 jobs:
-  uv-example:
+  fv-example:
     name: python
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install uv
+      - name: Install fv
         uses: astral-sh/setup-uv@v7
 
       - name: Install the project
-        run: uv sync --locked --all-extras --dev
+        run: fv sync --locked --all-extras --dev
 
       - name: Run tests
         # For example, using `pytest`
-        run: uv run pytest tests
+        run: fv run pytest tests
 ```
 
 !!! tip
@@ -205,7 +205,7 @@ jobs:
 
 ## Caching
 
-It may improve CI times to store uv's cache across workflow runs.
+It may improve CI times to store fv's cache across workflow runs.
 
 The [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv) has built-in support for
 persisting the cache:
@@ -223,33 +223,33 @@ Alternatively, you can manage the cache manually with the `actions/cache` action
 jobs:
   install_job:
     env:
-      # Configure a constant location for the uv cache
-      UV_CACHE_DIR: /tmp/.uv-cache
+      # Configure a constant location for the fv cache
+      UV_CACHE_DIR: /tmp/.fv-cache
 
     steps:
-      # ... setup up Python and uv ...
+      # ... setup up Python and fv ...
 
-      - name: Restore uv cache
+      - name: Restore fv cache
         uses: actions/cache@v5
         with:
-          path: /tmp/.uv-cache
-          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          path: /tmp/.fv-cache
+          key: fv-${{ runner.os }}-${{ hashFiles('fv.lock') }}
           restore-keys: |
-            uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
-            uv-${{ runner.os }}
+            fv-${{ runner.os }}-${{ hashFiles('fv.lock') }}
+            fv-${{ runner.os }}
 
       # ... install packages, run tests, etc ...
 
-      - name: Minimize uv cache
-        run: uv cache prune --ci
+      - name: Minimize fv cache
+        run: fv cache prune --ci
 ```
 
-The `uv cache prune --ci` command is used to reduce the size of the cache and is optimized for CI.
+The `fv cache prune --ci` command is used to reduce the size of the cache and is optimized for CI.
 Its effect on performance is dependent on the packages being installed.
 
 !!! tip
 
-    If using `uv pip`, use `requirements.txt` instead of `uv.lock` in the cache key.
+    If using `fv pip`, use `requirements.txt` instead of `fv.lock` in the cache key.
 
 !!! note
 
@@ -263,23 +263,23 @@ Its effect on performance is dependent on the packages being installed.
     ```yaml
     install_job:
       env:
-        # Configure a relative location for the uv cache
-        UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
+        # Configure a relative location for the fv cache
+        UV_CACHE_DIR: ${{ github.workspace }}/.cache/fv
     ```
 
     Using a post job hook requires setting the `ACTIONS_RUNNER_HOOK_JOB_STARTED` environment
     variable on the self-hosted runner to the path of a cleanup script such as the one shown below.
 
-    ```sh title="clean-uv-cache.sh"
+    ```sh title="clean-fv-cache.sh"
     #!/usr/bin/env sh
-    uv cache clean
+    fv cache clean
     ```
 
-## Using `uv pip`
+## Using `fv pip`
 
-If using the `uv pip` interface instead of the uv project interface, uv requires a virtual
+If using the `fv pip` interface instead of the fv project interface, fv requires a virtual
 environment by default. To allow installing packages into the system environment, use the `--system`
-flag on all `uv` invocations or set the `UV_SYSTEM_PYTHON` variable.
+flag on all `fv` invocations or set the `UV_SYSTEM_PYTHON` variable.
 
 The `UV_SYSTEM_PYTHON` variable can be defined in at different scopes.
 
@@ -307,17 +307,17 @@ Or, opt-in for a specific step in a job:
 ```yaml title="example.yml"
 steps:
   - name: Install requirements
-    run: uv pip install -r requirements.txt
+    run: fv pip install -r requirements.txt
     env:
       UV_SYSTEM_PYTHON: 1
 ```
 
-To opt-out again, the `--no-system` flag can be used in any uv invocation.
+To opt-out again, the `--no-system` flag can be used in any fv invocation.
 
 ## Private repos
 
 If your project has [dependencies](../../concepts/projects/dependencies.md#git) on private GitHub
-repositories, you will need to configure a [personal access token (PAT)][PAT] to allow uv to fetch
+repositories, you will need to configure a [personal access token (PAT)][PAT] to allow fv to fetch
 them.
 
 After creating a PAT that has read access to the private repositories, add it as a [repository
@@ -345,7 +345,7 @@ steps:
 
 ## Publishing to PyPI
 
-uv can be used to build and publish your package to PyPI from GitHub Actions. We provide a
+fv can be used to build and publish your package to PyPI from GitHub Actions. We provide a
 standalone example alongside this guide in
 [astral-sh/trusted-publishing-examples](https://github.com/astral-sh/trusted-publishing-examples).
 The workflow uses [trusted publishing](https://docs.pypi.org/trusted-publishers/), so no credentials
@@ -376,19 +376,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install uv
+      - name: Install fv
         uses: astral-sh/setup-uv@v7
       - name: Install Python 3.13
-        run: uv python install 3.13
+        run: fv python install 3.13
       - name: Build
-        run: uv build
+        run: fv build
       # Check that basic features work and we didn't miss to include crucial files
       - name: Smoke test (wheel)
-        run: uv run --isolated --no-project --with dist/*.whl tests/smoke_test.py
+        run: fv run --isolated --no-project --with dist/*.whl tests/smoke_test.py
       - name: Smoke test (source distribution)
-        run: uv run --isolated --no-project --with dist/*.tar.gz tests/smoke_test.py
+        run: fv run --isolated --no-project --with dist/*.tar.gz tests/smoke_test.py
       - name: Publish
-        run: uv publish
+        run: fv publish
 ```
 
 Then, create the environment defined in the workflow in the GitHub repository under "Settings" ->

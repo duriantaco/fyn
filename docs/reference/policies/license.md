@@ -1,6 +1,6 @@
 # License
 
-uv is licensed under either of
+fv is licensed under either of
 
 - Apache License, Version 2.0
 
@@ -14,6 +14,6 @@ uv is licensed under either of
 
 at your option.
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in uv
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in fv
 by you, as defined in the Apache-2.0 license, shall be dually licensed as above, without any
 additional terms or conditions.

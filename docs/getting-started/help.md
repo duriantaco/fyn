@@ -2,72 +2,72 @@
 
 ## Help menus
 
-The `--help` flag can be used to view the help menu for a command, e.g., for `uv`:
+The `--help` flag can be used to view the help menu for a command, e.g., for `fv`:
 
 ```console
-$ uv --help
+$ fv --help
 ```
 
-To view the help menu for a specific command, e.g., for `uv init`:
+To view the help menu for a specific command, e.g., for `fv init`:
 
 ```console
-$ uv init --help
+$ fv init --help
 ```
 
-When using the `--help` flag, uv displays a condensed help menu. To view a longer help menu for a
-command, use `uv help`:
+When using the `--help` flag, fv displays a condensed help menu. To view a longer help menu for a
+command, use `fv help`:
 
 ```console
-$ uv help
+$ fv help
 ```
 
-To view the long help menu for a specific command, e.g., for `uv init`:
+To view the long help menu for a specific command, e.g., for `fv init`:
 
 ```console
-$ uv help init
+$ fv help init
 ```
 
-When using the long help menu, uv will attempt to use `less` or `more` to "page" the output so it is
+When using the long help menu, fv will attempt to use `less` or `more` to "page" the output so it is
 not all displayed at once. To exit the pager, press `q`.
 
 ## Displaying verbose output
 
-The `-v` flag can be used to display verbose output for a command, e.g., for `uv sync`:
+The `-v` flag can be used to display verbose output for a command, e.g., for `fv sync`:
 
 ```console
-$ uv sync -v
+$ fv sync -v
 ```
 
 The `-v` flag can be repeated to increase verbosity, e.g.:
 
 ```console
-$ uv sync -vv
+$ fv sync -vv
 ```
 
-Often, the verbose output will include additional information about why uv is behaving in a certain
+Often, the verbose output will include additional information about why fv is behaving in a certain
 way.
 
 ## Viewing the version
 
-When seeking help, it's important to determine the version of uv that you're using — sometimes the
+When seeking help, it's important to determine the version of fv that you're using — sometimes the
 problem is already solved in a newer version.
 
 To check the installed version:
 
 ```console
-$ uv self version
+$ fv self version
 ```
 
 The following are also valid:
 
 ```console
-$ uv --version      # Same output as `uv self version`
-$ uv -V             # Will not include the build commit and date
+$ fv --version      # Same output as `fv self version`
+$ fv -V             # Will not include the build commit and date
 ```
 
 !!! note
 
-    Before uv 0.7.0, `uv version` was used instead of `uv self version`.
+    Before fv 0.7.0, `fv version` was used instead of `fv self version`.
 
 ## Troubleshooting issues
 
@@ -83,4 +83,4 @@ to encounter the same problem.
 ## Chat on Discord
 
 Astral has a [Discord server](https://discord.com/invite/astral-sh), which is a great place to ask
-questions, learn more about uv, and engage with other community members.
+questions, learn more about fv, and engage with other community members.

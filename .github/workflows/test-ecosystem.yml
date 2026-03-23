@@ -18,20 +18,20 @@ jobs:
           - repo: "prefecthq/prefect"
             ref: "7f25bbdf45fc81cca6dc23fb6a7377d436b70c83"
             commands:
-              - "uv venv"
-              - "uv pip install -e '.[dev]'"
+              - "fv venv"
+              - "fv pip install -e '.[dev]'"
             python: "3.9"
           - repo: "pallets/flask"
             ref: "b78b5a210bde49e7e04b62a2a4f453ca10e0048c"
             commands:
-              - "uv venv"
-              - "uv pip install -r requirements/dev.txt"
+              - "fv venv"
+              - "fv pip install -r requirements/dev.txt"
             python: "3.12"
           - repo: "pydantic/pydantic-core"
             ref: "d03bf4a01ca3b378cc8590bd481f307e82115bc6"
             commands:
-              - "uv sync --group all"
-              - "uv lock --upgrade"
+              - "fv sync --group all"
+              - "fv lock --upgrade"
             python: "3.12"
       fail-fast: false
     steps:
@@ -48,16 +48,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ inputs.sha }}
+          name: fv-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Test"
         run: |
           echo '${{ toJSON(matrix.commands) }}' | jq -r '.[]' | while read cmd; do
             echo "+ $cmd" >&2
-            if [[ $cmd == uv* ]]; then
+            if [[ $cmd == fv* ]]; then
               ./$cmd
             else
               $cmd

@@ -1,6 +1,6 @@
 ---
-title: Using uv with Dependabot
-description: A guide to using uv with the Dependabot dependency bot.
+title: Using fv with Dependabot
+description: A guide to using fv with the Dependabot dependency bot.
 ---
 
 # Dependabot
@@ -9,17 +9,17 @@ It is considered best practice to regularly update dependencies, to avoid being 
 vulnerabilities, limit incompatibilities between dependencies, and avoid complex upgrades when
 upgrading from a too old version.
 
-Dependabot has announced support for uv, but there are some use cases that are not yet working. See
+Dependabot has announced support for fv, but there are some use cases that are not yet working. See
 [astral-sh/uv#2512](https://github.com/astral-sh/uv/issues/2512) for updates.
 
-Dependabot supports updating `uv.lock` files. To enable it, add the uv `package-ecosystem` to your
+Dependabot supports updating `fv.lock` files. To enable it, add the fv `package-ecosystem` to your
 `updates` list in the `dependabot.yml`:
 
 ```yaml title="dependabot.yml"
 version: 2
 
 updates:
-  - package-ecosystem: "uv"
+  - package-ecosystem: "fv"
     directory: "/"
     schedule:
       interval: "weekly"
@@ -30,7 +30,7 @@ updates:
 If you use [`exclude-newer`](../../reference/settings.md#exclude-newer) option, it is recommended to
 also set the equivalent
 [`cooldown`](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#cooldown-)
-option in Dependabot, to avoid ending up with pull requests where uv would not be able to lock the
+option in Dependabot, to avoid ending up with pull requests where fv would not be able to lock the
 dependencies.
 
 For instance, if you've set `exclude-newer` to `1 week`, you can set:
@@ -39,7 +39,7 @@ For instance, if you've set `exclude-newer` to `1 week`, you can set:
 version: 2
 
 updates:
-  - package-ecosystem: "uv"
+  - package-ecosystem: "fv"
     directory: "/"
     schedule:
       interval: "weekly"

@@ -1,20 +1,20 @@
-# The uv build backend
+# The fv build backend
 
 A build backend transforms a source tree (i.e., a directory) into a source distribution or a wheel.
 
-uv supports all build backends (as specified by [PEP 517](https://peps.python.org/pep-0517/)), but
-also provides a native build backend (`uv_build`) that integrates tightly with uv to improve
+fv supports all build backends (as specified by [PEP 517](https://peps.python.org/pep-0517/)), but
+also provides a native build backend (`uv_build`) that integrates tightly with fv to improve
 performance and user experience.
 
 ## Choosing a build backend
 
-The uv build backend is a great choice for most Python projects. It has reasonable defaults, with
+The fv build backend is a great choice for most Python projects. It has reasonable defaults, with
 the goal of requiring zero configuration for most users, but provides flexible configuration to
-accommodate most Python project structures. It integrates tightly with uv, to improve messaging and
+accommodate most Python project structures. It integrates tightly with fv, to improve messaging and
 user experience. It validates project metadata and structures, preventing common mistakes. And,
 finally, it's very fast.
 
-The uv build backend currently **only supports pure Python code**. An alternative backend is
+The fv build backend currently **only supports pure Python code**. An alternative backend is
 required to build a
 [library with extension modules](../concepts/projects/init.md#projects-with-extension-modules).
 
@@ -24,9 +24,9 @@ required to build a
     a more flexible project layout are required, consider using the
     [hatchling](https://hatch.pypa.io/latest/config/build/#build-system) build backend instead.
 
-## Using the uv build backend
+## Using the fv build backend
 
-To use uv as a build backend in an existing project, add `uv_build` to the
+To use fv as a build backend in an existing project, add `uv_build` to the
 [`[build-system]`](../concepts/projects/config.md#build-systems) section in your `pyproject.toml`:
 
 ```toml title="pyproject.toml"
@@ -37,24 +37,24 @@ build-backend = "uv_build"
 
 !!! note
 
-    The uv build backend follows the same [versioning policy](../reference/policies/versioning.md)
-    as uv. Including an upper bound on the `uv_build` version ensures that your package continues to
+    The fv build backend follows the same [versioning policy](../reference/policies/versioning.md)
+    as fv. Including an upper bound on the `uv_build` version ensures that your package continues to
     build correctly as new versions are released.
 
-To create a new project that uses the uv build backend, use `uv init`:
+To create a new project that uses the fv build backend, use `fv init`:
 
 ```console
-$ uv init
+$ fv init
 ```
 
-When the project is built, e.g., with [`uv build`](../guides/package.md), the uv build backend will
+When the project is built, e.g., with [`fv build`](../guides/package.md), the fv build backend will
 be used to create the source distribution and wheel.
 
 ## Bundled build backend
 
 The build backend is published as a separate package (`uv_build`) that is optimized for portability
-and small binary size. However, the `uv` executable also includes a copy of the build backend, which
-will be used during builds performed by uv, e.g., during `uv build`, if its version is compatible
+and small binary size. However, the `fv` executable also includes a copy of the build backend, which
+will be used during builds performed by fv, e.g., during `fv build`, if its version is compatible
 with the `uv_build` requirement. If it's not compatible, a compatible version of the `uv_build`
 package will be used. Other build frontends, such as `python -m build`, will always use the
 `uv_build` package, typically choosing the latest compatible version.
@@ -73,7 +73,7 @@ src
     └── __init__.py
 ```
 
-uv normalizes the package name to determine the default module name: the package name is lowercased
+fv normalizes the package name to determine the default module name: the package name is lowercased
 and dots and dashes are replaced with underscores, e.g., `Foo-Bar` would be converted to `foo_bar`.
 
 The `src/` directory is the default directory for module discovery.
@@ -90,7 +90,7 @@ FOO
 The correct build configuration would be:
 
 ```toml title="pyproject.toml"
-[tool.uv.build-backend]
+[tool.fv.build-backend]
 module-name = "FOO"
 module-root = ""
 ```
@@ -114,7 +114,7 @@ src
 And the `module-name` configuration would be:
 
 ```toml title="pyproject.toml"
-[tool.uv.build-backend]
+[tool.fv.build-backend]
 module-name = "foo.bar"
 ```
 
@@ -138,7 +138,7 @@ While we do not recommend this structure (i.e., you should use a workspace with 
 instead), it is supported by setting `module-name` to a list of names:
 
 ```toml title="pyproject.toml"
-[tool.uv.build-backend]
+[tool.fv.build-backend]
 module-name = ["foo", "bar"]
 ```
 
@@ -146,7 +146,7 @@ For packages with many modules or complex namespaces, the `namespace = true` opt
 avoid explicitly declaring each module name, e.g.:
 
 ```toml title="pyproject.toml"
-[tool.uv.build-backend]
+[tool.fv.build-backend]
 namespace = true
 ```
 
@@ -171,7 +171,7 @@ src
 The recommended configuration would be:
 
 ```toml title="pyproject.toml"
-[tool.uv.build-backend]
+[tool.fv.build-backend]
 module-name = "foo"
 namespace = true
 ```
@@ -180,7 +180,7 @@ namespace = true
 
 The build backend also supports building type stub packages, which are identified by the `-stubs`
 suffix on the package or module name, e.g., `foo-stubs`. The module name for type stub packages must
-end in `-stubs`, so uv will not normalize the `-` to an underscore. Additionally, uv will search for
+end in `-stubs`, so fv will not normalize the `-` to an underscore. Additionally, fv will search for
 a `__init__.pyi` file. For example, the project structure would be:
 
 ```text
@@ -197,38 +197,38 @@ Type stub modules are also supported for [namespace packages](#namespace-package
 The build backend is responsible for determining which files in a source tree should be packaged
 into the distributions.
 
-To determine which files to include in a source distribution, uv first adds the included files and
+To determine which files to include in a source distribution, fv first adds the included files and
 directories, then removes the excluded files and directories. This means that exclusions always take
 precedence over inclusions.
 
-By default, uv excludes `__pycache__`, `*.pyc`, and `*.pyo`.
+By default, fv excludes `__pycache__`, `*.pyc`, and `*.pyo`.
 
 When building a source distribution, the following files and directories are included:
 
 - The `pyproject.toml`
 - The [module](#modules) under
-  [`tool.uv.build-backend.module-root`](../reference/settings.md#build-backend_module-root).
+  [`tool.fv.build-backend.module-root`](../reference/settings.md#build-backend_module-root).
 - The files referenced by `project.license-files` and `project.readme`.
-- All directories under [`tool.uv.build-backend.data`](../reference/settings.md#build-backend_data).
+- All directories under [`tool.fv.build-backend.data`](../reference/settings.md#build-backend_data).
 - All files matching patterns from
-  [`tool.uv.build-backend.source-include`](../reference/settings.md#build-backend_source-include).
+  [`tool.fv.build-backend.source-include`](../reference/settings.md#build-backend_source-include).
 
 From these, items matching
-[`tool.uv.build-backend.source-exclude`](../reference/settings.md#build-backend_source-exclude) and
+[`tool.fv.build-backend.source-exclude`](../reference/settings.md#build-backend_source-exclude) and
 the [default excludes](../reference/settings.md#build-backend_default-excludes) are removed.
 
 When building a wheel, the following files and directories are included:
 
 - The [module](#modules) under
-  [`tool.uv.build-backend.module-root`](../reference/settings.md#build-backend_module-root)
+  [`tool.fv.build-backend.module-root`](../reference/settings.md#build-backend_module-root)
 - The files referenced by `project.license-files`, which are copied into the `.dist-info` directory.
 - The `project.readme`, which is copied into the project metadata.
-- All directories under [`tool.uv.build-backend.data`](../reference/settings.md#build-backend_data),
+- All directories under [`tool.fv.build-backend.data`](../reference/settings.md#build-backend_data),
   which are copied into the `.data` directory.
 
 From these,
-[`tool.uv.build-backend.source-exclude`](../reference/settings.md#build-backend_source-exclude),
-[`tool.uv.build-backend.wheel-exclude`](../reference/settings.md#build-backend_wheel-exclude) and
+[`tool.fv.build-backend.source-exclude`](../reference/settings.md#build-backend_source-exclude),
+[`tool.fv.build-backend.wheel-exclude`](../reference/settings.md#build-backend_wheel-exclude) and
 the default excludes are removed. The source dist excludes are applied to avoid source tree to wheel
 builds including more files than source tree to source distribution to wheel build.
 
@@ -239,10 +239,10 @@ module root alongside the source code.
 
 !!! tip
 
-    When using the uv build backend through a frontend that is not uv, such as pip or
+    When using the fv build backend through a frontend that is not fv, such as pip or
     `python -m build`, debug logging can be enabled through environment variables with
-    `RUST_LOG=uv=debug` or `RUST_LOG=uv=verbose`. When used through uv, the uv build backend shares
-    the verbosity level of uv.
+    `RUST_LOG=fv=debug` or `RUST_LOG=fv=verbose`. When used through fv, the fv build backend shares
+    the verbosity level of fv.
 
 ### Include and exclude syntax
 

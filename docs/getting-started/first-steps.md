@@ -1,13 +1,13 @@
-# First steps with uv
+# First steps with fv
 
-After [installing uv](./installation.md), you can check that uv is available by running the `uv`
+After [installing fv](./installation.md), you can check that fv is available by running the `fv`
 command:
 
 ```console
-$ uv
+$ fv
 An extremely fast Python package manager.
 
-Usage: uv [OPTIONS] <COMMAND>
+Usage: fv [OPTIONS] <COMMAND>
 
 ...
 ```
@@ -16,6 +16,6 @@ You should see a help menu listing the available commands.
 
 ## Next steps
 
-Now that you've confirmed uv is installed, check out an [overview of features](./features.md), learn
+Now that you've confirmed fv is installed, check out an [overview of features](./features.md), learn
 how to [get help](./help.md) if you run into any problems, or jump to the
-[guides](../guides/index.md) to start using uv.
+[guides](../guides/index.md) to start using fv.

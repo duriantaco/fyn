@@ -1,0 +1,58 @@
+[package]
+name = "fv-workspace"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fv-build-backend = { workspace = true, features = ["schemars"] }
+fv-cache-key = { workspace = true }
+fv-configuration = { workspace = true }
+fv-distribution-types = { workspace = true }
+fv-fs = { workspace = true, features = ["tokio", "schemars"] }
+fv-git-types = { workspace = true }
+fv-macros = { workspace = true }
+fv-normalize = { workspace = true }
+fv-options-metadata = { workspace = true }
+fv-pep440 = { workspace = true }
+fv-pep508 = { workspace = true }
+fv-pypi-types = { workspace = true }
+fv-redacted = { workspace = true }
+fv-static = { workspace = true }
+fv-warnings = { workspace = true }
+
+clap = { workspace = true, optional = true }
+fs-err = { workspace = true }
+glob = { workspace = true }
+ignore = { workspace = true }
+itertools = { workspace = true }
+owo-colors = { workspace = true }
+rustc-hash = { workspace = true }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+toml = { workspace = true }
+toml_edit = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+assert_fs = { workspace = true }
+insta = { workspace = true }
+regex = { workspace = true }
+tempfile = { workspace = true }
+
+[features]
+schemars = ["dep:schemars", "fv-pypi-types/schemars", "fv-redacted/schemars"]

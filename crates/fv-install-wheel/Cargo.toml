@@ -1,0 +1,61 @@
+[package]
+name = "fv-install-wheel"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+keywords = ["wheel", "python"]
+
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lints]
+workspace = true
+
+[lib]
+doctest = false
+name = "fv_install_wheel"
+
+[dependencies]
+fv-distribution-filename = { workspace = true }
+fv-flags = { workspace = true }
+fv-fs = { workspace = true }
+fv-normalize = { workspace = true }
+fv-pep440 = { workspace = true }
+fv-preview = { workspace = true }
+fv-pypi-types = { workspace = true }
+fv-shell = { workspace = true }
+fv-trampoline-builder = { workspace = true }
+fv-warnings = { workspace = true }
+
+configparser = { workspace = true }
+csv = { workspace = true }
+data-encoding = { workspace = true }
+fs-err = { workspace = true }
+itertools = { workspace = true }
+mailparse = { workspace = true }
+owo-colors = { workspace = true }
+pathdiff = { workspace = true }
+regex = { workspace = true }
+rustc-hash = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+walkdir = { workspace = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+same-file = { workspace = true }
+self-replace = { workspace = true }
+
+[features]
+clap = ["fv-fs/clap"]
+schemars = ["fv-fs/schemars"]
+
+[dev-dependencies]
+anyhow = { workspace = true }
+assert_fs = { workspace = true }
+indoc = { workspace = true }

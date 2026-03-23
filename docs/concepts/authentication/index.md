@@ -2,9 +2,9 @@
 
 Authentication is required when working with private repositories or package indexes.
 
-Learn more about authentication in uv:
+Learn more about authentication in fv:
 
-- [Using the `uv auth` CLI](./cli.md)
+- [Using the `fv auth` CLI](./cli.md)
 - [HTTP authentication](./http.md)
 - [Git authentication](./git.md)
 - [TLS certificates](./certificates.md)

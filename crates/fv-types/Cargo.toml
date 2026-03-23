@@ -1,0 +1,38 @@
+[package]
+name = "fv-types"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fv-cache = { workspace = true }
+fv-configuration = { workspace = true }
+fv-distribution-filename = { workspace = true }
+fv-distribution-types = { workspace = true }
+fv-git = { workspace = true }
+fv-normalize = { workspace = true }
+fv-once-map = { workspace = true }
+fv-pep440 = { workspace = true }
+fv-pypi-types = { workspace = true }
+fv-python = { workspace = true }
+fv-redacted = { workspace = true }
+fv-workspace = { workspace = true }
+
+anyhow = { workspace = true }
+dashmap = { workspace = true }
+rustc-hash = { workspace = true }
+thiserror = { workspace = true }
+
+[features]
+default = []

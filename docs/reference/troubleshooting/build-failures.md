@@ -1,8 +1,8 @@
 # Troubleshooting build failures
 
-uv needs to build packages when there is not a compatible wheel (a pre-built distribution of the
+fv needs to build packages when there is not a compatible wheel (a pre-built distribution of the
 package) available. Building packages can fail for many reasons, some of which may be unrelated to
-uv itself.
+fv itself.
 
 ## Recognizing a build failure
 
@@ -10,7 +10,7 @@ An example build failure can be produced by trying to install and old version of
 unsupported version of Python:
 
 ```console
-$ uv pip install -p 3.13 'numpy<1.20'
+$ fv pip install -p 3.13 'numpy<1.20'
 Resolved 1 package in 62ms
   × Failed to build `numpy==1.19.5`
   ├─▶ The build backend returned an error
@@ -20,7 +20,7 @@ Resolved 1 package in 62ms
       Traceback (most recent call last):
         File "<string>", line 8, in <module>
           from setuptools.build_meta import __legacy__ as backend
-        File "/home/konsti/.cache/uv/builds-v0/.tmpi4bgKb/lib/python3.13/site-packages/setuptools/__init__.py", line 9, in <module>
+        File "/home/konsti/.cache/fv/builds-v0/.tmpi4bgKb/lib/python3.13/site-packages/setuptools/__init__.py", line 9, in <module>
           import distutils.core
       ModuleNotFoundError: No module named 'distutils'
 
@@ -31,19 +31,19 @@ Resolved 1 package in 62ms
 Notice that the error message is prefaced by "The build backend returned an error".
 
 The build failure includes the `[stderr]` (and `[stdout]`, if present) from the build backend that
-was used for the build. The error logs are not from uv itself.
+was used for the build. The error logs are not from fv itself.
 
-The message following the `╰─▶` is a hint provided by uv, to help resolve common build failures. A
+The message following the `╰─▶` is a hint provided by fv, to help resolve common build failures. A
 hint will not be available for all build failures.
 
-## Confirming that a build failure is specific to uv
+## Confirming that a build failure is specific to fv
 
 Build failures are usually related to your system and the build backend. It is rare that a build
-failure is specific to uv. You can confirm that the build failure is not related to uv by attempting
+failure is specific to fv. You can confirm that the build failure is not related to fv by attempting
 to reproduce it with pip:
 
 ```console
-$ uv venv -p 3.13 --seed
+$ fv venv -p 3.13 --seed
 $ source .venv/bin/activate
 $ pip install --use-pep517 --no-cache --force-reinstall 'numpy==1.19.5'
 Collecting numpy==1.19.5
@@ -53,12 +53,12 @@ Collecting numpy==1.19.5
 ERROR: Exception:
 Traceback (most recent call last):
   ...
-  File "/Users/example/.cache/uv/archive-v0/3783IbOdglemN3ieOULx2/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 321, in _call_hook
+  File "/Users/example/.cache/fv/archive-v0/3783IbOdglemN3ieOULx2/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 321, in _call_hook
     raise BackendUnavailable(data.get('traceback', ''))
 pip._vendor.pyproject_hooks._impl.BackendUnavailable: Traceback (most recent call last):
-  File "/Users/example/.cache/uv/archive-v0/3783IbOdglemN3ieOULx2/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py", line 77, in _build_backend
+  File "/Users/example/.cache/fv/archive-v0/3783IbOdglemN3ieOULx2/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py", line 77, in _build_backend
     obj = import_module(mod_path)
-  File "/Users/example/.local/share/uv/python/cpython-3.13.0-macos-aarch64-none/lib/python3.13/importlib/__init__.py", line 88, in import_module
+  File "/Users/example/.local/share/fv/python/cpython-3.13.0-macos-aarch64-none/lib/python3.13/importlib/__init__.py", line 88, in import_module
     return _bootstrap._gcd_import(name[level:], package, level)
            ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
@@ -79,28 +79,28 @@ ModuleNotFoundError: No module named 'distutils'
 !!! important
 
     The `--use-pep517` flag should be included with the `pip install` invocation to ensure the same
-    build isolation behavior. uv always uses [build isolation by default](../../pip/compatibility.md#pep-517-build-isolation).
+    build isolation behavior. fv always uses [build isolation by default](../../pip/compatibility.md#pep-517-build-isolation).
 
     We also recommend including the `--force-reinstall` and `--no-cache` options when reproducing
     failures.
 
-Since this build failure occurs in pip too, it is not likely to be a bug with uv.
+Since this build failure occurs in pip too, it is not likely to be a bug with fv.
 
 If a build failure is reproducible with another installer, you should investigate upstream (in this
 example, `numpy` or `setuptools`), find a way to avoid building the package in the first place, or
 make the necessary adjustments to your system for the build to succeed.
 
-## Why does uv build a package?
+## Why does fv build a package?
 
-When generating the cross-platform lockfile, uv needs to determine the dependencies of all packages,
-even those only installed on other platforms. uv tries to avoid package builds during resolution. It
+When generating the cross-platform lockfile, fv needs to determine the dependencies of all packages,
+even those only installed on other platforms. fv tries to avoid package builds during resolution. It
 uses any wheel if exist for that version, then tries to find static metadata in the source
 distribution (mainly pyproject.toml with static `project.version`, `project.dependencies` and
 `project.optional-dependencies` or METADATA v2.2+). Only if all of that fails, it builds the
 package.
 
-When installing, uv needs to have a wheel for the current platform for each package. If no matching
-wheel exists in the index, uv tries to build the source distribution.
+When installing, fv needs to have a wheel for the current platform for each package. If no matching
+wheel exists in the index, fv tries to build the source distribution.
 
 You can check which wheels exist for a PyPI project under “Download Files”, e.g.
 https://pypi.org/project/numpy/2.1.1.md#files. Wheels with `...-py3-none-any.whl` filenames work
@@ -116,7 +116,7 @@ The following examples demonstrate common build failures and how to resolve them
 
 If the build error mentions a missing command, for example, `gcc`:
 
-<!-- docker run --platform linux/x86_64 -it ghcr.io/astral-sh/uv:python3.10-trixie-slim /bin/bash -c "uv pip install --system pysha3==1.0.2" -->
+<!-- docker run --platform linux/x86_64 -it ghcr.io/oha/fv:python3.10-trixie-slim /bin/bash -c "fv pip install --system pysha3==1.0.2" -->
 
 ```hl_lines="17"
 × Failed to build `pysha3==1.0.2`
@@ -132,7 +132,7 @@ If the build error mentions a missing command, for example, `gcc`:
     running build_ext
     building '_pysha3' extension
     creating build/temp.linux-x86_64-cpython-310/Modules/_sha3
-    gcc -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -fPIC -DPY_WITH_KECCAK=1 -I/root/.cache/uv/builds-v0/.tmp8V4iEk/include -I/usr/local/include/python3.10 -c
+    gcc -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -fPIC -DPY_WITH_KECCAK=1 -I/root/.cache/fv/builds-v0/.tmp8V4iEk/include -I/usr/local/include/python3.10 -c
     Modules/_sha3/sha3module.c -o build/temp.linux-x86_64-cpython-310/Modules/_sha3/sha3module.o
 
     [stderr]
@@ -147,7 +147,7 @@ $ apt install gcc
 
 !!! tip
 
-    When using the uv-managed Python versions, it's common to need `clang` installed instead of
+    When using the fv-managed Python versions, it's common to need `clang` installed instead of
     `gcc`.
 
     Many Linux distributions provide a package that includes all the common build dependencies.
@@ -164,7 +164,7 @@ install it with your system package manager.
 
 For example, installing `pygraphviz` requires Graphviz to be installed:
 
-<!-- docker run --platform linux/x86_64 -it ghcr.io/astral-sh/uv:python3.12-trixie /bin/bash -c "uv pip install --system 'pygraphviz'" -->
+<!-- docker run --platform linux/x86_64 -it ghcr.io/oha/fv:python3.12-trixie /bin/bash -c "fv pip install --system 'pygraphviz'" -->
 
 ```hl_lines="18-19"
 × Failed to build `pygraphviz==1.14`
@@ -176,7 +176,7 @@ For example, installing `pygraphviz` requires Graphviz to be installed:
   running build
   running build_py
   ...
-  gcc -fno-strict-overflow -Wsign-compare -DNDEBUG -g -O3 -Wall -fPIC -DSWIG_PYTHON_STRICT_BYTE_CHAR -I/root/.cache/uv/builds-v0/.tmpgLYPe0/include -I/usr/local/include/python3.12 -c pygraphviz/graphviz_wrap.c -o
+  gcc -fno-strict-overflow -Wsign-compare -DNDEBUG -g -O3 -Wall -fPIC -DSWIG_PYTHON_STRICT_BYTE_CHAR -I/root/.cache/fv/builds-v0/.tmpgLYPe0/include -I/usr/local/include/python3.12 -c pygraphviz/graphviz_wrap.c -o
   build/temp.linux-x86_64-cpython-312/pygraphviz/graphviz_wrap.o
 
   [stderr]
@@ -215,7 +215,7 @@ If the build error mentions a failing import, consider
 For example, some packages assume that `pip` is available without declaring it as a build
 dependency:
 
-<!-- docker run --platform linux/x86_64 -it ghcr.io/astral-sh/uv:python3.12-trixie-slim /bin/bash -c "uv pip install --system chumpy" -->
+<!-- docker run --platform linux/x86_64 -it ghcr.io/oha/fv:python3.12-trixie-slim /bin/bash -c "fv pip install --system chumpy" -->
 
 ```hl_lines="7"
   × Failed to build `chumpy==0.70`
@@ -231,14 +231,14 @@ dependency:
 
     Traceback (most recent call last):
       File "<string>", line 14, in <module>
-      File "/root/.cache/uv/builds-v0/.tmpvvHaxI/lib/python3.12/site-packages/setuptools/build_meta.py", line 334, in get_requires_for_build_wheel
+      File "/root/.cache/fv/builds-v0/.tmpvvHaxI/lib/python3.12/site-packages/setuptools/build_meta.py", line 334, in get_requires_for_build_wheel
         return self._get_build_requires(config_settings, requirements=[])
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      File "/root/.cache/uv/builds-v0/.tmpvvHaxI/lib/python3.12/site-packages/setuptools/build_meta.py", line 304, in _get_build_requires
+      File "/root/.cache/fv/builds-v0/.tmpvvHaxI/lib/python3.12/site-packages/setuptools/build_meta.py", line 304, in _get_build_requires
         self.run_setup()
-      File "/root/.cache/uv/builds-v0/.tmpvvHaxI/lib/python3.12/site-packages/setuptools/build_meta.py", line 522, in run_setup
+      File "/root/.cache/fv/builds-v0/.tmpvvHaxI/lib/python3.12/site-packages/setuptools/build_meta.py", line 522, in run_setup
         super().run_setup(setup_script=setup_script)
-      File "/root/.cache/uv/builds-v0/.tmpvvHaxI/lib/python3.12/site-packages/setuptools/build_meta.py", line 320, in run_setup
+      File "/root/.cache/fv/builds-v0/.tmpvvHaxI/lib/python3.12/site-packages/setuptools/build_meta.py", line 320, in run_setup
         exec(code, locals())
       File "<string>", line 11, in <module>
     ModuleNotFoundError: No module named 'pip'
@@ -248,8 +248,8 @@ To resolve this error, pre-install the build dependencies then disable build iso
 package:
 
 ```console
-$ uv pip install pip setuptools
-$ uv pip install chumpy --no-build-isolation-package chumpy
+$ fv pip install pip setuptools
+$ fv pip install chumpy --no-build-isolation-package chumpy
 ```
 
 Note you will need to install the missing package, e.g., `pip`, _and_ all the other build
@@ -259,11 +259,11 @@ dependencies of the package, e.g, `setuptools`.
 
 If a package fails to build during resolution and the version that failed to build is older than the
 version you want to use, try adding a [constraint](../settings.md#constraint-dependencies) with a
-lower bound (e.g., `numpy>=1.17`). Sometimes, due to algorithmic limitations, the uv resolver tries
+lower bound (e.g., `numpy>=1.17`). Sometimes, due to algorithmic limitations, the fv resolver tries
 to find a fitting version using unreasonably old packages, which can be prevented by using lower
 bounds.
 
-For example, when resolving the following dependencies on Python 3.10, uv attempts to build an old
+For example, when resolving the following dependencies on Python 3.10, fv attempts to build an old
 version of `apache-beam`.
 
 ```title="requirements.txt"
@@ -271,7 +271,7 @@ dill<0.3.9,>=0.2.2
 apache-beam<=2.49.0
 ```
 
-<!-- docker run --platform linux/x86_64 -it ghcr.io/astral-sh/uv:python3.10-trixie-slim /bin/bash -c "printf 'dill<0.3.9,>=0.2.2\napache-beam<=2.49.0' | uv pip compile -" -->
+<!-- docker run --platform linux/x86_64 -it ghcr.io/oha/fv:python3.10-trixie-slim /bin/bash -c "printf 'dill<0.3.9,>=0.2.2\napache-beam<=2.49.0' | fv pip compile -" -->
 
 ```hl_lines="1"
 × Failed to build `apache-beam==2.0.0`
@@ -283,17 +283,17 @@ apache-beam<=2.49.0
 ```
 
 Adding a lower bound constraint, e.g., `apache-beam<=2.49.0,>2.30.0`, resolves this build failure as
-uv will avoid using an old version of `apache-beam`.
+fv will avoid using an old version of `apache-beam`.
 
 Constraints can also be defined for indirect dependencies using `constraints.txt` files or the
 [`constraint-dependencies`](../settings.md#constraint-dependencies) setting.
 
 ### Old Version of a build dependency is used
 
-If a package fails to build because `uv` selects an incompatible or outdated version of a build-time
+If a package fails to build because `fv` selects an incompatible or outdated version of a build-time
 dependency, you can enforce constraints specifically for build dependencies. The
 [`build-constraint-dependencies`](../settings.md#build-constraint-dependencies) setting (or an
-analogous `build-constraints.txt` file) can be used to ensure that `uv` selects an appropriate
+analogous `build-constraints.txt` file) can be used to ensure that `fv` selects an appropriate
 version of a given build requirements.
 
 For example, the issue described in
@@ -301,7 +301,7 @@ For example, the issue described in
 specifying a build constraint that excludes `setuptools` version `72.0.0`:
 
 ```toml title="pyproject.toml"
-[tool.uv]
+[tool.fv]
 # Prevent setuptools version 72.0.0 from being used as a build dependency.
 build-constraint-dependencies = ["setuptools!=72.0.0"]
 ```
@@ -331,6 +331,6 @@ numpy<1.23; python_version < "3.10"
 ### Package is only usable on a specific platform
 
 If locking fails due to building a package that is only usable on another platform, you can
-[provide dependency metadata manually](../settings.md#dependency-metadata) to skip the build. uv can
+[provide dependency metadata manually](../settings.md#dependency-metadata) to skip the build. fv can
 not verify this information, so it is important to specify correct metadata when using this
 override.

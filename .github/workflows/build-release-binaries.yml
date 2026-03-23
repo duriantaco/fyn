@@ -1,4 +1,4 @@
-# Build uv on all platforms.
+# Build fv on all platforms.
 #
 # Generates both wheels (for PyPI) and archived binaries (for GitHub releases).
 #
@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PACKAGE_NAME: uv
-  MODULE_NAME: uv
+  PACKAGE_NAME: fv
+  MODULE_NAME: fv
   PYTHON_VERSION: "3.11"
   CARGO_INCREMENTAL: 0
   CARGO_NET_RETRY: 10
@@ -42,7 +42,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      # uv
+      # fv
       - name: "Prep README.md"
         run: python scripts/transform_readme.py --target pypi
       - name: "Build sdist"
@@ -54,34 +54,34 @@ jobs:
       - name: "Test sdist"
         run: |
           # We can't use `--find-links` here, since we need maturin, which means no `--no-index`, and without that option
-          # we run the risk that pip pull uv from PyPI instead.
+          # we run the risk that pip pull fv from PyPI instead.
           pip install dist/${PACKAGE_NAME}-*.tar.gz --force-reinstall
           ${MODULE_NAME} --help
           python -m ${MODULE_NAME} --help
-          uvx --help
+          fvx --help
       - name: "Upload sdist"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-sdist
+          name: wheels_fv-sdist
           path: dist
 
-      # uv-build
-      - name: "Build sdist uv-build"
+      # fv-build
+      - name: "Build sdist fv-build"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           command: sdist
-          args: --out crates/uv-build/dist -m crates/uv-build/Cargo.toml
-      - name: "Test sdist uv-build"
+          args: --out crates/fv-build/dist -m crates/fv-build/Cargo.toml
+      - name: "Test sdist fv-build"
         run: |
-          pip install crates/uv-build/dist/${PACKAGE_NAME}_build-*.tar.gz --force-reinstall
+          pip install crates/fv-build/dist/${PACKAGE_NAME}_build-*.tar.gz --force-reinstall
           ${MODULE_NAME}-build --help
           python -m ${MODULE_NAME}_build --help
-      - name: "Upload sdist uv-build"
+      - name: "Upload sdist fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-sdist
-          path: crates/uv-build/dist
+          name: wheels_fv_build-sdist
+          path: crates/fv-build/dist
 
   macos-x86_64:
     name: x86_64-apple-darwin
@@ -101,7 +101,7 @@ jobs:
         shell: bash
         run: scripts/install-cargo-extensions.sh
 
-      # uv
+      # fv
       - name: "Build wheels - x86_64"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -113,17 +113,17 @@ jobs:
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-macos-x86_64
+          name: wheels_fv-macos-x86_64
           path: dist
       - name: "Archive binary"
         run: |
           TARGET=x86_64-apple-darwin
-          ARCHIVE_NAME=uv-$TARGET
+          ARCHIVE_NAME=fv-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME
-          cp target/$TARGET/release/uv $ARCHIVE_NAME/uv
-          cp target/$TARGET/release/uvx $ARCHIVE_NAME/uvx
+          cp target/$TARGET/release/fv $ARCHIVE_NAME/fv
+          cp target/$TARGET/release/fvx $ARCHIVE_NAME/fvx
           tar czvf $ARCHIVE_FILE $ARCHIVE_NAME
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
       - name: "Upload binary"
@@ -134,20 +134,20 @@ jobs:
             *.tar.gz
             *.sha256
 
-      # uv-build
-      - name: "Build wheels uv-build - x86_64"
+      # fv-build
+      - name: "Build wheels fv-build - x86_64"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: x86_64
-          args: --profile minimal-size --locked --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
         env:
           CARGO: ${{ github.workspace }}/scripts/cargo.sh
-      - name: "Upload wheels uv-build"
+      - name: "Upload wheels fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-macos-x86_64
-          path: crates/uv-build/dist
+          name: wheels_fv_build-macos-x86_64
+          path: crates/fv-build/dist
 
   macos-aarch64:
     name: aarch64-apple-darwin
@@ -167,7 +167,7 @@ jobs:
         shell: bash
         run: scripts/install-cargo-extensions.sh
 
-      # uv
+      # fv
       - name: "Build wheels - aarch64"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -182,21 +182,21 @@ jobs:
           pip install ${PACKAGE_NAME} --no-index --find-links dist/ --force-reinstall
           ${MODULE_NAME} --help
           python -m ${MODULE_NAME} --help
-          uvx --help
+          fvx --help
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-aarch64-apple-darwin
+          name: wheels_fv-aarch64-apple-darwin
           path: dist
       - name: "Archive binary"
         run: |
           TARGET=aarch64-apple-darwin
-          ARCHIVE_NAME=uv-$TARGET
+          ARCHIVE_NAME=fv-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME
-          cp target/$TARGET/release/uv $ARCHIVE_NAME/uv
-          cp target/$TARGET/release/uvx $ARCHIVE_NAME/uvx
+          cp target/$TARGET/release/fv $ARCHIVE_NAME/fv
+          cp target/$TARGET/release/fvx $ARCHIVE_NAME/fvx
           tar czvf $ARCHIVE_FILE $ARCHIVE_NAME
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
       - name: "Upload binary"
@@ -207,25 +207,25 @@ jobs:
             *.tar.gz
             *.sha256
 
-      # uv-build
-      - name: "Build wheels uv-build - aarch64"
+      # fv-build
+      - name: "Build wheels fv-build - aarch64"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: aarch64
-          args: --profile minimal-size --locked --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
         env:
           CARGO: ${{ github.workspace }}/scripts/cargo.sh
       - name: "Test wheel - aarch64"
         run: |
-          pip install ${PACKAGE_NAME}_build --no-index --find-links crates/uv-build/dist --force-reinstall
+          pip install ${PACKAGE_NAME}_build --no-index --find-links crates/fv-build/dist --force-reinstall
           ${MODULE_NAME}-build --help
           python -m ${MODULE_NAME}_build --help
-      - name: "Upload wheels uv-build"
+      - name: "Upload wheels fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-aarch64-apple-darwin
-          path: crates/uv-build/dist
+          name: wheels_fv_build-aarch64-apple-darwin
+          path: crates/fv-build/dist
 
   windows:
     name: ${{ matrix.platform.target }}
@@ -257,7 +257,7 @@ jobs:
         shell: bash
         run: scripts/install-cargo-extensions.sh
 
-      # uv
+      # fv
       - name: "Build wheels"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -272,20 +272,20 @@ jobs:
           pip install ${PACKAGE_NAME} --no-index --find-links dist/ --force-reinstall
           ${MODULE_NAME} --help
           python -m ${MODULE_NAME} --help
-          uvx --help
-          uvw --help
+          fvx --help
+          fvw --help
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-${{ matrix.platform.target }}
+          name: wheels_fv-${{ matrix.platform.target }}
           path: dist
       - name: "Archive binary"
         shell: bash
         run: |
-          ARCHIVE_FILE=uv-${PLATFORM_TARGET}.zip
-          7z a $ARCHIVE_FILE ./target/${PLATFORM_TARGET}/release/uv.exe
-          7z a $ARCHIVE_FILE ./target/${PLATFORM_TARGET}/release/uvx.exe
-          7z a $ARCHIVE_FILE ./target/${PLATFORM_TARGET}/release/uvw.exe
+          ARCHIVE_FILE=fv-${PLATFORM_TARGET}.zip
+          7z a $ARCHIVE_FILE ./target/${PLATFORM_TARGET}/release/fv.exe
+          7z a $ARCHIVE_FILE ./target/${PLATFORM_TARGET}/release/fvx.exe
+          7z a $ARCHIVE_FILE ./target/${PLATFORM_TARGET}/release/fvw.exe
           sha256sum $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
         env:
           PLATFORM_TARGET: ${{ matrix.platform.target }}
@@ -297,26 +297,26 @@ jobs:
             *.zip
             *.sha256
 
-      # uv-build
-      - name: "Build wheels uv-build"
+      # fv-build
+      - name: "Build wheels fv-build"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: ${{ matrix.platform.target }}
-          args: --profile minimal-size --locked --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
         env:
           CARGO: ${{ github.workspace }}/scripts/cargo.cmd
-      - name: "Test wheel uv-build"
+      - name: "Test wheel fv-build"
         shell: bash
         run: |
-          pip install ${PACKAGE_NAME}_build --no-index --find-links crates/uv-build/dist --force-reinstall
+          pip install ${PACKAGE_NAME}_build --no-index --find-links crates/fv-build/dist --force-reinstall
           ${MODULE_NAME}-build --help
           python -m ${MODULE_NAME}_build --help
-      - name: "Upload wheels uv-build"
+      - name: "Upload wheels fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-${{ matrix.platform.target }}
-          path: crates/uv-build/dist
+          name: wheels_fv_build-${{ matrix.platform.target }}
+          path: crates/fv-build/dist
 
   linux:
     name: ${{ matrix.target }}
@@ -338,7 +338,7 @@ jobs:
       - name: "Prep README.md"
         run: python scripts/transform_readme.py --target pypi
 
-      # uv
+      # fv
       - name: "Build wheels"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -382,21 +382,21 @@ jobs:
           pip install ${PACKAGE_NAME} --no-index --find-links dist/ --force-reinstall
           ${MODULE_NAME} --help
           python -m ${MODULE_NAME} --help
-          uvx --help
+          fvx --help
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-${{ matrix.target }}
+          name: wheels_fv-${{ matrix.target }}
           path: dist
       - name: "Archive binary"
         shell: bash
         run: |
-          ARCHIVE_NAME=uv-$TARGET
+          ARCHIVE_NAME=fv-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME
-          cp target/$TARGET/release/uv $ARCHIVE_NAME/uv
-          cp target/$TARGET/release/uvx $ARCHIVE_NAME/uvx
+          cp target/$TARGET/release/fv $ARCHIVE_NAME/fv
+          cp target/$TARGET/release/fvx $ARCHIVE_NAME/fvx
           tar czvf $ARCHIVE_FILE $ARCHIVE_NAME
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
         env:
@@ -409,30 +409,30 @@ jobs:
             *.tar.gz
             *.sha256
 
-      # uv-build
-      - name: "Build wheels uv-build"
+      # fv-build
+      - name: "Build wheels fv-build"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: ${{ matrix.target }}
           manylinux: 2_17
           docker-options: -e CARGO
-          args: --profile minimal-size --locked --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
           before-script-linux: |
             scripts/install-cargo-extensions.sh
         env:
           CARGO: ${{ github.workspace }}/scripts/cargo.sh
-      - name: "Test wheel uv-build"
+      - name: "Test wheel fv-build"
         if: ${{ startsWith(matrix.target, 'x86_64') }}
         run: |
-          pip install ${PACKAGE_NAME}_build --no-index --find-links crates/uv-build/dist --force-reinstall
+          pip install ${PACKAGE_NAME}_build --no-index --find-links crates/fv-build/dist --force-reinstall
           ${MODULE_NAME}-build --help
           python -m ${MODULE_NAME}_build --help
-      - name: "Upload wheels uv-build"
+      - name: "Upload wheels fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-${{ matrix.target }}
-          path: crates/uv-build/dist
+          name: wheels_fv_build-${{ matrix.target }}
+          path: crates/fv-build/dist
 
   linux-arm:
     name: ${{ matrix.platform.target }}
@@ -468,7 +468,7 @@ jobs:
       - name: "Prep README.md"
         run: python scripts/transform_readme.py --target pypi
 
-      # uv
+      # fv
       - name: "Build wheels"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -495,24 +495,24 @@ jobs:
             ${MODULE_NAME} --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # python -m ${MODULE_NAME} --help
-            uvx --help
+            fvx --help
           env: |
             PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
             MODULE_NAME: ${{ env.MODULE_NAME }}
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-${{ matrix.platform.target }}
+          name: wheels_fv-${{ matrix.platform.target }}
           path: dist
       - name: "Archive binary"
         shell: bash
         run: |
-          ARCHIVE_NAME=uv-$TARGET
+          ARCHIVE_NAME=fv-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME
-          cp target/$TARGET/release/uv $ARCHIVE_NAME/uv
-          cp target/$TARGET/release/uvx $ARCHIVE_NAME/uvx
+          cp target/$TARGET/release/fv $ARCHIVE_NAME/fv
+          cp target/$TARGET/release/fvx $ARCHIVE_NAME/fvx
           tar czvf $ARCHIVE_FILE $ARCHIVE_NAME
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
         env:
@@ -525,21 +525,21 @@ jobs:
             *.tar.gz
             *.sha256
 
-      # uv-build
-      - name: "Build wheels uv-build"
+      # fv-build
+      - name: "Build wheels fv-build"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: ${{ matrix.platform.target }}
           manylinux: ${{ matrix.platform.manylinux }}
           docker-options: -e CARGO ${{ matrix.platform.maturin_docker_options }}
-          args: --profile minimal-size --locked --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
           before-script-linux: |
             scripts/install-cargo-extensions.sh
         env:
           CARGO: ${{ github.workspace }}/scripts/cargo.sh
       - uses: uraimo/run-on-arch-action@d94c13912ea685de38fccc1109385b83fd79427d # v3.0.1
-        name: "Test wheel uv-build"
+        name: "Test wheel fv-build"
         with:
           arch: ${{ matrix.platform.arch == 'arm' && 'armv6' || matrix.platform.arch }}
           distro: ${{ matrix.platform.arch == 'arm' && 'bullseye' || 'ubuntu20.04' }}
@@ -548,18 +548,18 @@ jobs:
             apt-get install -y --no-install-recommends python3 python3-pip python-is-python3
             pip3 install -U pip
           run: |
-            pip install ${PACKAGE_NAME}_build --no-index --find-links crates/uv-build/dist --force-reinstall
+            pip install ${PACKAGE_NAME}_build --no-index --find-links crates/fv-build/dist --force-reinstall
             ${MODULE_NAME}-build --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # python -m ${MODULE_NAME}_build --help
           env: |
             PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
             MODULE_NAME: ${{ env.MODULE_NAME }}
-      - name: "Upload wheels uv-build"
+      - name: "Upload wheels fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-${{ matrix.platform.target }}
-          path: crates/uv-build/dist
+          name: wheels_fv_build-${{ matrix.platform.target }}
+          path: crates/fv-build/dist
 
   # Like `linux-arm`.
   linux-s390x:
@@ -583,7 +583,7 @@ jobs:
       - name: "Prep README.md"
         run: python scripts/transform_readme.py --target pypi
 
-      # uv
+      # fv
       - name: "Build wheels"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -611,24 +611,24 @@ jobs:
             ${MODULE_NAME} --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # python -m ${MODULE_NAME} --help
-            uvx --help
+            fvx --help
           env: |
             PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
             MODULE_NAME: ${{ env.MODULE_NAME }}
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-${{ matrix.platform.target }}
+          name: wheels_fv-${{ matrix.platform.target }}
           path: dist
       - name: "Archive binary"
         shell: bash
         run: |
-          ARCHIVE_NAME=uv-$TARGET
+          ARCHIVE_NAME=fv-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME
-          cp target/$TARGET/release/uv $ARCHIVE_NAME/uv
-          cp target/$TARGET/release/uvx $ARCHIVE_NAME/uvx
+          cp target/$TARGET/release/fv $ARCHIVE_NAME/fv
+          cp target/$TARGET/release/fvx $ARCHIVE_NAME/fvx
           tar czvf $ARCHIVE_FILE $ARCHIVE_NAME
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
         env:
@@ -641,21 +641,21 @@ jobs:
             *.tar.gz
             *.sha256
 
-      # uv-build
-      - name: "Build wheels uv-build"
+      # fv-build
+      - name: "Build wheels fv-build"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: ${{ matrix.platform.target }}
           manylinux: 2_17
           docker-options: -e CARGO ${{ matrix.platform.maturin_docker_options }}
-          args: --profile minimal-size --locked --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
           before-script-linux: |
             scripts/install-cargo-extensions.sh
         env:
           CARGO: ${{ github.workspace }}/scripts/cargo.sh
       - uses: uraimo/run-on-arch-action@d94c13912ea685de38fccc1109385b83fd79427d # v3.0.1
-        name: "Test wheel uv-build"
+        name: "Test wheel fv-build"
         with:
           arch: ${{ matrix.platform.arch }}
           distro: ubuntu20.04
@@ -664,18 +664,18 @@ jobs:
             apt-get install -y --no-install-recommends python3 python3-pip python-is-python3
             pip3 install -U pip
           run: |
-            pip install ${PACKAGE_NAME}-build --no-index --find-links crates/uv-build/dist --force-reinstall
+            pip install ${PACKAGE_NAME}-build --no-index --find-links crates/fv-build/dist --force-reinstall
             ${MODULE_NAME}-build --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # python -m ${MODULE_NAME}-build --help
           env: |
             PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
             MODULE_NAME: ${{ env.MODULE_NAME }}
-      - name: "Upload wheels uv-build"
+      - name: "Upload wheels fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-${{ matrix.platform.target }}
-          path: crates/uv-build/dist
+          name: wheels_fv_build-${{ matrix.platform.target }}
+          path: crates/fv-build/dist
 
   # Like `linux-arm`, but install the `gcc-powerpc64-linux-gnu` package.
   linux-powerpc:
@@ -700,7 +700,7 @@ jobs:
       - name: "Prep README.md"
         run: python scripts/transform_readme.py --target pypi
 
-      # uv
+      # fv
       - name: "Build wheels"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -734,21 +734,21 @@ jobs:
       #       ${MODULE_NAME} --help
       #       #(konsti) TODO: Enable this test on all platforms,currently `find_uv_bin` is failingto discover uv here.
       #       # python -m ${MODULE_NAME} --helppython -m ${MODULE_NAME} --help
-      #       uvx --help
+      #       fvx --help
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-${{ matrix.platform.target }}
+          name: wheels_fv-${{ matrix.platform.target }}
           path: dist
       - name: "Archive binary"
         shell: bash
         run: |
-          ARCHIVE_NAME=uv-$TARGET
+          ARCHIVE_NAME=fv-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME
-          cp target/$TARGET/release/uv $ARCHIVE_NAME/uv
-          cp target/$TARGET/release/uvx $ARCHIVE_NAME/uvx
+          cp target/$TARGET/release/fv $ARCHIVE_NAME/fv
+          cp target/$TARGET/release/fvx $ARCHIVE_NAME/fvx
           tar czvf $ARCHIVE_FILE $ARCHIVE_NAME
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
         env:
@@ -761,15 +761,15 @@ jobs:
             *.tar.gz
             *.sha256
 
-      # uv-build
-      - name: "Build wheels uv-build"
+      # fv-build
+      - name: "Build wheels fv-build"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: ${{ matrix.platform.target }}
           manylinux: 2_17
           docker-options: -e CARGO ${{ matrix.platform.maturin_docker_options }}
-          args: --profile minimal-size --locked --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
           before-script-linux: |
             if command -v yum &> /dev/null; then
                 yum update -y
@@ -781,11 +781,11 @@ jobs:
         env:
           CARGO: ${{ github.workspace }}/scripts/cargo.sh
       # TODO(charlie): Re-enable testing for PPC wheels.
-      - name: "Upload wheels uv-build"
+      - name: "Upload wheels fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-${{ matrix.platform.target }}
-          path: crates/uv-build/dist
+          name: wheels_fv_build-${{ matrix.platform.target }}
+          path: crates/fv-build/dist
 
   # Like `linux-arm`.
   linux-riscv64:
@@ -809,7 +809,7 @@ jobs:
       - name: "Prep README.md"
         run: python scripts/transform_readme.py --target pypi
 
-      # uv
+      # fv
       - name: "Build wheels"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -837,24 +837,24 @@ jobs:
             ${MODULE_NAME} --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # python -m ${MODULE_NAME} --help
-            uvx --help
+            fvx --help
           env: |
             PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
             MODULE_NAME: ${{ env.MODULE_NAME }}
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-${{ matrix.platform.target }}
+          name: wheels_fv-${{ matrix.platform.target }}
           path: dist
       - name: "Archive binary"
         shell: bash
         run: |
-          ARCHIVE_NAME=uv-$TARGET
+          ARCHIVE_NAME=fv-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME
-          cp target/$TARGET/release/uv $ARCHIVE_NAME/uv
-          cp target/$TARGET/release/uvx $ARCHIVE_NAME/uvx
+          cp target/$TARGET/release/fv $ARCHIVE_NAME/fv
+          cp target/$TARGET/release/fvx $ARCHIVE_NAME/fvx
           tar czvf $ARCHIVE_FILE $ARCHIVE_NAME
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
         env:
@@ -867,21 +867,21 @@ jobs:
             *.tar.gz
             *.sha256
 
-      # uv-build
-      - name: "Build wheels uv-build"
+      # fv-build
+      - name: "Build wheels fv-build"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: ${{ matrix.platform.target }}
           manylinux: 2_31
           docker-options: -e CARGO ${{ matrix.platform.maturin_docker_options }}
-          args: --profile minimal-size --locked --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
           before-script-linux: |
             scripts/install-cargo-extensions.sh
         env:
           CARGO: ${{ github.workspace }}/scripts/cargo.sh
       - uses: uraimo/run-on-arch-action@d94c13912ea685de38fccc1109385b83fd79427d # v3.0.1
-        name: "Test wheel uv-build"
+        name: "Test wheel fv-build"
         with:
           arch: ${{ matrix.platform.arch }}
           distro: ubuntu20.04
@@ -891,18 +891,18 @@ jobs:
             apt-get install -y --no-install-recommends python3 python3-pip python-is-python3
             pip3 install -U pip
           run: |
-            pip install ${PACKAGE_NAME}-build --no-index --find-links crates/uv-build/dist --force-reinstall
+            pip install ${PACKAGE_NAME}-build --no-index --find-links crates/fv-build/dist --force-reinstall
             ${MODULE_NAME}-build --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # python -m ${MODULE_NAME}-build --help
           env: |
             PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
             MODULE_NAME: ${{ env.MODULE_NAME }}
-      - name: "Upload wheels uv-build"
+      - name: "Upload wheels fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-${{ matrix.platform.target }}
-          path: crates/uv-build/dist
+          name: wheels_fv_build-${{ matrix.platform.target }}
+          path: crates/fv-build/dist
 
   musllinux:
     name: ${{ matrix.target }}
@@ -924,7 +924,7 @@ jobs:
       - name: "Prep README.md"
         run: python scripts/transform_readme.py --target pypi
 
-      # uv
+      # fv
       - name: "Build wheels"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -948,22 +948,22 @@ jobs:
             .venv/bin/${MODULE_NAME} --help;
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # .venv/bin/python -m ${MODULE_NAME} --help;
-            .venv/bin/uvx --help;
+            .venv/bin/fvx --help;
           "
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-${{ matrix.target }}
+          name: wheels_fv-${{ matrix.target }}
           path: dist
       - name: "Archive binary"
         shell: bash
         run: |
-          ARCHIVE_NAME=uv-$TARGET
+          ARCHIVE_NAME=fv-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME
-          cp target/$TARGET/release/uv $ARCHIVE_NAME/uv
-          cp target/$TARGET/release/uvx $ARCHIVE_NAME/uvx
+          cp target/$TARGET/release/fv $ARCHIVE_NAME/fv
+          cp target/$TARGET/release/fvx $ARCHIVE_NAME/fvx
           tar czvf $ARCHIVE_FILE $ARCHIVE_NAME
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
         env:
@@ -976,36 +976,36 @@ jobs:
             *.tar.gz
             *.sha256
 
-      # uv-build
-      - name: "Build wheels uv-build"
+      # fv-build
+      - name: "Build wheels fv-build"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: ${{ matrix.target }}
           manylinux: musllinux_1_1
           docker-options: -e CARGO
-          args: --profile minimal-size --locked --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
           before-script-linux: |
             scripts/install-cargo-extensions.sh
         env:
           CARGO: ${{ github.workspace }}/scripts/cargo.sh
-      - name: "Test wheel uv-build"
+      - name: "Test wheel fv-build"
         if: matrix.target == 'x86_64-unknown-linux-musl'
         run: |
           docker run --rm -v ${{ github.workspace }}:/io -w /io --env MODULE_NAME --env PACKAGE_NAME alpine:3.12 sh -c "
             apk add python3 py3-pip;
             python3 -m venv .venv;
             .venv/bin/pip install --upgrade pip;
-            .venv/bin/pip install ${PACKAGE_NAME}-build --no-index --find-links crates/uv-build/dist --force-reinstall;
+            .venv/bin/pip install ${PACKAGE_NAME}-build --no-index --find-links crates/fv-build/dist --force-reinstall;
             .venv/bin/${MODULE_NAME}-build --help;
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # .venv/bin/python -m ${MODULE_NAME}_build --help;
           "
-      - name: "Upload wheels uv-build"
+      - name: "Upload wheels fv-build"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-${{ matrix.target }}
-          path: crates/uv-build/dist
+          name: wheels_fv_build-${{ matrix.target }}
+          path: crates/fv-build/dist
 
   musllinux-cross:
     name: ${{ matrix.platform.target }}
@@ -1035,7 +1035,7 @@ jobs:
       - name: "Prep README.md"
         run: python scripts/transform_readme.py --target pypi
 
-      # uv
+      # fv
       - name: "Build wheels"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
@@ -1063,7 +1063,7 @@ jobs:
             .venv/bin/${MODULE_NAME} --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # .venv/bin/python -m ${MODULE_NAME} --help
-            .venv/bin/uvx --help
+            .venv/bin/fvx --help
           env: |
             PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
             MODULE_NAME: ${{ env.MODULE_NAME }}
@@ -1082,24 +1082,24 @@ jobs:
             ${MODULE_NAME} --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # python -m ${MODULE_NAME} --help
-            uvx --help
+            fvx --help
           env: |
             PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
             MODULE_NAME: ${{ env.MODULE_NAME }}
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv-${{ matrix.platform.target }}
+          name: wheels_fv-${{ matrix.platform.target }}
           path: dist
       - name: "Archive binary"
         shell: bash
         run: |
-          ARCHIVE_NAME=uv-$TARGET
+          ARCHIVE_NAME=fv-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME
-          cp target/$TARGET/$PROFILE/uv $ARCHIVE_NAME/uv
-          cp target/$TARGET/$PROFILE/uvx $ARCHIVE_NAME/uvx
+          cp target/$TARGET/$PROFILE/fv $ARCHIVE_NAME/fv
+          cp target/$TARGET/$PROFILE/fvx $ARCHIVE_NAME/fvx
           tar czvf $ARCHIVE_FILE $ARCHIVE_NAME
           shasum -a 256 $ARCHIVE_FILE > $ARCHIVE_FILE.sha256
         env:
@@ -1113,14 +1113,14 @@ jobs:
             *.tar.gz
             *.sha256
 
-      # uv-build
+      # fv-build
       - name: "Build wheels"
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad # v1.50.1
         with:
           maturin-version: v1.12.6
           target: ${{ matrix.platform.target }}
           manylinux: musllinux_1_1
-          args: --profile minimal-size --locked ${{ matrix.platform.arch == 'aarch64' && '--compatibility 2_17' || ''}} --out crates/uv-build/dist -m crates/uv-build/Cargo.toml --compatibility pypi
+          args: --profile minimal-size --locked ${{ matrix.platform.arch == 'aarch64' && '--compatibility 2_17' || ''}} --out crates/fv-build/dist -m crates/fv-build/Cargo.toml --compatibility pypi
           docker-options: -e CARGO ${{ matrix.platform.maturin_docker_options }}
           rust-toolchain: ${{ matrix.platform.toolchain || null }}
           before-script-linux: |
@@ -1136,7 +1136,7 @@ jobs:
             apk add python3
           run: |
             python -m venv .venv
-            .venv/bin/pip install ${PACKAGE_NAME}-build --no-index --find-links crates/uv-build/dist --force-reinstall
+            .venv/bin/pip install ${PACKAGE_NAME}-build --no-index --find-links crates/fv-build/dist --force-reinstall
             .venv/bin/${MODULE_NAME}-build --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # .venv/bin/python -m ${MODULE_NAME}_build --help
@@ -1154,7 +1154,7 @@ jobs:
             apt-get install -y --no-install-recommends python3 python3-pip python-is-python3
             pip3 install -U pip
           run: |
-            pip install ${PACKAGE_NAME}-build --no-index --find-links crates/uv-build/dist --force-reinstall
+            pip install ${PACKAGE_NAME}-build --no-index --find-links crates/fv-build/dist --force-reinstall
             ${MODULE_NAME}-build --help
             # TODO(konsti): Enable this test on all platforms, currently `find_uv_bin` is failing to discover uv here.
             # python -m ${MODULE_NAME}_build --help
@@ -1164,8 +1164,8 @@ jobs:
       - name: "Upload wheels"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: wheels_uv_build-${{ matrix.platform.target }}
-          path: crates/uv-build/dist
+          name: wheels_fv_build-${{ matrix.platform.target }}
+          path: crates/fv-build/dist
 
   check-wheels:
     name: "Check wheel contents"
@@ -1185,7 +1185,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: "Install uv"
+      - name: "Install fv"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:

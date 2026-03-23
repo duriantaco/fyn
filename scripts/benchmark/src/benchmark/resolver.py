@@ -1,17 +1,17 @@
-"""Benchmark uv against other packaging tools.
+"""Benchmark fv against other packaging tools.
 
-For example, to benchmark uv's `pip compile` command against `pip-tools`, run the
+For example, to benchmark fv's `pip compile` command against `pip-tools`, run the
 following from the `scripts/benchmark` directory:
 
-    uv run resolver --uv-pip --pip-compile ../requirements/trio.in
+    fv run resolver --uv-pip --pip-compile ../requirements/trio.in
 
-It's most common to benchmark multiple uv versions against one another by building
+It's most common to benchmark multiple fv versions against one another by building
 from multiple branches and specifying the path to each binary, as in:
 
     # Build the baseline version, from the repo root.
     git checkout main
     cargo build --release
-    mv ./target/release/uv ./target/release/baseline
+    mv ./target/release/fv ./target/release/baseline
 
     # Build the feature version, again from the repo root.
     git checkout feature
@@ -19,8 +19,8 @@ from multiple branches and specifying the path to each binary, as in:
 
     # Run the benchmark.
     cd scripts/benchmark
-    uv run resolver \
-        --uv-pip-path ../../target/release/uv \
+    fv run resolver \
+        --uv-pip-path ../../target/release/fv \
         --uv-pip-path ../../target/release/baseline \
         ../requirements/trio.in
 
@@ -28,22 +28,22 @@ By default, the script will run the resolution benchmarks when a `requirements.i
 is provided, and the installation benchmarks when a `requirements.txt` file is provided:
 
     # Run the resolution benchmarks against the Trio project.
-    uv run resolver \
-        --uv-path ../../target/release/uv \
+    fv run resolver \
+        --uv-path ../../target/release/fv \
         --uv-path ../../target/release/baseline \
         ../requirements/trio.in
 
     # Run the installation benchmarks against the Trio project.
-    uv run resolver \
-        --uv-path ../../target/release/uv \
+    fv run resolver \
+        --uv-path ../../target/release/fv \
         --uv-path ../../target/release/baseline \
         ../requirements/compiled/trio.txt
 
 You can also specify the benchmark to run explicitly:
 
     # Run the "uncached install" benchmark against the Trio project.
-    uv run resolver \
-        --uv-path ../../target/release/uv \
+    fv run resolver \
+        --uv-path ../../target/release/fv \
         --uv-path ../../target/release/baseline \
         --benchmark install-cold \
         ../requirements/compiled/trio.txt
@@ -841,11 +841,11 @@ class Pdm(Suite):
         )
 
 
-class UvPip(Suite):
+class FvPip(Suite):
     def __init__(self, *, python: str, path: str | None = None) -> None:
-        """Initialize a uv benchmark."""
+        """Initialize a fv benchmark."""
         self.python = python
-        self.name = path or "uv pip"
+        self.name = path or "fv pip"
         self.path = path or os.path.join(
             os.path.dirname(
                 os.path.dirname(
@@ -856,7 +856,7 @@ class UvPip(Suite):
             ),
             "target",
             "release",
-            "uv",
+            "fv",
         )
 
     def resolve_cold(self, requirements_file: str, *, cwd: str) -> Command | None:
@@ -1002,11 +1002,11 @@ class UvPip(Suite):
         )
 
 
-class UvProject(Suite):
+class FvProject(Suite):
     def __init__(self, *, python: str, path: str | None = None) -> None:
-        """Initialize a uv benchmark."""
+        """Initialize a fv benchmark."""
         self.python = python
-        self.name = path or "uv"
+        self.name = path or "fv"
         self.path = path or os.path.join(
             os.path.dirname(
                 os.path.dirname(
@@ -1017,11 +1017,11 @@ class UvProject(Suite):
             ),
             "target",
             "release",
-            "uv",
+            "fv",
         )
 
     def setup(self, requirements_file: str, *, cwd: str) -> None:
-        """Initialize a uv project from a requirements file."""
+        """Initialize a fv project from a requirements file."""
         import tomli
         import tomli_w
         from packaging.requirements import Requirement
@@ -1058,7 +1058,7 @@ class UvProject(Suite):
         self.setup(requirements_file, cwd=cwd)
 
         cache_dir = os.path.join(cwd, ".cache")
-        output_file = os.path.join(cwd, "uv.lock")
+        output_file = os.path.join(cwd, "fv.lock")
 
         return Command(
             name=f"{self.name} ({Benchmark.RESOLVE_COLD.value})",
@@ -1079,7 +1079,7 @@ class UvProject(Suite):
         self.setup(requirements_file, cwd=cwd)
 
         cache_dir = os.path.join(cwd, ".cache")
-        output_file = os.path.join(cwd, "uv.lock")
+        output_file = os.path.join(cwd, "fv.lock")
 
         return Command(
             name=f"{self.name} ({Benchmark.RESOLVE_WARM.value})",
@@ -1259,7 +1259,7 @@ class UvProject(Suite):
 def main():
     """Run the benchmark."""
     parser = argparse.ArgumentParser(
-        description="Benchmark uv against other packaging tools."
+        description="Benchmark fv against other packaging tools."
     )
     parser.add_argument(
         "file",
@@ -1326,12 +1326,12 @@ def main():
     )
     parser.add_argument(
         "--uv-pip",
-        help="Whether to benchmark uv's pip interface (assumes a uv binary exists at `./target/release/uv`).",
+        help="Whether to benchmark fv's pip interface (assumes a fv binary exists at `./target/release/fv`).",
         action="store_true",
     )
     parser.add_argument(
         "--uv-project",
-        help="Whether to benchmark uv's project interface (assumes a uv binary exists at `./target/release/uv`).",
+        help="Whether to benchmark fv's project interface (assumes a fv binary exists at `./target/release/fv`).",
         action="store_true",
     )
     parser.add_argument(
@@ -1361,13 +1361,13 @@ def main():
     parser.add_argument(
         "--uv-pip-path",
         type=str,
-        help="Path(s) to the uv binary to benchmark.",
+        help="Path(s) to the fv binary to benchmark.",
         action="append",
     )
     parser.add_argument(
         "--uv-project-path",
         type=str,
-        help="Path(s) to the uv binary to benchmark.",
+        help="Path(s) to the fv binary to benchmark.",
         action="append",
     )
 
@@ -1400,9 +1400,9 @@ def main():
     if args.pdm:
         suites.append(Pdm(python=python))
     if args.uv_pip:
-        suites.append(UvPip(python=python))
+        suites.append(FvPip(python=python))
     if args.uv_project:
-        suites.append(UvProject(python=python))
+        suites.append(FvProject(python=python))
     for path in args.pip_sync_path or []:
         suites.append(PipSync(python=python, path=path))
     for path in args.pip_compile_path or []:
@@ -1412,9 +1412,9 @@ def main():
     for path in args.pdm_path or []:
         suites.append(Pdm(python=python, path=path))
     for path in args.uv_pip_path or []:
-        suites.append(UvPip(python=python, path=path))
+        suites.append(FvPip(python=python, path=path))
     for path in args.uv_project_path or []:
-        suites.append(UvProject(python=python, path=path))
+        suites.append(FvProject(python=python, path=path))
 
     # If no tools were specified, benchmark all tools.
     if not suites:
@@ -1423,8 +1423,8 @@ def main():
             PipCompile(python=python),
             Poetry(python=python),
             Pdm(python=python),
-            UvPip(python=python),
-            UvProject(python=python),
+            FvPip(python=python),
+            FvProject(python=python),
         ]
 
     # Determine the benchmarks to run, based on user input. If no benchmarks were

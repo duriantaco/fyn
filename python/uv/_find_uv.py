@@ -5,20 +5,20 @@ import sys
 import sysconfig
 
 
-class UvNotFound(FileNotFoundError): ...
+class FvNotFound(FileNotFoundError): ...
 
 
-def find_uv_bin() -> str:
-    """Return the uv binary path."""
+def find_fv_bin() -> str:
+    """Return the fv binary path."""
 
-    uv_exe = "uv" + sysconfig.get_config_var("EXE")
+    fv_exe = "fv" + sysconfig.get_config_var("EXE")
 
     targets = [
         # The scripts directory for the current Python
         sysconfig.get_path("scripts"),
         # The scripts directory for the base prefix
         sysconfig.get_path("scripts", vars={"base": sys.base_prefix}),
-        # Above the package root, e.g., from `pip install --prefix` or `uv run --with`
+        # Above the package root, e.g., from `pip install --prefix` or `fv run --with`
         (
             # On Windows, with module path `<prefix>/Lib/site-packages/uv`
             _join(_matching_parents(_module_path(), "Lib/site-packages/uv"), "Scripts")
@@ -30,7 +30,7 @@ def find_uv_bin() -> str:
         ),
         # Adjacent to the package root, e.g., from `pip install --target`
         # with module path `<target>/uv`
-        _join(_matching_parents(_module_path(), "uv"), "bin"),
+        _join(_matching_parents(_module_path(), "fv"), "bin"),
         # The user scheme scripts directory, e.g., `~/.local/bin`
         sysconfig.get_path("scripts", scheme=_user_scheme()),
     ]
@@ -42,13 +42,13 @@ def find_uv_bin() -> str:
         if target in seen:
             continue
         seen.append(target)
-        path = os.path.join(target, uv_exe)
+        path = os.path.join(target, fv_exe)
         if os.path.isfile(path):
             return path
 
     locations = "\n".join(f" - {target}" for target in seen)
-    raise UvNotFound(
-        f"Could not find the uv binary in any of the following locations:\n{locations}\n"
+    raise FvNotFound(
+        f"Could not find the fv binary in any of the following locations:\n{locations}\n"
     )
 
 

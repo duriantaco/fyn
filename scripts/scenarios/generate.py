@@ -9,7 +9,7 @@ Important:
 
 Requirements:
 
-    $ uv pip install -r scripts/scenarios/pylock.toml
+    $ fv pip install -r scripts/scenarios/pylock.toml
 
     Uses `git`, `rustfmt`, and `cargo insta test` requirements from the project.
 
@@ -25,7 +25,7 @@ Usage:
 
         $ packse serve --no-hash <path to scenarios>
 
-        Override the uv package index and update the tests
+        Override the fv package index and update the tests
 
         $ UV_TEST_PACKSE_INDEX="http://localhost:3141" ./scripts/scenarios/generate.py <path to scenarios>
 
@@ -50,8 +50,8 @@ TEMPLATES = TOOL_ROOT / "templates"
 PACKSE = TOOL_ROOT / "packse-scenarios"
 REQUIREMENTS = TOOL_ROOT / "pylock.toml"
 PROJECT_ROOT = TOOL_ROOT.parent.parent
-TESTS = PROJECT_ROOT / "crates" / "uv" / "tests" / "it"
-TESTS_COMMON_MOD_RS = PROJECT_ROOT / "crates" / "uv-test" / "src" / "lib.rs"
+TESTS = PROJECT_ROOT / "crates" / "fv" / "tests" / "it"
+TESTS_COMMON_MOD_RS = PROJECT_ROOT / "crates" / "fv-test" / "src" / "lib.rs"
 
 try:
     import packse

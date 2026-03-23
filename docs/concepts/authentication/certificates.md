@@ -1,20 +1,20 @@
 # TLS certificates
 
-By default, uv loads certificates from the bundled `webpki-roots` crate. The `webpki-roots` are a
-reliable set of trust roots from Mozilla, and including them in uv improves portability and
+By default, fv loads certificates from the bundled `webpki-roots` crate. The `webpki-roots` are a
+reliable set of trust roots from Mozilla, and including them in fv improves portability and
 performance (especially on macOS, where reading the system trust store incurs a significant delay).
 
 ## System certificates
 
 In some cases, you may want to use the platform's native certificate store, especially if you're
 relying on a corporate trust root (e.g., for a mandatory proxy) that's included in your system's
-certificate store. To instruct uv to use the system's trust store, run uv with the `--native-tls`
+certificate store. To instruct fv to use the system's trust store, run fv with the `--native-tls`
 command-line flag, or set the `UV_NATIVE_TLS` environment variable to `true`.
 
 ## Custom certificates
 
 If a direct path to the certificate is required (e.g., in CI), set the `SSL_CERT_FILE` environment
-variable to the path of the certificate bundle, to instruct uv to use that file instead of the
+variable to the path of the certificate bundle, to instruct fv to use that file instead of the
 system's trust store.
 
 If client certificate authentication (mTLS) is desired, set the `SSL_CLIENT_CERT` environment
@@ -24,12 +24,12 @@ key.
 ## Insecure hosts
 
 If you're using a setup in which you want to trust a self-signed certificate or otherwise disable
-certificate verification, you can instruct uv to allow insecure connections to dedicated hosts via
+certificate verification, you can instruct fv to allow insecure connections to dedicated hosts via
 the `allow-insecure-host` configuration option. For example, adding the following to
 `pyproject.toml` will allow insecure connections to `example.com`:
 
 ```toml
-[tool.uv]
+[tool.fv]
 allow-insecure-host = ["example.com"]
 ```
 

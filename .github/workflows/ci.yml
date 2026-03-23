@@ -79,11 +79,11 @@ jobs:
             [[ "$file" == ".github/workflows/build-release-binaries.yml" ]] && release_workflow_changed=1
             [[ "$file" == "scripts/check_uv_wheel_contents.py" ]] && release_build_changed=1
             [[ "$file" == ".github/workflows/ci.yml" ]] && ci_workflow_changed=1
-            [[ "$file" == "uv.schema.json" ]] && schema_changed=1
-            [[ "$file" =~ ^crates/uv-publish/ || "$file" =~ ^scripts/publish/ || "$file" == "crates/uv/src/commands/publish.rs" ]] && publish_code_changed=1
+            [[ "$file" == "fv.schema.json" ]] && schema_changed=1
+            [[ "$file" =~ ^crates/fv-publish/ || "$file" =~ ^scripts/publish/ || "$file" == "crates/fv/src/commands/publish.rs" ]] && publish_code_changed=1
             [[ "$file" == ".github/workflows/test-windows-trampolines.yml" ]] && trampoline_workflow_changed=1
-            [[ "$file" =~ ^crates/uv-trampoline/ || "$file" =~ ^crates/uv-trampoline-builder/ ]] && trampoline_code_changed=1
-            [[ "$file" =~ ^crates/uv-build/ ]] && uv_build_changed=1
+            [[ "$file" =~ ^crates/fv-trampoline/ || "$file" =~ ^crates/fv-trampoline-builder/ ]] && trampoline_code_changed=1
+            [[ "$file" =~ ^crates/fv-build/ ]] && uv_build_changed=1
             [[ "$file" == "Dockerfile" ]] && dockerfile_changed=1
             [[ "$file" == ".github/workflows/build-docker.yml" ]] && docker_workflow_changed=1
             [[ "$file" == ".github/workflows/bench.yml" ]] && bench_workflow_changed=1
@@ -269,15 +269,15 @@ jobs:
   # This job cannot be moved into a reusable workflow because it includes coverage for uploading
   # attestations and PyPI does not support attestations in reusable workflows.
   test-publish:
-    name: "test uv publish"
+    name: "test fv publish"
     timeout-minutes: 20
     needs:
       - plan
       - build-dev-binaries
     runs-on: ubuntu-latest
     # Only the main repository is a trusted publisher
-    if: ${{ github.repository == 'astral-sh/uv' && github.event.pull_request.head.repo.fork != true && needs.plan.outputs.test-publish == 'true' }}
-    environment: uv-test-publish
+    if: ${{ github.repository == 'oha/fv' && github.event.pull_request.head.repo.fork != true && needs.plan.outputs.test-publish == 'true' }}
+    environment: fv-test-publish
     env:
       # No dbus in GitHub Actions
       PYTHON_KEYRING_BACKEND: keyrings.alt.file.PlaintextKeyring
@@ -298,10 +298,10 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ github.sha }}
+          name: fv-linux-libc-${{ github.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Build astral-test-pypa-gh-action"
         shell: bash -eo pipefail {0}
@@ -309,12 +309,12 @@ jobs:
           # Build a yet unused version of `astral-test-pypa-gh-action`
           mkdir astral-test-pypa-gh-action
           cd astral-test-pypa-gh-action
-          ../uv init --package --no-workspace
+          ../fv init --package --no-workspace
           # Get the latest patch version
           patch_version=$(curl https://test.pypi.org/simple/astral-test-pypa-gh-action/?format=application/vnd.pypi.simple.v1+json | jq --raw-output '[.files[].filename | select(endswith(".tar.gz"))] | last' | grep -oP '(?<=astral_test_pypa_gh_action-0\.1\.)\d+(?=\.tar\.gz)')
           # Set the current version to one higher (which should be unused)
           sed -i "s/0.1.0/0.1.$((patch_version + 1))/g" pyproject.toml
-          ../uv build
+          ../fv build
 
       - name: "Publish astral-test-pypa-gh-action"
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
@@ -367,22 +367,22 @@ jobs:
       - name: "Add password to keyring"
         run: |
           # `keyrings.alt` contains the plaintext keyring
-          ./uv tool install --with keyrings.alt keyring
+          ./fv tool install --with keyrings.alt keyring
           echo $UV_TEST_PUBLISH_KEYRING | keyring set https://test.pypi.org/legacy/?astral-test-keyring __token__
         env:
           UV_TEST_PUBLISH_KEYRING: ${{ secrets.UV_TEST_PUBLISH_KEYRING }}
 
-      - name: "Add password to uv text store"
+      - name: "Add password to fv text store"
         run: |
-          ./uv auth login https://test.pypi.org/legacy/?astral-test-text-store --token ${UV_TEST_PUBLISH_TEXT_STORE}
+          ./fv auth login https://test.pypi.org/legacy/?astral-test-text-store --token ${UV_TEST_PUBLISH_TEXT_STORE}
         env:
           UV_TEST_PUBLISH_TEXT_STORE: ${{ secrets.UV_TEST_PUBLISH_TEXT_STORE }}
 
       - name: "Publish test packages"
         # `-p 3.12` prefers the python we just installed over the one locked in `.python_version`.
-        run: ./uv run --no-project -p "${PYTHON_VERSION}" scripts/publish/test_publish.py --uv ./uv all
+        run: ./fv run --no-project -p "${PYTHON_VERSION}" scripts/publish/test_publish.py --uv ./fv all
         env:
-          RUST_LOG: uv=debug,uv_publish=trace
+          RUST_LOG: fv=debug,fv_publish=trace
           UV_TEST_PUBLISH_TOKEN: ${{ secrets.UV_TEST_PUBLISH_TOKEN }}
           UV_TEST_PUBLISH_PASSWORD: ${{ secrets.UV_TEST_PUBLISH_PASSWORD }}
           UV_TEST_PUBLISH_GITLAB_PAT: ${{ secrets.UV_TEST_PUBLISH_GITLAB_PAT }}

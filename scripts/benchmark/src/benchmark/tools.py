@@ -1,9 +1,9 @@
-"""Benchmark the uv `tool` interface against other packaging tools.
+"""Benchmark the fv `tool` interface against other packaging tools.
 
-For example, to benchmark uv against pipx, run the following from the
+For example, to benchmark fv against pipx, run the following from the
 `scripts/benchmark` directory:
 
-    uv run tools --uv --pipx
+    fv run tools --uv --pipx
 """
 
 import abc
@@ -142,10 +142,10 @@ class Pipx(Suite):
         )
 
 
-class Uv(Suite):
+class Fv(Suite):
     def __init__(self, *, path: str | None = None) -> Command | None:
-        """Initialize a uv benchmark."""
-        self.name = path or "uv"
+        """Initialize a fv benchmark."""
+        self.name = path or "fv"
         self.path = path or os.path.join(
             os.path.dirname(
                 os.path.dirname(
@@ -156,7 +156,7 @@ class Uv(Suite):
             ),
             "target",
             "release",
-            "uv",
+            "fv",
         )
 
     def install_cold(self, *, cwd: str) -> Command | None:
@@ -227,7 +227,7 @@ class Uv(Suite):
 def main():
     """Run the benchmark."""
     parser = argparse.ArgumentParser(
-        description="Benchmark uv against other packaging tools."
+        description="Benchmark fv against other packaging tools."
     )
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Print verbose output."
@@ -265,7 +265,7 @@ def main():
     )
     parser.add_argument(
         "--uv",
-        help="Whether to benchmark uv (assumes a uv binary exists at `./target/release/uv`).",
+        help="Whether to benchmark fv (assumes a fv binary exists at `./target/release/fv`).",
         action="store_true",
     )
     parser.add_argument(
@@ -277,7 +277,7 @@ def main():
     parser.add_argument(
         "--uv-path",
         type=str,
-        help="Path(s) to the uv binary to benchmark.",
+        help="Path(s) to the fv binary to benchmark.",
         action="append",
     )
 
@@ -298,18 +298,18 @@ def main():
     suites = []
     if args.pipx:
         suites.append(Pipx())
-    if args.uv:
-        suites.append(Uv())
+    if args.fv:
+        suites.append(Fv())
     for path in args.pipx_path or []:
         suites.append(Pipx(path=path))
     for path in args.uv_path or []:
-        suites.append(Uv(path=path))
+        suites.append(Fv(path=path))
 
     # If no tools were specified, benchmark all tools.
     if not suites:
         suites = [
             Pipx(),
-            Uv(),
+            Fv(),
         ]
 
     # Determine the benchmarks to run, based on user input.

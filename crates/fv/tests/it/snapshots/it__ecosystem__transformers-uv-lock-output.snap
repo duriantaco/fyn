@@ -1,0 +1,10 @@
+---
+source: crates/fv/tests/it/ecosystem.rs
+expression: snapshot
+---
+success: true
+exit_code: 0
+----- stdout -----
+
+----- stderr -----
+Resolved 303 packages in [TIME]

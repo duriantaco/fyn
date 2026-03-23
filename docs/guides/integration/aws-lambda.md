@@ -1,22 +1,22 @@
 ---
-title: Using uv with AWS Lambda
+title: Using fv with AWS Lambda
 description:
-  A complete guide to using uv with AWS Lambda to manage Python dependencies and deploy serverless
+  A complete guide to using fv with AWS Lambda to manage Python dependencies and deploy serverless
   functions via Docker containers or zip archives.
 ---
 
-# Using uv with AWS Lambda
+# Using fv with AWS Lambda
 
 [AWS Lambda](https://aws.amazon.com/lambda/) is a serverless computing service that lets you run
 code without provisioning or managing servers.
 
-You can use uv with AWS Lambda to manage your Python dependencies, build your deployment package,
+You can use fv with AWS Lambda to manage your Python dependencies, build your deployment package,
 and deploy your Lambda functions.
 
 !!! tip
 
     Check out the [`uv-aws-lambda-example`](https://github.com/astral-sh/uv-aws-lambda-example) project for
-    an example of best practices when using uv to deploy an application to AWS Lambda.
+    an example of best practices when using fv to deploy an application to AWS Lambda.
 
 ## Getting started
 
@@ -34,7 +34,7 @@ Where the `pyproject.toml` contains:
 
 ```toml title="pyproject.toml"
 [project]
-name = "uv-aws-lambda-example"
+name = "fv-aws-lambda-example"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
@@ -74,7 +74,7 @@ async def root() -> str:
 We can run this application locally with:
 
 ```console
-$ uv run fastapi dev
+$ fv run fastapi dev
 ```
 
 From there, opening http://127.0.0.1:8000/ in a web browser will display "Hello, world!"
@@ -92,7 +92,7 @@ the second stage, we'll copy this directory over to the final image, omitting th
 other unnecessary files.
 
 ```dockerfile title="Dockerfile"
-FROM ghcr.io/astral-sh/uv:0.10.12 AS uv
+FROM ghcr.io/oha/fv:0.10.12 AS fv
 
 # First, bundle the dependencies into the task root.
 FROM public.ecr.aws/lambda/python:3.13 AS builder
@@ -106,17 +106,17 @@ ENV UV_NO_INSTALLER_METADATA=1
 # Enable copy mode to support bind mount caching.
 ENV UV_LINK_MODE=copy
 
-# Bundle the dependencies into the Lambda task root via `uv pip install --target`.
+# Bundle the dependencies into the Lambda task root via `fv pip install --target`.
 #
 # Omit any local packages (`--no-emit-workspace`) and development dependencies (`--no-dev`).
-# This ensures that the Docker layer cache is only invalidated when the `pyproject.toml` or `uv.lock`
+# This ensures that the Docker layer cache is only invalidated when the `pyproject.toml` or `fv.lock`
 # files change, but remains robust to changes in the application code.
-RUN --mount=from=uv,source=/uv,target=/bin/uv \
-    --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
+RUN --mount=from=fv,source=/fv,target=/bin/fv \
+    --mount=type=cache,target=/root/.cache/fv \
+    --mount=type=bind,source=fv.lock,target=fv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt && \
-    uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+    fv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt && \
+    fv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
 FROM public.ecr.aws/lambda/python:3.13
 
@@ -137,14 +137,14 @@ CMD ["app.main.handler"]
 We can build the image with, e.g.:
 
 ```console
-$ uv lock
+$ fv lock
 $ docker build -t fastapi-app .
 ```
 
 The core benefits of this Dockerfile structure are as follows:
 
 1. **Minimal image size.** By using a multi-stage build, we can ensure that the final image only
-   includes the application code and dependencies. For example, the uv binary itself is not included
+   includes the application code and dependencies. For example, the fv binary itself is not included
    in the final image.
 2. **Maximal cache reuse.** By installing application dependencies separately from the application
    code, we can ensure that the Docker layer cache is only invalidated when the dependencies change.
@@ -156,14 +156,14 @@ layers, resulting in millisecond builds:
  => [internal] load build definition from Dockerfile                                                                 0.0s
  => => transferring dockerfile: 1.31kB                                                                               0.0s
  => [internal] load metadata for public.ecr.aws/lambda/python:3.13                                                   0.3s
- => [internal] load metadata for ghcr.io/astral-sh/uv:latest                                                         0.3s
+ => [internal] load metadata for ghcr.io/oha/fv:latest                                                         0.3s
  => [internal] load .dockerignore                                                                                    0.0s
  => => transferring context: 106B                                                                                    0.0s
- => [uv 1/1] FROM ghcr.io/astral-sh/uv:latest@sha256:ea61e006cfec0e8d81fae901ad703e09d2c6cf1aa58abcb6507d124b50286f  0.0s
+ => [uv 1/1] FROM ghcr.io/oha/fv:latest@sha256:ea61e006cfec0e8d81fae901ad703e09d2c6cf1aa58abcb6507d124b50286f  0.0s
  => [builder 1/2] FROM public.ecr.aws/lambda/python:3.13@sha256:f5b51b377b80bd303fe8055084e2763336ea8920d12955b23ef  0.0s
  => [internal] load build context                                                                                    0.0s
  => => transferring context: 185B                                                                                    0.0s
- => CACHED [builder 2/2] RUN --mount=from=uv,source=/uv,target=/bin/uv     --mount=type=cache,target=/root/.cache/u  0.0s
+ => CACHED [builder 2/2] RUN --mount=from=fv,source=/fv,target=/bin/fv     --mount=type=cache,target=/root/.cache/u  0.0s
  => CACHED [stage-2 2/3] COPY --from=builder /var/task /var/task                                                     0.0s
  => CACHED [stage-2 3/3] COPY ./app /var/task                                                                        0.0s
  => exporting to image                                                                                               0.0s
@@ -265,16 +265,16 @@ named `library`.
 First, we'll create the library itself:
 
 ```console
-$ uv init --lib library
-$ uv add ./library
+$ fv init --lib library
+$ fv add ./library
 ```
 
-Running `uv init` within the `project` directory will automatically convert `project` to a workspace
+Running `fv init` within the `project` directory will automatically convert `project` to a workspace
 and add `library` as a workspace member:
 
 ```toml title="pyproject.toml"
 [project]
-name = "uv-aws-lambda-example"
+name = "fv-aws-lambda-example"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
@@ -292,14 +292,14 @@ dev = [
     "fastapi[standard]",
 ]
 
-[tool.uv.workspace]
+[tool.fv.workspace]
 members = ["library"]
 
-[tool.uv.sources]
+[tool.fv.sources]
 lib = { workspace = true }
 ```
 
-By default, `uv init --lib` will create a package that exports a `hello` function. We'll modify the
+By default, `fv init --lib` will create a package that exports a `hello` function. We'll modify the
 application source code to call that function:
 
 ```python title="app/main.py"
@@ -325,7 +325,7 @@ async def root() -> str:
 We can run the modified application locally with:
 
 ```console
-$ uv run fastapi dev
+$ fv run fastapi dev
 ```
 
 And confirm that opening http://127.0.0.1:8000/ in a web browser displays, "Hello from library!"
@@ -334,7 +334,7 @@ And confirm that opening http://127.0.0.1:8000/ in a web browser displays, "Hell
 Finally, we'll update the Dockerfile to include the local library in the deployment package:
 
 ```dockerfile title="Dockerfile"
-FROM ghcr.io/astral-sh/uv:0.10.12 AS uv
+FROM ghcr.io/oha/fv:0.10.12 AS fv
 
 # First, bundle the dependencies into the task root.
 FROM public.ecr.aws/lambda/python:3.13 AS builder
@@ -348,30 +348,30 @@ ENV UV_NO_INSTALLER_METADATA=1
 # Enable copy mode to support bind mount caching.
 ENV UV_LINK_MODE=copy
 
-# Bundle the dependencies into the Lambda task root via `uv pip install --target`.
+# Bundle the dependencies into the Lambda task root via `fv pip install --target`.
 #
 # Omit any local packages (`--no-emit-workspace`) and development dependencies (`--no-dev`).
-# This ensures that the Docker layer cache is only invalidated when the `pyproject.toml` or `uv.lock`
+# This ensures that the Docker layer cache is only invalidated when the `pyproject.toml` or `fv.lock`
 # files change, but remains robust to changes in the application code.
-RUN --mount=from=uv,source=/uv,target=/bin/uv \
-    --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
+RUN --mount=from=fv,source=/fv,target=/bin/fv \
+    --mount=type=cache,target=/root/.cache/fv \
+    --mount=type=bind,source=fv.lock,target=fv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt && \
-    uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+    fv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt && \
+    fv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
 # If you have a workspace, copy it over and install it too.
 #
 # By omitting `--no-emit-workspace`, `library` will be copied into the task root. Using a separate
 # `RUN` command ensures that all third-party dependencies are cached separately and remain
 # robust to changes in the workspace.
-RUN --mount=from=uv,source=/uv,target=/bin/uv \
-    --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
+RUN --mount=from=fv,source=/fv,target=/bin/fv \
+    --mount=type=cache,target=/root/.cache/fv \
+    --mount=type=bind,source=fv.lock,target=fv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=library,target=library \
-    uv export --frozen --no-dev --no-editable -o requirements.txt && \
-    uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+    fv export --frozen --no-dev --no-editable -o requirements.txt && \
+    fv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
 FROM public.ecr.aws/lambda/python:3.13
 
@@ -403,8 +403,8 @@ Returning to the FastAPI example, we can bundle the application dependencies int
 for AWS Lambda via:
 
 ```console
-$ uv export --frozen --no-dev --no-editable -o requirements.txt
-$ uv pip install \
+$ fv export --frozen --no-dev --no-editable -o requirements.txt
+$ fv pip install \
    --no-installer-metadata \
    --no-compile-bytecode \
    --python-platform x86_64-manylinux2014 \
@@ -527,8 +527,8 @@ First, we'll create the dependency layer. Lambda layers are expected to follow a
 structure, so we'll use `--prefix` rather than `--target`:
 
 ```console
-$ uv export --frozen --no-dev --no-editable -o requirements.txt
-$ uv pip install \
+$ fv export --frozen --no-dev --no-editable -o requirements.txt
+$ fv pip install \
    --no-installer-metadata \
    --no-compile-bytecode \
    --python-platform x86_64-manylinux2014 \

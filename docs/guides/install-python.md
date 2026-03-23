@@ -1,15 +1,15 @@
 ---
 title: Installing and managing Python
 description:
-  A guide to using uv to install Python, including requesting specific versions, automatic
+  A guide to using fv to install Python, including requesting specific versions, automatic
   installation, viewing installed versions, and more.
 ---
 
 # Installing Python
 
-If Python is already installed on your system, uv will
-[detect and use](#using-existing-python-versions) it without configuration. However, uv can also
-install and manage Python versions. uv [automatically installs](#automatic-python-downloads) missing
+If Python is already installed on your system, fv will
+[detect and use](#using-existing-python-versions) it without configuration. However, fv can also
+install and manage Python versions. fv [automatically installs](#automatic-python-downloads) missing
 Python versions as needed — you don't need to install Python to get started.
 
 ## Getting started
@@ -17,25 +17,25 @@ Python versions as needed — you don't need to install Python to get started.
 To install the latest Python version:
 
 ```console
-$ uv python install
+$ fv python install
 ```
 
 !!! note
 
     Python does not publish official distributable binaries. As such, uv uses distributions from the Astral [`python-build-standalone`](https://github.com/astral-sh/python-build-standalone) project. See the [Python distributions](../concepts/python-versions.md#managed-python-distributions) documentation for more details.
 
-Once Python is installed, it will be used by `uv` commands automatically. uv also adds the installed
+Once Python is installed, it will be used by `fv` commands automatically. fv also adds the installed
 version to your `PATH`:
 
 ```console
 $ python3.13
 ```
 
-uv only installs a _versioned_ executable by default. To install `python` and `python3` executables,
+fv only installs a _versioned_ executable by default. To install `python` and `python3` executables,
 include the experimental `--default` option:
 
 ```console
-$ uv python install --default
+$ fv python install --default
 ```
 
 !!! tip
@@ -48,19 +48,19 @@ $ uv python install --default
 To install a specific Python version:
 
 ```console
-$ uv python install 3.12
+$ fv python install 3.12
 ```
 
 To install multiple Python versions:
 
 ```console
-$ uv python install 3.11 3.12
+$ fv python install 3.11 3.12
 ```
 
 To install an alternative Python implementation, e.g., PyPy:
 
 ```console
-$ uv python install pypy@3.10
+$ fv python install pypy@3.10
 ```
 
 See the [`python install`](../concepts/python-versions.md#installing-a-python-version) documentation
@@ -68,10 +68,10 @@ for more details.
 
 ## Reinstalling Python
 
-To reinstall uv-managed Python versions, use `--reinstall`, e.g.:
+To reinstall fv-managed Python versions, use `--reinstall`, e.g.:
 
 ```console
-$ uv python install --reinstall
+$ fv python install --reinstall
 ```
 
 This will reinstall all previously installed Python versions. Improvements are constantly being
@@ -83,7 +83,7 @@ not change.
 To view available and installed Python versions:
 
 ```console
-$ uv python list
+$ fv python list
 ```
 
 See the [`python list`](../concepts/python-versions.md#viewing-available-python-versions)
@@ -91,20 +91,20 @@ documentation for more details.
 
 ## Automatic Python downloads
 
-Python does not need to be explicitly installed to use uv. By default, uv will automatically
+Python does not need to be explicitly installed to use fv. By default, fv will automatically
 download Python versions when they are required. For example, the following would download Python
 3.12 if it was not installed:
 
 ```console
-$ uvx python@3.12 -c "print('hello world')"
+$ fvx python@3.12 -c "print('hello world')"
 ```
 
-Even if a specific Python version is not requested, uv will download the latest version on demand.
+Even if a specific Python version is not requested, fv will download the latest version on demand.
 For example, if there are no Python versions on your system, the following will install Python
 before creating a new virtual environment:
 
 ```console
-$ uv venv
+$ fv venv
 ```
 
 !!! tip
@@ -112,18 +112,18 @@ $ uv venv
     Automatic Python downloads can be [easily disabled](../concepts/python-versions.md#disabling-automatic-python-downloads) if you want more control over when Python is downloaded.
 
 <!-- TODO(zanieb): Restore when Python shim management is added
-Note that when an automatic Python installation occurs, the `python` command will not be added to the shell. Use `uv python install-shim` to ensure the `python` shim is installed.
+Note that when an automatic Python installation occurs, the `python` command will not be added to the shell. Use `fv python install-shim` to ensure the `python` shim is installed.
 -->
 
 ## Using existing Python versions
 
-uv will use existing Python installations if present on your system. There is no configuration
-necessary for this behavior: uv will use the system Python if it satisfies the requirements of the
+fv will use existing Python installations if present on your system. There is no configuration
+necessary for this behavior: fv will use the system Python if it satisfies the requirements of the
 command invocation. See the
 [Python discovery](../concepts/python-versions.md#discovery-of-python-versions) documentation for
 details.
 
-To force uv to use the system Python, provide the `--no-managed-python` flag. See the
+To force fv to use the system Python, provide the `--no-managed-python` flag. See the
 [Python version preference](../concepts/python-versions.md#requiring-or-disabling-managed-python-versions)
 documentation for more details.
 
@@ -137,13 +137,13 @@ documentation for more details.
 To upgrade a Python version to the latest supported patch release:
 
 ```console
-$ uv python upgrade 3.12
+$ fv python upgrade 3.12
 ```
 
-To upgrade all uv-managed Python versions:
+To upgrade all fv-managed Python versions:
 
 ```console
-$ uv python upgrade
+$ fv python upgrade
 ```
 
 See the [`python upgrade`](../concepts/python-versions.md#upgrading-python-versions) documentation
@@ -151,7 +151,7 @@ for more details.
 
 ## Next steps
 
-To learn more about `uv python`, see the [Python version concept](../concepts/python-versions.md)
-page and the [command reference](../reference/cli.md#uv-python).
+To learn more about `fv python`, see the [Python version concept](../concepts/python-versions.md)
+page and the [command reference](../reference/cli.md#fv-python).
 
-Or, read on to learn how to [run scripts](./scripts.md) and invoke Python with uv.
+Or, read on to learn how to [run scripts](./scripts.md) and invoke Python with fv.

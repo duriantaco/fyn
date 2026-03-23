@@ -1,6 +1,6 @@
 # Concepts overview
 
-Read the concept documents to learn more about uv's features:
+Read the concept documents to learn more about fv's features:
 
 - [Projects](./projects/index.md)
 - [Tools](./tools.md)
@@ -8,7 +8,7 @@ Read the concept documents to learn more about uv's features:
 - [Configuration files](./configuration-files.md)
 - [Package indexes](./indexes.md)
 - [Resolution](./resolution.md)
-- [The uv build backend](./build-backend.md)
+- [The fv build backend](./build-backend.md)
 - [Authentication](./authentication/index.md)
 - [Caching](./cache.md)
 - [The pip interface](../pip/index.md)

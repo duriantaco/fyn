@@ -1,0 +1,66 @@
+[package]
+name = "fv-build-backend"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[dependencies]
+fv-distribution-filename = { workspace = true }
+fv-fs = { workspace = true }
+fv-globfilter = { workspace = true }
+fv-macros = { workspace = true }
+fv-normalize = { workspace = true }
+fv-options-metadata = { workspace = true }
+fv-pep440 = { workspace = true }
+fv-pep508 = { workspace = true }
+fv-platform-tags = { workspace = true }
+fv-preview = { workspace = true }
+fv-pypi-types = { workspace = true }
+fv-warnings = { workspace = true }
+
+base64 = { workspace = true }
+csv = { workspace = true }
+flate2 = { workspace = true, default-features = false }
+fs-err = { workspace = true }
+globset = { workspace = true }
+indexmap = { workspace = true }
+itertools = { workspace = true }
+rustc-hash = { workspace = true }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+spdx = { workspace = true }
+tar = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+version-ranges = { workspace = true }
+walkdir = { workspace = true }
+zip = { workspace = true }
+
+[lints]
+workspace = true
+
+[package.metadata.cargo-shear]
+# Imported by the `OptionsMetadata` derive macro
+ignored = ["fv-options-metadata"]
+
+[features]
+schemars = ["dep:schemars", "fv-pypi-types/schemars"]
+
+[dev-dependencies]
+fv-preview = { workspace = true, features = ["testing"] }
+
+indoc = { workspace = true }
+insta = { workspace = true }
+regex = { workspace = true }

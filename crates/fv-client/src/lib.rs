@@ -1,0 +1,27 @@
+pub use base_client::{
+    AuthIntegration, BaseClient, BaseClientBuilder, DEFAULT_CONNECT_TIMEOUT, DEFAULT_MAX_REDIRECTS,
+    DEFAULT_READ_TIMEOUT, DEFAULT_READ_TIMEOUT_UPLOAD, DEFAULT_RETRIES, ExtraMiddleware,
+    RedirectClientWithMiddleware, RedirectPolicy, RequestBuilder, RetriableError,
+    RetryParsingError, RetryState, UvRetryableStrategy, fetch_with_url_fallback,
+    retryable_on_request_failure,
+};
+pub use cached_client::{CacheControl, CachedClient, CachedClientError, DataWithCachePolicy};
+pub use error::{Error, ErrorKind, ProblemDetails, WrappedReqwestError};
+pub use flat_index::{FlatIndexClient, FlatIndexEntries, FlatIndexEntry, FlatIndexError};
+pub use registry_client::{
+    Connectivity, MetadataFormat, RegistryClient, RegistryClientBuilder, SimpleDetailMetadata,
+    SimpleDetailMetadatum, SimpleIndexMetadata, VersionFiles,
+};
+pub use rkyvutil::{Deserializer, OwnedArchive, Serializer, Validator};
+
+mod base_client;
+mod cached_client;
+mod error;
+mod flat_index;
+mod html;
+mod httpcache;
+mod middleware;
+mod registry_client;
+mod remote_metadata;
+mod rkyvutil;
+mod tls;

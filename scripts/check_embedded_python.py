@@ -15,17 +15,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Check an embedded Python interpreter."
     )
-    parser.add_argument("--uv", help="Path to a uv binary.")
+    parser.add_argument("--uv", help="Path to a fv binary.")
     args = parser.parse_args()
 
-    uv: str = os.path.abspath(args.uv) if args.uv else "uv"
+    uv: str = os.path.abspath(args.fv) if args.fv else "fv"
 
     # Create a temporary directory.
     with tempfile.TemporaryDirectory() as temp_dir:
-        # Create a virtual environment with `uv`.
-        logging.info("Creating virtual environment with `uv`...")
+        # Create a virtual environment with `fv`.
+        logging.info("Creating virtual environment with `fv`...")
         subprocess.run(
-            [uv, "venv", ".venv", "--seed", "--python", sys.executable],
+            [fv, "venv", ".venv", "--seed", "--python", sys.executable],
             cwd=temp_dir,
             check=True,
         )
@@ -42,7 +42,7 @@ if __name__ == "__main__":
             check=True,
         )
 
-        logging.info("Installing into `uv` virtual environment...")
+        logging.info("Installing into `fv` virtual environment...")
 
         # Disable the `CONDA_PREFIX` and `VIRTUAL_ENV` environment variables, so that
         # we only rely on virtual environment discovery via the `.venv` directory.
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 f"Installing the package `{package}` into the virtual environment..."
             )
             subprocess.run(
-                [uv, "pip", "install", package, "--verbose"],
+                [fv, "pip", "install", package, "--verbose"],
                 cwd=temp_dir,
                 check=True,
                 env=env,
@@ -78,7 +78,7 @@ if __name__ == "__main__":
             # Uninstall the package.
             logging.info(f"Uninstalling the package `{package}`.")
             subprocess.run(
-                [uv, "pip", "uninstall", package, "--verbose"],
+                [fv, "pip", "uninstall", package, "--verbose"],
                 cwd=temp_dir,
                 check=True,
                 env=env,

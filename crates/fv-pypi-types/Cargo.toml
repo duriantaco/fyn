@@ -1,0 +1,51 @@
+[package]
+name = "fv-pypi-types"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fv-cache-key = { workspace = true }
+fv-distribution-filename = { workspace = true }
+fv-git-types = { workspace = true }
+fv-normalize = { workspace = true }
+fv-pep440 = { workspace = true }
+fv-pep508 = { workspace = true, features = ["rkyv"] }
+fv-redacted = { workspace = true }
+fv-small-str = { workspace = true }
+
+hashbrown = { workspace = true }
+indexmap = { workspace = true, features = ["serde"] }
+itertools = { workspace = true }
+jiff = { workspace = true, features = ["serde"] }
+mailparse = { workspace = true }
+petgraph = { workspace = true }
+regex = { workspace = true }
+rkyv = { workspace = true }
+rustc-hash = { workspace = true }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true }
+serde-untagged = { workspace = true }
+thiserror = { workspace = true }
+toml_edit = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+insta = { workspace = true }
+serde_json = { workspace = true }
+
+[features]
+schemars = ["dep:schemars", "fv-normalize/schemars"]

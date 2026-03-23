@@ -1,4 +1,4 @@
-site_name: uv
+site_name: fv
 theme:
   name: material
   logo: assets/logo-letter.svg
@@ -25,22 +25,22 @@ theme:
         icon: material/brightness-auto
         name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
-      scheme: astral-light
+      scheme: default
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
-      scheme: astral-dark
+      scheme: slate
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
   custom_dir: docs/.overrides
-repo_url: https://github.com/astral-sh/uv
-repo_name: uv
+repo_url: https://github.com/oha/fv
+repo_name: fv
 site_author: charliermarsh
-site_url: https://docs.astral.sh/uv/
-site_dir: site/uv
-site_description: uv is an extremely fast Python package and project manager, written in Rust.
+site_url: https://github.com/oha/fv
+site_dir: site/fv
+site_description: fv is an extremely fast Python package and project manager, written in Rust.
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -86,12 +86,12 @@ plugins:
         "guides/integration/dependency-bots.md": "guides/integration/renovate.md"
   - llmstxt:
       markdown_description: |
-        You can use uv to install Python dependencies, run scripts, manage virtual environments,
-        build and publish packages, and even install Python itself. uv is capable of replacing
+        You can use fv to install Python dependencies, run scripts, manage virtual environments,
+        build and publish packages, and even install Python itself. fv is capable of replacing
         `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`, `twine`, `virtualenv`, and more.
 
-        uv includes both a pip-compatible CLI (prepend `uv` to a pip command, e.g., `uv pip install ruff`)
-        and a first-class project interface (e.g., `uv add ruff`) complete with lockfiles and
+        fv includes both a pip-compatible CLI (prepend `uv` to a pip command, e.g., `fv pip install ruff`)
+        and a first-class project interface (e.g., `fv add ruff`) complete with lockfiles and
         workspace support.
 
         When fetching documentation, use explicit `index.md` paths for directories, e.g.,
@@ -160,13 +160,11 @@ extra_css:
 extra_javascript:
   - js/extra.js
 extra:
-  analytics:
-    provider: fathom
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/astral-sh/uv
+      link: https://github.com/oha/fv
     - icon: fontawesome/brands/discord
-      link: https://discord.com/invite/astral-sh
+      link: https://github.com/oha/fv/discussions
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/uv/
     - icon: fontawesome/brands/x-twitter
@@ -188,7 +186,7 @@ nav:
       - Publishing packages: guides/package.md
       - Migration:
           - guides/migration/index.md
-          - From pip to a uv project: guides/migration/pip-to-project.md
+          - From pip to a fv project: guides/migration/pip-to-project.md
       - Integrations:
           - guides/integration/index.md
           - Docker: guides/integration/docker.md

@@ -2,7 +2,7 @@
 
 !!! tip
 
-    This document focuses on the internal workings of uv's resolver. For using uv, see the
+    This document focuses on the internal workings of fv's resolver. For using fv, see the
     [resolution concept](../../concepts/resolution.md) documentation.
 
 ## Resolver
@@ -13,7 +13,7 @@ requirements, is equivalent to the
 in the worst case you have to try all possible combinations of all versions of all packages and
 there are no general, fast algorithms. In practice, this is misleading for a number of reasons:
 
-- The slowest part of resolution in uv is loading package and version metadata, even if it's cached.
+- The slowest part of resolution in fv is loading package and version metadata, even if it's cached.
 - There are many possible solutions, but some are preferable to others. For example, we generally
   prefer using the latest version of packages.
 - Package dependencies are complex, e.g., there are contiguous versions ranges — not arbitrary
@@ -28,8 +28,8 @@ there are no general, fast algorithms. In practice, this is misleading for a num
 - The most important heuristic for performance and user experience is determining the order in which
   decisions are made through prioritization.
 
-uv uses [pubgrub-rs](https://github.com/pubgrub-rs/pubgrub), the Rust implementation of
-[PubGrub](https://nex3.medium.com/pubgrub-2fb6470504f), an incremental version solver. PubGrub in uv
+fv uses [pubgrub-rs](https://github.com/pubgrub-rs/pubgrub), the Rust implementation of
+[PubGrub](https://nex3.medium.com/pubgrub-2fb6470504f), an incremental version solver. PubGrub in fv
 works in the following steps:
 
 - Start with a partial solution that declares which packages versions have been selected and which
@@ -40,10 +40,10 @@ works in the following steps:
   when they were first seen (i.e. order in a file), making the resolution deterministic.
 - A version is picked for the selected package. The version must works with all specifiers from the
   requirements in the partial solution and must not be previously marked as incompatible. The
-  resolver prefers versions from a lockfile (`uv.lock` or `-o requirements.txt`) and those installed
+  resolver prefers versions from a lockfile (`fv.lock` or `-o requirements.txt`) and those installed
   in the current environment. Versions are checked from highest to lowest (unless using an
   alternative [resolution strategy](../../concepts/resolution.md#resolution-strategy)).
-- All requirements of the selected package version are added to the undecided packages. uv
+- All requirements of the selected package version are added to the undecided packages. fv
   prefetches their metadata in the background to improve performance.
 - The process is either repeated with the next package unless a conflict is detected, in which the
   resolver will backtrack. For example, the partial solution contains, among other packages, `a 2`
@@ -81,7 +81,7 @@ numpy>=1.16,<2 ; python_version < "3.11"
 ```
 
 Since Python only allows one version of each package, a naive resolver would error here. Inspired by
-[Poetry](https://github.com/python-poetry/poetry), uv uses a forking resolver: whenever there are
+[Poetry](https://github.com/python-poetry/poetry), fv uses a forking resolver: whenever there are
 multiple requirements for a package with different markers, the resolution is split.
 
 In the above example, the partial solution would be split into two resolutions, one for
@@ -104,12 +104,12 @@ identical packages are merged to keep the number of forks low.
 
 !!! tip
 
-    Forking can be observed in the logs of `uv lock -v` by looking for
+    Forking can be observed in the logs of `fv lock -v` by looking for
     `Splitting resolution on ...`, `Solving split ... (requires-python: ...)` and `Split ... resolution
     took ...`.
 
 One difficulty in a forking resolver is that where splits occur is dependent on the order packages
-are seen, which is in turn dependent on the preferences, e.g., from `uv.lock`. So it is possible for
+are seen, which is in turn dependent on the preferences, e.g., from `fv.lock`. So it is possible for
 the resolver to solve the requirements with specific forks, write this to the lockfile, and when the
 resolver is invoked again, a different solution is found because the preferences result in different
 fork points. To avoid this, the `resolution-markers` of each fork and each package that diverges
@@ -119,7 +119,7 @@ added to the saved forks.
 
 ## Wheel tags
 
-While uv's resolution is universal with respect to environment markers, this doesn't extend to wheel
+While fv's resolution is universal with respect to environment markers, this doesn't extend to wheel
 tags. Wheel tags can encode the Python version, Python implementation, operating system, and
 architecture. For example, `torch-2.4.0-cp312-cp312-manylinux2014_aarch64.whl` is only compatible
 with CPython 3.12 on arm64 Linux with `glibc>=2.17` (per the `manylinux2014` policy), while
@@ -134,7 +134,7 @@ uncommon operating system, or architecture, will fail and complain that there is
 In every fork, we know what markers are possible. In non-universal resolution, we know their exact
 values. In universal mode, we know at least a constraint for the python requirement, e.g.,
 `requires-python = ">=3.12"` means that `importlib_metadata; python_version < "3.10"` can be
-discarded because it can never be installed. If additionally `tool.uv.environments` is set, we can
+discarded because it can never be installed. If additionally `tool.fv.environments` is set, we can
 filter out requirements with markers disjoint with those environments. Inside each fork, we can
 additionally filter by the fork markers.
 
@@ -153,12 +153,12 @@ Windows, Linux and macOS.
 
 ## Metadata consistency
 
-uv, similar to poetry, requires that wheels of a single version of a package in a specific index
+fv, similar to poetry, requires that wheels of a single version of a package in a specific index
 have the same dependencies (`Requires-Dist` in `METADATA`), including wheels build from a source
-distribution. More generally, uv assumes that each wheel has the same `METADATA` file in its
+distribution. More generally, fv assumes that each wheel has the same `METADATA` file in its
 dist-info directory.
 
-numpy 2.3.2 for example has 73 wheels. Without this assumption, uv would have to make 73 network
+numpy 2.3.2 for example has 73 wheels. Without this assumption, fv would have to make 73 network
 requests to fetch its metadata, instead of a single one. Another problem we would have without
 metadata consistency is the lack of a 1:1 mapping between markers and wheel tags. Wheel tags can
 include the glibc version while the PEP 508 markers cannot represent it. If wheels had different
@@ -179,11 +179,11 @@ the locked version of `B` is incompatible, and there's no locked candidate for `
 after this would both be a reproducibility problem (the lockfile is effectively ignored) and a
 security concern (`C` has not been reviewed, neither was `B==3`). It's possible to fail on
 installation if that happens, but a late error, possibly during deployment, is a bad user
-experience. There is already a case where uv fails on installation, packages with no source
-distribution and only platform specific wheels incompatible with the current platform. While uv has
-[required environments](https://docs.astral.sh/uv/concepts/resolution/#required-environments) as
+experience. There is already a case where fv fails on installation, packages with no source
+distribution and only platform specific wheels incompatible with the current platform. While fv has
+[required environments](https://docs.astral.sh/fv/concepts/resolution/#required-environments) as
 mitigation, this requires a not well known configuration option, and questions around (un)supported
-environments are one of the most common problem for uv users. A similar situation with source
+environments are one of the most common problem for fv users. A similar situation with source
 distributions should be avoided.
 
 While older versions of torch and tensorflow had inconsistent metadata, all recent versions have
@@ -196,9 +196,9 @@ There are packages that have native code that links against the native code in a
 as torch. These package may support building against a range of torch versions, but once built, they
 are constrained to a specific torch version, and the runtime torch version must match the build-time
 version. These are currently a pain point across all package managers, as all major package managers
-from pip to uv cache source distribution builds. uv supports multiple builds depending on the
+from pip to fv cache source distribution builds. fv supports multiple builds depending on the
 version of the already installed package using
-[ `tool.uv.extra-build-dependencies`](https://docs.astral.sh/uv/concepts/projects/config/#augmenting-build-dependencies)
+[ `tool.fv.extra-build-dependencies`](https://docs.astral.sh/fv/concepts/projects/config/#augmenting-build-dependencies)
 with `match-runtime = true`. This is a workaround that needs to be made on the user side for each
 affected package, instead of library developers declaring this requirement, which would be possible
 with native standards support.
@@ -206,18 +206,18 @@ with native standards support.
 ## Requires-python
 
 To ensure that a resolution with `requires-python = ">=3.9"` can actually be installed for the
-included Python versions, uv requires that all dependencies have the same minimum Python version.
+included Python versions, fv requires that all dependencies have the same minimum Python version.
 Package versions that declare a higher minimum Python version, e.g., `requires-python = ">=3.10"`,
 are rejected, because a resolution with that version can't be installed on Python 3.9. This ensures
 that when you are on an old Python version, you can install old packages, instead of getting newer
 packages that require newer Python syntax or standard library features.
 
-uv ignores upper-bounds on `requires-python`, with special handling for packages with only
+fv ignores upper-bounds on `requires-python`, with special handling for packages with only
 ABI-specific wheels. For example, if a package declares `requires-python = ">=3.8,<4"`, the `<4`
 part is ignored. There is a detailed discussion with drawbacks and alternatives in
 [#4022](https://github.com/astral-sh/uv/issues/4022) and this
 [DPO thread](https://discuss.python.org/t/requires-python-upper-limits/12663), this section
-summarizes the aspects most relevant to uv's design.
+summarizes the aspects most relevant to fv's design.
 
 For most projects, it's not possible to determine whether they will be compatible with a new version
 before it's released, so blocking newer versions in advance would block users from upgrading or
@@ -228,9 +228,9 @@ Introducing a `requires-python` upper bound to a project that previously wasn't 
 prevent the project from being used on a too recent Python version. Instead of failing, the resolver
 will pick an older version without the bound, circumventing the bound.
 
-For the resolution to be as universally installable as possible, uv ensures that the selected
+For the resolution to be as universally installable as possible, fv ensures that the selected
 dependency versions are compatible with the `requires-python` range of the project. For example, for
-a project with `requires-python = ">=3.12"`, uv will not use a dependency version with
+a project with `requires-python = ">=3.12"`, fv will not use a dependency version with
 `requires-python = ">=3.13"`, as otherwise the resolution is not installable on Python 3.12, which
 the project declares to support. Applying the same logic to upper bounds means that bumping the
 upper Python version bound on a project makes it compatible with less dependency versions,
@@ -247,9 +247,9 @@ Ignoring an upper bound is a problem for packages such as numpy which use the ve
 API of CPython. As of writing, each numpy release support 4 Python minor versions, e.g., numpy 2.0.0
 has wheels for CPython 3.9 through 3.12 and declares `requires-python = ">=3.9"`, while numpy 2.1.0
 has wheels for CPython 3.10 through 3.13 and declares `requires-python = ">=3.10"`. This means that
-when uv resolves a `numpy>=2,<3` requirement in a project with `requires-python = ">=3.9"`, it
+when fv resolves a `numpy>=2,<3` requirement in a project with `requires-python = ">=3.9"`, it
 selects numpy 2.0.0 and the lockfile doesn't install on Python 3.13 or newer. To alleviate this,
-whenever uv rejects a version that requires a newer Python version, we fork by splitting the
+whenever fv rejects a version that requires a newer Python version, we fork by splitting the
 resolution markers on that Python version. This behavior can be controlled by `--fork-strategy`. In
 the example case, upon encountering numpy 2.1.0 we fork into Python versions `>=3.9,<3.10` and
 `>=3.10` and resolve two different numpy versions:
@@ -259,33 +259,33 @@ numpy==2.0.0; python_version >= "3.9" and python_version < "3.10"
 numpy==2.1.0; python_version >= "3.10"
 ```
 
-There's one case where uv does consider the upper bound: When the project uses an upper bound on
+There's one case where fv does consider the upper bound: When the project uses an upper bound on
 requires Python, such as `requires-python = "==3.13.*"` for an application that only deploys to
-Python 3.13. uv prunes wheels from the lockfile that are outside the range (e.g., `cp312` and
+Python 3.13. fv prunes wheels from the lockfile that are outside the range (e.g., `cp312` and
 `cp314`) in a post-processing step, which does not influence the resolution itself.
 
 ## URL dependencies
 
-In uv, a dependency can either be a registry dependency, a package with a version specifier or the
+In fv, a dependency can either be a registry dependency, a package with a version specifier or the
 plain package name, or a URL dependency. All requirements in the form `{name} @ {url}` are URL
 dependencies, and also all dependencies that have a `git`,` url`, `path`, or `workspace` source.
 
-When a URL is declared for a package, uv pins the package to this URL, and the version this URL
+When a URL is declared for a package, fv pins the package to this URL, and the version this URL
 implies. If there are two conflicting URLs for a package, the resolver errors, as a URL can only be
 declared as something akin to an exact `==` pin, and not as list of URLs. A list of URLs is
 supported through [flat indexes](../../concepts/indexes.md#flat-indexes) instead.
 
-uv requires that URLs are either declared directly (in the project, in a
+fv requires that URLs are either declared directly (in the project, in a
 [workspace member](../../concepts/projects/workspaces.md), in a
 [constraint](../../concepts/resolution.md#dependency-constraints), or in an
 [override](../../concepts/resolution.md#dependency-overrides), any location that is discovered
-directly), or by other URL dependencies. uv discovers all URL dependencies and their transitive URL
+directly), or by other URL dependencies. fv discovers all URL dependencies and their transitive URL
 dependencies ahead of the resolution and pins all packages to the URLs and the versions they imply.
 
-uv does not allow URLs in index packages. This has two reasons: One is a security and predictability
+fv does not allow URLs in index packages. This has two reasons: One is a security and predictability
 aspect, that forbids registry distributions to point to non-registry distributions and helps
 auditing which URLs can be accessed. For example, when only using one index URL and no URL
-dependencies, uv will not install any package from outside the index.
+dependencies, fv will not install any package from outside the index.
 
 The other is that URLs can add additional versions to the resolution. Say the root package depends
 on foo, bar, and baz, all registry dependencies. foo depends on `bar >= 2`, but bar only has version
@@ -306,14 +306,14 @@ If we try many versions we have to later discard, resolution is slow, both becau
 metadata we didn't need and because we have to track a lot of (conflict) information for this
 discarded subtree.
 
-There are expectations about which solution uv should choose, even if the version constraints allow
+There are expectations about which solution fv should choose, even if the version constraints allow
 multiple solutions. Generally, a desirable solution prioritizes use the highest versions for direct
 dependencies over those for indirect dependencies, it avoids backtracking to very old versions and
 can be installed on a target machine.
 
-Internally, uv represent each package with a given package name as a number of virtual packages, for
+Internally, fv represent each package with a given package name as a number of virtual packages, for
 example, one package for each activated extra, for dependency groups, or for having a marker. While
-PubGrub needs to choose a version for each virtual package, uv's prioritization works on the package
+PubGrub needs to choose a version for each virtual package, fv's prioritization works on the package
 name level.
 
 Whenever we encounter a requirement on a package, we match it to a priority. The root package and

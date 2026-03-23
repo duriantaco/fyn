@@ -1,0 +1,44 @@
+use std::hash::BuildHasherDefault;
+use std::sync::Arc;
+
+use fv_distribution_types::{DistributionId, IndexUrl};
+use fv_normalize::PackageName;
+use fv_once_map::OnceMap;
+use rustc_hash::FxHasher;
+
+use crate::resolver::provider::{MetadataResponse, VersionsResponse};
+
+/// In-memory index of package metadata.
+#[derive(Default, Clone)]
+pub struct InMemoryIndex(Arc<SharedInMemoryIndex>);
+
+#[derive(Default)]
+struct SharedInMemoryIndex {
+    /// A map from package name to the metadata for that package and the index where the metadata
+    /// came from.
+    implicit: FxOnceMap<PackageName, Arc<VersionsResponse>>,
+
+    explicit: FxOnceMap<(PackageName, IndexUrl), Arc<VersionsResponse>>,
+
+    /// A map from a concrete distribution to its metadata.
+    distributions: FxOnceMap<DistributionId, Arc<MetadataResponse>>,
+}
+
+pub(crate) type FxOnceMap<K, V> = OnceMap<K, V, BuildHasherDefault<FxHasher>>;
+
+impl InMemoryIndex {
+    /// Returns a reference to the package metadata map.
+    pub fn implicit(&self) -> &FxOnceMap<PackageName, Arc<VersionsResponse>> {
+        &self.0.implicit
+    }
+
+    /// Returns a reference to the package metadata map.
+    pub fn explicit(&self) -> &FxOnceMap<(PackageName, IndexUrl), Arc<VersionsResponse>> {
+        &self.0.explicit
+    }
+
+    /// Returns a reference to the distribution metadata map.
+    pub fn distributions(&self) -> &FxOnceMap<DistributionId, Arc<MetadataResponse>> {
+        &self.0.distributions
+    }
+}

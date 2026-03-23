@@ -3,7 +3,7 @@ extend-exclude = [
     "**/snapshots/",
     "test/ecosystem/**",
     "test/requirements/**/*.in",
-    "crates/uv-build-frontend/src/pipreqs/mapping",
+    "crates/fv-build-frontend/src/pipreqs/mapping",
 ]
 ignore-hidden = false
 

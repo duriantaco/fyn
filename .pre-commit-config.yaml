@@ -32,7 +32,7 @@ repos:
         language: system
         types: [rust]
         pass_filenames: false
-        files: ^crates/(uv-cli|uv-settings)/
+        files: ^crates/(fv-cli|fv-settings)/
 
   - repo: local
     hooks:

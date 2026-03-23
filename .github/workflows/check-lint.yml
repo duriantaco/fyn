@@ -25,11 +25,11 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: "Install uv"
+      - name: "Install fv"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           version: "0.10.10"
-      - run: uvx ruff check .
+      - run: fvx ruff check .
 
   ty:
     timeout-minutes: 10
@@ -38,14 +38,14 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: "Install uv"
+      - name: "Install fv"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           version: "0.10.10"
       - run: |
-          uvx ty check python/uv
-          uvx \
-            --directory crates/uv-python \
+          fvx ty check python/fv
+          fvx \
+            --directory crates/fv-python \
             --with-requirements fetch-download-metadata.py \
             ty check --python-version 3.13 fetch-download-metadata.py
 
@@ -72,11 +72,11 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: "Install uv"
+      - name: "Install fv"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           version: "0.10.10"
-      - run: uvx --from 'validate-pyproject[all,store]' validate-pyproject pyproject.toml
+      - run: fvx --from 'validate-pyproject[all,store]' validate-pyproject pyproject.toml
 
   readme:
     timeout-minutes: 10
@@ -102,11 +102,11 @@ jobs:
       - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2
         with:
           save-if: ${{ inputs.save-rust-cache == 'true' }}
-      - name: "Check uv_build dependencies"
+      - name: "Check fv_build dependencies"
         uses: EmbarkStudios/cargo-deny-action@3fd3802e88374d3fe9159b834c7714ec57d6c979 # v2.0.15
         with:
           command: check bans
-          manifest-path: crates/uv-build/Cargo.toml
+          manifest-path: crates/fv-build/Cargo.toml
       - name: "Install Rust toolchain"
         run: rustup component add clippy
       - name: "Clippy"

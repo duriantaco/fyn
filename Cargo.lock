@@ -114,7 +114,7 @@ version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
 dependencies = [
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -125,7 +125,7 @@ checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
 dependencies = [
  "anstyle",
  "once_cell_polyfill",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1314,7 +1314,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1493,7 +1493,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1768,6 +1768,1714 @@ dependencies = [
  "memchr",
  "pin-project-lite",
  "slab",
+]
+
+[[package]]
+name = "fv"
+version = "0.10.12"
+dependencies = [
+ "anstream 1.0.0",
+ "anyhow",
+ "arrayvec",
+ "assert_cmd",
+ "assert_fs",
+ "astral-version-ranges",
+ "axoupdater",
+ "backon",
+ "base64 0.22.1",
+ "byteorder",
+ "bytes",
+ "clap",
+ "console 0.16.2",
+ "ctrlc",
+ "diskus",
+ "dotenvy",
+ "dunce",
+ "embed-manifest",
+ "filetime",
+ "flate2",
+ "fs-err",
+ "futures",
+ "fv-audit",
+ "fv-auth",
+ "fv-bin-install",
+ "fv-build-backend",
+ "fv-build-frontend",
+ "fv-cache",
+ "fv-cache-info",
+ "fv-cache-key",
+ "fv-cli",
+ "fv-client",
+ "fv-configuration",
+ "fv-console",
+ "fv-dirs",
+ "fv-dispatch",
+ "fv-distribution",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-extract",
+ "fv-flags",
+ "fv-fs",
+ "fv-git",
+ "fv-git-types",
+ "fv-install-wheel",
+ "fv-installer",
+ "fv-logging",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-performance-memory-allocator",
+ "fv-platform",
+ "fv-platform-tags",
+ "fv-preview",
+ "fv-publish",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-redacted",
+ "fv-requirements",
+ "fv-requirements-txt",
+ "fv-resolver",
+ "fv-scripts",
+ "fv-settings",
+ "fv-shell",
+ "fv-static",
+ "fv-test",
+ "fv-tool",
+ "fv-torch",
+ "fv-trampoline-builder",
+ "fv-types",
+ "fv-unix",
+ "fv-version",
+ "fv-virtualenv",
+ "fv-warnings",
+ "fv-windows",
+ "fv-workspace",
+ "http",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "indexmap",
+ "indicatif",
+ "indoc",
+ "insta",
+ "itertools 0.14.0",
+ "jiff",
+ "miette",
+ "nix 0.31.2",
+ "open",
+ "owo-colors",
+ "petgraph",
+ "predicates",
+ "regex",
+ "reqwest",
+ "rkyv",
+ "rustc-hash",
+ "self-replace",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tar",
+ "tempfile",
+ "textwrap",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "toml",
+ "toml_edit 0.24.0+spec-1.1.0",
+ "tracing",
+ "tracing-durations-export",
+ "tracing-subscriber",
+ "tracing-tree",
+ "unicode-width 0.2.2",
+ "url",
+ "uuid",
+ "walkdir",
+ "which",
+ "whoami",
+ "windows",
+ "wiremock",
+ "zip",
+]
+
+[[package]]
+name = "fv-audit"
+version = "0.0.32"
+dependencies = [
+ "astral-reqwest-middleware",
+ "futures",
+ "fv-configuration",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-redacted",
+ "fv-small-str",
+ "insta",
+ "jiff",
+ "reqwest",
+ "rustc-hash",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "wiremock",
+]
+
+[[package]]
+name = "fv-auth"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "arcstr",
+ "astral-reqwest-middleware",
+ "async-trait",
+ "base64 0.22.1",
+ "etcetera",
+ "fs-err",
+ "futures",
+ "fv-cache-key",
+ "fv-fs",
+ "fv-keyring",
+ "fv-once-map",
+ "fv-preview",
+ "fv-redacted",
+ "fv-small-str",
+ "fv-state",
+ "fv-static",
+ "fv-warnings",
+ "http",
+ "insta",
+ "jiff",
+ "percent-encoding",
+ "reqsign",
+ "reqwest",
+ "rust-netrc",
+ "rustc-hash",
+ "schemars",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "test-log",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml",
+ "tracing",
+ "url",
+ "wiremock",
+]
+
+[[package]]
+name = "fv-bench"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "codspeed-criterion-compat",
+ "fv-cache",
+ "fv-client",
+ "fv-configuration",
+ "fv-dispatch",
+ "fv-distribution",
+ "fv-distribution-types",
+ "fv-extract",
+ "fv-install-wheel",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-platform-tags",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-resolver",
+ "fv-types",
+ "fv-workspace",
+ "jiff",
+ "tokio",
+]
+
+[[package]]
+name = "fv-bin-install"
+version = "0.0.32"
+dependencies = [
+ "astral-reqwest-middleware",
+ "astral-reqwest-retry",
+ "fs-err",
+ "futures",
+ "fv-cache",
+ "fv-client",
+ "fv-distribution-filename",
+ "fv-extract",
+ "fv-pep440",
+ "fv-platform",
+ "fv-redacted",
+ "jiff",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "url",
+]
+
+[[package]]
+name = "fv-build"
+version = "0.10.12"
+dependencies = [
+ "anstream 1.0.0",
+ "anyhow",
+ "fv-build-backend",
+ "fv-logging",
+ "fv-preview",
+ "fv-static",
+ "fv-version",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "fv-build-backend"
+version = "0.0.32"
+dependencies = [
+ "astral-version-ranges",
+ "base64 0.22.1",
+ "csv",
+ "flate2",
+ "fs-err",
+ "fv-distribution-filename",
+ "fv-fs",
+ "fv-globfilter",
+ "fv-macros",
+ "fv-normalize",
+ "fv-options-metadata",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-platform-tags",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-warnings",
+ "globset",
+ "indexmap",
+ "indoc",
+ "insta",
+ "itertools 0.14.0",
+ "regex",
+ "rustc-hash",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2",
+ "spdx 0.13.4",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.18",
+ "toml",
+ "tracing",
+ "walkdir",
+ "zip",
+]
+
+[[package]]
+name = "fv-build-frontend"
+version = "0.0.32"
+dependencies = [
+ "anstream 1.0.0",
+ "fs-err",
+ "fv-auth",
+ "fv-cache-key",
+ "fv-configuration",
+ "fv-distribution",
+ "fv-distribution-types",
+ "fv-fs",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-static",
+ "fv-types",
+ "fv-virtualenv",
+ "fv-warnings",
+ "fv-workspace",
+ "indoc",
+ "insta",
+ "itertools 0.14.0",
+ "owo-colors",
+ "regex",
+ "rustc-hash",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml_edit 0.24.0+spec-1.1.0",
+ "tracing",
+]
+
+[[package]]
+name = "fv-cache"
+version = "0.0.32"
+dependencies = [
+ "clap",
+ "fs-err",
+ "fv-cache-info",
+ "fv-cache-key",
+ "fv-dirs",
+ "fv-distribution-types",
+ "fv-fs",
+ "fv-normalize",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-static",
+ "nanoid",
+ "rmp-serde",
+ "rustc-hash",
+ "same-file",
+ "serde",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tracing",
+ "walkdir",
+]
+
+[[package]]
+name = "fv-cache-info"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "fs-err",
+ "fv-fs",
+ "globwalk",
+ "schemars",
+ "serde",
+ "tempfile",
+ "thiserror 2.0.18",
+ "toml",
+ "tracing",
+ "walkdir",
+]
+
+[[package]]
+name = "fv-cache-key"
+version = "0.0.32"
+dependencies = [
+ "fv-redacted",
+ "hex",
+ "memchr",
+ "percent-encoding",
+ "seahash",
+ "url",
+]
+
+[[package]]
+name = "fv-cli"
+version = "0.0.32"
+dependencies = [
+ "anstream 1.0.0",
+ "anyhow",
+ "clap",
+ "clap_complete_command",
+ "fs-err",
+ "fv-auth",
+ "fv-cache",
+ "fv-configuration",
+ "fv-distribution-types",
+ "fv-install-wheel",
+ "fv-normalize",
+ "fv-pep508",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-redacted",
+ "fv-resolver",
+ "fv-settings",
+ "fv-static",
+ "fv-torch",
+ "fv-version",
+ "fv-warnings",
+ "fv-workspace",
+ "insta",
+ "serde",
+ "url",
+]
+
+[[package]]
+name = "fv-client"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "astral-reqwest-middleware",
+ "astral-reqwest-retry",
+ "astral-tl",
+ "astral_async_http_range_reader",
+ "astral_async_zip",
+ "async-trait",
+ "bytecheck",
+ "fs-err",
+ "futures",
+ "fv-auth",
+ "fv-cache",
+ "fv-cache-key",
+ "fv-configuration",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-fs",
+ "fv-metadata",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-platform",
+ "fv-platform-tags",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-small-str",
+ "fv-static",
+ "fv-torch",
+ "fv-version",
+ "fv-warnings",
+ "h2",
+ "html-escape",
+ "http",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "insta",
+ "itertools 0.14.0",
+ "jiff",
+ "percent-encoding",
+ "rcgen",
+ "regex",
+ "reqwest",
+ "rkyv",
+ "rmp-serde",
+ "rustc-hash",
+ "rustls",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-rustls",
+ "tokio-util",
+ "tracing",
+ "url",
+ "wiremock",
+]
+
+[[package]]
+name = "fv-configuration"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "clap",
+ "either",
+ "fs-err",
+ "fv-auth",
+ "fv-cache",
+ "fv-cache-info",
+ "fv-distribution-types",
+ "fv-git",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-platform-tags",
+ "fv-redacted",
+ "fv-static",
+ "insta",
+ "rayon",
+ "reqwest",
+ "rustc-hash",
+ "same-file",
+ "schemars",
+ "serde",
+ "serde-untagged",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "fv-console"
+version = "0.0.32"
+dependencies = [
+ "console 0.16.2",
+]
+
+[[package]]
+name = "fv-dev"
+version = "0.0.32"
+dependencies = [
+ "anstream 1.0.0",
+ "anyhow",
+ "clap",
+ "fs-err",
+ "futures",
+ "fv-cache",
+ "fv-cli",
+ "fv-client",
+ "fv-configuration",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-extract",
+ "fv-installer",
+ "fv-macros",
+ "fv-options-metadata",
+ "fv-pep508",
+ "fv-performance-memory-allocator",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-settings",
+ "fv-static",
+ "fv-workspace",
+ "itertools 0.14.0",
+ "markdown",
+ "owo-colors",
+ "poloto",
+ "pretty_assertions",
+ "reqwest",
+ "resvg",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tagu",
+ "tempfile",
+ "textwrap",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-durations-export",
+ "tracing-subscriber",
+ "walkdir",
+]
+
+[[package]]
+name = "fv-dirs"
+version = "0.0.32"
+dependencies = [
+ "assert_fs",
+ "etcetera",
+ "fs-err",
+ "fv-static",
+ "indoc",
+ "tracing",
+]
+
+[[package]]
+name = "fv-dispatch"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "futures",
+ "fv-build-backend",
+ "fv-build-frontend",
+ "fv-cache",
+ "fv-client",
+ "fv-configuration",
+ "fv-distribution",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-git",
+ "fv-install-wheel",
+ "fv-installer",
+ "fv-platform-tags",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-resolver",
+ "fv-types",
+ "fv-version",
+ "fv-workspace",
+ "itertools 0.14.0",
+ "rustc-hash",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "fv-distribution"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "astral-reqwest-middleware",
+ "either",
+ "fs-err",
+ "futures",
+ "fv-auth",
+ "fv-cache",
+ "fv-cache-info",
+ "fv-client",
+ "fv-configuration",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-extract",
+ "fv-flags",
+ "fv-fs",
+ "fv-git",
+ "fv-git-types",
+ "fv-metadata",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-platform-tags",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-types",
+ "fv-warnings",
+ "fv-workspace",
+ "indoc",
+ "insta",
+ "nanoid",
+ "owo-colors",
+ "reqwest",
+ "rmp-serde",
+ "rustc-hash",
+ "serde",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "toml",
+ "tracing",
+ "url",
+ "walkdir",
+ "zip",
+]
+
+[[package]]
+name = "fv-distribution-filename"
+version = "0.0.32"
+dependencies = [
+ "fv-cache-key",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-platform-tags",
+ "fv-small-str",
+ "insta",
+ "memchr",
+ "rkyv",
+ "serde",
+ "smallvec",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "fv-distribution-types"
+version = "0.0.32"
+dependencies = [
+ "arcstr",
+ "astral-version-ranges",
+ "bitflags 2.11.0",
+ "fs-err",
+ "fv-auth",
+ "fv-cache-info",
+ "fv-cache-key",
+ "fv-distribution-filename",
+ "fv-fs",
+ "fv-git-types",
+ "fv-install-wheel",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-platform-tags",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-small-str",
+ "fv-warnings",
+ "http",
+ "itertools 0.14.0",
+ "jiff",
+ "owo-colors",
+ "percent-encoding",
+ "petgraph",
+ "rkyv",
+ "rustc-hash",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "toml",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "fv-extract"
+version = "0.0.32"
+dependencies = [
+ "astral-tokio-tar",
+ "astral_async_zip",
+ "async-compression",
+ "blake2",
+ "fs-err",
+ "futures",
+ "fv-configuration",
+ "fv-distribution-filename",
+ "fv-pypi-types",
+ "fv-static",
+ "fv-warnings",
+ "md-5",
+ "rayon",
+ "regex",
+ "reqwest",
+ "rustc-hash",
+ "sha2",
+ "tar",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "xz2",
+ "zip",
+ "zstd",
+]
+
+[[package]]
+name = "fv-flags"
+version = "0.0.32"
+dependencies = [
+ "bitflags 2.11.0",
+]
+
+[[package]]
+name = "fv-fs"
+version = "0.0.32"
+dependencies = [
+ "backon",
+ "clap",
+ "dunce",
+ "either",
+ "encoding_rs_io",
+ "fs-err",
+ "fv-static",
+ "fv-warnings",
+ "junction",
+ "path-slash",
+ "percent-encoding",
+ "reflink-copy",
+ "rustc-hash",
+ "rustix",
+ "same-file",
+ "schemars",
+ "serde",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "walkdir",
+ "windows",
+]
+
+[[package]]
+name = "fv-git"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "astral-reqwest-middleware",
+ "cargo-util",
+ "dashmap",
+ "fs-err",
+ "fv-auth",
+ "fv-cache-key",
+ "fv-fs",
+ "fv-git-types",
+ "fv-redacted",
+ "fv-static",
+ "fv-version",
+ "fv-warnings",
+ "owo-colors",
+ "reqwest",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "which",
+]
+
+[[package]]
+name = "fv-git-types"
+version = "0.0.32"
+dependencies = [
+ "fv-redacted",
+ "fv-static",
+ "serde",
+ "thiserror 2.0.18",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "fv-globfilter"
+version = "0.0.32"
+dependencies = [
+ "anstream 1.0.0",
+ "fs-err",
+ "globset",
+ "insta",
+ "owo-colors",
+ "regex",
+ "regex-automata",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tracing",
+ "walkdir",
+]
+
+[[package]]
+name = "fv-install-wheel"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "assert_fs",
+ "configparser",
+ "csv",
+ "data-encoding",
+ "fs-err",
+ "fv-distribution-filename",
+ "fv-flags",
+ "fv-fs",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-shell",
+ "fv-trampoline-builder",
+ "fv-warnings",
+ "indoc",
+ "itertools 0.14.0",
+ "mailparse",
+ "owo-colors",
+ "pathdiff",
+ "regex",
+ "rustc-hash",
+ "same-file",
+ "self-replace",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+ "tracing",
+ "walkdir",
+]
+
+[[package]]
+name = "fv-installer"
+version = "0.0.32"
+dependencies = [
+ "anstream 1.0.0",
+ "anyhow",
+ "async-channel",
+ "fs-err",
+ "futures",
+ "fv-cache",
+ "fv-cache-info",
+ "fv-cache-key",
+ "fv-configuration",
+ "fv-distribution",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-fs",
+ "fv-git-types",
+ "fv-install-wheel",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-platform-tags",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-redacted",
+ "fv-static",
+ "fv-types",
+ "fv-warnings",
+ "insta",
+ "owo-colors",
+ "rayon",
+ "rustc-hash",
+ "same-file",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "url",
+ "walkdir",
+]
+
+[[package]]
+name = "fv-keyring"
+version = "0.0.32"
+dependencies = [
+ "async-trait",
+ "byteorder",
+ "doc-comment",
+ "env_logger",
+ "fastrand",
+ "secret-service",
+ "security-framework",
+ "thiserror 2.0.18",
+ "tokio",
+ "windows",
+ "zeroize",
+]
+
+[[package]]
+name = "fv-logging"
+version = "0.0.32"
+dependencies = [
+ "jiff",
+ "owo-colors",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "fv-macros"
+version = "0.0.32"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+ "textwrap",
+]
+
+[[package]]
+name = "fv-metadata"
+version = "0.0.32"
+dependencies = [
+ "astral_async_zip",
+ "fs-err",
+ "futures",
+ "fv-distribution-filename",
+ "fv-normalize",
+ "fv-pypi-types",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "zip",
+]
+
+[[package]]
+name = "fv-normalize"
+version = "0.0.32"
+dependencies = [
+ "fv-small-str",
+ "rkyv",
+ "schemars",
+ "serde",
+]
+
+[[package]]
+name = "fv-once-map"
+version = "0.0.32"
+dependencies = [
+ "dashmap",
+ "futures",
+ "tokio",
+]
+
+[[package]]
+name = "fv-options-metadata"
+version = "0.0.32"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "fv-pep440"
+version = "0.0.32"
+dependencies = [
+ "astral-version-ranges",
+ "fv-cache-key",
+ "indoc",
+ "rkyv",
+ "serde",
+ "tracing",
+ "unicode-width 0.2.2",
+ "unscanny",
+]
+
+[[package]]
+name = "fv-pep508"
+version = "0.0.32"
+dependencies = [
+ "arcstr",
+ "astral-version-ranges",
+ "boxcar",
+ "fv-cache-key",
+ "fv-fs",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-redacted",
+ "indexmap",
+ "insta",
+ "itertools 0.14.0",
+ "regex",
+ "rkyv",
+ "rustc-hash",
+ "schemars",
+ "serde",
+ "serde_json",
+ "smallvec",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-test",
+ "unicode-width 0.2.2",
+ "url",
+]
+
+[[package]]
+name = "fv-performance-memory-allocator"
+version = "0.0.32"
+dependencies = [
+ "mimalloc",
+ "tikv-jemalloc-ctl",
+ "tikv-jemallocator",
+]
+
+[[package]]
+name = "fv-platform"
+version = "0.0.32"
+dependencies = [
+ "fs-err",
+ "fv-fs",
+ "fv-platform-tags",
+ "fv-static",
+ "goblin",
+ "indoc",
+ "insta",
+ "procfs",
+ "regex",
+ "rustix",
+ "target-lexicon",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tracing",
+ "windows-version",
+]
+
+[[package]]
+name = "fv-platform-tags"
+version = "0.0.32"
+dependencies = [
+ "bitflags 2.11.0",
+ "fv-small-str",
+ "insta",
+ "memchr",
+ "rkyv",
+ "rustc-hash",
+ "serde",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "fv-preview"
+version = "0.0.32"
+dependencies = [
+ "enumflags2",
+ "fv-preview",
+ "fv-warnings",
+ "itertools 0.14.0",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "fv-publish"
+version = "0.0.32"
+dependencies = [
+ "ambient-id",
+ "anstream 1.0.0",
+ "astral-reqwest-middleware",
+ "astral-reqwest-retry",
+ "astral-tokio-tar",
+ "async-compression",
+ "base64 0.22.1",
+ "fastrand",
+ "fs-err",
+ "futures",
+ "fv-auth",
+ "fv-cache",
+ "fv-client",
+ "fv-configuration",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-extract",
+ "fv-fs",
+ "fv-metadata",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-static",
+ "fv-warnings",
+ "glob",
+ "insta",
+ "itertools 0.14.0",
+ "reqwest",
+ "rustc-hash",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "wiremock",
+]
+
+[[package]]
+name = "fv-pypi-types"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "fv-cache-key",
+ "fv-distribution-filename",
+ "fv-git-types",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-redacted",
+ "fv-small-str",
+ "hashbrown 0.16.1",
+ "indexmap",
+ "insta",
+ "itertools 0.14.0",
+ "jiff",
+ "mailparse",
+ "petgraph",
+ "regex",
+ "rkyv",
+ "rustc-hash",
+ "schemars",
+ "serde",
+ "serde-untagged",
+ "serde_json",
+ "thiserror 2.0.18",
+ "toml_edit 0.24.0+spec-1.1.0",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "fv-python"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "assert_fs",
+ "astral-reqwest-middleware",
+ "astral-reqwest-retry",
+ "clap",
+ "configparser",
+ "dunce",
+ "fs-err",
+ "futures",
+ "fv-cache",
+ "fv-cache-info",
+ "fv-cache-key",
+ "fv-client",
+ "fv-dirs",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-extract",
+ "fv-fs",
+ "fv-install-wheel",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-platform",
+ "fv-platform-tags",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-state",
+ "fv-static",
+ "fv-trampoline-builder",
+ "fv-warnings",
+ "indexmap",
+ "indoc",
+ "insta",
+ "itertools 0.14.0",
+ "junction",
+ "owo-colors",
+ "ref-cast",
+ "regex",
+ "reqwest",
+ "rmp-serde",
+ "rustc-hash",
+ "same-file",
+ "schemars",
+ "serde",
+ "serde_json",
+ "target-lexicon",
+ "temp-env",
+ "tempfile",
+ "test-log",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "which",
+ "windows",
+ "windows-registry",
+ "zstd",
+]
+
+[[package]]
+name = "fv-redacted"
+version = "0.0.32"
+dependencies = [
+ "ref-cast",
+ "schemars",
+ "serde",
+ "thiserror 2.0.18",
+ "url",
+]
+
+[[package]]
+name = "fv-requirements"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "configparser",
+ "console 0.16.2",
+ "fs-err",
+ "futures",
+ "fv-cache-key",
+ "fv-client",
+ "fv-configuration",
+ "fv-console",
+ "fv-distribution",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-fs",
+ "fv-git",
+ "fv-normalize",
+ "fv-pep508",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-requirements-txt",
+ "fv-resolver",
+ "fv-scripts",
+ "fv-types",
+ "fv-warnings",
+ "rustc-hash",
+ "thiserror 2.0.18",
+ "toml",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "fv-requirements-txt"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "assert_fs",
+ "astral-reqwest-middleware",
+ "fs-err",
+ "fv-client",
+ "fv-configuration",
+ "fv-distribution-types",
+ "fv-fs",
+ "fv-normalize",
+ "fv-pep508",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-warnings",
+ "indoc",
+ "insta",
+ "itertools 0.14.0",
+ "memchr",
+ "regex",
+ "reqwest",
+ "rustc-hash",
+ "tempfile",
+ "test-case",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "unscanny",
+ "url",
+]
+
+[[package]]
+name = "fv-resolver"
+version = "0.0.32"
+dependencies = [
+ "arcstr",
+ "astral-pubgrub",
+ "clap",
+ "cyclonedx-bom",
+ "dashmap",
+ "either",
+ "fs-err",
+ "futures",
+ "fv-cache-key",
+ "fv-client",
+ "fv-configuration",
+ "fv-console",
+ "fv-distribution",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-flags",
+ "fv-fs",
+ "fv-git",
+ "fv-git-types",
+ "fv-metadata",
+ "fv-normalize",
+ "fv-once-map",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-platform-tags",
+ "fv-preview",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-redacted",
+ "fv-requirements-txt",
+ "fv-small-str",
+ "fv-static",
+ "fv-torch",
+ "fv-types",
+ "fv-version",
+ "fv-warnings",
+ "fv-workspace",
+ "hashbrown 0.16.1",
+ "indexmap",
+ "insta",
+ "itertools 0.14.0",
+ "jiff",
+ "owo-colors",
+ "percent-encoding",
+ "petgraph",
+ "rkyv",
+ "rustc-hash",
+ "same-file",
+ "schemars",
+ "serde",
+ "smallvec",
+ "textwrap",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-stream",
+ "toml",
+ "toml_edit 0.24.0+spec-1.1.0",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "fv-scripts"
+version = "0.0.32"
+dependencies = [
+ "fs-err",
+ "fv-configuration",
+ "fv-distribution-types",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-settings",
+ "fv-warnings",
+ "fv-workspace",
+ "indoc",
+ "memchr",
+ "regex",
+ "serde",
+ "thiserror 2.0.18",
+ "toml",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "fv-settings"
+version = "0.0.32"
+dependencies = [
+ "clap",
+ "fs-err",
+ "fv-cache-info",
+ "fv-client",
+ "fv-configuration",
+ "fv-dirs",
+ "fv-distribution-types",
+ "fv-flags",
+ "fv-fs",
+ "fv-install-wheel",
+ "fv-macros",
+ "fv-normalize",
+ "fv-options-metadata",
+ "fv-pep508",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-redacted",
+ "fv-resolver",
+ "fv-static",
+ "fv-torch",
+ "fv-warnings",
+ "fv-workspace",
+ "schemars",
+ "serde",
+ "textwrap",
+ "thiserror 2.0.18",
+ "toml",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "fv-shell"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "fs-err",
+ "fv-fs",
+ "fv-static",
+ "nix 0.31.2",
+ "same-file",
+ "temp-env",
+ "tempfile",
+ "tracing",
+ "windows",
+ "windows-registry",
+]
+
+[[package]]
+name = "fv-small-str"
+version = "0.0.32"
+dependencies = [
+ "arcstr",
+ "rkyv",
+ "schemars",
+ "serde",
+]
+
+[[package]]
+name = "fv-state"
+version = "0.0.32"
+dependencies = [
+ "fs-err",
+ "fv-dirs",
+ "tempfile",
+]
+
+[[package]]
+name = "fv-static"
+version = "0.0.32"
+dependencies = [
+ "fv-macros",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "fv-test"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "assert_fs",
+ "base64 0.22.1",
+ "fs-err",
+ "futures",
+ "fv-cache",
+ "fv-client",
+ "fv-configuration",
+ "fv-fs",
+ "fv-preview",
+ "fv-python",
+ "fv-static",
+ "fv-version",
+ "ignore",
+ "indoc",
+ "insta",
+ "itertools 0.14.0",
+ "predicates",
+ "regex",
+ "reqwest",
+ "similar",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
+name = "fv-tool"
+version = "0.0.32"
+dependencies = [
+ "fs-err",
+ "fv-cache",
+ "fv-dirs",
+ "fv-distribution-types",
+ "fv-fs",
+ "fv-install-wheel",
+ "fv-installer",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-settings",
+ "fv-state",
+ "fv-static",
+ "fv-virtualenv",
+ "owo-colors",
+ "pathdiff",
+ "serde",
+ "thiserror 2.0.18",
+ "toml",
+ "toml_edit 0.24.0+spec-1.1.0",
+ "tracing",
+]
+
+[[package]]
+name = "fv-torch"
+version = "0.0.32"
+dependencies = [
+ "clap",
+ "either",
+ "fs-err",
+ "fv-distribution-types",
+ "fv-normalize",
+ "fv-pep440",
+ "fv-platform-tags",
+ "fv-static",
+ "schemars",
+ "serde",
+ "thiserror 2.0.18",
+ "tracing",
+ "url",
+ "wmi",
+]
+
+[[package]]
+name = "fv-trampoline-builder"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "assert_fs",
+ "fs-err",
+ "fv-fs",
+ "rcgen",
+ "tempfile",
+ "thiserror 2.0.18",
+ "which",
+ "windows",
+ "zip",
+]
+
+[[package]]
+name = "fv-types"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "dashmap",
+ "fv-cache",
+ "fv-configuration",
+ "fv-distribution-filename",
+ "fv-distribution-types",
+ "fv-git",
+ "fv-normalize",
+ "fv-once-map",
+ "fv-pep440",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-redacted",
+ "fv-workspace",
+ "rustc-hash",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "fv-unix"
+version = "0.0.32"
+dependencies = [
+ "nix 0.31.2",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "fv-version"
+version = "0.10.12"
+
+[[package]]
+name = "fv-virtualenv"
+version = "0.0.32"
+dependencies = [
+ "console 0.16.2",
+ "fs-err",
+ "fv-console",
+ "fv-fs",
+ "fv-platform-tags",
+ "fv-pypi-types",
+ "fv-python",
+ "fv-shell",
+ "fv-version",
+ "itertools 0.14.0",
+ "owo-colors",
+ "pathdiff",
+ "self-replace",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
+name = "fv-warnings"
+version = "0.0.32"
+dependencies = [
+ "anstream 1.0.0",
+ "anyhow",
+ "indoc",
+ "insta",
+ "owo-colors",
+ "rustc-hash",
+]
+
+[[package]]
+name = "fv-windows"
+version = "0.0.32"
+dependencies = [
+ "windows",
+]
+
+[[package]]
+name = "fv-workspace"
+version = "0.0.32"
+dependencies = [
+ "anyhow",
+ "assert_fs",
+ "clap",
+ "fs-err",
+ "fv-build-backend",
+ "fv-cache-key",
+ "fv-configuration",
+ "fv-distribution-types",
+ "fv-fs",
+ "fv-git-types",
+ "fv-macros",
+ "fv-normalize",
+ "fv-options-metadata",
+ "fv-pep440",
+ "fv-pep508",
+ "fv-pypi-types",
+ "fv-redacted",
+ "fv-static",
+ "fv-warnings",
+ "glob",
+ "ignore",
+ "insta",
+ "itertools 0.14.0",
+ "owo-colors",
+ "regex",
+ "rustc-hash",
+ "schemars",
+ "serde",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml",
+ "toml_edit 0.24.0+spec-1.1.0",
+ "tracing",
 ]
 
 [[package]]
@@ -2358,7 +4066,7 @@ checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
 dependencies = [
  "hermit-abi",
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2428,7 +4136,7 @@ dependencies = [
  "portable-atomic",
  "portable-atomic-util",
  "serde_core",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2499,7 +4207,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8cfc352a66ba903c23239ef51e809508b6fc2b0f90e3476ac7a9ff47e863ae95"
 dependencies = [
  "scopeguard",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2770,7 +4478,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "536bfad37a309d62069485248eeaba1e8d9853aaf951caaeaed0585a95346f08"
 dependencies = [
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2858,7 +4566,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3104,6 +4812,12 @@ dependencies = [
  "smallvec",
  "windows-link 0.2.1",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "path-slash"
@@ -3562,7 +5276,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -4131,7 +5845,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4639,7 +6353,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a766e1110788c36f4fa1c2b71b387a7815aa65f88ce0229841826633d93723e"
 dependencies = [
  "libc",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4863,10 +6577,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.3",
+ "getrandom 0.4.1",
  "once_cell",
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4997,6 +6711,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f60246a4944f24f6e018aa17cdeffb7818b76356965d03b07d6a9886e8962185"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "tikv-jemalloc-ctl"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "661f1f6a57b3a36dc9174a2c10f19513b4866816e13425d3e418b11cc37bc24c"
+dependencies = [
+ "libc",
+ "paste",
+ "tikv-jemalloc-sys",
 ]
 
 [[package]]
@@ -5478,7 +7203,7 @@ checksum = "f2f6fb2847f6742cd76af783a2a2c49e9375d0a111c7bef6f71cd9e738c72d6e"
 dependencies = [
  "memoffset",
  "tempfile",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -5652,1711 +7377,6 @@ dependencies = [
  "js-sys",
  "serde_core",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "uv"
-version = "0.10.12"
-dependencies = [
- "anstream 1.0.0",
- "anyhow",
- "arrayvec",
- "assert_cmd",
- "assert_fs",
- "astral-version-ranges",
- "axoupdater",
- "backon",
- "base64 0.22.1",
- "byteorder",
- "bytes",
- "clap",
- "console 0.16.2",
- "ctrlc",
- "diskus",
- "dotenvy",
- "dunce",
- "embed-manifest",
- "filetime",
- "flate2",
- "fs-err",
- "futures",
- "http",
- "http-body-util",
- "hyper",
- "hyper-util",
- "indexmap",
- "indicatif",
- "indoc",
- "insta",
- "itertools 0.14.0",
- "jiff",
- "miette",
- "nix 0.31.2",
- "open",
- "owo-colors",
- "petgraph",
- "predicates",
- "regex",
- "reqwest",
- "rkyv",
- "rustc-hash",
- "self-replace",
- "serde",
- "serde_json",
- "sha2",
- "tar",
- "tempfile",
- "textwrap",
- "thiserror 2.0.18",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "toml",
- "toml_edit 0.24.0+spec-1.1.0",
- "tracing",
- "tracing-durations-export",
- "tracing-subscriber",
- "tracing-tree",
- "unicode-width 0.2.2",
- "url",
- "uuid",
- "uv-audit",
- "uv-auth",
- "uv-bin-install",
- "uv-build-backend",
- "uv-build-frontend",
- "uv-cache",
- "uv-cache-info",
- "uv-cache-key",
- "uv-cli",
- "uv-client",
- "uv-configuration",
- "uv-console",
- "uv-dispatch",
- "uv-distribution",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-extract",
- "uv-flags",
- "uv-fs",
- "uv-git",
- "uv-git-types",
- "uv-install-wheel",
- "uv-installer",
- "uv-logging",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-performance-memory-allocator",
- "uv-platform",
- "uv-platform-tags",
- "uv-preview",
- "uv-publish",
- "uv-pypi-types",
- "uv-python",
- "uv-redacted",
- "uv-requirements",
- "uv-requirements-txt",
- "uv-resolver",
- "uv-scripts",
- "uv-settings",
- "uv-shell",
- "uv-static",
- "uv-test",
- "uv-tool",
- "uv-torch",
- "uv-trampoline-builder",
- "uv-types",
- "uv-unix",
- "uv-version",
- "uv-virtualenv",
- "uv-warnings",
- "uv-windows",
- "uv-workspace",
- "walkdir",
- "which",
- "whoami",
- "windows",
- "wiremock",
- "zip",
-]
-
-[[package]]
-name = "uv-audit"
-version = "0.0.32"
-dependencies = [
- "astral-reqwest-middleware",
- "futures",
- "insta",
- "jiff",
- "reqwest",
- "rustc-hash",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "uv-configuration",
- "uv-normalize",
- "uv-pep440",
- "uv-redacted",
- "uv-small-str",
- "wiremock",
-]
-
-[[package]]
-name = "uv-auth"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "arcstr",
- "astral-reqwest-middleware",
- "async-trait",
- "base64 0.22.1",
- "etcetera",
- "fs-err",
- "futures",
- "http",
- "insta",
- "jiff",
- "percent-encoding",
- "reqsign",
- "reqwest",
- "rust-netrc",
- "rustc-hash",
- "schemars",
- "serde",
- "serde_json",
- "tempfile",
- "test-log",
- "thiserror 2.0.18",
- "tokio",
- "toml",
- "tracing",
- "url",
- "uv-cache-key",
- "uv-fs",
- "uv-keyring",
- "uv-once-map",
- "uv-preview",
- "uv-redacted",
- "uv-small-str",
- "uv-state",
- "uv-static",
- "uv-warnings",
- "wiremock",
-]
-
-[[package]]
-name = "uv-bench"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "codspeed-criterion-compat",
- "jiff",
- "tokio",
- "uv-cache",
- "uv-client",
- "uv-configuration",
- "uv-dispatch",
- "uv-distribution",
- "uv-distribution-types",
- "uv-extract",
- "uv-install-wheel",
- "uv-pep440",
- "uv-pep508",
- "uv-platform-tags",
- "uv-preview",
- "uv-pypi-types",
- "uv-python",
- "uv-resolver",
- "uv-types",
- "uv-workspace",
-]
-
-[[package]]
-name = "uv-bin-install"
-version = "0.0.32"
-dependencies = [
- "astral-reqwest-middleware",
- "astral-reqwest-retry",
- "fs-err",
- "futures",
- "jiff",
- "reqwest",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "url",
- "uv-cache",
- "uv-client",
- "uv-distribution-filename",
- "uv-extract",
- "uv-pep440",
- "uv-platform",
- "uv-redacted",
-]
-
-[[package]]
-name = "uv-build"
-version = "0.10.12"
-dependencies = [
- "anstream 1.0.0",
- "anyhow",
- "tracing",
- "tracing-subscriber",
- "uv-build-backend",
- "uv-logging",
- "uv-preview",
- "uv-static",
- "uv-version",
-]
-
-[[package]]
-name = "uv-build-backend"
-version = "0.0.32"
-dependencies = [
- "astral-version-ranges",
- "base64 0.22.1",
- "csv",
- "flate2",
- "fs-err",
- "globset",
- "indexmap",
- "indoc",
- "insta",
- "itertools 0.14.0",
- "regex",
- "rustc-hash",
- "schemars",
- "serde",
- "serde_json",
- "sha2",
- "spdx 0.13.4",
- "tar",
- "tempfile",
- "thiserror 2.0.18",
- "toml",
- "tracing",
- "uv-distribution-filename",
- "uv-fs",
- "uv-globfilter",
- "uv-macros",
- "uv-normalize",
- "uv-options-metadata",
- "uv-pep440",
- "uv-pep508",
- "uv-platform-tags",
- "uv-preview",
- "uv-pypi-types",
- "uv-warnings",
- "walkdir",
- "zip",
-]
-
-[[package]]
-name = "uv-build-frontend"
-version = "0.0.32"
-dependencies = [
- "anstream 1.0.0",
- "fs-err",
- "indoc",
- "insta",
- "itertools 0.14.0",
- "owo-colors",
- "regex",
- "rustc-hash",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "toml_edit 0.24.0+spec-1.1.0",
- "tracing",
- "uv-auth",
- "uv-cache-key",
- "uv-configuration",
- "uv-distribution",
- "uv-distribution-types",
- "uv-fs",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-pypi-types",
- "uv-python",
- "uv-static",
- "uv-types",
- "uv-virtualenv",
- "uv-warnings",
- "uv-workspace",
-]
-
-[[package]]
-name = "uv-cache"
-version = "0.0.32"
-dependencies = [
- "clap",
- "fs-err",
- "nanoid",
- "rmp-serde",
- "rustc-hash",
- "same-file",
- "serde",
- "tempfile",
- "thiserror 2.0.18",
- "tracing",
- "uv-cache-info",
- "uv-cache-key",
- "uv-dirs",
- "uv-distribution-types",
- "uv-fs",
- "uv-normalize",
- "uv-pypi-types",
- "uv-redacted",
- "uv-static",
- "walkdir",
-]
-
-[[package]]
-name = "uv-cache-info"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "fs-err",
- "globwalk",
- "schemars",
- "serde",
- "tempfile",
- "thiserror 2.0.18",
- "toml",
- "tracing",
- "uv-fs",
- "walkdir",
-]
-
-[[package]]
-name = "uv-cache-key"
-version = "0.0.32"
-dependencies = [
- "hex",
- "memchr",
- "percent-encoding",
- "seahash",
- "url",
- "uv-redacted",
-]
-
-[[package]]
-name = "uv-cli"
-version = "0.0.32"
-dependencies = [
- "anstream 1.0.0",
- "anyhow",
- "clap",
- "clap_complete_command",
- "fs-err",
- "insta",
- "serde",
- "url",
- "uv-auth",
- "uv-cache",
- "uv-configuration",
- "uv-distribution-types",
- "uv-install-wheel",
- "uv-normalize",
- "uv-pep508",
- "uv-preview",
- "uv-pypi-types",
- "uv-python",
- "uv-redacted",
- "uv-resolver",
- "uv-settings",
- "uv-static",
- "uv-torch",
- "uv-version",
- "uv-warnings",
- "uv-workspace",
-]
-
-[[package]]
-name = "uv-client"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "astral-reqwest-middleware",
- "astral-reqwest-retry",
- "astral-tl",
- "astral_async_http_range_reader",
- "astral_async_zip",
- "async-trait",
- "bytecheck",
- "fs-err",
- "futures",
- "h2",
- "html-escape",
- "http",
- "http-body-util",
- "hyper",
- "hyper-util",
- "insta",
- "itertools 0.14.0",
- "jiff",
- "percent-encoding",
- "rcgen",
- "regex",
- "reqwest",
- "rkyv",
- "rmp-serde",
- "rustc-hash",
- "rustls",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-rustls",
- "tokio-util",
- "tracing",
- "url",
- "uv-auth",
- "uv-cache",
- "uv-cache-key",
- "uv-configuration",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-fs",
- "uv-metadata",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-platform",
- "uv-platform-tags",
- "uv-preview",
- "uv-pypi-types",
- "uv-redacted",
- "uv-small-str",
- "uv-static",
- "uv-torch",
- "uv-version",
- "uv-warnings",
- "wiremock",
-]
-
-[[package]]
-name = "uv-configuration"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "clap",
- "either",
- "fs-err",
- "insta",
- "rayon",
- "reqwest",
- "rustc-hash",
- "same-file",
- "schemars",
- "serde",
- "serde-untagged",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "url",
- "uv-auth",
- "uv-cache",
- "uv-cache-info",
- "uv-distribution-types",
- "uv-git",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-platform-tags",
- "uv-redacted",
- "uv-static",
-]
-
-[[package]]
-name = "uv-console"
-version = "0.0.32"
-dependencies = [
- "console 0.16.2",
-]
-
-[[package]]
-name = "uv-dev"
-version = "0.0.32"
-dependencies = [
- "anstream 1.0.0",
- "anyhow",
- "clap",
- "fs-err",
- "futures",
- "itertools 0.14.0",
- "markdown",
- "owo-colors",
- "poloto",
- "pretty_assertions",
- "reqwest",
- "resvg",
- "schemars",
- "serde",
- "serde_json",
- "serde_yaml",
- "tagu",
- "tempfile",
- "textwrap",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-durations-export",
- "tracing-subscriber",
- "uv-cache",
- "uv-cli",
- "uv-client",
- "uv-configuration",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-extract",
- "uv-installer",
- "uv-macros",
- "uv-options-metadata",
- "uv-pep508",
- "uv-performance-memory-allocator",
- "uv-preview",
- "uv-pypi-types",
- "uv-python",
- "uv-settings",
- "uv-static",
- "uv-workspace",
- "walkdir",
-]
-
-[[package]]
-name = "uv-dirs"
-version = "0.0.32"
-dependencies = [
- "assert_fs",
- "etcetera",
- "fs-err",
- "indoc",
- "tracing",
- "uv-static",
-]
-
-[[package]]
-name = "uv-dispatch"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "futures",
- "itertools 0.14.0",
- "rustc-hash",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "uv-build-backend",
- "uv-build-frontend",
- "uv-cache",
- "uv-client",
- "uv-configuration",
- "uv-distribution",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-git",
- "uv-install-wheel",
- "uv-installer",
- "uv-platform-tags",
- "uv-preview",
- "uv-pypi-types",
- "uv-python",
- "uv-resolver",
- "uv-types",
- "uv-version",
- "uv-workspace",
-]
-
-[[package]]
-name = "uv-distribution"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "astral-reqwest-middleware",
- "either",
- "fs-err",
- "futures",
- "indoc",
- "insta",
- "nanoid",
- "owo-colors",
- "reqwest",
- "rmp-serde",
- "rustc-hash",
- "serde",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "toml",
- "tracing",
- "url",
- "uv-auth",
- "uv-cache",
- "uv-cache-info",
- "uv-client",
- "uv-configuration",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-extract",
- "uv-flags",
- "uv-fs",
- "uv-git",
- "uv-git-types",
- "uv-metadata",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-platform-tags",
- "uv-pypi-types",
- "uv-redacted",
- "uv-types",
- "uv-warnings",
- "uv-workspace",
- "walkdir",
- "zip",
-]
-
-[[package]]
-name = "uv-distribution-filename"
-version = "0.0.32"
-dependencies = [
- "insta",
- "memchr",
- "rkyv",
- "serde",
- "smallvec",
- "thiserror 2.0.18",
- "uv-cache-key",
- "uv-normalize",
- "uv-pep440",
- "uv-platform-tags",
- "uv-small-str",
-]
-
-[[package]]
-name = "uv-distribution-types"
-version = "0.0.32"
-dependencies = [
- "arcstr",
- "astral-version-ranges",
- "bitflags 2.11.0",
- "fs-err",
- "http",
- "itertools 0.14.0",
- "jiff",
- "owo-colors",
- "percent-encoding",
- "petgraph",
- "rkyv",
- "rustc-hash",
- "schemars",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "toml",
- "tracing",
- "url",
- "uv-auth",
- "uv-cache-info",
- "uv-cache-key",
- "uv-distribution-filename",
- "uv-fs",
- "uv-git-types",
- "uv-install-wheel",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-platform-tags",
- "uv-pypi-types",
- "uv-redacted",
- "uv-small-str",
- "uv-warnings",
-]
-
-[[package]]
-name = "uv-extract"
-version = "0.0.32"
-dependencies = [
- "astral-tokio-tar",
- "astral_async_zip",
- "async-compression",
- "blake2",
- "fs-err",
- "futures",
- "md-5",
- "rayon",
- "regex",
- "reqwest",
- "rustc-hash",
- "sha2",
- "tar",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "tracing",
- "uv-configuration",
- "uv-distribution-filename",
- "uv-pypi-types",
- "uv-static",
- "uv-warnings",
- "xz2",
- "zip",
- "zstd",
-]
-
-[[package]]
-name = "uv-flags"
-version = "0.0.32"
-dependencies = [
- "bitflags 2.11.0",
-]
-
-[[package]]
-name = "uv-fs"
-version = "0.0.32"
-dependencies = [
- "backon",
- "clap",
- "dunce",
- "either",
- "encoding_rs_io",
- "fs-err",
- "junction",
- "path-slash",
- "percent-encoding",
- "reflink-copy",
- "rustc-hash",
- "rustix",
- "same-file",
- "schemars",
- "serde",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "uv-static",
- "uv-warnings",
- "walkdir",
- "windows",
-]
-
-[[package]]
-name = "uv-git"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "astral-reqwest-middleware",
- "cargo-util",
- "dashmap",
- "fs-err",
- "owo-colors",
- "reqwest",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "uv-auth",
- "uv-cache-key",
- "uv-fs",
- "uv-git-types",
- "uv-redacted",
- "uv-static",
- "uv-version",
- "uv-warnings",
- "which",
-]
-
-[[package]]
-name = "uv-git-types"
-version = "0.0.32"
-dependencies = [
- "serde",
- "thiserror 2.0.18",
- "tracing",
- "url",
- "uv-redacted",
- "uv-static",
-]
-
-[[package]]
-name = "uv-globfilter"
-version = "0.0.32"
-dependencies = [
- "anstream 1.0.0",
- "fs-err",
- "globset",
- "insta",
- "owo-colors",
- "regex",
- "regex-automata",
- "tempfile",
- "thiserror 2.0.18",
- "tracing",
- "walkdir",
-]
-
-[[package]]
-name = "uv-install-wheel"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "assert_fs",
- "configparser",
- "csv",
- "data-encoding",
- "fs-err",
- "indoc",
- "itertools 0.14.0",
- "mailparse",
- "owo-colors",
- "pathdiff",
- "regex",
- "rustc-hash",
- "same-file",
- "self-replace",
- "serde",
- "serde_json",
- "sha2",
- "thiserror 2.0.18",
- "tracing",
- "uv-distribution-filename",
- "uv-flags",
- "uv-fs",
- "uv-normalize",
- "uv-pep440",
- "uv-preview",
- "uv-pypi-types",
- "uv-shell",
- "uv-trampoline-builder",
- "uv-warnings",
- "walkdir",
-]
-
-[[package]]
-name = "uv-installer"
-version = "0.0.32"
-dependencies = [
- "anstream 1.0.0",
- "anyhow",
- "async-channel",
- "fs-err",
- "futures",
- "insta",
- "owo-colors",
- "rayon",
- "rustc-hash",
- "same-file",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "url",
- "uv-cache",
- "uv-cache-info",
- "uv-cache-key",
- "uv-configuration",
- "uv-distribution",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-fs",
- "uv-git-types",
- "uv-install-wheel",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-platform-tags",
- "uv-preview",
- "uv-pypi-types",
- "uv-python",
- "uv-redacted",
- "uv-static",
- "uv-types",
- "uv-warnings",
- "walkdir",
-]
-
-[[package]]
-name = "uv-keyring"
-version = "0.0.32"
-dependencies = [
- "async-trait",
- "byteorder",
- "doc-comment",
- "env_logger",
- "fastrand",
- "secret-service",
- "security-framework",
- "thiserror 2.0.18",
- "tokio",
- "windows",
- "zeroize",
-]
-
-[[package]]
-name = "uv-logging"
-version = "0.0.32"
-dependencies = [
- "jiff",
- "owo-colors",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "uv-macros"
-version = "0.0.32"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "textwrap",
-]
-
-[[package]]
-name = "uv-metadata"
-version = "0.0.32"
-dependencies = [
- "astral_async_zip",
- "fs-err",
- "futures",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "tracing",
- "uv-distribution-filename",
- "uv-normalize",
- "uv-pypi-types",
- "zip",
-]
-
-[[package]]
-name = "uv-normalize"
-version = "0.0.32"
-dependencies = [
- "rkyv",
- "schemars",
- "serde",
- "uv-small-str",
-]
-
-[[package]]
-name = "uv-once-map"
-version = "0.0.32"
-dependencies = [
- "dashmap",
- "futures",
- "tokio",
-]
-
-[[package]]
-name = "uv-options-metadata"
-version = "0.0.32"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "uv-pep440"
-version = "0.0.32"
-dependencies = [
- "astral-version-ranges",
- "indoc",
- "rkyv",
- "serde",
- "tracing",
- "unicode-width 0.2.2",
- "unscanny",
- "uv-cache-key",
-]
-
-[[package]]
-name = "uv-pep508"
-version = "0.0.32"
-dependencies = [
- "arcstr",
- "astral-version-ranges",
- "boxcar",
- "indexmap",
- "insta",
- "itertools 0.14.0",
- "regex",
- "rkyv",
- "rustc-hash",
- "schemars",
- "serde",
- "serde_json",
- "smallvec",
- "thiserror 2.0.18",
- "tracing",
- "tracing-test",
- "unicode-width 0.2.2",
- "url",
- "uv-cache-key",
- "uv-fs",
- "uv-normalize",
- "uv-pep440",
- "uv-redacted",
-]
-
-[[package]]
-name = "uv-performance-memory-allocator"
-version = "0.0.32"
-dependencies = [
- "mimalloc",
- "tikv-jemallocator",
-]
-
-[[package]]
-name = "uv-platform"
-version = "0.0.32"
-dependencies = [
- "fs-err",
- "goblin",
- "indoc",
- "insta",
- "procfs",
- "regex",
- "rustix",
- "target-lexicon",
- "tempfile",
- "thiserror 2.0.18",
- "tracing",
- "uv-fs",
- "uv-platform-tags",
- "uv-static",
- "windows-version",
-]
-
-[[package]]
-name = "uv-platform-tags"
-version = "0.0.32"
-dependencies = [
- "bitflags 2.11.0",
- "insta",
- "memchr",
- "rkyv",
- "rustc-hash",
- "serde",
- "thiserror 2.0.18",
- "uv-small-str",
-]
-
-[[package]]
-name = "uv-preview"
-version = "0.0.32"
-dependencies = [
- "enumflags2",
- "itertools 0.14.0",
- "thiserror 2.0.18",
- "uv-preview",
- "uv-warnings",
-]
-
-[[package]]
-name = "uv-publish"
-version = "0.0.32"
-dependencies = [
- "ambient-id",
- "anstream 1.0.0",
- "astral-reqwest-middleware",
- "astral-reqwest-retry",
- "astral-tokio-tar",
- "async-compression",
- "base64 0.22.1",
- "fastrand",
- "fs-err",
- "futures",
- "glob",
- "insta",
- "itertools 0.14.0",
- "reqwest",
- "rustc-hash",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
- "uv-auth",
- "uv-cache",
- "uv-client",
- "uv-configuration",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-extract",
- "uv-fs",
- "uv-metadata",
- "uv-pypi-types",
- "uv-redacted",
- "uv-static",
- "uv-warnings",
- "wiremock",
-]
-
-[[package]]
-name = "uv-pypi-types"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "hashbrown 0.16.1",
- "indexmap",
- "insta",
- "itertools 0.14.0",
- "jiff",
- "mailparse",
- "petgraph",
- "regex",
- "rkyv",
- "rustc-hash",
- "schemars",
- "serde",
- "serde-untagged",
- "serde_json",
- "thiserror 2.0.18",
- "toml_edit 0.24.0+spec-1.1.0",
- "tracing",
- "url",
- "uv-cache-key",
- "uv-distribution-filename",
- "uv-git-types",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-redacted",
- "uv-small-str",
-]
-
-[[package]]
-name = "uv-python"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "assert_fs",
- "astral-reqwest-middleware",
- "astral-reqwest-retry",
- "clap",
- "configparser",
- "dunce",
- "fs-err",
- "futures",
- "indexmap",
- "indoc",
- "insta",
- "itertools 0.14.0",
- "junction",
- "owo-colors",
- "ref-cast",
- "regex",
- "reqwest",
- "rmp-serde",
- "rustc-hash",
- "same-file",
- "schemars",
- "serde",
- "serde_json",
- "target-lexicon",
- "temp-env",
- "tempfile",
- "test-log",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
- "uv-cache",
- "uv-cache-info",
- "uv-cache-key",
- "uv-client",
- "uv-dirs",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-extract",
- "uv-fs",
- "uv-install-wheel",
- "uv-pep440",
- "uv-pep508",
- "uv-platform",
- "uv-platform-tags",
- "uv-preview",
- "uv-pypi-types",
- "uv-redacted",
- "uv-state",
- "uv-static",
- "uv-trampoline-builder",
- "uv-warnings",
- "which",
- "windows",
- "windows-registry",
-]
-
-[[package]]
-name = "uv-redacted"
-version = "0.0.32"
-dependencies = [
- "ref-cast",
- "schemars",
- "serde",
- "thiserror 2.0.18",
- "url",
-]
-
-[[package]]
-name = "uv-requirements"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "configparser",
- "console 0.16.2",
- "fs-err",
- "futures",
- "rustc-hash",
- "thiserror 2.0.18",
- "toml",
- "tracing",
- "url",
- "uv-cache-key",
- "uv-client",
- "uv-configuration",
- "uv-console",
- "uv-distribution",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-fs",
- "uv-git",
- "uv-normalize",
- "uv-pep508",
- "uv-pypi-types",
- "uv-redacted",
- "uv-requirements-txt",
- "uv-resolver",
- "uv-scripts",
- "uv-types",
- "uv-warnings",
-]
-
-[[package]]
-name = "uv-requirements-txt"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "assert_fs",
- "astral-reqwest-middleware",
- "fs-err",
- "indoc",
- "insta",
- "itertools 0.14.0",
- "memchr",
- "regex",
- "reqwest",
- "rustc-hash",
- "tempfile",
- "test-case",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "unscanny",
- "url",
- "uv-client",
- "uv-configuration",
- "uv-distribution-types",
- "uv-fs",
- "uv-normalize",
- "uv-pep508",
- "uv-pypi-types",
- "uv-redacted",
- "uv-warnings",
-]
-
-[[package]]
-name = "uv-resolver"
-version = "0.0.32"
-dependencies = [
- "arcstr",
- "astral-pubgrub",
- "clap",
- "cyclonedx-bom",
- "dashmap",
- "either",
- "fs-err",
- "futures",
- "hashbrown 0.16.1",
- "indexmap",
- "insta",
- "itertools 0.14.0",
- "jiff",
- "owo-colors",
- "percent-encoding",
- "petgraph",
- "rkyv",
- "rustc-hash",
- "same-file",
- "schemars",
- "serde",
- "smallvec",
- "textwrap",
- "thiserror 2.0.18",
- "tokio",
- "tokio-stream",
- "toml",
- "toml_edit 0.24.0+spec-1.1.0",
- "tracing",
- "url",
- "uv-cache-key",
- "uv-client",
- "uv-configuration",
- "uv-console",
- "uv-distribution",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-flags",
- "uv-fs",
- "uv-git",
- "uv-git-types",
- "uv-metadata",
- "uv-normalize",
- "uv-once-map",
- "uv-pep440",
- "uv-pep508",
- "uv-platform-tags",
- "uv-preview",
- "uv-pypi-types",
- "uv-python",
- "uv-redacted",
- "uv-requirements-txt",
- "uv-small-str",
- "uv-static",
- "uv-torch",
- "uv-types",
- "uv-version",
- "uv-warnings",
- "uv-workspace",
-]
-
-[[package]]
-name = "uv-scripts"
-version = "0.0.32"
-dependencies = [
- "fs-err",
- "indoc",
- "memchr",
- "regex",
- "serde",
- "thiserror 2.0.18",
- "toml",
- "tracing",
- "url",
- "uv-configuration",
- "uv-distribution-types",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-pypi-types",
- "uv-redacted",
- "uv-settings",
- "uv-warnings",
- "uv-workspace",
-]
-
-[[package]]
-name = "uv-settings"
-version = "0.0.32"
-dependencies = [
- "clap",
- "fs-err",
- "schemars",
- "serde",
- "textwrap",
- "thiserror 2.0.18",
- "toml",
- "tracing",
- "url",
- "uv-cache-info",
- "uv-client",
- "uv-configuration",
- "uv-dirs",
- "uv-distribution-types",
- "uv-flags",
- "uv-fs",
- "uv-install-wheel",
- "uv-macros",
- "uv-normalize",
- "uv-options-metadata",
- "uv-pep508",
- "uv-pypi-types",
- "uv-python",
- "uv-redacted",
- "uv-resolver",
- "uv-static",
- "uv-torch",
- "uv-warnings",
- "uv-workspace",
-]
-
-[[package]]
-name = "uv-shell"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "fs-err",
- "nix 0.31.2",
- "same-file",
- "temp-env",
- "tempfile",
- "tracing",
- "uv-fs",
- "uv-static",
- "windows",
- "windows-registry",
-]
-
-[[package]]
-name = "uv-small-str"
-version = "0.0.32"
-dependencies = [
- "arcstr",
- "rkyv",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "uv-state"
-version = "0.0.32"
-dependencies = [
- "fs-err",
- "tempfile",
- "uv-dirs",
-]
-
-[[package]]
-name = "uv-static"
-version = "0.0.32"
-dependencies = [
- "thiserror 2.0.18",
- "uv-macros",
-]
-
-[[package]]
-name = "uv-test"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "assert_fs",
- "base64 0.22.1",
- "fs-err",
- "futures",
- "ignore",
- "indoc",
- "insta",
- "itertools 0.14.0",
- "predicates",
- "regex",
- "reqwest",
- "similar",
- "tempfile",
- "tokio",
- "uv-cache",
- "uv-client",
- "uv-configuration",
- "uv-fs",
- "uv-preview",
- "uv-python",
- "uv-static",
- "uv-version",
-]
-
-[[package]]
-name = "uv-tool"
-version = "0.0.32"
-dependencies = [
- "fs-err",
- "owo-colors",
- "pathdiff",
- "serde",
- "thiserror 2.0.18",
- "toml",
- "toml_edit 0.24.0+spec-1.1.0",
- "tracing",
- "uv-cache",
- "uv-dirs",
- "uv-distribution-types",
- "uv-fs",
- "uv-install-wheel",
- "uv-installer",
- "uv-normalize",
- "uv-pep440",
- "uv-pep508",
- "uv-pypi-types",
- "uv-python",
- "uv-settings",
- "uv-state",
- "uv-static",
- "uv-virtualenv",
-]
-
-[[package]]
-name = "uv-torch"
-version = "0.0.32"
-dependencies = [
- "clap",
- "either",
- "fs-err",
- "schemars",
- "serde",
- "thiserror 2.0.18",
- "tracing",
- "url",
- "uv-distribution-types",
- "uv-normalize",
- "uv-pep440",
- "uv-platform-tags",
- "uv-static",
- "wmi",
-]
-
-[[package]]
-name = "uv-trampoline-builder"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "assert_fs",
- "fs-err",
- "rcgen",
- "tempfile",
- "thiserror 2.0.18",
- "uv-fs",
- "which",
- "windows",
- "zip",
-]
-
-[[package]]
-name = "uv-types"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "dashmap",
- "rustc-hash",
- "thiserror 2.0.18",
- "uv-cache",
- "uv-configuration",
- "uv-distribution-filename",
- "uv-distribution-types",
- "uv-git",
- "uv-normalize",
- "uv-once-map",
- "uv-pep440",
- "uv-pypi-types",
- "uv-python",
- "uv-redacted",
- "uv-workspace",
-]
-
-[[package]]
-name = "uv-unix"
-version = "0.0.32"
-dependencies = [
- "nix 0.31.2",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "uv-version"
-version = "0.10.12"
-
-[[package]]
-name = "uv-virtualenv"
-version = "0.0.32"
-dependencies = [
- "console 0.16.2",
- "fs-err",
- "itertools 0.14.0",
- "owo-colors",
- "pathdiff",
- "self-replace",
- "thiserror 2.0.18",
- "tracing",
- "uv-console",
- "uv-fs",
- "uv-platform-tags",
- "uv-pypi-types",
- "uv-python",
- "uv-shell",
- "uv-version",
-]
-
-[[package]]
-name = "uv-warnings"
-version = "0.0.32"
-dependencies = [
- "anstream 1.0.0",
- "anyhow",
- "indoc",
- "insta",
- "owo-colors",
- "rustc-hash",
-]
-
-[[package]]
-name = "uv-windows"
-version = "0.0.32"
-dependencies = [
- "windows",
-]
-
-[[package]]
-name = "uv-workspace"
-version = "0.0.32"
-dependencies = [
- "anyhow",
- "assert_fs",
- "clap",
- "fs-err",
- "glob",
- "ignore",
- "insta",
- "itertools 0.14.0",
- "owo-colors",
- "regex",
- "rustc-hash",
- "schemars",
- "serde",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "toml",
- "toml_edit 0.24.0+spec-1.1.0",
- "tracing",
- "uv-build-backend",
- "uv-cache-key",
- "uv-configuration",
- "uv-distribution-types",
- "uv-fs",
- "uv-git-types",
- "uv-macros",
- "uv-normalize",
- "uv-options-metadata",
- "uv-pep440",
- "uv-pep508",
- "uv-pypi-types",
- "uv-redacted",
- "uv-static",
- "uv-warnings",
 ]
 
 [[package]]
@@ -7629,7 +7649,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

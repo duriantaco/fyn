@@ -16,7 +16,7 @@ import pathlib
 import subprocess
 import tomllib
 
-NO_BUMP_CRATES = {"uv", "uv-build", "uv-version"}
+NO_BUMP_CRATES = {"fv", "fv-build", "fv-version"}
 
 
 def main() -> None:

@@ -2,12 +2,12 @@
 
 ## Storage directories
 
-uv uses the following high-level directories for storage.
+fv uses the following high-level directories for storage.
 
-For each location, uv checks for the existence of environment variables in the given order and uses
+For each location, fv checks for the existence of environment variables in the given order and uses
 the first path found.
 
-The paths of storage directories are platform-specific. uv follows the
+The paths of storage directories are platform-specific. fv follows the
 [XDG](https://specifications.freedesktop.org/basedir-spec/latest/) conventions on Linux and macOS
 and the [Known Folder](https://learn.microsoft.com/en-us/windows/win32/shell/known-folders) scheme
 on Windows.
@@ -33,13 +33,13 @@ The cache directory is used for data that is disposable, but is useful to be lon
 
 === "Unix"
 
-    1. `$XDG_CACHE_HOME/uv`
-    1. `$HOME/.cache/uv`
+    1. `$XDG_CACHE_HOME/fv`
+    1. `$HOME/.cache/fv`
 
 === "Windows"
 
-    1. `%LOCALAPPDATA%\uv\cache`
-    1. `uv\cache` within [`FOLDERID_LocalAppData`](https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid#FOLDERID_LocalAppData)
+    1. `%LOCALAPPDATA%\fv\cache`
+    1. `fv\cache` within [`FOLDERID_LocalAppData`](https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid#FOLDERID_LocalAppData)
 
 ### Persistent data directory
 
@@ -47,42 +47,42 @@ The persistent data directory is used for non-disposable data.
 
 === "Unix"
 
-    1. `$XDG_DATA_HOME/uv`
-    1. `$HOME/.local/share/uv`
-    1. `$CWD/.uv`
+    1. `$XDG_DATA_HOME/fv`
+    1. `$HOME/.local/share/fv`
+    1. `$CWD/.fv`
 
 === "Windows"
 
-    1. `%APPDATA%\uv\data`
-    1. `.\.uv`
+    1. `%APPDATA%\fv\data`
+    1. `.\.fv`
 
 ### Configuration directories
 
-The configuration directories are used to store changes to uv's settings.
+The configuration directories are used to store changes to fv's settings.
 
 User-level configuration
 
 === "Unix"
 
-    1. `$XDG_CONFIG_HOME/uv`
-    1. `$HOME/.config/uv`
+    1. `$XDG_CONFIG_HOME/fv`
+    1. `$HOME/.config/fv`
 
 === "Windows"
 
-    1. `%APPDATA%\uv`
-    1. `uv` within [`FOLDERID_RoamingAppData`](https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid#FOLDERID_RoamingAppData)
+    1. `%APPDATA%\fv`
+    1. `fv` within [`FOLDERID_RoamingAppData`](https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid#FOLDERID_RoamingAppData)
 
 System-level configuration
 
 === "Unix"
 
-    1. `$XDG_CONFIG_DIRS/uv`
-    1. `/etc/uv`
+    1. `$XDG_CONFIG_DIRS/fv`
+    1. `/etc/fv`
 
 === "Windows"
 
-    1. `%PROGRAMDATA%\uv`
-    1. `uv` within [`FOLDERID_AppDataProgramData`](https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid#FOLDERID_AppDataProgramData)
+    1. `%PROGRAMDATA%\fv`
+    1. `fv` within [`FOLDERID_AppDataProgramData`](https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid#FOLDERID_AppDataProgramData)
 
 ### Executable directory
 
@@ -105,14 +105,14 @@ should be on the `PATH`.
 
 ### Dependency cache
 
-uv uses a local cache to avoid re-downloading and re-building dependencies.
+fv uses a local cache to avoid re-downloading and re-building dependencies.
 
 By default, the cache is stored in the [cache directory](#cache-directory) but it can be overridden
 via command line arguments, environment variables, or settings as detailed in
 [the cache documentation](../concepts/cache.md#cache-directory). When the cache is disabled, the
 cache will be stored in a [temporary directory](#temporary-directory).
 
-Use `uv cache dir` to show the current cache directory path.
+Use `fv cache dir` to show the current cache directory path.
 
 !!! important
 
@@ -121,13 +121,13 @@ Use `uv cache dir` to show the current cache directory path.
 
 ### Python versions
 
-uv can install managed [Python versions](../concepts/python-versions.md), e.g., with
-`uv python install`.
+fv can install managed [Python versions](../concepts/python-versions.md), e.g., with
+`fv python install`.
 
-By default, Python versions managed by uv are stored in a `python/` subdirectory of the
-[persistent data directory](#persistent-data-directory), e.g., `~/.local/share/uv/python`.
+By default, Python versions managed by fv are stored in a `python/` subdirectory of the
+[persistent data directory](#persistent-data-directory), e.g., `~/.local/share/fv/python`.
 
-Use `uv python dir` to show the Python installation directory.
+Use `fv python dir` to show the Python installation directory.
 
 Use the `UV_PYTHON_INSTALL_DIR` environment variable to override the installation directory.
 
@@ -137,46 +137,46 @@ Use the `UV_PYTHON_INSTALL_DIR` environment variable to override the installatio
 
 ### Python executables
 
-uv installs executables for [Python versions](#python-versions), e.g., `python3.13`.
+fv installs executables for [Python versions](#python-versions), e.g., `python3.13`.
 
 By default, Python executables are stored in the [executable directory](#executable-directory).
 
-Use `uv python dir --bin` to show the Python executable directory.
+Use `fv python dir --bin` to show the Python executable directory.
 
 Use the `UV_PYTHON_BIN_DIR` environment variable to override the Python executable directory.
 
 ### Tools
 
-uv can install Python packages as [command-line tools](../concepts/tools.md) using
-`uv tool install`.
+fv can install Python packages as [command-line tools](../concepts/tools.md) using
+`fv tool install`.
 
 By default, tools are installed in a `tools/` subdirectory of the
-[persistent data directory](#persistent-data-directory), e.g., `~/.local/share/uv/tools`.
+[persistent data directory](#persistent-data-directory), e.g., `~/.local/share/fv/tools`.
 
-Use `uv tool dir` to show the tool installation directory.
+Use `fv tool dir` to show the tool installation directory.
 
 Use the `UV_TOOL_DIR` environment variable to configure the installation directory.
 
 ### Tool executables
 
-uv installs executables for installed [tools](#tools), e.g., `ruff`.
+fv installs executables for installed [tools](#tools), e.g., `ruff`.
 
 By default, tool executables are stored in the [executable directory](#executable-directory).
 
-Use `uv tool dir --bin` to show the tool executable directory.
+Use `fv tool dir --bin` to show the tool executable directory.
 
 Use the `UV_TOOL_BIN_DIR` environment variable to configure the tool executable directory.
 
-### The uv executable
+### The fv executable
 
-When using uv's [standalone installer](./installer.md) to install uv, the `uv` and `uvx` executables
+When using fv's [standalone installer](./installer.md) to install fv, the `fv` and `fvx` executables
 are installed into the [executable directory](#executable-directory).
 
-Use the `UV_INSTALL_DIR` environment variable to configure uv's installation directory.
+Use the `UV_INSTALL_DIR` environment variable to configure fv's installation directory.
 
 ### Configuration files
 
-uv's behavior can be configured through TOML files.
+fv's behavior can be configured through TOML files.
 
 Configuration files are discovered in the [configuration directories](#configuration-directories).
 
@@ -184,7 +184,7 @@ For more details, see the [configuration files documentation](../concepts/config
 
 ### Project virtual environments
 
-When working on [projects](../concepts/projects/index.md), uv creates a dedicated virtual
+When working on [projects](../concepts/projects/index.md), fv creates a dedicated virtual
 environment for each project.
 
 By default, project virtual environments are created in `.venv` in the project or workspace root,
@@ -196,5 +196,5 @@ see the
 
 ### Script virtual environments
 
-When running [scripts with inline metadata](../guides/scripts.md), uv creates a dedicated virtual
+When running [scripts with inline metadata](../guides/scripts.md), fv creates a dedicated virtual
 environment for each script in the [cache directory](#cache-directory).

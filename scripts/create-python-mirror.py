@@ -1,7 +1,7 @@
-"""Create a mirror of Python distributions for use with uv.
+"""Create a mirror of Python distributions for use with fv.
 
 Example usage:
-    uv run ./scripts/create-python-mirror.py --name cpython --arch x86_64 --os linux
+    fv run ./scripts/create-python-mirror.py --name cpython --arch x86_64 --os linux
 """
 
 # /// script
@@ -29,7 +29,7 @@ from tqdm import tqdm
 
 SELF_DIR = Path(__file__).parent
 REPO_ROOT = SELF_DIR.parent
-VERSIONS_FILE = REPO_ROOT / "crates" / "uv-python" / "download-metadata.json"
+VERSIONS_FILE = REPO_ROOT / "crates" / "fv-python" / "download-metadata.json"
 PREFIXES = [
     "https://github.com/astral-sh/python-build-standalone/releases/download/",
     "https://downloads.python.org/pypy/",
@@ -282,7 +282,7 @@ def main():
             for url, error in errors:
                 print(f"- {url}: {error}")
         print(
-            f"Example usage: `UV_PYTHON_INSTALL_MIRROR='file://{target.absolute()}' uv python install 3.13`"
+            f"Example usage: `UV_PYTHON_INSTALL_MIRROR='file://{target.absolute()}' fv python install 3.13`"
         )
     except Exception as e:
         logger.error(f"Error during download: {e}")

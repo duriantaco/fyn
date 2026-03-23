@@ -78,18 +78,18 @@ for _locking_ dependencies this is problematic — the lockfile would only work 
 the same platform the lockfile was created on. To solve this problem, platform-independent, or
 "universal" resolvers exist.
 
-uv supports both [platform-specific](#platform-specific-resolution) and
+fv supports both [platform-specific](#platform-specific-resolution) and
 [universal](#universal-resolution) resolution.
 
 ## Platform-specific resolution
 
-By default, uv's pip interface, i.e., [`uv pip compile`](../pip/compile.md), produces a resolution
+By default, fv's pip interface, i.e., [`fv pip compile`](../pip/compile.md), produces a resolution
 that is platform-specific, like `pip-tools`. There is no way to use platform-specific resolution in
-the uv's project interface.
+the fv's project interface.
 
-uv also supports resolving for specific, alternate platforms and Python versions with the
+fv also supports resolving for specific, alternate platforms and Python versions with the
 `--python-platform` and `--python-version` options. For example, if using Python 3.12 on macOS,
-`uv pip compile --python-platform linux --python-version 3.10 requirements.in` can be used to
+`fv pip compile --python-platform linux --python-version 3.10 requirements.in` can be used to
 produce a resolution for Python 3.10 on Linux instead. Unlike universal resolution, during
 platform-specific resolution, the provided `--python-version` is the exact python version to use,
 not a lower bound.
@@ -99,19 +99,19 @@ not a lower bound.
     Python's environment markers expose far more information about the current machine
     than can be expressed by a simple `--python-platform` argument. For example, the `platform_version` marker
     on macOS includes the time at which the kernel was built, which can (in theory) be encoded in
-    package requirements. uv's resolver makes a best-effort attempt to generate a resolution that is
+    package requirements. fv's resolver makes a best-effort attempt to generate a resolution that is
     compatible with any machine running on the target `--python-platform`, which should be sufficient for
     most use cases, but may lose fidelity for complex package and platform combinations.
 
 ## Universal resolution
 
-uv's lockfile (`uv.lock`) is created with a universal resolution and is portable across platforms.
+fv's lockfile (`fv.lock`) is created with a universal resolution and is portable across platforms.
 This ensures that dependencies are locked for everyone working on the project, regardless of
-operating system, architecture, and Python version. The uv lockfile is created and modified by
-[project](../concepts/projects/index.md) commands such as `uv lock`, `uv sync`, and `uv add`.
+operating system, architecture, and Python version. The fv lockfile is created and modified by
+[project](../concepts/projects/index.md) commands such as `fv lock`, `fv sync`, and `fv add`.
 
-Universal resolution is also available in uv's pip interface, i.e.,
-[`uv pip compile`](../pip/compile.md), with the `--universal` flag. The resulting requirements file
+Universal resolution is also available in fv's pip interface, i.e.,
+[`fv pip compile`](../pip/compile.md), with the `--universal` flag. The resulting requirements file
 will contain markers to indicate which platform each dependency is relevant for.
 
 During universal resolution, a package may be listed multiple times with different versions or URLs
@@ -126,14 +126,14 @@ the dependency lacks a usable version for (e.g.) Python 3.8, the lower bound of 
 supported range. In other words, the project's `requires-python` must be a subset of the
 `requires-python` of all its dependencies.
 
-When selecting the compatible version for a given dependency, uv will
+When selecting the compatible version for a given dependency, fv will
 ([by default](#multi-version-resolution)) attempt to choose the latest compatible version for each
 supported Python version. For example, if a project's `requires-python` is `>=3.8`, and the latest
 version of a dependency requires Python 3.9 or later, while all prior versions supporting Python
 3.8, the resolver will select the latest version for users running Python 3.9 or later, and previous
 versions for users running Python 3.8.
 
-When evaluating `requires-python` ranges for dependencies, uv only considers lower bounds and
+When evaluating `requires-python` ranges for dependencies, fv only considers lower bounds and
 ignores upper bounds entirely. For example, `>=3.8, <4` is treated as `>=3.8`. Respecting upper
 bounds on `requires-python` often leads to formally correct but practically incorrect resolutions,
 as, e.g., resolvers will backtrack to the first published version that omits the upper bound (see:
@@ -151,7 +151,7 @@ In other words, you can use the `environments` setting to _reduce_ the set of su
 For example, to constrain the lockfile to macOS and Linux, and avoid solving for Windows:
 
 ```toml title="pyproject.toml"
-[tool.uv]
+[tool.fv]
 environments = [
     "sys_platform == 'darwin'",
     "sys_platform == 'linux'",
@@ -161,7 +161,7 @@ environments = [
 Or, to avoid solving for alternative Python implementations:
 
 ```toml title="pyproject.toml"
-[tool.uv]
+[tool.fv]
 environments = [
     "implementation_name == 'cpython'"
 ]
@@ -177,7 +177,7 @@ same time.
 In the Python ecosystem, packages can be published as source distributions, built distributions
 (wheels), or both; but to install a package, a built distribution is required. If a package lacks a
 built distribution, or lacks a distribution for the current platform or Python version (built
-distributions are often platform-specific), uv will attempt to build the package from source, then
+distributions are often platform-specific), fv will attempt to build the package from source, then
 install the resulting built distribution.
 
 Some packages (like PyTorch) publish built distributions, but omit a source distribution. Such
@@ -188,17 +188,17 @@ package will _only_ be installable on Linux.
 Packages that lack source distributions cause problems for universal resolution, since there will
 typically be at least one platform or Python version for which the package is not installable.
 
-By default, uv requires each such package to include at least one wheel that is compatible with the
+By default, fv requires each such package to include at least one wheel that is compatible with the
 target Python version. The `required-environments` setting can be used to ensure that the resulting
 resolution contains wheels for specific platforms, or fails if no such wheels are available. The
 setting accepts a list of
 [PEP 508 environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers).
 
-While the `environments` setting _limits_ the set of environments that uv will consider when
-resolving dependencies, `required-environments` _expands_ the set of platforms that uv _must_
+While the `environments` setting _limits_ the set of environments that fv will consider when
+resolving dependencies, `required-environments` _expands_ the set of platforms that fv _must_
 support when resolving dependencies.
 
-For example, `environments = ["sys_platform == 'darwin'"]` would limit uv to solving for macOS (and
+For example, `environments = ["sys_platform == 'darwin'"]` would limit fv to solving for macOS (and
 ignoring Linux and Windows). On the other hand,
 `required-environments = ["sys_platform == 'darwin'"]` would _require_ that any package without a
 source distribution include a wheel for macOS in order to be installable (and would fail if no such
@@ -210,7 +210,7 @@ packages. For example, to guarantee that any built distribution-only packages in
 Intel macOS:
 
 ```toml title="pyproject.toml"
-[tool.uv]
+[tool.fv]
 required-environments = [
     "sys_platform == 'darwin' and platform_machine == 'x86_64'"
 ]
@@ -243,29 +243,29 @@ For quick reference, the most common marker values by platform are:
 You can check the values for your current platform by running:
 
 ```console
-$ uvx python -c "import sysconfig; print(sysconfig.get_config_vars())"
+$ fvx python -c "import sysconfig; print(sysconfig.get_config_vars())"
 ```
 
 ## Dependency preferences
 
-If resolution output file exists, i.e., a uv lockfile (`uv.lock`) or a requirements output file
-(`requirements.txt`), uv will _prefer_ the dependency versions listed there. Similarly, if
-installing a package into a virtual environment, uv will prefer the already installed version if
+If resolution output file exists, i.e., a fv lockfile (`fv.lock`) or a requirements output file
+(`requirements.txt`), fv will _prefer_ the dependency versions listed there. Similarly, if
+installing a package into a virtual environment, fv will prefer the already installed version if
 present. This means that locked or installed versions will not change unless an incompatible version
 is requested or an upgrade is explicitly requested with `--upgrade`.
 
 ## Resolution strategy
 
-By default, uv tries to use the latest version of each package. For example,
-`uv pip install flask>=2.0.0` will install the latest version of Flask, e.g., 3.0.0. If
+By default, fv tries to use the latest version of each package. For example,
+`fv pip install flask>=2.0.0` will install the latest version of Flask, e.g., 3.0.0. If
 `flask>=2.0.0` is a dependency of the project, only `flask` 3.0.0 will be used. This is important,
 for example, because running tests will not check that the project is actually compatible with its
 stated lower bound of `flask` 2.0.0.
 
-With `--resolution lowest`, uv will install the lowest possible version for all dependencies, both
+With `--resolution lowest`, fv will install the lowest possible version for all dependencies, both
 direct and indirect (transitive). Alternatively, `--resolution lowest-direct` will use the lowest
 compatible versions for all direct dependencies, while using the latest compatible versions for all
-other dependencies. uv will always use the latest versions for build dependencies.
+other dependencies. fv will always use the latest versions for build dependencies.
 
 For example, given the following `requirements.in` file:
 
@@ -273,12 +273,12 @@ For example, given the following `requirements.in` file:
 flask>=2.0.0
 ```
 
-Running `uv pip compile requirements.in -o requirements.txt` would produce the following
+Running `fv pip compile requirements.in -o requirements.txt` would produce the following
 `requirements.txt` file:
 
 ```python title="requirements.txt"
-# This file was autogenerated by uv via the following command:
-#    uv pip compile requirements.in -o requirements.txt
+# This file was autogenerated by fv via the following command:
+#    fv pip compile requirements.in -o requirements.txt
 blinker==1.7.0
     # via flask
 click==8.1.7
@@ -296,12 +296,12 @@ werkzeug==3.0.1
     # via flask
 ```
 
-However, `uv pip compile --resolution lowest requirements.in -o requirements.txt` would instead
+However, `fv pip compile --resolution lowest requirements.in -o requirements.txt` would instead
 produce:
 
 ```python title="requirements.txt"
-# This file was autogenerated by uv via the following command:
-#    uv pip compile --resolution lowest requirements.in -o requirements.txt
+# This file was autogenerated by fv via the following command:
+#    fv pip compile --resolution lowest requirements.in -o requirements.txt
 click==7.1.2
     # via flask
 flask==2.0.0
@@ -321,13 +321,13 @@ lower bounds.
 
 ## Pre-release handling
 
-By default, uv will accept pre-release versions during dependency resolution in two cases:
+By default, fv will accept pre-release versions during dependency resolution in two cases:
 
 1. If the package is a direct dependency, and its version specifiers include a pre-release specifier
    (e.g., `flask>=2.0.0rc1`).
 1. If _all_ published versions of a package are pre-releases.
 
-If dependency resolution fails due to a transitive pre-release, uv will prompt use of
+If dependency resolution fails due to a transitive pre-release, fv will prompt use of
 `--prerelease allow` to allow pre-releases for all dependencies.
 
 Alternatively, the transitive dependency can be added as a [constraint](#dependency-constraints) or
@@ -336,7 +336,7 @@ specifier (e.g., `flask>=2.0.0rc1`) to opt in to pre-release support for that sp
 
 Pre-releases are
 [notoriously difficult](https://pubgrub-rs-guide.netlify.app/limitations/prerelease_versions) to
-model, and are a frequent source of bugs in other packaging tools. uv's pre-release handling is
+model, and are a frequent source of bugs in other packaging tools. fv's pre-release handling is
 _intentionally_ limited and requires user opt-in for pre-releases to ensure correctness.
 
 For more details, see
@@ -348,16 +348,16 @@ During universal resolution, a package may be listed multiple times with differe
 within the same lockfile, since different versions may be needed for different platforms or Python
 versions.
 
-The `--fork-strategy` setting can be used to control how uv trades off between (1) minimizing the
+The `--fork-strategy` setting can be used to control how fv trades off between (1) minimizing the
 number of selected versions and (2) selecting the latest-possible version for each platform. The
 former leads to greater consistency across platforms, while the latter leads to use of newer package
 versions where possible.
 
-By default (`--fork-strategy requires-python`), uv will optimize for selecting the latest version of
+By default (`--fork-strategy requires-python`), fv will optimize for selecting the latest version of
 each package for each supported Python version, while minimizing the number of selected versions
 across platforms.
 
-For example, when resolving `numpy` with a Python requirement of `>=3.8`, uv would select the
+For example, when resolving `numpy` with a Python requirement of `>=3.8`, fv would select the
 following versions:
 
 ```txt
@@ -369,16 +369,16 @@ numpy==2.2.0 ; python_version >= "3.10"
 This resolution reflects the fact that NumPy 2.2.0 and later require at least Python 3.10, while
 earlier versions are compatible with Python 3.8 and 3.9.
 
-Under `--fork-strategy fewest`, uv will instead minimize the number of selected versions for each
+Under `--fork-strategy fewest`, fv will instead minimize the number of selected versions for each
 package, preferring older versions that are compatible with a wider range of supported Python
 versions or platforms.
 
-For example, when in the scenario above, uv would select `numpy==1.24.4` for all Python versions,
+For example, when in the scenario above, fv would select `numpy==1.24.4` for all Python versions,
 rather than upgrading to `numpy==2.0.2` for Python 3.9 and `numpy==2.2.0` for Python 3.10 and later.
 
 ## Dependency constraints
 
-Like pip, uv supports constraint files (`--constraint constraints.txt`) which narrow the set of
+Like pip, fv supports constraint files (`--constraint constraints.txt`) which narrow the set of
 acceptable versions for the given packages. Constraint files are similar to requirements files, but
 being listed as a constraint alone will not cause a package to be included to the resolution.
 Instead, constraints only take effect if a requested package is already pulled in as a direct or
@@ -398,7 +398,7 @@ work with `pydantic>=2.0`, the user can override the declared dependency by incl
 `pydantic>=1.0,<3` in the overrides, thereby allowing the resolver to choose a newer version of
 `pydantic`.
 
-Concretely, if `pydantic>=1.0,<3` is included as an override, uv will ignore all declared
+Concretely, if `pydantic>=1.0,<3` is included as an override, fv will ignore all declared
 requirements on `pydantic`, replacing them with the override. In the above example, the
 `pydantic>=1.0,<2.0` requirement would be ignored completely, and would instead be replaced with
 `pydantic>=1.0,<3`.
@@ -408,7 +408,7 @@ _expand_ the set of acceptable versions, providing an escape hatch for erroneous
 bounds. As with constraints, overrides do not add a dependency on the package and only take effect
 if the package is requested in a direct or transitive dependency.
 
-In a `pyproject.toml`, use `tool.uv.override-dependencies` to define a list of overrides. In the
+In a `pyproject.toml`, use `tool.fv.override-dependencies` to define a list of overrides. In the
 pip-compatible interface, the `--override` option can be used to pass files with the same format as
 constraints files.
 
@@ -418,27 +418,27 @@ unconditionally when using overrides — it does not matter if the marker evalua
 
 ## Dependency metadata
 
-During resolution, uv needs to resolve the metadata for each package it encounters, in order to
+During resolution, fv needs to resolve the metadata for each package it encounters, in order to
 determine its dependencies. This metadata is often available as a static file in the package index;
 however, for packages that only provide source distributions, the metadata may not be available
 upfront.
 
-In such cases, uv has to build the package to determine its metadata (e.g., by invoking `setup.py`).
+In such cases, fv has to build the package to determine its metadata (e.g., by invoking `setup.py`).
 This can introduce a performance penalty during resolution. Further, it imposes the requirement that
 the package can be built on all platforms, which may not be true.
 
 For example, you may have a package that should only be built and installed on Linux, but doesn't
-build successfully on macOS or Windows. While uv can construct a perfectly valid lockfile for this
+build successfully on macOS or Windows. While fv can construct a perfectly valid lockfile for this
 scenario, doing so would require building the package, which would fail on non-Linux platforms.
 
-The `tool.uv.dependency-metadata` table can be used to provide static metadata for such dependencies
-upfront, thereby allowing uv to skip the build step and use the provided metadata instead.
+The `tool.fv.dependency-metadata` table can be used to provide static metadata for such dependencies
+upfront, thereby allowing fv to skip the build step and use the provided metadata instead.
 
 For example, to provide metadata for `chumpy` upfront, include its `dependency-metadata` in the
 `pyproject.toml`:
 
 ```toml
-[[tool.uv.dependency-metadata]]
+[[tool.fv.dependency-metadata]]
 name = "chumpy"
 version = "0.70"
 requires-dist = ["numpy>=1.8.1", "scipy>=0.13.0", "six>=1.11.0"]
@@ -451,7 +451,7 @@ declare the package metadata upfront, rather than creating a custom build enviro
 resolving the package.
 
 For example, past versions of `flash-attn` did not declare static metadata. By declaring metadata
-for `flash-attn` upfront, uv can resolve `flash-attn` without building the package from source
+for `flash-attn` upfront, fv can resolve `flash-attn` without building the package from source
 (which itself requires installing `torch`):
 
 ```toml
@@ -461,39 +461,39 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = ["flash-attn"]
 
-[tool.uv.sources]
+[tool.fv.sources]
 flash-attn = { git = "https://github.com/Dao-AILab/flash-attention", tag = "v2.6.3" }
 
-[[tool.uv.dependency-metadata]]
+[[tool.fv.dependency-metadata]]
 name = "flash-attn"
 version = "2.6.3"
 requires-dist = ["torch", "einops"]
 ```
 
-Like dependency overrides, `tool.uv.dependency-metadata` can also be used for cases in which a
+Like dependency overrides, `tool.fv.dependency-metadata` can also be used for cases in which a
 package's metadata is incorrect or incomplete, or when a package is not available in the package
 index. While dependency overrides allow overriding the allowed versions of a package globally,
 metadata overrides allow overriding the declared metadata of a _specific package_.
 
 !!! note
 
-    The `version` field in `tool.uv.dependency-metadata` is optional for registry-based
-    dependencies (when omitted, uv will assume the metadata applies to all versions of the package),
+    The `version` field in `tool.fv.dependency-metadata` is optional for registry-based
+    dependencies (when omitted, fv will assume the metadata applies to all versions of the package),
     but _required_ for direct URL dependencies (like Git dependencies).
 
-Entries in the `tool.uv.dependency-metadata` table follow the
+Entries in the `tool.fv.dependency-metadata` table follow the
 [Metadata 2.3](https://packaging.python.org/en/latest/specifications/core-metadata/) specification,
 though only `name`, `version`, `requires-dist`, `requires-python`, and `provides-extra` are read by
-uv. The `version` field is also considered optional. If omitted, the metadata will be used for all
+fv. The `version` field is also considered optional. If omitted, the metadata will be used for all
 versions of the specified package.
 
 ## Conflicting dependencies
 
-uv requires that all dependencies declared by a project are compatible with each other and resolves
+fv requires that all dependencies declared by a project are compatible with each other and resolves
 all dependencies together when creating the lockfile. This includes project dependencies, optional
 dependencies ("extras"), and dependency groups (development dependencies).
 
-If dependencies declared in one extra are not compatible with those in another extra, uv will fail
+If dependencies declared in one extra are not compatible with those in another extra, fv will fail
 to resolve the requirements of the project with an error. For example, consider two sets of optional
 dependencies that conflict with one another:
 
@@ -503,22 +503,22 @@ extra1 = ["numpy==2.1.2"]
 extra2 = ["numpy==2.0.0"]
 ```
 
-If you run `uv lock` with the above dependencies, resolution will fail:
+If you run `fv lock` with the above dependencies, resolution will fail:
 
 ```console
-$ uv lock
+$ fv lock
   x No solution found when resolving dependencies:
   `-> Because myproject[extra2] depends on numpy==2.0.0 and myproject[extra1] depends on numpy==2.1.2, we can conclude that myproject[extra1] and
       myproject[extra2] are incompatible.
       And because your project requires myproject[extra1] and myproject[extra2], we can conclude that your projects's requirements are unsatisfiable.
 ```
 
-To work around this, uv supports explicit declaration of conflicts. If you specify that `extra1` and
-`extra2` are conflicting, uv will resolve them separately. Specify conflicts in the `tool.uv`
+To work around this, fv supports explicit declaration of conflicts. If you specify that `extra1` and
+`extra2` are conflicting, fv will resolve them separately. Specify conflicts in the `tool.fv`
 section:
 
 ```toml title="pyproject.toml"
-[tool.uv]
+[tool.fv]
 conflicts = [
     [
       { extra = "extra1" },
@@ -527,11 +527,11 @@ conflicts = [
 ]
 ```
 
-Now, running `uv lock` will succeed. However, now you cannot install both `extra1` and `extra2` at
+Now, running `fv lock` will succeed. However, now you cannot install both `extra1` and `extra2` at
 the same time:
 
 ```console
-$ uv sync --extra extra1 --extra extra2
+$ fv sync --extra extra1 --extra extra2
 Resolved 3 packages in 14ms
 error: extra `extra1`, extra `extra2` are incompatible with the declared conflicts: {`myproject[extra1]`, `myproject[extra2]`}
 ```
@@ -547,7 +547,7 @@ groups:
 group1 = ["numpy==2.1.2"]
 group2 = ["numpy==2.0.0"]
 
-[tool.uv]
+[tool.fv]
 conflicts = [
     [
       { group = "group1" },
@@ -559,7 +559,7 @@ conflicts = [
 The only difference from conflicting extras is that you need to use the `group` key instead of
 `extra`.
 
-When using a workspace with multiple projects, the same restrictions apply — uv requires all
+When using a workspace with multiple projects, the same restrictions apply — fv requires all
 workspace members to be compatible with each other. Similarly, conflicts can be declared across
 workspace members.
 
@@ -584,7 +584,7 @@ extra2 = ["numpy==2.0.0"]
 To declare a conflict between extras in these different workspace members, use the `package` key:
 
 ```toml title="pyproject.toml"
-[tool.uv]
+[tool.fv]
 conflicts = [
     [
       { package = "member1", extra = "extra1" },
@@ -613,7 +613,7 @@ extra2 = ["numpy==2.0.0"]
 This conflict can also be declared using the `package` key:
 
 ```toml title="pyproject.toml"
-[tool.uv]
+[tool.fv]
 conflicts = [
     [
       { package = "member1" },
@@ -639,7 +639,7 @@ dependencies = ["numpy==2.0.0"]
 This conflict can also be declared using the `package` key:
 
 ```toml title="pyproject.toml"
-[tool.uv]
+[tool.fv]
 conflicts = [
     [
       { package = "member1" },
@@ -658,7 +658,7 @@ dependencies = ["member1", "member2"]
 
 ## Lower bounds
 
-By default, `uv add` adds lower bounds to dependencies and, when using uv to manage projects, uv
+By default, `fv add` adds lower bounds to dependencies and, when using fv to manage projects, fv
 will warn if direct dependencies don't have lower bounds.
 
 Lower bounds are not critical in the "happy path", but they are important for cases where there are
@@ -680,7 +680,7 @@ with an unexpected error.
 
 ## Reproducible resolutions
 
-uv supports an `--exclude-newer` option to limit resolution to distributions published before a
+fv supports an `--exclude-newer` option to limit resolution to distributions published before a
 specific date, allowing reproduction of installations regardless of new package releases. The date
 may be specified as an [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html) timestamp (e.g.,
 `2006-12-02T02:07:43Z`) or a local date in the same format (e.g., `2006-12-02`) in your system's
@@ -700,14 +700,14 @@ as if they do not exist.
 !!! note
 
     The `--exclude-newer` option is only applied to packages that are read from a registry (as
-    opposed to, e.g., Git dependencies). Further, when using the `uv pip` interface, uv will not
+    opposed to, e.g., Git dependencies). Further, when using the `fv pip` interface, fv will not
     downgrade previously installed packages unless the `--reinstall` flag is provided, in which case
-    uv will perform a new resolution.
+    fv will perform a new resolution.
 
 This option is also supported in the `pyproject.toml`, e.g.:
 
 ```pyproject.toml
-[tool.uv]
+[tool.fv]
 exclude-newer = "2006-12-02T02:07:43Z"
 ```
 
@@ -717,7 +717,7 @@ Values may also be specified for specific packages, e.g.,
 `--exclude-newer-package setuptools=2006-12-02`, or:
 
 ```pyproject.toml
-[tool.uv]
+[tool.fv]
 exclude-newer-package = { setuptools = "2006-12-02T02:07:43Z" }
 ```
 
@@ -728,7 +728,7 @@ Package-specific values will take precedence over global values.
 
 ## Dependency cooldowns
 
-uv also supports dependency "cooldowns" in which resolution will ignore packages newer than a
+fv also supports dependency "cooldowns" in which resolution will ignore packages newer than a
 duration. This is a good way to improve security posture by delaying package updates until the
 community has had the opportunity to vet new versions of packages.
 
@@ -746,14 +746,14 @@ Define a dependency cooldown by specifying a duration instead of an absolute val
     units such as months and years are not allowed since they are inherently inconsistent lengths.
 
 When a duration is used for resolution, a timestamp is calculated relative to the current time. When
-using a `uv.lock` file, the timestamp is included in the lockfile. uv will not update the lockfile
-when the current time changes, instead, uv will update the timestamp when a new resolution is
+using a `fv.lock` file, the timestamp is included in the lockfile. fv will not update the lockfile
+when the current time changes, instead, fv will update the timestamp when a new resolution is
 performed, e.g., when `--upgrade` or `--refresh` is used.
 
 This option is also supported in the `pyproject.toml`, e.g.:
 
 ```pyproject.toml
-[tool.uv]
+[tool.fv]
 exclude-newer = "1 week"
 ```
 
@@ -761,7 +761,7 @@ Values may also be specified for specific packages, e.g.,
 `--exclude-newer-package "setuptools=30 days"`, or:
 
 ```pyproject.toml
-[tool.uv]
+[tool.fv]
 exclude-newer = "1 week"
 exclude-newer-package = { setuptools = "30 days" }
 ```
@@ -770,7 +770,7 @@ exclude-newer-package = { setuptools = "30 days" }
 
 [PEP 625](https://peps.python.org/pep-0625/) specifies that packages must distribute source
 distributions as gzip tarball (`.tar.gz`) archives. Prior to this specification, other archive
-formats, which need to be supported for backward compatibility, were also allowed. uv supports
+formats, which need to be supported for backward compatibility, were also allowed. fv supports
 reading and extracting archives in the following formats:
 
 - gzip tarball (`.tar.gz`, `.tgz`)
@@ -790,29 +790,29 @@ reading and extracting archives in the following formats:
 !!! warning "Deprecated"
 
     Support for source distribution extensions other than `.tar.gz` is
-    deprecated and will be removed in a future release of uv.
+    deprecated and will be removed in a future release of fv.
 
 ## Lockfile versioning
 
-The `uv.lock` file uses a versioned schema. The schema version is included in the `version` field of
+The `fv.lock` file uses a versioned schema. The schema version is included in the `version` field of
 the lockfile.
 
-Any given version of uv can read and write lockfiles with the same schema version, but will reject
-lockfiles with a greater schema version. For example, if your uv version supports schema v1,
-`uv lock` will error if it encounters an existing lockfile with schema v2.
+Any given version of fv can read and write lockfiles with the same schema version, but will reject
+lockfiles with a greater schema version. For example, if your fv version supports schema v1,
+`fv lock` will error if it encounters an existing lockfile with schema v2.
 
-uv versions that support schema v2 _may_ be able to read lockfiles with schema v1 if the schema
-update was backwards-compatible. However, this is not guaranteed, and uv may exit with an error if
+fv versions that support schema v2 _may_ be able to read lockfiles with schema v1 if the schema
+update was backwards-compatible. However, this is not guaranteed, and fv may exit with an error if
 it encounters a lockfile with an outdated schema version.
 
 The schema version is considered part of the public API, and so is only bumped in minor releases, as
-a breaking change (see [Versioning](../reference/policies/versioning.md)). As such, all uv patch
-versions within a given minor uv release are guaranteed to have full lockfile compatibility. In
+a breaking change (see [Versioning](../reference/policies/versioning.md)). As such, all fv patch
+versions within a given minor fv release are guaranteed to have full lockfile compatibility. In
 other words, lockfiles may only be rejected across minor releases.
 
 The `revision` field of the lockfile is used to track backwards compatible changes to the lockfile.
 For example, adding a new field to distributions. Changes to the revision will not cause older
-versions of uv to error.
+versions of fv to error.
 
 ## Learn more
 

@@ -1,2 +1,2 @@
-[tool.uv.workspace]
+[tool.fv.workspace]
 members = ["packages/*"]

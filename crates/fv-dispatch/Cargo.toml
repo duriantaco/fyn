@@ -1,0 +1,45 @@
+[package]
+name = "fv-dispatch"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fv-build-backend = { workspace = true }
+fv-build-frontend = { workspace = true }
+fv-cache = { workspace = true }
+fv-client = { workspace = true }
+fv-configuration = { workspace = true }
+fv-distribution = { workspace = true }
+fv-distribution-filename = { workspace = true }
+fv-distribution-types = { workspace = true }
+fv-git = { workspace = true }
+fv-install-wheel = { workspace = true }
+fv-installer = { workspace = true }
+fv-platform-tags = { workspace = true }
+fv-preview = { workspace = true }
+fv-pypi-types = { workspace = true }
+fv-python = { workspace = true }
+fv-resolver = { workspace = true }
+fv-types = { workspace = true }
+fv-version = { workspace = true }
+fv-workspace = { workspace = true }
+
+anyhow = { workspace = true }
+futures = { workspace = true }
+itertools = { workspace = true }
+rustc-hash = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }

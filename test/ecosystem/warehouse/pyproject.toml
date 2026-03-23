@@ -88,7 +88,7 @@ deploy = [
   "ddtrace==2.8.5"
 ]
 
-[tool.uv]
+[tool.fv]
 dev-dependencies = [
   "Sphinx",
   "asyncudp>=0.7",
@@ -154,7 +154,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 # Avoid a dependency on `pg_config`
-[[tool.uv.dependency-metadata]]
+[[tool.fv.dependency-metadata]]
 name = "psycopg-c"
 version = "3.2.1"
 requires-dist = []

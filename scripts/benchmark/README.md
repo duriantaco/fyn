@@ -1,13 +1,13 @@
 # benchmark
 
-Benchmarking scripts for uv and other package management tools.
+Benchmarking scripts for fv and other package management tools.
 
 ## Getting Started
 
 From the `scripts/benchmark` directory:
 
 ```shell
-uv run resolver \
+fv run resolver \
     --uv-pip \
     --poetry \
     --benchmark \

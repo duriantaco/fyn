@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-# Install uv into the Termux prefix
-cp /uv /data/data/com.termux/files/usr/bin/uv
+# Install fv into the Termux prefix
+cp /fv /data/data/com.termux/files/usr/bin/uv
 chmod +x /data/data/com.termux/files/usr/bin/uv
 
 # Test uv
-uv --version
+fv --version
 
-# Termux uses Bionic libc (not glibc or musl), so uv cannot discover
+# Termux uses Bionic libc (not glibc or musl), so fv cannot discover
 # managed Python installations. Use only-system to skip that check.
 export UV_PYTHON_PREFERENCE=only-system
-uv python find
-uv run -- python --version
+fv python find
+fv run -- python --version

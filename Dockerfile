@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
   build-essential \
   curl
 
-# Install uv
+# Install uv to bootstrap the build (using upstream uv for build tooling)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Setup zig as cross compiling linker
@@ -59,13 +59,13 @@ RUN cargo install \
 RUN case "${TARGETPLATFORM}" in \
   "linux/arm64") export JEMALLOC_SYS_WITH_LG_PAGE=16;; \
   esac && \
-  cargo auditable zigbuild --bin uv --bin uvx --target $(cat rust_target.txt) --release
-RUN cp target/$(cat rust_target.txt)/release/uv /uv \
-  && cp target/$(cat rust_target.txt)/release/uvx /uvx
+  cargo auditable zigbuild --bin fv --bin fvx --target $(cat rust_target.txt) --release
+RUN cp target/$(cat rust_target.txt)/release/fv /fv \
+  && cp target/$(cat rust_target.txt)/release/fvx /fvx
 # TODO(konsti): Optimize binary size, with a version that also works when cross compiling
-# RUN strip --strip-all /uv
+# RUN strip --strip-all /fv
 
 FROM scratch
-COPY --from=build /uv /uvx /
+COPY --from=build /fv /fvx /
 WORKDIR /io
-ENTRYPOINT ["/uv"]
+ENTRYPOINT ["/fv"]

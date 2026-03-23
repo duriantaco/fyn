@@ -1,0 +1,52 @@
+[package]
+name = "fv-configuration"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fv-auth = { workspace = true }
+fv-cache = { workspace = true }
+fv-cache-info = { workspace = true }
+fv-distribution-types = { workspace = true }
+fv-git = { workspace = true }
+fv-normalize = { workspace = true }
+fv-pep440 = { workspace = true }
+fv-pep508 = { workspace = true, features = ["schemars"] }
+fv-platform-tags = { workspace = true }
+fv-redacted = { workspace = true }
+fv-static = { workspace = true }
+
+clap = { workspace = true, features = ["derive"], optional = true }
+either = { workspace = true }
+fs-err = { workspace = true }
+rayon = { workspace = true }
+reqwest = { workspace = true }
+rustc-hash = { workspace = true }
+same-file = { workspace = true }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true }
+tokio = { workspace = true }
+serde-untagged = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+insta = { workspace = true }
+serde_json = { workspace = true }
+
+[features]
+default = []

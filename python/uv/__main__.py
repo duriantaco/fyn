@@ -1,7 +1,7 @@
 import os
 import sys
 
-from uv import find_uv_bin
+from fv import find_fv_bin
 
 
 def _detect_virtualenv() -> str:
@@ -24,14 +24,14 @@ def _detect_virtualenv() -> str:
 
 
 def _run() -> None:
-    uv = find_uv_bin()
+    fv = find_fv_bin()
 
     env = os.environ.copy()
     venv = _detect_virtualenv()
     if venv:
         env.setdefault("VIRTUAL_ENV", venv)
 
-    # Let `uv` know that it was spawned by this Python interpreter
+    # Let `fv` know that it was spawned by this Python interpreter
     env["UV_INTERNAL__PARENT_INTERPRETER"] = sys.executable
 
     if sys.platform == "win32":
@@ -39,13 +39,13 @@ def _run() -> None:
 
         # Avoid emitting a traceback on interrupt
         try:
-            completed_process = subprocess.run([uv, *sys.argv[1:]], env=env)
+            completed_process = subprocess.run([fv, *sys.argv[1:]], env=env)
         except KeyboardInterrupt:
             sys.exit(2)
 
         sys.exit(completed_process.returncode)
     else:
-        os.execvpe(uv, [uv, *sys.argv[1:]], env=env)
+        os.execvpe(fv, [fv, *sys.argv[1:]], env=env)
 
 
 if __name__ == "__main__":

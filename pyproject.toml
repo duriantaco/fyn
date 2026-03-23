@@ -3,13 +3,13 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "uv"
+name = "fv"
 version = "0.10.12"
 description = "An extremely fast Python package and project manager, written in Rust."
-authors = [{ name = "Astral Software Inc.", email = "hey@astral.sh" }]
+authors = [{ name = "fv contributors" }]
 requires-python = ">=3.8"
 keywords = [
-  "uv", "requirements", "packaging"
+  "fv", "requirements", "packaging", "python"
 ]
 license="MIT OR Apache-2.0"
 license-files = ["LICENSE-APACHE", "LICENSE-MIT"]
@@ -36,23 +36,22 @@ classifiers = [
 readme = "README.md"
 
 [project.urls]
-Repository = "https://github.com/astral-sh/uv"
-Documentation = "https://docs.astral.sh/uv"
-Changelog = "https://github.com/astral-sh/uv/blob/main/CHANGELOG.md"
-Releases = "https://github.com/astral-sh/uv/releases"
+Repository = "https://github.com/oha/fv"
+Changelog = "https://github.com/oha/fv/blob/main/CHANGELOG.md"
+Releases = "https://github.com/oha/fv/releases"
 Discord = "https://discord.gg/astral-sh"
 
 [tool.maturin]
 bindings = "bin"
-manifest-path = "crates/uv/Cargo.toml"
-module-name = "uv"
+manifest-path = "crates/fv/Cargo.toml"
+module-name = "fv"
 python-source = "python"
 strip = true
 include = [
     { path = "rust-toolchain.toml", format = "sdist" },
     # this one isn't discovered by maturin because it's behind a feature flag
-    { path = "crates/uv-performance-memory-allocator/**/*", format = "sdist" },
-    { path = "crates/uv-trampoline-builder/trampolines/*", format = "sdist" },
+    { path = "crates/fv-performance-memory-allocator/**/*", format = "sdist" },
+    { path = "crates/fv-trampoline-builder/trampolines/*", format = "sdist" },
     # https://github.com/rust-lang/cargo/issues/5933
     { path = "LICENSE-APACHE", format = "sdist" },
     { path = "LICENSE-MIT", format = "sdist" },
@@ -66,11 +65,11 @@ ignore-labels = ["internal", "ci", "testing"]
 version_files = [
   "README.md",
   "pyproject.toml",
-  "crates/uv/Cargo.toml",
-  "crates/uv-version/Cargo.toml",
-  "crates/uv-build/Cargo.toml",
-  "crates/uv-build/pyproject.toml",
-  { target = "crates/uv-static/src/env_vars.rs", replace = "next release" },
+  "crates/fv/Cargo.toml",
+  "crates/fv-version/Cargo.toml",
+  "crates/fv-build/Cargo.toml",
+  "crates/fv-build/pyproject.toml",
+  { target = "crates/fv-static/src/env_vars.rs", replace = "next release" },
   "docs/getting-started/installation.md",
   "docs/guides/integration/docker.md",
   "docs/guides/integration/pre-commit.md",
@@ -110,6 +109,6 @@ docker = [
   "cargo-zigbuild>=0.19.8",
 ]
 
-[tool.uv.dependency-groups]
+[tool.fv.dependency-groups]
 docs = { requires-python = ">=3.12" }
 docker = { requires-python = ">=3.12" }

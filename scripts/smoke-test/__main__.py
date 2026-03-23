@@ -19,7 +19,7 @@ def read_commands() -> list[list[str]]:
 
 def run_command(command: list[str]) -> subprocess.CompletedProcess:
     env = os.environ.copy()
-    # Prepend either the parent uv path to the PATH or the current directory
+    # Prepend either the parent fv path to the PATH or the current directory
     env = {
         **env,
         "PATH": str(

@@ -10,39 +10,39 @@ pre-built artifacts that can be installed directly.
 
 !!! important
 
-    When using `uv build`, uv acts as a [build frontend](https://peps.python.org/pep-0517/#terminology-and-goals)
+    When using `fv build`, fv acts as a [build frontend](https://peps.python.org/pep-0517/#terminology-and-goals)
     and only determines the Python version to use and invokes the build backend. The details of
     the builds, such as the included files and the distribution filenames, are determined by the build
     backend, as defined in [`[build-system]`](./config.md#build-systems). Information about build
     configuration can be found in the respective tool's documentation.
 
-## Using `uv build`
+## Using `fv build`
 
-`uv build` can be used to build both source distributions and binary distributions for your project.
-By default, `uv build` will build the project in the current directory, and place the built
+`fv build` can be used to build both source distributions and binary distributions for your project.
+By default, `fv build` will build the project in the current directory, and place the built
 artifacts in a `dist/` subdirectory:
 
 ```console
-$ uv build
+$ fv build
 $ ls dist/
 example-0.1.0-py3-none-any.whl
 example-0.1.0.tar.gz
 ```
 
-You can build the project in a different directory by providing a path to `uv build`, e.g.,
-`uv build path/to/project`.
+You can build the project in a different directory by providing a path to `fv build`, e.g.,
+`fv build path/to/project`.
 
-`uv build` will first build a source distribution, and then build a binary distribution (wheel) from
+`fv build` will first build a source distribution, and then build a binary distribution (wheel) from
 that source distribution.
 
-You can limit `uv build` to building a source distribution with `uv build --sdist`, a binary
-distribution with `uv build --wheel`, or build both distributions from source with
-`uv build --sdist --wheel`.
+You can limit `fv build` to building a source distribution with `fv build --sdist`, a binary
+distribution with `fv build --wheel`, or build both distributions from source with
+`fv build --sdist --wheel`.
 
 ## Build constraints
 
-`uv build` accepts `--build-constraint`, which can be used to constrain the versions of any build
-requirements during the build process. When coupled with `--require-hashes`, uv will enforce that
+`fv build` accepts `--build-constraint`, which can be used to constrain the versions of any build
+requirements during the build process. When coupled with `--require-hashes`, fv will enforce that
 the requirement used to build the project match specific, known hashes, for reproducibility.
 
 For example, given the following `constraints.txt`:
@@ -55,7 +55,7 @@ Running the following would build the project with the specified version of `set
 that the downloaded `setuptools` distribution matches the specified hash:
 
 ```console
-$ uv build --build-constraint constraints.txt --require-hashes
+$ fv build --build-constraint constraints.txt --require-hashes
 ```
 
 ## Preventing publish to PyPI

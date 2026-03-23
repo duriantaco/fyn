@@ -1,14 +1,14 @@
 ---
-title: Using uv with FastAPI
+title: Using fv with FastAPI
 description:
-  A guide to using uv with FastAPI to manage Python dependencies, run applications, and deploy with
+  A guide to using fv with FastAPI to manage Python dependencies, run applications, and deploy with
   Docker.
 ---
 
-# Using uv with FastAPI
+# Using fv with FastAPI
 
 [FastAPI](https://github.com/fastapi/fastapi) is a modern, high-performance Python web framework.
-You can use uv to manage your FastAPI project, including installing dependencies, managing
+You can use fv to manage your FastAPI project, including installing dependencies, managing
 environments, running FastAPI applications, and more.
 
 !!! note
@@ -36,10 +36,10 @@ project
         └── admin.py
 ```
 
-To use uv with this application, inside the `project` directory run:
+To use fv with this application, inside the `project` directory run:
 
 ```console
-$ uv init --app
+$ fv init --app
 ```
 
 This creates a [project with an application layout](../../concepts/projects/init.md#applications)
@@ -48,7 +48,7 @@ and a `pyproject.toml` file.
 Then, add a dependency on FastAPI:
 
 ```console
-$ uv add fastapi --extra standard
+$ fv add fastapi --extra standard
 ```
 
 You should now have the following structure:
@@ -73,7 +73,7 @@ And the contents of the `pyproject.toml` file should look something like this:
 
 ```toml title="pyproject.toml"
 [project]
-name = "uv-fastapi-example"
+name = "fv-fastapi-example"
 version = "0.1.0"
 description = "FastAPI project"
 readme = "README.md"
@@ -86,10 +86,10 @@ dependencies = [
 From there, you can run the FastAPI application with:
 
 ```console
-$ uv run fastapi dev
+$ fv run fastapi dev
 ```
 
-`uv run` will automatically resolve and lock the project dependencies (i.e., create a `uv.lock`
+`fv run` will automatically resolve and lock the project dependencies (i.e., create a `fv.lock`
 alongside the `pyproject.toml`), create a virtual environment, and run the command in that
 environment.
 
@@ -102,15 +102,15 @@ To deploy the FastAPI application with Docker, you can use the following `Docker
 ```dockerfile title="Dockerfile"
 FROM python:3.12-slim
 
-# Install uv.
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# Install fv.
+COPY --from=ghcr.io/oha/fv:latest /fv /fvx /bin/
 
 # Copy the application into the container.
 COPY . /app
 
 # Install the application dependencies.
 WORKDIR /app
-RUN uv sync --frozen --no-cache
+RUN fv sync --frozen --no-cache
 
 # Run the application.
 CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "80", "--host", "0.0.0.0"]
@@ -133,4 +133,4 @@ correctly.
 
 !!! tip
 
-    For more on using uv with Docker, see the [Docker guide](./docker.md).
+    For more on using fv with Docker, see the [Docker guide](./docker.md).

@@ -1,11 +1,11 @@
 """Vendor select modules from `pypa/packaging`.
 
 This script clones `pypa/packaging`, checks out a specific commit, copies the
-vendored files into `crates/uv-python/python/packaging`, applies all
+vendored files into `crates/fv-python/python/packaging`, applies all
 `*.patch` files in that directory, and regenerates the README.
 
 Example:
-    uv run ./scripts/vendor-packaging.py cc938f984bbbe43c5734b9656c9837ab3a28191f
+    fv run ./scripts/vendor-packaging.py cc938f984bbbe43c5734b9656c9837ab3a28191f
 """
 
 # /// script
@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PACKAGING_DIR = REPO_ROOT / "crates" / "uv-python" / "python" / "packaging"
+PACKAGING_DIR = REPO_ROOT / "crates" / "fv-python" / "python" / "packaging"
 README_PATH = PACKAGING_DIR / "README.md"
 UPSTREAM_REPOSITORY = "https://github.com/pypa/packaging.git"
 UPSTREAM_SOURCE_DIR = "src"
@@ -111,7 +111,7 @@ def main() -> None:
     if not patch_files:
         raise FileNotFoundError(f"No patch files found in: {PACKAGING_DIR}")
 
-    with tempfile.TemporaryDirectory(prefix="uv-vendor-packaging-") as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="fv-vendor-packaging-") as temp_dir:
         temp_path = Path(temp_dir)
         upstream_root = temp_path / "packaging"
 

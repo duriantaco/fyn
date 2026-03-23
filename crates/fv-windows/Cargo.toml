@@ -1,0 +1,23 @@
+[package]
+name = "fv-windows"
+version = "0.0.32"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+description = "Windows-specific utilities for fv"
+
+[lints]
+workspace = true
+
+[lib]
+doctest = false
+
+[features]
+default = ["std"]
+std = []
+
+[target.'cfg(windows)'.dependencies]
+windows = { workspace = true }

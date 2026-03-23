@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test `uv add` against multiple Python package registries.
+Test `fv add` against multiple Python package registries.
 
 This script looks for environment variables that configure registries for testing.
 To configure a registry, set the following environment variables:
@@ -158,7 +158,7 @@ version = "0.1.0"
 description = "Test registry"
 requires-python = ">={requires_python}"
 
-[[tool.uv.index]]
+[[tool.fv.index]]
 name = "{registry_name}"
 url = "{registry_url}"
 default = true
@@ -195,7 +195,7 @@ def run_test(
         env[f"UV_INDEX_{registry_name.upper()}_USERNAME"] = username
         env[f"UV_INDEX_{registry_name.upper()}_PASSWORD"] = token
     elif auth_method == "text-store":
-        # Use uv's text store for authentication
+        # Use fv's text store for authentication
         subprocess.check_call(
             [
                 uv,
@@ -215,7 +215,7 @@ def run_test(
     with tempfile.TemporaryDirectory() as project_dir:
         setup_test_project(registry_name, registry_url, project_dir, requires_python)
 
-        cmd = [uv, "add", package, "--directory", project_dir, "--no-cache"]
+        cmd = [fv, "add", package, "--directory", project_dir, "--no-cache"]
         if verbosity:
             cmd.extend(["-" + "v" * verbosity])
 
@@ -253,7 +253,7 @@ def run_test(
         except subprocess.TimeoutExpired:
             print(f"{Fore.RED}{registry_name}: TIMEOUT{Fore.RESET} (>{timeout}s)")
         except FileNotFoundError:
-            print(f"{Fore.RED}{registry_name}: ERROR{Fore.RESET} - uv not found")
+            print(f"{Fore.RED}{registry_name}: ERROR{Fore.RESET} - fv not found")
         except Exception as e:
             print(f"{Fore.RED}{registry_name}: ERROR{Fore.RESET} - {e}")
 
@@ -268,7 +268,7 @@ def run_test(
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
-        description="Test uv add command against multiple registries",
+        description="Test fv add command against multiple registries",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
@@ -279,7 +279,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--uv",
         type=str,
-        help="specify a path to the uv binary (default: uv command)",
+        help="specify a path to the fv binary (default: fv command)",
     )
     parser.add_argument(
         "--timeout",
@@ -343,14 +343,14 @@ def main() -> None:
             )
             sys.exit(1)
 
-    if args.uv:
+    if args.fv:
         # We change the working directory for the subprocess calls, so we have to
         # absolutize the path.
-        uv = Path.cwd().joinpath(args.uv)
+        uv = Path.cwd().joinpath(args.fv)
     else:
         subprocess.run(["cargo", "build"])
         executable_suffix = ".exe" if os.name == "nt" else ""
-        uv = cwd.parent.joinpath(f"target/debug/uv{executable_suffix}")
+        uv = cwd.parent.joinpath(f"target/debug/fv{executable_suffix}")
 
     passed = []
     failed = []

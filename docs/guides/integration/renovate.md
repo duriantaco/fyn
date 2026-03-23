@@ -1,6 +1,6 @@
 ---
-title: Using uv with Renovate
-description: A guide to using uv with the Renovate dependency bot.
+title: Using fv with Renovate
+description: A guide to using fv with the Renovate dependency bot.
 ---
 
 # Renovate
@@ -9,16 +9,16 @@ It is considered best practice to regularly update dependencies, to avoid being 
 vulnerabilities, limit incompatibilities between dependencies, and avoid complex upgrades when
 upgrading from a too old version.
 
-uv is supported by [Renovate](https://github.com/renovatebot/renovate).
+fv is supported by [Renovate](https://github.com/renovatebot/renovate).
 
-## `uv.lock` output
+## `fv.lock` output
 
-Renovate uses the presence of a `uv.lock` file to determine that uv is used for managing
+Renovate uses the presence of a `fv.lock` file to determine that fv is used for managing
 dependencies, and will suggest upgrades to
 [project dependencies](../../concepts/projects/dependencies.md#project-dependencies),
 [optional dependencies](../../concepts/projects/dependencies.md#optional-dependencies) and
 [development dependencies](../../concepts/projects/dependencies.md#development-dependencies).
-Renovate will update both the `pyproject.toml` and `uv.lock` files.
+Renovate will update both the `pyproject.toml` and `fv.lock` files.
 
 The lockfile can also be refreshed on a regular basis (for instance to update transitive
 dependencies) by enabling the
@@ -67,7 +67,7 @@ like so:
 If you use [`exclude-newer`](../../reference/settings.md#exclude-newer) option, it is recommended to
 also set the equivalent
 [`minimumReleaseAge`](https://docs.renovatebot.com/configuration-options/#minimumreleaseage) option
-in Renovate, to avoid ending up with pull requests where uv would not be able to lock the
+in Renovate, to avoid ending up with pull requests where fv would not be able to lock the
 dependencies.
 
 For instance, if you've set `exclude-newer` to `1 week`, you can set:

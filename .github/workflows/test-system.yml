@@ -25,21 +25,21 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-musl-${{ inputs.sha }}
+          name: fv-linux-musl-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv --externally-managed
+        run: python3 scripts/check_system_python.py --fv ./fv --externally-managed
 
-      - name: "Test `uv run` with system Python"
+      - name: "Test `fv run` with system Python"
         run: |
-          ./uv run --no-project -p python3 -v python -c "import debian"
-          ./uv run --no-project -p python3 -v --with anyio python -c "import debian"
+          ./fv run --no-project -p python3 -v python -c "import debian"
+          ./fv run --no-project -p python3 -v --with anyio python -c "import debian"
 
   system-test-fedora:
     timeout-minutes: 10
@@ -57,16 +57,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ inputs.sha }}
+          name: fv-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv
+        run: python3 scripts/check_system_python.py --fv ./fv
 
   system-test-ubuntu:
     timeout-minutes: 10
@@ -84,16 +84,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ inputs.sha }}
+          name: fv-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python)
 
       - name: "Validate global Python install"
-        run: python scripts/check_system_python.py --uv ./uv
+        run: python scripts/check_system_python.py --fv ./fv
 
   system-test-python-36:
     timeout-minutes: 10
@@ -108,16 +108,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-musl-${{ inputs.sha }}
+          name: fv-linux-musl-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv
+        run: python3 scripts/check_system_python.py --fv ./fv
 
   system-test-python-37:
     timeout-minutes: 10
@@ -132,16 +132,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-musl-${{ inputs.sha }}
+          name: fv-linux-musl-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv
+        run: python3 scripts/check_system_python.py --fv ./fv
 
   # Currently failing, see https://github.com/astral-sh/uv/issues/13811
   # system-test-opensuse:
@@ -168,13 +168,13 @@ jobs:
   #         name: uv-linux-libc-${{ inputs.sha }}
 
   #     - name: "Prepare binary"
-  #       run: chmod +x ./uv
+  #       run: chmod +x ./fv
 
   #     - name: "Print Python path"
   #       run: echo $(which python3)
 
   #     - name: "Validate global Python install"
-  #       run: python3 scripts/check_system_python.py --uv ./uv
+  #       run: python3 scripts/check_system_python.py --fv ./fv
 
   # Note: rockylinux is a 1-1 code compatible distro to rhel
   # rockylinux mimics centos but with added maintenance stability
@@ -223,10 +223,10 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-musl-${{ inputs.sha }}
+          name: fv-linux-musl-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
@@ -236,7 +236,7 @@ jobs:
         run: dnf install -y gcc
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv
+        run: python3 scripts/check_system_python.py --fv ./fv
 
   system-test-graalpy:
     timeout-minutes: 10
@@ -254,16 +254,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ inputs.sha }}
+          name: fv-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which graalpy)
 
       - name: "Validate global Python install"
-        run: graalpy scripts/check_system_python.py --uv ./uv
+        run: graalpy scripts/check_system_python.py --fv ./fv
 
   system-test-pypy:
     timeout-minutes: 10
@@ -281,16 +281,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ inputs.sha }}
+          name: fv-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which pypy)
 
       - name: "Validate global Python install"
-        run: pypy scripts/check_system_python.py --uv ./uv
+        run: pypy scripts/check_system_python.py --fv ./fv
 
   system-test-pyston:
     timeout-minutes: 10
@@ -305,16 +305,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-musl-${{ inputs.sha }}
+          name: fv-linux-musl-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which pyston)
 
       - name: "Validate global Python install"
-        run: pyston scripts/check_system_python.py --uv ./uv
+        run: pyston scripts/check_system_python.py --fv ./fv
 
   system-test-chainguard-dev:
     timeout-minutes: 10
@@ -331,16 +331,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ inputs.sha }}
+          name: fv-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python)
 
       - name: "Validate global Python install"
-        run: python scripts/check_system_python.py --uv ./uv
+        run: python scripts/check_system_python.py --fv ./fv
 
   # The Chainguard distroless image has no shell, so we can't use `container:`
   # directly. Instead, we run on ubuntu-latest and use `docker run` to execute
@@ -357,10 +357,10 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ inputs.sha }}
+          name: fv-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Validate global Python install"
         run: |
@@ -368,7 +368,7 @@ jobs:
             -v "${{ github.workspace }}:/app" \
             -w /app \
             cgr.dev/chainguard/python:latest@sha256:c789723622cfc4a6b5d604a59250e3f708d0b4bb64cabb39a17c47119a224179 \
-            scripts/check_system_python.py --uv ./uv
+            scripts/check_system_python.py --fv ./fv
 
   system-test-alpine:
     timeout-minutes: 10
@@ -386,16 +386,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-musl-${{ inputs.sha }}
+          name: fv-linux-musl-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv --externally-managed
+        run: python3 scripts/check_system_python.py --fv ./fv --externally-managed
 
   system-test-macos-aarch64:
     timeout-minutes: 10
@@ -409,16 +409,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-macos-aarch64-${{ inputs.sha }}
+          name: fv-macos-aarch64-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv --externally-managed
+        run: python3 scripts/check_system_python.py --fv ./fv --externally-managed
 
   system-test-macos-aarch64-homebrew:
     timeout-minutes: 10
@@ -435,16 +435,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-macos-aarch64-${{ inputs.sha }}
+          name: fv-macos-aarch64-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv --externally-managed
+        run: python3 scripts/check_system_python.py --fv ./fv --externally-managed
 
   system-test-macos-aarch64-emulated:
     timeout-minutes: 10
@@ -463,16 +463,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-macos-aarch64-${{ inputs.sha }}
+          name: fv-macos-aarch64-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv --externally-managed
+        run: python3 scripts/check_system_python.py --fv ./fv --externally-managed
 
   system-test-macos-x86_64:
     timeout-minutes: 10
@@ -490,16 +490,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-macos-x86_64-${{ inputs.sha }}
+          name: fv-macos-x86_64-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv --externally-managed
+        run: python3 scripts/check_system_python.py --fv ./fv --externally-managed
 
   system-test-windows-python-310:
     timeout-minutes: 10
@@ -517,13 +517,13 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-windows-x86_64-${{ inputs.sha }}
+          name: fv-windows-x86_64-${{ inputs.sha }}
 
       - name: "Print Python path"
         run: echo $(which python)
 
       - name: "Validate global Python install"
-        run: py -3.10 ./scripts/check_system_python.py --uv ./uv.exe
+        run: py -3.10 ./scripts/check_system_python.py --fv ./fv.exe
 
   system-test-windows-x86_64-python-310:
     timeout-minutes: 10
@@ -542,13 +542,13 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-windows-x86_64-${{ inputs.sha }}
+          name: fv-windows-x86_64-${{ inputs.sha }}
 
       - name: "Print Python path"
         run: echo $(which python)
 
       - name: "Validate global Python install"
-        run: python ./scripts/check_system_python.py --uv ./uv.exe
+        run: python ./scripts/check_system_python.py --fv ./fv.exe
 
   system-test-windows-x86_64-python-313:
     timeout-minutes: 10
@@ -567,13 +567,13 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-windows-x86_64-${{ inputs.sha }}
+          name: fv-windows-x86_64-${{ inputs.sha }}
 
       - name: "Print Python path"
         run: echo $(which python)
 
       - name: "Validate global Python install"
-        run: py -3.13 ./scripts/check_system_python.py --uv ./uv.exe
+        run: py -3.13 ./scripts/check_system_python.py --fv ./fv.exe
 
   system-test-windows-aarch64-x86-python-313:
     timeout-minutes: 10
@@ -593,10 +593,10 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-windows-aarch64-${{ inputs.sha }}
+          name: fv-windows-aarch64-${{ inputs.sha }}
 
       - name: "Validate global Python install"
-        run: py -3.13 ./scripts/check_system_python.py --uv ./uv.exe
+        run: py -3.13 ./scripts/check_system_python.py --fv ./fv.exe
 
   system-test-windows-aarch64-aarch64-python-313:
     timeout-minutes: 10
@@ -616,10 +616,10 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-windows-aarch64-${{ inputs.sha }}
+          name: fv-windows-aarch64-${{ inputs.sha }}
 
       - name: "Validate global Python install"
-        run: py -3.13-arm64 ./scripts/check_system_python.py --uv ./uv.exe
+        run: py -3.13-arm64 ./scripts/check_system_python.py --fv ./fv.exe
 
   system-test-choco:
     timeout-minutes: 10
@@ -638,7 +638,7 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-windows-x86_64-${{ inputs.sha }}
+          name: fv-windows-x86_64-${{ inputs.sha }}
 
       # Chocolatey updates the registry but doesn't update `GITHUB_PATH` and since figuring out what
       # it added would be more work than it's worth, it's simpler to just reload the values from the
@@ -646,7 +646,7 @@ jobs:
       - name: "Validate global Python install"
         run: |
           $env:PATH = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-          python ./scripts/check_system_python.py --uv ./uv.exe --check-python-version $env:TEST_PYTHON_VERSION --check-path
+          python ./scripts/check_system_python.py --fv ./fv.exe --check-python-version $env:TEST_PYTHON_VERSION --check-path
 
   system-test-pyenv:
     timeout-minutes: 10
@@ -679,16 +679,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ inputs.sha }}
+          name: fv-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3.9)
 
       - name: "Validate global Python install"
-        run: python3.9 scripts/check_system_python.py --uv ./uv
+        run: python3.9 scripts/check_system_python.py --fv ./fv
 
   system-test-linux-313:
     timeout-minutes: 10
@@ -707,16 +707,16 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-libc-${{ inputs.sha }}
+          name: fv-linux-libc-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3.13)
 
       - name: "Validate global Python install"
-        run: python3.13 scripts/check_system_python.py --uv ./uv
+        run: python3.13 scripts/check_system_python.py --fv ./fv
 
   system-test-conda:
     timeout-minutes: 10
@@ -754,7 +754,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3.3.0
         with:
           miniconda-version: "latest"
-          activate-environment: uv
+          activate-environment: fv
           python-version: ${{ matrix.python-version }}
 
       - name: Conda info
@@ -768,11 +768,11 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-${{ matrix.target }}-${{ inputs.sha }}
+          name: fv-${{ matrix.target }}-${{ inputs.sha }}
 
       - name: "Prepare binary"
         if: ${{ matrix.os != 'windows' }}
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         shell: bash -el {0}
@@ -780,7 +780,7 @@ jobs:
 
       - name: "Validate global Python install"
         shell: bash -el {0}
-        run: python ./scripts/check_system_python.py --uv ./uv
+        run: python ./scripts/check_system_python.py --fv ./fv
 
   system-test-amazonlinux:
     timeout-minutes: 10
@@ -801,10 +801,10 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-linux-musl-${{ inputs.sha }}
+          name: fv-linux-musl-${{ inputs.sha }}
 
       - name: "Prepare binary"
-        run: chmod +x ./uv
+        run: chmod +x ./fv
 
       - name: "Print Python path"
         run: echo $(which python3)
@@ -813,7 +813,7 @@ jobs:
         run: yum install -y gcc
 
       - name: "Validate global Python install"
-        run: python3 scripts/check_system_python.py --uv ./uv
+        run: python3 scripts/check_system_python.py --fv ./fv
 
   system-test-windows-embedded-python-310:
     timeout-minutes: 10
@@ -827,7 +827,7 @@ jobs:
       - name: "Download binary"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: uv-windows-x86_64-${{ inputs.sha }}
+          name: fv-windows-x86_64-${{ inputs.sha }}
 
       # Download embedded Python.
       - name: "Download embedded Python"
@@ -846,4 +846,4 @@ jobs:
         run: echo $(which python)
 
       - name: "Validate embedded Python install"
-        run: python ./scripts/check_embedded_python.py --uv ./uv.exe
+        run: python ./scripts/check_embedded_python.py --fv ./fv.exe

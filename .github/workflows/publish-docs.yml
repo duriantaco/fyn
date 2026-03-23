@@ -1,4 +1,4 @@
-# Publish the uv documentation.
+# Publish the fv documentation.
 #
 # Assumed to run as a subworkflow of .github/workflows/release.yml; specifically, as a post-announce
 # job within `cargo-dist`.
@@ -70,13 +70,13 @@ jobs:
           echo "BRANCH_NAME=update-docs-$branch_display_name-$timestamp" >> $GITHUB_ENV
           echo "TIMESTAMP=$timestamp" >> $GITHUB_ENV
 
-      - name: "Install uv"
+      - name: "Install fv"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           version: "0.10.10"
 
       - name: "Build docs"
-        run: uv run --only-group docs mkdocs build --strict -f mkdocs.yml
+        run: fv run --only-group docs mkdocs build --strict -f mkdocs.yml
 
       - name: "Clone docs repo"
         run: |
@@ -86,7 +86,7 @@ jobs:
           ASTRAL_DOCS_PAT: ${{ secrets.ASTRAL_DOCS_PAT }}
 
       - name: "Copy docs"
-        run: rm -rf astral-docs/site/uv && mkdir -p astral-docs/site && cp -r site/uv astral-docs/site/
+        run: rm -rf astral-docs/site/fv && mkdir -p astral-docs/site && cp -r site/fv astral-docs/site/
 
       - name: "Commit docs"
         working-directory: astral-docs
@@ -97,8 +97,8 @@ jobs:
           git config user.email "176161322+astral-docs-bot@users.noreply.github.com"
 
           git checkout -b $branch_name
-          git add site/uv
-          git commit -m "Update uv documentation for $version"
+          git add site/fv
+          git commit -m "Update fv documentation for $version"
 
       - name: "Create Pull Request"
         working-directory: astral-docs
@@ -110,7 +110,7 @@ jobs:
           branch_name="${BRANCH_NAME}"
 
           # set the PR title
-          pull_request_title="Update uv documentation for $display_name"
+          pull_request_title="Update fv documentation for $display_name"
 
           # Delete any existing pull requests that are open for this version
           # by checking against pull_request_title because the new PR will

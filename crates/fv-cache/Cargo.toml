@@ -1,0 +1,39 @@
+[package]
+name = "fv-cache"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fv-cache-info = { workspace = true }
+fv-cache-key = { workspace = true }
+fv-dirs = { workspace = true }
+fv-distribution-types = { workspace = true }
+fv-fs = { workspace = true, features = ["tokio"] }
+fv-normalize = { workspace = true }
+fv-pypi-types = { workspace = true }
+fv-redacted = { workspace = true }
+fv-static = { workspace = true }
+
+clap = { workspace = true, features = ["derive", "env"], optional = true }
+fs-err = { workspace = true, features = ["tokio"] }
+nanoid = { workspace = true }
+rmp-serde = { workspace = true }
+rustc-hash = { workspace = true }
+same-file = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+walkdir = { workspace = true }

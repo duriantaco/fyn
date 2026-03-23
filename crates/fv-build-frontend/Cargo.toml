@@ -1,0 +1,52 @@
+[package]
+name = "fv-build-frontend"
+version = "0.0.32"
+description = "This is an internal component crate of fv"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fv-auth = { workspace = true }
+fv-cache-key = { workspace = true }
+fv-configuration = { workspace = true }
+fv-distribution = { workspace = true }
+fv-distribution-types = { workspace = true }
+fv-fs = { workspace = true }
+fv-normalize = { workspace = true }
+fv-pep440 = { workspace = true }
+fv-pep508 = { workspace = true }
+fv-pypi-types = { workspace = true }
+fv-python = { workspace = true }
+fv-static = { workspace = true }
+fv-types = { workspace = true }
+fv-virtualenv = { workspace = true }
+fv-warnings = { workspace = true }
+fv-workspace = { workspace = true }
+
+anstream = { workspace = true }
+fs-err = { workspace = true }
+indoc = { workspace = true }
+itertools = { workspace = true }
+owo-colors = { workspace = true }
+regex = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+toml_edit = { workspace = true }
+tracing = { workspace = true }
+rustc-hash = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }

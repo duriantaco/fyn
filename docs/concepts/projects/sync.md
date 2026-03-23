@@ -6,71 +6,71 @@ the lockfile into the [project environment](./layout.md#the-project-environment)
 
 ## Automatic lock and sync
 
-Locking and syncing are _automatic_ in uv. For example, when `uv run` is used, the project is locked
+Locking and syncing are _automatic_ in fv. For example, when `fv run` is used, the project is locked
 and synced before invoking the requested command. This ensures the project environment is always
-up-to-date. Similarly, commands which read the lockfile, such as `uv tree`, will automatically
+up-to-date. Similarly, commands which read the lockfile, such as `fv tree`, will automatically
 update it before running.
 
 To disable automatic locking, use the `--locked` option:
 
 ```console
-$ uv run --locked ...
+$ fv run --locked ...
 ```
 
-If the lockfile is not up-to-date, uv will raise an error instead of updating the lockfile.
+If the lockfile is not up-to-date, fv will raise an error instead of updating the lockfile.
 
 To use the lockfile without checking if it is up-to-date, use the `--frozen` option:
 
 ```console
-$ uv run --frozen ...
+$ fv run --frozen ...
 ```
 
 Similarly, to run a command without checking if the environment is up-to-date, use the `--no-sync`
 option:
 
 ```console
-$ uv run --no-sync ...
+$ fv run --no-sync ...
 ```
 
 ## Checking the lockfile
 
-When considering if the lockfile is up-to-date, uv will check if it matches the project metadata.
+When considering if the lockfile is up-to-date, fv will check if it matches the project metadata.
 For example, if you add a dependency to your `pyproject.toml`, the lockfile will be considered
 outdated. Similarly, if you change the version constraints for a dependency such that the locked
 version is excluded, the lockfile will be considered outdated. However, if you change the version
 constraints such that the existing locked version is still included, the lockfile will still be
 considered up-to-date.
 
-You can check if the lockfile is up-to-date by passing the `--check` flag to `uv lock`:
+You can check if the lockfile is up-to-date by passing the `--check` flag to `fv lock`:
 
 ```console
-$ uv lock --check
+$ fv lock --check
 ```
 
 This is equivalent to the `--locked` flag for other commands.
 
 !!! important
 
-    uv will not consider lockfiles outdated when new versions of packages are released — the lockfile
+    fv will not consider lockfiles outdated when new versions of packages are released — the lockfile
     needs to be explicitly updated if you want to upgrade dependencies. See the documentation on
     [upgrading locked package versions](#upgrading-locked-package-versions) for details.
 
 ## Creating the lockfile
 
 While the lockfile is created [automatically](#automatic-lock-and-sync), the lockfile may also be
-explicitly created or updated using `uv lock`:
+explicitly created or updated using `fv lock`:
 
 ```console
-$ uv lock
+$ fv lock
 ```
 
 ## Syncing the environment
 
 While the environment is synced [automatically](#automatic-lock-and-sync), it may also be explicitly
-synced using `uv sync`:
+synced using `fv sync`:
 
 ```console
-$ uv sync
+$ fv sync
 ```
 
 Syncing the environment manually is especially useful for ensuring your editor has the correct
@@ -78,7 +78,7 @@ versions of dependencies.
 
 ### Editable installation
 
-When the environment is synced, uv will install the project (and other workspace members) as
+When the environment is synced, fv will install the project (and other workspace members) as
 _editable_ packages, such that re-syncing is not necessary for changes to be reflected in the
 environment.
 
@@ -91,32 +91,32 @@ To opt-out of this behavior, use the `--no-editable` option.
 
 ### Handling of extraneous packages
 
-`uv sync` performs "exact" syncing by default, which means it will remove any packages that are not
+`fv sync` performs "exact" syncing by default, which means it will remove any packages that are not
 present in the lockfile.
 
 To retain extraneous packages, use the `--inexact` flag:
 
 ```console
-$ uv sync --inexact
+$ fv sync --inexact
 ```
 
-In contrast, `uv run` uses "inexact" syncing by default, ensuring that all required packages are
-installed but not removing extraneous packages. To enable exact syncing with `uv run`, use the
+In contrast, `fv run` uses "inexact" syncing by default, ensuring that all required packages are
+installed but not removing extraneous packages. To enable exact syncing with `fv run`, use the
 `--exact` flag:
 
 ```console
-$ uv run --exact ...
+$ fv run --exact ...
 ```
 
 ### Syncing optional dependencies
 
-uv reads optional dependencies from the `[project.optional-dependencies]` table. These are
+fv reads optional dependencies from the `[project.optional-dependencies]` table. These are
 frequently referred to as "extras".
 
-uv does not sync extras by default. Use the `--extra` option to include an extra.
+fv does not sync extras by default. Use the `--extra` option to include an extra.
 
 ```console
-$ uv sync --extra foo
+$ fv sync --extra foo
 ```
 
 To quickly enable all extras, use the `--all-extras` option.
@@ -126,7 +126,7 @@ on how to manage optional dependencies.
 
 ### Syncing development dependencies
 
-uv reads development dependencies from the `[dependency-groups]` table (as defined in
+fv reads development dependencies from the `[dependency-groups]` table (as defined in
 [PEP 735](https://peps.python.org/pep-0735/)).
 
 The `dev` group is special-cased and synced by default. See the
@@ -146,7 +146,7 @@ Additional groups can be included or excluded with the `--all-groups`, `--no-def
 Group exclusions always take precedence over inclusions, so given the command:
 
 ```
-$ uv sync --no-group foo --group foo
+$ fv sync --no-group foo --group foo
 ```
 
 The `foo` group would not be installed.
@@ -156,27 +156,27 @@ details on how to manage development dependencies.
 
 ## Upgrading locked package versions
 
-With an existing `uv.lock` file, uv will prefer the previously locked versions of packages when
-running `uv sync` and `uv lock`. Package versions will only change if the project's dependency
+With an existing `fv.lock` file, fv will prefer the previously locked versions of packages when
+running `fv sync` and `fv lock`. Package versions will only change if the project's dependency
 constraints exclude the previous, locked version.
 
 To upgrade all packages:
 
 ```console
-$ uv lock --upgrade
+$ fv lock --upgrade
 ```
 
 To upgrade a single package to the latest version, while retaining the locked versions of all other
 packages:
 
 ```console
-$ uv lock --upgrade-package <package>
+$ fv lock --upgrade-package <package>
 ```
 
 To upgrade a single package to a specific version:
 
 ```console
-$ uv lock --upgrade-package <package>==<version>
+$ fv lock --upgrade-package <package>==<version>
 ```
 
 In all cases, upgrades are limited to the project's dependency constraints. For example, if the
@@ -184,23 +184,23 @@ project defines an upper bound for a package then an upgrade will not go beyond 
 
 !!! note
 
-    uv applies similar logic to Git dependencies. For example, if a Git dependency references
-    the `main` branch, uv will prefer the locked commit SHA in an existing `uv.lock` file over
+    fv applies similar logic to Git dependencies. For example, if a Git dependency references
+    the `main` branch, fv will prefer the locked commit SHA in an existing `fv.lock` file over
     the latest commit on the `main` branch, unless the `--upgrade` or `--upgrade-package` flags
     are used.
 
-These flags can also be provided to `uv sync` or `uv run` to update the lockfile _and_ the
+These flags can also be provided to `fv sync` or `fv run` to update the lockfile _and_ the
 environment.
 
 ## Exporting the lockfile
 
-If you need to integrate uv with other tools or workflows, you can export `uv.lock` to different
+If you need to integrate fv with other tools or workflows, you can export `fv.lock` to different
 formats including `requirements.txt`, `pylock.toml` (PEP 751), and CycloneDX SBOM.
 
 ```console
-$ uv export --format requirements.txt
-$ uv export --format pylock.toml
-$ uv export --format cyclonedx1.5
+$ fv export --format requirements.txt
+$ fv export --format pylock.toml
+$ fv export --format cyclonedx1.5
 ```
 
 See the [export guide](./export.md) for comprehensive documentation on all export formats and their
@@ -209,7 +209,7 @@ use cases.
 ## Partial installations
 
 Sometimes it's helpful to perform installations in multiple steps, e.g., for optimal layer caching
-while building a Docker image. `uv sync` has several flags for this purpose.
+while building a Docker image. `fv sync` has several flags for this purpose.
 
 - `--no-install-project`: Do not install the current project
 - `--no-install-workspace`: Do not install any workspace members, including the root project

@@ -1,22 +1,22 @@
 # Compatibility with `pip` and `pip-tools`
 
-uv is designed as a drop-in replacement for common `pip` and `pip-tools` workflows.
+fv is designed as a drop-in replacement for common `pip` and `pip-tools` workflows.
 
-Informally, the intent is such that existing `pip` and `pip-tools` users can switch to uv without
+Informally, the intent is such that existing `pip` and `pip-tools` users can switch to fv without
 making meaningful changes to their packaging workflows; and, in most cases, swapping out
-`pip install` for `uv pip install` should "just work".
+`pip install` for `fv pip install` should "just work".
 
-However, uv is _not_ intended to be an _exact_ clone of `pip`, and the further you stray from common
+However, fv is _not_ intended to be an _exact_ clone of `pip`, and the further you stray from common
 `pip` workflows, the more likely you are to encounter differences in behavior. In some cases, those
 differences may be known and intentional; in others, they may be the result of implementation
 details; and in others, they may be bugs.
 
-This document outlines the known differences between uv and `pip`, along with rationale,
+This document outlines the known differences between fv and `pip`, along with rationale,
 workarounds, and a statement of intent for compatibility in the future.
 
 ## Configuration files and environment variables
 
-uv does not read configuration files or environment variables that are specific to `pip`, like
+fv does not read configuration files or environment variables that are specific to `pip`, like
 `pip.conf` or `PIP_INDEX_URL`.
 
 Reading configuration files and environment variables intended for other tools has a number of
@@ -24,35 +24,35 @@ drawbacks:
 
 1. It requires bug-for-bug compatibility with the target tool, since users end up relying on bugs in
    the format, the parser, etc.
-2. If the target tool _changes_ the format in some way, uv is then locked-in to changing it in
+2. If the target tool _changes_ the format in some way, fv is then locked-in to changing it in
    equivalent ways.
-3. If that configuration is versioned in some way, uv would need to know _which version_ of the
+3. If that configuration is versioned in some way, fv would need to know _which version_ of the
    target tool the user is expecting to use.
-4. It prevents uv from introducing any settings or configuration that don't exist in the target
+4. It prevents fv from introducing any settings or configuration that don't exist in the target
    tool, since otherwise `pip.conf` (or similar) would no longer be usable with `pip`.
-5. It can lead to user confusion, since uv would be reading settings that don't actually affect its
-   behavior, and many users may _not_ expect uv to read configuration files intended for other
+5. It can lead to user confusion, since fv would be reading settings that don't actually affect its
+   behavior, and many users may _not_ expect fv to read configuration files intended for other
    tools.
 
-Instead, uv supports its own environment variables, like `UV_INDEX_URL`. uv also supports persistent
-configuration in a `uv.toml` file or a `[tool.uv.pip]` section of `pyproject.toml`. For more
+Instead, fv supports its own environment variables, like `UV_INDEX_URL`. fv also supports persistent
+configuration in a `fv.toml` file or a `[tool.fv.pip]` section of `pyproject.toml`. For more
 information, see [Configuration files](../concepts/configuration-files.md).
 
 ## Pre-release compatibility
 
-By default, uv will accept pre-release versions during dependency resolution in two cases:
+By default, fv will accept pre-release versions during dependency resolution in two cases:
 
 1. If the package is a direct dependency, and its version markers include a pre-release specifier
    (e.g., `flask>=2.0.0rc1`).
 2. If _all_ published versions of a package are pre-releases.
 
-If dependency resolution fails due to a transitive pre-release, uv will prompt the user to re-run
+If dependency resolution fails due to a transitive pre-release, fv will prompt the user to re-run
 with `--prerelease allow`, to allow pre-releases for all dependencies.
 
 Alternatively, you can add the transitive dependency to your `requirements.in` file with pre-release
 specifier (e.g., `flask>=2.0.0rc1`) to opt in to pre-release support for that specific dependency.
 
-In sum, uv needs to know upfront whether the resolver should accept pre-releases for a given
+In sum, fv needs to know upfront whether the resolver should accept pre-releases for a given
 package. Meanwhile `pip`, respects pre-release identifiers in transitive dependencies, and allows
 pre-releases of transitive dependencies if no stable versions match the dependency requirements.
 
@@ -62,19 +62,19 @@ pre-releases of transitive dependencies if no stable versions match the dependen
 
 Pre-releases are
 [notoriously difficult](https://pubgrub-rs-guide.netlify.app/limitations/prerelease_versions) to
-model, and are a frequent source of bugs in packaging tools. uv's pre-release handling is
+model, and are a frequent source of bugs in packaging tools. fv's pre-release handling is
 _intentionally_ limited and _intentionally_ requires user opt-in for pre-releases, to ensure
 correctness.
 
-In the future, uv _may_ support pre-release identifiers in transitive dependencies. However, it's
+In the future, fv _may_ support pre-release identifiers in transitive dependencies. However, it's
 likely contingent on evolution in the Python packaging specifications. The existing PEPs
 [do not cover "dependency resolution"](https://discuss.python.org/t/handling-of-pre-releases-when-backtracking/40505/17)
 and are instead focused on behavior for a _single_ version specifier.
 
 ## Packages that exist on multiple indexes
 
-In both uv and `pip`, users can specify multiple package indexes from which to search for the
-available versions of a given package. However, uv and `pip` differ in how they handle packages that
+In both fv and `pip`, users can specify multiple package indexes from which to search for the
+available versions of a given package. However, fv and `pip` differ in how they handle packages that
 exist on multiple indexes.
 
 For example, imagine that a company publishes an internal version of `requests` on a private index
@@ -82,9 +82,9 @@ For example, imagine that a company publishes an internal version of `requests` 
 private `requests` would conflict with the public [`requests`](https://pypi.org/project/requests/)
 on PyPI.
 
-When uv searches for a package across multiple indexes, it will iterate over the indexes in order
+When fv searches for a package across multiple indexes, it will iterate over the indexes in order
 (preferring the `--extra-index-url` over the default index), and stop searching as soon as it finds
-a match. This means that if a package exists on multiple indexes, uv will limit its candidate
+a match. This means that if a package exists on multiple indexes, fv will limit its candidate
 versions to those present in the first index that contains the package.
 
 `pip`, meanwhile, will combine the candidate versions from all indexes, and select the best version
@@ -93,7 +93,7 @@ from the combined set, though it makes
 which it searches indexes, and expects that packages are unique up to name and version, even across
 indexes.
 
-uv's behavior is such that if a package exists on an internal index, it should always be installed
+fv's behavior is such that if a package exists on an internal index, it should always be installed
 from the internal index, and never from PyPI. The intent is to prevent "dependency confusion"
 attacks, in which an attacker publishes a malicious package on PyPI with the same name as an
 internal package, thus causing the malicious package to be installed instead of the internal
@@ -116,13 +116,13 @@ supports the following values:
 While `unsafe-best-match` is the closest to `pip`'s behavior, it exposes users to the risk of
 "dependency confusion" attacks.
 
-uv also supports pinning packages to dedicated indexes (see:
+fv also supports pinning packages to dedicated indexes (see:
 [_Indexes_](../concepts/indexes.md#pinning-a-package-to-an-index)), such that a given package is
 _always_ installed from a specific index.
 
 ## PEP 517 build isolation
 
-uv uses [PEP 517](https://peps.python.org/pep-0517/) build isolation by default (akin to
+fv uses [PEP 517](https://peps.python.org/pep-0517/) build isolation by default (akin to
 `pip install --use-pep517`), following `pypa/build` and in anticipation of `pip` defaulting to PEP
 517 builds in the future ([pypa/pip#9175](https://github.com/pypa/pip/issues/9175)).
 
@@ -131,11 +131,11 @@ the package; if the problem persists, consider filing an issue with the package 
 requesting that they update the packaging setup to declare the correct PEP 517 build-time
 dependencies.
 
-As an escape hatch, you can preinstall a package's build dependencies, then run `uv pip install`
+As an escape hatch, you can preinstall a package's build dependencies, then run `fv pip install`
 with `--no-build-isolation`, as in:
 
 ```shell
-uv pip install wheel && uv pip install --no-build-isolation biopython==1.77
+fv pip install wheel && fv pip install --no-build-isolation biopython==1.77
 ```
 
 For a list of packages that are known to fail under PEP 517 build isolation, see
@@ -143,40 +143,40 @@ For a list of packages that are known to fail under PEP 517 build isolation, see
 
 ## Transitive URL dependencies
 
-While uv includes first-class support for URL dependencies (e.g., `ruff @ https://...`), it differs
+While fv includes first-class support for URL dependencies (e.g., `ruff @ https://...`), it differs
 from pip in its handling of _transitive_ URL dependencies in two ways.
 
-First, uv makes the assumption that non-URL dependencies do not introduce URL dependencies into the
+First, fv makes the assumption that non-URL dependencies do not introduce URL dependencies into the
 resolution. In other words, it assumes that dependencies fetched from a registry do not themselves
-depend on URLs. If a non-URL dependency _does_ introduce a URL dependency, uv will reject the URL
+depend on URLs. If a non-URL dependency _does_ introduce a URL dependency, fv will reject the URL
 dependency during resolution. (Note that PyPI does not allow published packages to depend on URL
 dependencies; other registries may be more permissive.)
 
 Second, if a constraint (`--constraint`) or override (`--override`) is defined using a direct URL
-dependency, and the constrained package has a direct URL dependency of its own, uv _may_ reject that
+dependency, and the constrained package has a direct URL dependency of its own, fv _may_ reject that
 transitive direct URL dependency during resolution, if the URL isn't referenced elsewhere in the set
 of input requirements.
 
-If uv rejects a transitive URL dependency, the best course of action is to provide the URL
+If fv rejects a transitive URL dependency, the best course of action is to provide the URL
 dependency as a direct dependency in the relevant `pyproject.toml` or `requirement.in` file, as the
 above constraints do not apply to direct dependencies.
 
 ## Virtual environments by default
 
-`uv pip install` and `uv pip sync` are designed to work with virtual environments by default.
+`fv pip install` and `fv pip sync` are designed to work with virtual environments by default.
 
-Specifically, uv will always install packages into the currently active virtual environment, or
+Specifically, fv will always install packages into the currently active virtual environment, or
 search for a virtual environment named `.venv` in the current directory or any parent directory
 (even if it is not activated).
 
 This differs from `pip`, which will install packages into a global environment if no virtual
 environment is active, and will not search for inactive virtual environments.
 
-In uv, you can install into non-virtual environments by providing a path to a Python executable via
+In fv, you can install into non-virtual environments by providing a path to a Python executable via
 the `--python /path/to/python` option, or via the `--system` flag, which installs into the first
 Python interpreter found on the `PATH`, like `pip`.
 
-In other words, uv inverts the default, requiring explicit opt-in to installing into the system
+In other words, fv inverts the default, requiring explicit opt-in to installing into the system
 Python, which can lead to breakages and other complications, and should only be done in limited
 circumstances.
 
@@ -188,9 +188,9 @@ For more, see
 For a given set of dependency specifiers, it's often the case that there is no single "correct" set
 of packages to install. Instead, there are many valid sets of packages that satisfy the specifiers.
 
-Neither `pip` nor uv make any guarantees about the _exact_ set of packages that will be installed;
+Neither `pip` nor fv make any guarantees about the _exact_ set of packages that will be installed;
 only that the resolution will be consistent, deterministic, and compliant with the specifiers. As
-such, in some cases, `pip` and uv will yield different resolutions; however, both resolutions
+such, in some cases, `pip` and fv will yield different resolutions; however, both resolutions
 _should_ be equally valid.
 
 For example, consider:
@@ -209,8 +209,8 @@ older version of `fastapi` that excludes the upper bound on `starlette`. In prac
 falling back to `fastapi==0.1.17`:
 
 ```python title="requirements.txt"
-# This file was autogenerated by uv via the following command:
-#    uv pip compile requirements.in
+# This file was autogenerated by fv via the following command:
+#    fv pip compile requirements.in
 annotated-types==0.6.0
     # via pydantic
 anyio==4.3.0
@@ -237,8 +237,8 @@ need to use an older version of `starlette` that satisfies the upper bound. In p
 requires falling back to `starlette==0.36.3`:
 
 ```python title="requirements.txt"
-# This file was autogenerated by uv via the following command:
-#    uv pip compile requirements.in
+# This file was autogenerated by fv via the following command:
+#    fv pip compile requirements.in
 annotated-types==0.6.0
     # via pydantic
 anyio==4.3.0
@@ -261,13 +261,13 @@ typing-extensions==4.10.0
     #   pydantic-core
 ```
 
-When uv resolutions differ from `pip` in undesirable ways, it's often a sign that the specifiers are
+When fv resolutions differ from `pip` in undesirable ways, it's often a sign that the specifiers are
 too loose, and that the user should consider tightening them. For example, in the case of
 `starlette` and `fastapi`, the user could require `fastapi>=0.110.0`.
 
 ## `pip check`
 
-At present, `uv pip check` will surface the following diagnostics:
+At present, `fv pip check` will surface the following diagnostics:
 
 - A package has no `METADATA` file, or the `METADATA` file can't be parsed.
 - A package has a `Requires-Python` that doesn't match the Python version of the running
@@ -276,45 +276,45 @@ At present, `uv pip check` will surface the following diagnostics:
 - A package has a dependency on a package that's installed, but at an incompatible version.
 - Multiple versions of a package are installed in the virtual environment.
 
-In some cases, `uv pip check` will surface diagnostics that `pip check` does not, and vice versa.
-For example, unlike `uv pip check`, `pip check` will _not_ warn when multiple versions of a package
+In some cases, `fv pip check` will surface diagnostics that `pip check` does not, and vice versa.
+For example, unlike `fv pip check`, `pip check` will _not_ warn when multiple versions of a package
 are installed in the current environment.
 
 ## `--user` and the `user` install scheme
 
-uv does not support the `--user` flag, which installs packages based on the `user` install scheme.
+fv does not support the `--user` flag, which installs packages based on the `user` install scheme.
 Instead, we recommend the use of virtual environments to isolate package installations.
 
 Additionally, pip will fall back to the `user` install scheme if it detects that the user does not
 have write permissions to the target directory, as is the case on some systems when installing into
-the system Python. uv does not implement any such fallback.
+the system Python. fv does not implement any such fallback.
 
 For more, see [#2077](https://github.com/astral-sh/uv/issues/2077).
 
 ## `--only-binary` enforcement
 
 The `--only-binary` argument is used to restrict installation to pre-built binary distributions.
-When `--only-binary :all:` is provided, both pip and uv will refuse to build source distributions
+When `--only-binary :all:` is provided, both pip and fv will refuse to build source distributions
 from PyPI and other registries.
 
-However, when a dependency is provided as a direct URL (e.g., `uv pip install https://...`), pip
+However, when a dependency is provided as a direct URL (e.g., `fv pip install https://...`), pip
 does _not_ enforce `--only-binary`, and will build source distributions for all such packages.
 
-uv, meanwhile, _does_ enforce `--only-binary` for direct URL dependencies, with one exception: given
-`uv pip install https://... --only-binary flask`, uv _will_ build the source distribution at the
-given URL if it cannot infer the package name ahead of time, since uv can't determine whether the
+fv, meanwhile, _does_ enforce `--only-binary` for direct URL dependencies, with one exception: given
+`fv pip install https://... --only-binary flask`, fv _will_ build the source distribution at the
+given URL if it cannot infer the package name ahead of time, since fv can't determine whether the
 package is "allowed" in such cases without building its metadata.
 
-Both pip and uv allow editables requirements to be built and installed even when `--only-binary` is
-provided. For example, `uv pip install -e . --only-binary :all:` is allowed.
+Both pip and fv allow editables requirements to be built and installed even when `--only-binary` is
+provided. For example, `fv pip install -e . --only-binary :all:` is allowed.
 
 ## `--no-binary` enforcement
 
 The `--no-binary` argument is used to restrict installation to source distributions. When
-`--no-binary` is provided, uv will refuse to install pre-built binary distributions, but _will_
+`--no-binary` is provided, fv will refuse to install pre-built binary distributions, but _will_
 reuse any binary distributions that are already present in the local cache.
 
-Additionally, and in contrast to pip, uv's resolver will still read metadata from pre-built binary
+Additionally, and in contrast to pip, fv's resolver will still read metadata from pre-built binary
 distributions when `--no-binary` is provided.
 
 ## `manylinux_compatible` enforcement
@@ -323,11 +323,11 @@ distributions when `--no-binary` is provided.
 Python distributors can opt out of `manylinux` compatibility by defining a `manylinux_compatible`
 function on the `_manylinux` standard library module.
 
-uv respects `manylinux_compatible`, but only tests against the current glibc version, and applies
+fv respects `manylinux_compatible`, but only tests against the current glibc version, and applies
 the return value of `manylinux_compatible` globally.
 
-In other words, if `manylinux_compatible` returns `True`, uv will treat the system as
-`manylinux`-compatible; if it returns `False`, uv will treat the system as `manylinux`-incompatible,
+In other words, if `manylinux_compatible` returns `True`, fv will treat the system as
+`manylinux`-compatible; if it returns `False`, fv will treat the system as `manylinux`-incompatible,
 without calling `manylinux_compatible` for every glibc version.
 
 This approach is not a complete implementation of the spec, but is compatible with common blanket
@@ -347,9 +347,9 @@ def manylinux_compatible(*_, **__):  # PEP 600
 
 ## Bytecode compilation
 
-Unlike `pip`, uv does not compile `.py` files to `.pyc` files during installation by default (i.e.,
-uv does not create or populate `__pycache__` directories). To enable bytecode compilation during
-installs, pass the `--compile-bytecode` flag to `uv pip install` or `uv pip sync`, or set the
+Unlike `pip`, fv does not compile `.py` files to `.pyc` files during installation by default (i.e.,
+fv does not create or populate `__pycache__` directories). To enable bytecode compilation during
+installs, pass the `--compile-bytecode` flag to `fv pip install` or `fv pip sync`, or set the
 `UV_COMPILE_BYTECODE` environment variable to `1`.
 
 Skipping bytecode compilation can be undesirable in workflows; for example, we recommend enabling
@@ -358,26 +358,26 @@ bytecode compilation in [Docker builds](../guides/integration/docker.md) to impr
 
 As bytecode compilation suppresses various warnings issued by the Python interpreter, in rare cases
 you may seen `SyntaxWarning` or `DeprecationWarning` messages when running Python code that was
-installed with uv that do not appear when using `pip`. These are valid warnings, but are typically
+installed with fv that do not appear when using `pip`. These are valid warnings, but are typically
 hidden by the bytecode compilation process, and can either be ignored, fixed upstream, or similarly
-suppressed by enabling bytecode compilation in uv.
+suppressed by enabling bytecode compilation in fv.
 
 ## Strictness and spec enforcement
 
-uv tends to be stricter than `pip`, and will often reject packages that `pip` would install. For
-example, uv rejects HTML indexes with invalid URL fragments (see:
+fv tends to be stricter than `pip`, and will often reject packages that `pip` would install. For
+example, fv rejects HTML indexes with invalid URL fragments (see:
 [PEP 503](https://peps.python.org/pep-0503/)), while `pip` will ignore such fragments.
 
-In some cases, uv implements lenient behavior for popular packages that are known to have specific
+In some cases, fv implements lenient behavior for popular packages that are known to have specific
 spec compliance issues.
 
-If uv rejects a package that `pip` would install due to a spec violation, the best course of action
+If fv rejects a package that `pip` would install due to a spec violation, the best course of action
 is to first attempt to install a newer version of the package; and, if that fails, to report the
 issue to the package maintainer.
 
 ## `pip` command-line options and subcommands
 
-uv does not support the complete set of `pip`'s command-line options and subcommands, although it
+fv does not support the complete set of `pip`'s command-line options and subcommands, although it
 does support a large subset.
 
 Missing options and subcommands are prioritized based on user demand and the complexity of the
@@ -392,30 +392,30 @@ issues to convey your interest.
 
 ## Registry authentication
 
-uv does not support `pip`'s `auto` or `import` options for `--keyring-provider`. At present, only
+fv does not support `pip`'s `auto` or `import` options for `--keyring-provider`. At present, only
 the `subprocess` option is supported.
 
-Unlike `pip`, uv does not enable keyring authentication by default.
+Unlike `pip`, fv does not enable keyring authentication by default.
 
-Unlike `pip`, uv does not wait until a request returns an HTTP 401 before searching for
-authentication. uv attaches authentication to all requests for hosts with credentials available.
+Unlike `pip`, fv does not wait until a request returns an HTTP 401 before searching for
+authentication. fv attaches authentication to all requests for hosts with credentials available.
 
 ## `egg` support
 
-uv does not support features that are considered legacy or deprecated in `pip`. For example, uv does
+fv does not support features that are considered legacy or deprecated in `pip`. For example, fv does
 not support `.egg`-style distributions.
 
-However, uv does have partial support for (1) `.egg-info`-style distributions (which are
+However, fv does have partial support for (1) `.egg-info`-style distributions (which are
 occasionally found in Docker images and Conda environments) and (2) legacy editable
 `.egg-link`-style distributions.
 
-Specifically, uv does not support installing new `.egg-info`- or `.egg-link`-style distributions,
-but will respect any such existing distributions during resolution, list them with `uv pip list` and
-`uv pip freeze`, and uninstall them with `uv pip uninstall`.
+Specifically, fv does not support installing new `.egg-info`- or `.egg-link`-style distributions,
+but will respect any such existing distributions during resolution, list them with `fv pip list` and
+`fv pip freeze`, and uninstall them with `fv pip uninstall`.
 
 ## Build constraints
 
-When constraints are provided via `--constraint` (or `UV_CONSTRAINT`), uv will _not_ apply the
+When constraints are provided via `--constraint` (or `UV_CONSTRAINT`), fv will _not_ apply the
 constraints when resolving build dependencies (i.e., to build a source distribution). Instead, build
 constraints should be provided via the dedicated `--build-constraint` (or `UV_BUILD_CONSTRAINT`)
 setting.
@@ -431,22 +431,22 @@ dependency on `setuptools`, use `--build-constraint`, rather than `--constraint`
 There are a few small but notable differences in the default behaviors of `pip compile` and
 `pip-tools`.
 
-By default, uv does not write the compiled requirements to an output file. Instead, uv requires that
+By default, fv does not write the compiled requirements to an output file. Instead, fv requires that
 the user specify an output file explicitly with the `-o` or `--output-file` option.
 
-By default, uv strips extras when outputting the compiled requirements. In other words, uv defaults
+By default, fv strips extras when outputting the compiled requirements. In other words, fv defaults
 to `--strip-extras`, while `pip-compile` defaults to `--no-strip-extras`. `pip-compile` is scheduled
 to change this default in the next major release (v8.0.0), at which point both tools will default to
-`--strip-extras`. To retain extras with uv, pass the `--no-strip-extras` flag to `uv pip compile`.
+`--strip-extras`. To retain extras with fv, pass the `--no-strip-extras` flag to `fv pip compile`.
 
-By default, uv does not write any index URLs to the output file, while `pip-compile` outputs any
+By default, fv does not write any index URLs to the output file, while `pip-compile` outputs any
 `--index-url` or `--extra-index-url` that does not match the default (PyPI). To include index URLs
-in the output file, pass the `--emit-index-url` flag to `uv pip compile`. Unlike `pip-compile`, uv
+in the output file, pass the `--emit-index-url` flag to `fv pip compile`. Unlike `pip-compile`, fv
 will include all index URLs when `--emit-index-url` is passed, including the default index URL.
 
 ## `requires-python` upper bounds
 
-When evaluating `requires-python` ranges for dependencies, uv only considers lower bounds and
+When evaluating `requires-python` ranges for dependencies, fv only considers lower bounds and
 ignores upper bounds entirely. For example, `>=3.8, <4` is treated as `>=3.8`. Respecting upper
 bounds on `requires-python` often leads to formally correct but practically incorrect resolutions,
 as, e.g., resolvers will backtrack to the first published version that omits the upper bound (see:
@@ -454,7 +454,7 @@ as, e.g., resolvers will backtrack to the first published version that omits the
 
 ## `requires-python` specifiers
 
-When evaluating Python versions against `requires-python` specifiers, uv truncates the candidate
+When evaluating Python versions against `requires-python` specifiers, fv truncates the candidate
 version to the major, minor, and patch components, ignoring (e.g.) pre-release and post-release
 identifiers.
 
@@ -469,36 +469,36 @@ consistent with
 ## Package priority
 
 There are usually many possible solutions given a set of requirements, and a resolver must choose
-between them. uv's resolver and pip's resolver have a different set of package priorities. While
+between them. fv's resolver and pip's resolver have a different set of package priorities. While
 both resolvers use the user-provided order as one of their priorities, pip has additional
 [priorities](https://pip.pypa.io/en/stable/topics/more-dependency-resolution/#the-resolver-algorithm)
-that uv does not have. Hence, uv is more likely to be affected by a change in user order than pip
+that fv does not have. Hence, fv is more likely to be affected by a change in user order than pip
 is.
 
-For example, `uv pip install foo bar` prioritizes newer versions of `foo` over `bar` and could
-result in a different resolution than `uv pip install bar foo`. Similarly, this behavior applies to
-the ordering of requirements in input files for `uv pip compile`.
+For example, `fv pip install foo bar` prioritizes newer versions of `foo` over `bar` and could
+result in a different resolution than `fv pip install bar foo`. Similarly, this behavior applies to
+the ordering of requirements in input files for `fv pip compile`.
 
 ## Wheel filename and metadata validation
 
-By default, uv will reject wheels whose filenames are inconsistent with the wheel metadata inside
+By default, fv will reject wheels whose filenames are inconsistent with the wheel metadata inside
 the file. For example, a wheel named `foo-1.0.0-py3-none-any.whl` that contains metadata indicating
-the version is `1.0.1` will be rejected by uv, but accepted by pip.
+the version is `1.0.1` will be rejected by fv, but accepted by pip.
 
-To force uv to accept such wheels, set `UV_SKIP_WHEEL_FILENAME_CHECK=1` in the environment.
+To force fv to accept such wheels, set `UV_SKIP_WHEEL_FILENAME_CHECK=1` in the environment.
 
 ## Package name normalization
 
-By default, uv normalizes package names to match their
+By default, fv normalizes package names to match their
 [PEP 503-compliant forms](https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization)
 and uses those normalized names in all output contexts. This differs from pip, which tends to
 preserve the verbatim package name as published on the registry.
 
-For example, `uv pip list` displays normalized packages names (e.g., `docstring-parser`), while
+For example, `fv pip list` displays normalized packages names (e.g., `docstring-parser`), while
 `pip list` displays non-normalized package names (e.g., `docstring_parser`):
 
 ```shell
-(venv) $ diff --side-by-side  <(pip list) <(uv pip list)
+(venv) $ diff --side-by-side  <(pip list) <(fv pip list)
 Package          Version					Package          Version
 ---------------- -------					---------------- -------
 docstring_parser 0.16					      |	docstring-parser 0.16

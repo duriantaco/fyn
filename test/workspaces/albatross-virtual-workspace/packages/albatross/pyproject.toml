@@ -4,7 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = ["bird-feeder", "iniconfig>=2,<3"]
 
-[tool.uv.sources]
+[tool.fv.sources]
 bird-feeder = { workspace = true }
 
 [build-system]

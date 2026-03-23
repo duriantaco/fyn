@@ -1,7 +1,7 @@
-"""Update uv.json in schemastore.
+"""Update fv.json in schemastore.
 
 This script will clone astral-sh/schemastore, update the schema and push the changes
-to a new branch tagged with the uv git hash. You should see a URL to create the PR
+to a new branch tagged with the fv git hash. You should see a URL to create the PR
 to schemastore in the CLI.
 """
 
@@ -14,8 +14,8 @@ from tempfile import TemporaryDirectory
 
 SCHEMASTORE_FORK = "git@github.com:astral-sh/schemastore.git"
 SCHEMASTORE_UPSTREAM = "git@github.com:SchemaStore/schemastore.git"
-UV_REPOSITORY = "https://github.com/astral-sh/uv"
-UV_JSON_PATH = Path("schemas/json/uv.json")
+UV_REPOSITORY = "https://github.com/astral-sh/fv"
+UV_JSON_PATH = Path("schemas/json/fv.json")
 
 
 def update_schemastore(schemastore: Path, *, root: Path) -> None:
@@ -31,11 +31,11 @@ def update_schemastore(schemastore: Path, *, root: Path) -> None:
             ],
             cwd=schemastore,
         )
-    # Create a new branch tagged with the current uv commit up to date with the latest
+    # Create a new branch tagged with the current fv commit up to date with the latest
     # upstream schemastore
     check_call(["git", "fetch", "upstream"], cwd=schemastore)
     current_sha = check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    branch = f"update-uv-{current_sha}"
+    branch = f"update-fv-{current_sha}"
     check_call(
         ["git", "switch", "-c", branch],
         cwd=schemastore,
@@ -51,8 +51,8 @@ def update_schemastore(schemastore: Path, *, root: Path) -> None:
     src = schemastore.joinpath("src")
 
     # Update the schema and format appropriately
-    schema = json.loads(root.joinpath("uv.schema.json").read_text())
-    schema["$id"] = "https://json.schemastore.org/uv.json"
+    schema = json.loads(root.joinpath("fv.schema.json").read_text())
+    schema["$id"] = "https://json.schemastore.org/fv.json"
     src.joinpath(UV_JSON_PATH).write_text(
         json.dumps(dict(schema.items()), indent=2, ensure_ascii=False),
     )
@@ -72,7 +72,7 @@ def update_schemastore(schemastore: Path, *, root: Path) -> None:
     if check_output(["git", "status", "-s"], cwd=schemastore).strip():
         # Schema has changed, commit and push
         commit_url = f"{UV_REPOSITORY}/commit/{current_sha}"
-        commit_body = f"This updates uv's JSON schema to [{current_sha}]({commit_url})"
+        commit_body = f"This updates fv's JSON schema to [{current_sha}]({commit_url})"
         # https://stackoverflow.com/a/22909204/3549270
         check_call(["git", "add", UV_JSON_PATH.as_posix()], cwd=src)
         check_call(
@@ -80,7 +80,7 @@ def update_schemastore(schemastore: Path, *, root: Path) -> None:
                 "git",
                 "commit",
                 "-m",
-                "Update uv's JSON schema",
+                "Update fv's JSON schema",
                 "-m",
                 commit_body,
             ],

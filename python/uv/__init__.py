@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from ._find_uv import find_uv_bin
+from ._find_uv import find_fv_bin
 
-__all__ = ["find_uv_bin"]
+__all__ = ["find_fv_bin"]
 
 
 def __getattr__(attr_name: str) -> object:
@@ -17,7 +17,7 @@ def __getattr__(attr_name: str) -> object:
         "prepare_metadata_for_build_editable",
     }:
         err = (
-            f"Using `uv.{attr_name}` is not allowed; build backend functionality is in the `uv_build` package. "
+            f"Using `fv.{attr_name}` is not allowed; build backend functionality is in the `uv_build` package. "
             f"Did you mean to use `uv_build` as your build system?"
         )
         raise AttributeError(err)

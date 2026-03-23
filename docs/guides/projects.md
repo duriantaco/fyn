@@ -1,20 +1,20 @@
 ---
 title: Working on projects
 description:
-  A guide to using uv to create and manage Python projects, including adding dependencies, running
+  A guide to using fv to create and manage Python projects, including adding dependencies, running
   commands, and building publishable distributions.
 ---
 
 # Working on projects
 
-uv supports managing Python projects, which define their dependencies in a `pyproject.toml` file.
+fv supports managing Python projects, which define their dependencies in a `pyproject.toml` file.
 
 ## Creating a new project
 
-You can create a new Python project using the `uv init` command:
+You can create a new Python project using the `fv init` command:
 
 ```console
-$ uv init hello-world
+$ fv init hello-world
 $ cd hello-world
 ```
 
@@ -23,10 +23,10 @@ Alternatively, you can initialize a project in the working directory:
 ```console
 $ mkdir hello-world
 $ cd hello-world
-$ uv init
+$ fv init
 ```
 
-uv will create the following files:
+fv will create the following files:
 
 ```text
 ├── .gitignore
@@ -36,19 +36,19 @@ uv will create the following files:
 └── pyproject.toml
 ```
 
-The `main.py` file contains a simple "Hello world" program. Try it out with `uv run`:
+The `main.py` file contains a simple "Hello world" program. Try it out with `fv run`:
 
 ```console
-$ uv run main.py
+$ fv run main.py
 Hello from hello-world!
 ```
 
 ## Project structure
 
-A project consists of a few important parts that work together and allow uv to manage your project.
-In addition to the files created by `uv init`, uv will create a virtual environment and `uv.lock`
-file in the root of your project the first time you run a project command, i.e., `uv run`,
-`uv sync`, or `uv lock`.
+A project consists of a few important parts that work together and allow fv to manage your project.
+In addition to the files created by `fv init`, fv will create a virtual environment and `fv.lock`
+file in the root of your project the first time you run a project command, i.e., `fv run`,
+`fv sync`, or `fv lock`.
 
 A complete listing would look like:
 
@@ -62,7 +62,7 @@ A complete listing would look like:
 ├── README.md
 ├── main.py
 ├── pyproject.toml
-└── uv.lock
+└── fv.lock
 ```
 
 ### `pyproject.toml`
@@ -79,79 +79,79 @@ dependencies = []
 ```
 
 You'll use this file to specify dependencies, as well as details about the project such as its
-description or license. You can edit this file manually, or use commands like `uv add` and
-`uv remove` to manage your project from the terminal.
+description or license. You can edit this file manually, or use commands like `fv add` and
+`fv remove` to manage your project from the terminal.
 
 !!! tip
 
     See the official [`pyproject.toml` guide](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/)
     for more details on getting started with the `pyproject.toml` format.
 
-You'll also use this file to specify uv [configuration options](../concepts/configuration-files.md)
-in a [`[tool.uv]`](../reference/settings.md) section.
+You'll also use this file to specify fv [configuration options](../concepts/configuration-files.md)
+in a [`[tool.fv]`](../reference/settings.md) section.
 
 ### `.python-version`
 
-The `.python-version` file contains the project's default Python version. This file tells uv which
+The `.python-version` file contains the project's default Python version. This file tells fv which
 Python version to use when creating the project's virtual environment.
 
 ### `.venv`
 
 The `.venv` folder contains your project's virtual environment, a Python environment that is
-isolated from the rest of your system. This is where uv will install your project's dependencies.
+isolated from the rest of your system. This is where fv will install your project's dependencies.
 
 See the [project environment](../concepts/projects/layout.md#the-project-environment) documentation
 for more details.
 
-### `uv.lock`
+### `fv.lock`
 
-`uv.lock` is a cross-platform lockfile that contains exact information about your project's
+`fv.lock` is a cross-platform lockfile that contains exact information about your project's
 dependencies. Unlike the `pyproject.toml` which is used to specify the broad requirements of your
 project, the lockfile contains the exact resolved versions that are installed in the project
 environment. This file should be checked into version control, allowing for consistent and
 reproducible installations across machines.
 
-`uv.lock` is a human-readable TOML file but is managed by uv and should not be edited manually.
+`fv.lock` is a human-readable TOML file but is managed by fv and should not be edited manually.
 
 See the [lockfile](../concepts/projects/layout.md#the-lockfile) documentation for more details.
 
 ## Managing dependencies
 
-You can add dependencies to your `pyproject.toml` with the `uv add` command. This will also update
+You can add dependencies to your `pyproject.toml` with the `fv add` command. This will also update
 the lockfile and project environment:
 
 ```console
-$ uv add requests
+$ fv add requests
 ```
 
 You can also specify version constraints or alternative sources:
 
 ```console
 $ # Specify a version constraint
-$ uv add 'requests==2.31.0'
+$ fv add 'requests==2.31.0'
 
 $ # Add a git dependency
-$ uv add git+https://github.com/psf/requests
+$ fv add git+https://github.com/psf/requests
 ```
 
-If you're migrating from a `requirements.txt` file, you can use `uv add` with the `-r` flag to add
+If you're migrating from a `requirements.txt` file, you can use `fv add` with the `-r` flag to add
 all dependencies from the file:
 
 ```console
 $ # Add all dependencies from `requirements.txt`.
-$ uv add -r requirements.txt -c constraints.txt
+$ fv add -r requirements.txt -c constraints.txt
 ```
 
-To remove a package, you can use `uv remove`:
+To remove a package, you can use `fv remove`:
 
 ```console
-$ uv remove requests
+$ fv remove requests
 ```
 
-To upgrade a package, run `uv lock` with the `--upgrade-package` flag:
+To upgrade a package, run `fv lock` with the `--upgrade-package` flag:
 
 ```console
-$ uv lock --upgrade-package requests
+$ fv lock --upgrade-package requests
 ```
 
 The `--upgrade-package` flag will attempt to update the specified package to the latest compatible
@@ -162,26 +162,26 @@ details.
 
 ## Viewing your version
 
-The `uv version` command can be used to read your package's version.
+The `fv version` command can be used to read your package's version.
 
-To get the version of your package, run `uv version`:
+To get the version of your package, run `fv version`:
 
 ```console
-$ uv version
+$ fv version
 hello-world 0.7.0
 ```
 
 To get the version without the package name, use the `--short` option:
 
 ```console
-$ uv version --short
+$ fv version --short
 0.7.0
 ```
 
 To get version information in a JSON format, use the `--output-format json` option:
 
 ```console
-$ uv version --output-format json
+$ fv version --output-format json
 {
     "package_name": "hello-world",
     "version": "0.7.0",
@@ -194,24 +194,24 @@ version.
 
 ## Running commands
 
-`uv run` can be used to run arbitrary scripts or commands in your project environment.
+`fv run` can be used to run arbitrary scripts or commands in your project environment.
 
-Prior to every `uv run` invocation, uv will verify that the lockfile is up-to-date with the
+Prior to every `fv run` invocation, fv will verify that the lockfile is up-to-date with the
 `pyproject.toml`, and that the environment is up-to-date with the lockfile, keeping your project
-in-sync without the need for manual intervention. `uv run` guarantees that your command is run in an
+in-sync without the need for manual intervention. `fv run` guarantees that your command is run in an
 environment with all required dependencies at their locked versions.
 
 !!! note
 
-    `uv run` does not remove extraneous packages (those not in the lockfile) from the environment
+    `fv run` does not remove extraneous packages (those not in the lockfile) from the environment
     by default. See [handling of extraneous packages](../concepts/projects/sync.md#handling-of-extraneous-packages)
     for details.
 
 For example, to use `flask`:
 
 ```console
-$ uv add flask
-$ uv run -- flask run -p 3000
+$ fv add flask
+$ fv run -- flask run -p 3000
 ```
 
 Or, to run a script:
@@ -224,16 +224,16 @@ print("hello world")
 ```
 
 ```console
-$ uv run example.py
+$ fv run example.py
 ```
 
-Alternatively, you can use `uv sync` to manually update the environment then activate it before
+Alternatively, you can use `fv sync` to manually update the environment then activate it before
 executing a command:
 
 === "macOS and Linux"
 
     ```console
-    $ uv sync
+    $ fv sync
     $ source .venv/bin/activate
     $ flask run -p 3000
     $ python example.py
@@ -242,7 +242,7 @@ executing a command:
 === "Windows"
 
     ```pwsh-session
-    PS> uv sync
+    PS> fv sync
     PS> .venv\Scripts\activate
     PS> flask run -p 3000
     PS> python example.py
@@ -250,21 +250,21 @@ executing a command:
 
 !!! note
 
-    The virtual environment must be active to run scripts and commands in the project without `uv run`. Virtual environment activation differs per shell and platform.
+    The virtual environment must be active to run scripts and commands in the project without `fv run`. Virtual environment activation differs per shell and platform.
 
 See the documentation on [running commands and scripts](../concepts/projects/run.md) in projects for
 more details.
 
 ## Building distributions
 
-`uv build` can be used to build source distributions and binary distributions (wheel) for your
+`fv build` can be used to build source distributions and binary distributions (wheel) for your
 project.
 
-By default, `uv build` will build the project in the current directory, and place the built
+By default, `fv build` will build the project in the current directory, and place the built
 artifacts in a `dist/` subdirectory:
 
 ```console
-$ uv build
+$ fv build
 $ ls dist/
 hello-world-0.1.0-py3-none-any.whl
 hello-world-0.1.0.tar.gz
@@ -274,9 +274,9 @@ See the documentation on [building projects](../concepts/projects/build.md) for 
 
 ## Next steps
 
-To learn more about working on projects with uv, see the
+To learn more about working on projects with fv, see the
 [projects concept](../concepts/projects/index.md) page and the
-[command reference](../reference/cli.md#uv).
+[command reference](../reference/cli.md#fv).
 
 Or, read on to learn how to
-[export a uv lockfile to different formats](../concepts/projects/export.md).
+[export a fv lockfile to different formats](../concepts/projects/export.md).
