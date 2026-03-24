@@ -327,7 +327,7 @@ fn init_application_package() -> Result<()> {
         foo = "foo:main"
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -400,7 +400,7 @@ fn init_library() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -482,7 +482,7 @@ fn init_package_preview() -> Result<()> {
         foo = "foo:main"
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -536,7 +536,7 @@ fn init_bare_lib() {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -588,7 +588,7 @@ fn init_bare_package() {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -1202,7 +1202,7 @@ fn init_library_current_dir() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -1331,7 +1331,7 @@ fn init_dot_args() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -1409,7 +1409,7 @@ fn init_workspace() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -1594,7 +1594,7 @@ fn init_workspace_relative_sub_package() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -1691,7 +1691,7 @@ fn init_workspace_outside() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -1773,7 +1773,7 @@ fn init_normalized_names() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -3068,7 +3068,7 @@ fn init_with_author() {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -3098,7 +3098,7 @@ fn init_with_author() {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -3987,7 +3987,7 @@ fn init_with_description() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
@@ -4029,7 +4029,7 @@ fn init_without_description() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
+        requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]
         build-backend = "fyn_build"
         "#
         );
