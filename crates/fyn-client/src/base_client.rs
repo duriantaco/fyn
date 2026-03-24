@@ -1709,7 +1709,7 @@ mod tests {
             // Ensure we're retrying the same status code as the reqwest_retry crate. We may choose
             // to deviate from this later.
             assert_eq!(middleware_retry, uv_retry);
-            if fyn_retry {
+            if uv_retry {
                 retried.push(status);
             }
         }

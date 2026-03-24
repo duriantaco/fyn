@@ -3932,7 +3932,7 @@ fn build_prerelease_hint() -> Result<()> {
     command.arg("--index-url").arg(packse_index_url()).arg(".");
     command.env_remove(EnvVars::UV_EXCLUDE_NEWER);
 
-    xj_snapshot!(
+    fyn_snapshot!(
         context.filters(),
         command,
         @"
@@ -3948,7 +3948,7 @@ fn build_prerelease_hint() -> Result<()> {
       ╰─▶ Because only transitive-package-only-prereleases-in-range-b<=0.1 is available and transitive-package-only-prereleases-in-range-a==0.1.0 depends on transitive-package-only-prereleases-in-range-b>0.1, we can conclude that transitive-package-only-prereleases-in-range-a==0.1.0 cannot be used.
           And because only transitive-package-only-prereleases-in-range-a==0.1.0 is available and you require transitive-package-only-prereleases-in-range-a, we can conclude that your requirements are unsatisfiable.
 
-          hint: Only pre-releases of `transitive-package-only-prereleases-in-range-b` (e.g., 1.0.0a1) match these build requirements, and build environments can't enable pre-releases automatically. Add `transitive-package-only-prereleases-in-range-b>=1.0.0a1` to `build-system.requires`, `[tool.xj.extra-build-dependencies]`, or supply it via `xj build --build-constraint`.
+          hint: Only pre-releases of `transitive-package-only-prereleases-in-range-b` (e.g., 1.0.0a1) match these build requirements, and build environments can't enable pre-releases automatically. Add `transitive-package-only-prereleases-in-range-b>=1.0.0a1` to `build-system.requires`, `[tool.fyn.extra-build-dependencies]`, or supply it via `fyn build --build-constraint`.
     "
     );
 
@@ -3959,7 +3959,7 @@ fn build_prerelease_hint() -> Result<()> {
 /// skip resolution entirely).
 #[test]
 fn install_constraints_with_markers() -> Result<()> {
-    let context = xj_test::test_context!("3.12");
+    let context = fyn_test::test_context!("3.12");
     let requirements_txt = context.temp_dir.child("requirements.txt");
     requirements_txt.write_str("pytest")?;
 
@@ -3967,7 +3967,7 @@ fn install_constraints_with_markers() -> Result<()> {
     let constraints_txt = context.temp_dir.child("constraints.txt");
     constraints_txt.write_str("pytest==8.0.0; sys_platform == 'nonexistent-platform'")?;
 
-    xj_snapshot!(context.pip_install()
+    fyn_snapshot!(context.pip_install()
         .arg("-r")
         .arg("requirements.txt")
         .arg("--constraint")
@@ -3988,7 +3988,7 @@ fn install_constraints_with_markers() -> Result<()> {
     );
 
     // We should only see "Audited" here; no need to resolve.
-    xj_snapshot!(context.pip_install()
+    fyn_snapshot!(context.pip_install()
         .arg("-r")
         .arg("requirements.txt")
         .arg("--constraint")
@@ -4016,10 +4016,10 @@ fn install_constraints_with_markers() -> Result<()> {
 /// See: <https://github.com/astral-sh/uv/issues/1477>
 #[test]
 fn install_pinned_polars_invalid_metadata() {
-    let context = xj_test::test_context!("3.12");
+    let context = fyn_test::test_context!("3.12");
 
     // Install Flask.
-    xj_snapshot!(context.pip_install()
+    fyn_snapshot!(context.pip_install()
         .arg("polars==0.14.0"),
         @"
     success: true
@@ -4041,11 +4041,11 @@ fn install_pinned_polars_invalid_metadata() {
 /// requirements aren't resolved at their lowest compatible version.
 #[test]
 fn install_sdist_resolution_lowest() -> Result<()> {
-    let context = xj_test::test_context!("3.12");
+    let context = fyn_test::test_context!("3.12");
     let requirements_in = context.temp_dir.child("requirements.in");
     requirements_in.write_str("anyio @ https://files.pythonhosted.org/packages/2d/b8/7333d87d5f03247215d86a86362fd3e324111788c6cdd8d2e6196a6ba833/anyio-4.2.0.tar.gz")?;
 
-    xj_snapshot!(context.pip_install()
+    fyn_snapshot!(context.pip_install()
             .arg("-r")
             .arg("requirements.in")
             .arg("--resolution=lowest-direct"), @"

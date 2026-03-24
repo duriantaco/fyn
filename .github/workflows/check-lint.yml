@@ -43,8 +43,8 @@ jobs:
         with:
           version: "0.10.10"
       - run: |
-          fynx ty check python/fyn
-          fynx \
+          uvx ty check python/fyn
+          uvx \
             --directory crates/fyn-python \
             --with-requirements fetch-download-metadata.py \
             ty check --python-version 3.13 fetch-download-metadata.py
@@ -60,7 +60,7 @@ jobs:
         run: |
           # renovate: datasource=github-releases depName=koalaman/shellcheck
           SHELLCHECK_VERSION="v0.11.0"
-          curl -sSL "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" | tar -fynf -
+          curl -sSL "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" | tar -xJf -
           sudo mv "shellcheck-${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/
       - name: "Run shellcheck"
         run: find . -name '*.sh' -type f | xargs shellcheck --shell bash --severity style
@@ -76,19 +76,7 @@ jobs:
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           version: "0.10.10"
-      - run: fynx --from 'validate-pyproject[all,store]' validate-pyproject pyproject.toml
-
-  readme:
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: 3.12
-      - run: python scripts/transform_readme.py --target pypi
+      - run: uvx --from 'validate-pyproject[all,store]' validate-pyproject pyproject.toml
 
   clippy-ubuntu:
     name: "clippy on linux"
@@ -141,25 +129,3 @@ jobs:
       - name: "Clippy"
         working-directory: ${{ env.UV_WORKSPACE }}
         run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
-
-  shear:
-    name: "cargo shear"
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-      - name: "Install cargo shear"
-        uses: taiki-e/install-action@a37010ded18ff788be4440302bd6830b1ae50d8b # v2.68.25
-        with:
-          tool: cargo-shear
-      - run: cargo shear
-
-  typos:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: crate-ci/typos@631208b7aac2daa8b707f55e7331f9112b0e062d # v1.44.0

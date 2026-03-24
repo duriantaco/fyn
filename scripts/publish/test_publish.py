@@ -374,7 +374,7 @@ def build_project_at_version(
         init_py.write_text("x = 1")
 
     # Build the project
-    check_call([fyn, "build"], cwd=project_root)
+    check_call([uv, "build"], cwd=project_root)
     # Test that we ignore unknown any file.
     project_root.joinpath("dist").joinpath(".DS_Store").touch()
 
@@ -395,7 +395,7 @@ def wait_for_index(
     for _ in range(50):
         result = run(
             [
-                plan.fyn,
+                plan.uv,
                 "pip",
                 "compile",
                 "-p",
@@ -456,7 +456,7 @@ def test_fresh_upload(
     print(f"\nPublish {project_name} for {plan.target}", file=sys.stderr)
 
     version = get_fresh_version(plan)
-    project_dir = build_project_at_version(plan.target, version, plan.fyn)
+    project_dir = build_project_at_version(plan.target, version, plan.uv)
 
     # Upload configuration
     publish_url = plan.configuration.publish_url
@@ -493,7 +493,7 @@ def test_fresh_upload(
         file=sys.stderr,
     )
 
-    args = [plan.fyn, "publish", "--publish-url", publish_url, *plan.extra_args]
+    args = [plan.uv, "publish", "--publish-url", publish_url, *plan.extra_args]
     run(args, cwd=project_dir, env=plan.full_env(), check=True)
 
     if plan.configuration.attestations:
@@ -532,7 +532,7 @@ def test_reupload_same_files(
     )
     wait_for_index(plan, version)
     args = [
-        plan.fyn,
+        plan.uv,
         "publish",
         "--publish-url",
         plan.configuration.publish_url,
@@ -590,7 +590,7 @@ def test_reupload_with_check_url(
     # Test twine-style and index-style uploads for different packages.
     if index := plan.configuration.index:
         args = [
-            plan.fyn,
+            plan.uv,
             "publish",
             "--index",
             index,
@@ -598,7 +598,7 @@ def test_reupload_with_check_url(
         ]
     else:
         args = [
-            plan.fyn,
+            plan.uv,
             "publish",
             "--publish-url",
             plan.configuration.publish_url,
@@ -651,7 +651,7 @@ def test_reupload_modified_files(
 
     # Build a different source dist and wheel at the same version, so the upload fails
     modified_project_dir = build_project_at_version(
-        plan.target, version, plan.fyn, modified=True
+        plan.target, version, plan.uv, modified=True
     )
 
     print(
@@ -661,7 +661,7 @@ def test_reupload_modified_files(
     )
     wait_for_index(plan, version)
     args = [
-        plan.fyn,
+        plan.uv,
         "publish",
         "--publish-url",
         plan.configuration.publish_url,
@@ -807,10 +807,10 @@ def main():
     parser.add_argument("--uv")
     args = parser.parse_args()
 
-    if args.fyn:
+    if args.uv:
         # We change the working directory for the subprocess calls, so we have to
         # absolutize the path.
-        uv = Path.cwd().joinpath(args.fyn)
+        uv = Path.cwd().joinpath(args.uv)
     else:
         check_call(["cargo", "build"])
         executable_suffix = ".exe" if os.name == "nt" else ""

@@ -18,14 +18,14 @@ if __name__ == "__main__":
     parser.add_argument("--uv", help="Path to a fyn binary.")
     args = parser.parse_args()
 
-    uv: str = os.path.abspath(args.fyn) if args.fyn else "fyn"
+    uv: str = os.path.abspath(args.uv) if args.uv else "fyn"
 
     # Create a temporary directory.
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create a virtual environment with `fyn`.
         logging.info("Creating virtual environment with `fyn`...")
         subprocess.run(
-            [fyn, "venv", ".venv", "--seed", "--python", sys.executable],
+            [uv, "venv", ".venv", "--seed", "--python", sys.executable],
             cwd=temp_dir,
             check=True,
         )
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 f"Installing the package `{package}` into the virtual environment..."
             )
             subprocess.run(
-                [fyn, "pip", "install", package, "--verbose"],
+                [uv, "pip", "install", package, "--verbose"],
                 cwd=temp_dir,
                 check=True,
                 env=env,
@@ -78,7 +78,7 @@ if __name__ == "__main__":
             # Uninstall the package.
             logging.info(f"Uninstalling the package `{package}`.")
             subprocess.run(
-                [fyn, "pip", "uninstall", package, "--verbose"],
+                [uv, "pip", "uninstall", package, "--verbose"],
                 cwd=temp_dir,
                 check=True,
                 env=env,
