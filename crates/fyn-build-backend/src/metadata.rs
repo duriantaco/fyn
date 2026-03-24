@@ -83,13 +83,13 @@ pub enum DirectBuildIncompatibility {
     PyprojectToml(String),
     #[error("`build_system.build-backend` is not `fyn_build`, but `{0}`")]
     WrongBackend(String),
-    #[error("`build-system.requires` is not exactly `fyn_build`, but `{0}`")]
+    #[error("`build-system.requires` is not exactly `fyn-build`, but `{0}`")]
     MultipleRequires(String),
-    #[error("`build-system.requires` is not `fyn_build`, but `{0}`")]
+    #[error("`build-system.requires` is not `fyn-build`, but `{0}`")]
     WrongPackage(PackageName),
     #[error("`build_system.requires` uses a URL requirement")]
     UrlRequirement,
-    #[error("`fyn_build{0}` is not a known compatible range")]
+    #[error("`fyn-build{0}` is not a known compatible range")]
     IncompatibleRange(VersionSpecifiers),
 }
 
@@ -99,7 +99,7 @@ pub enum DirectBuildIncompatibility {
 ///
 /// ```toml
 /// [build-system]
-/// requires = ["fyn_build>=0.4.15,<0.5.0"]
+/// requires = ["fyn-build>=0.4.15,<0.5.0"]
 /// build-backend = "fyn_build"
 /// ```
 pub fn check_direct_build(
@@ -154,7 +154,7 @@ pub fn check_direct_build(
                 .join("`, `"),
         ));
     };
-    if uv_requirement.name.as_str() != "uv-build" {
+    if uv_requirement.name.as_str() != "fyn-build" {
         return Err(DirectBuildIncompatibility::WrongPackage(
             uv_requirement.name.clone(),
         ));
@@ -162,7 +162,7 @@ pub fn check_direct_build(
     match &uv_requirement.version_or_url {
         None => {
             // If the user doesn't set any upper bound, we don't help them by not using the fast
-            // path, their build may equally fail if the index version of `fyn_build`.
+            // path, their build may equally fail if the index version of `fyn-build`.
         }
         Some(VersionOrUrl::Url(_)) => {
             // We can't validate the url.
@@ -170,7 +170,7 @@ pub fn check_direct_build(
         }
         Some(VersionOrUrl::VersionSpecifier(specifier)) => {
             // If the user doesn't set an upper bound, we don't help them by not using the fast
-            // path, their build may equally fail if the index version of `fyn_build`, so we allow
+            // path, their build may equally fail if the index version of `fyn-build`, so we allow
             // missing upper bounds.
             if !compatible.iter().any(|version| specifier.contains(version)) {
                 return Err(DirectBuildIncompatibility::IncompatibleRange(
@@ -972,7 +972,7 @@ impl BuildSystem {
     ///
     /// ```toml
     /// [build-system]
-    /// requires = ["fyn_build>=0.4.15,<0.5.0"]
+    /// requires = ["fyn-build>=0.4.15,<0.5.0"]
     /// build-backend = "fyn_build"
     /// ```
     pub(crate) fn check_build_system(&self, fyn_version: &str) -> Vec<String> {
@@ -991,14 +991,14 @@ impl BuildSystem {
 
         let [uv_requirement] = &self.requires.as_slice() else {
             warnings.push(format!(
-                "Expected `build-system.requires` to contain only `fyn_build`, found `{}`",
+                "Expected `build-system.requires` to contain only `fyn-build`, found `{}`",
                 self.requires.iter().map(ToString::to_string).join("`, `")
             ));
             return warnings;
         };
-        if uv_requirement.name.as_str() != "uv-build" {
+        if uv_requirement.name.as_str() != "fyn-build" {
             warnings.push(format!(
-                "Expected `build-system.requires` to be `fyn_build`, found `{}`",
+                "Expected `build-system.requires` to be `fyn-build`, found `{}`",
                 self.requires.iter().map(ToString::to_string).join("`, `")
             ));
             return warnings;
@@ -1032,11 +1032,9 @@ impl BuildSystem {
         if !bounded {
             warnings.push(format!(
                 "`build_system.requires = [\"{}\"]` is missing an \
-                upper bound on the `fyn_build` version such as `<{next_breaking}`. \
-                Without bounding the `fyn_build` version, the source distribution will break \
-                when a future, breaking version of `fyn_build` is released.",
-                // Use an underscore consistently, to avoid confusing users between a package name with dash and a
-                // module name with underscore
+                upper bound on the `fyn-build` version such as `<{next_breaking}`. \
+                Without bounding the `fyn-build` version, the source distribution will break \
+                when a future, breaking version of `fyn-build` is released.",
                 uv_requirement.verbatim()
             ));
         }
@@ -1061,7 +1059,7 @@ mod tests {
             {payload}
 
             [build-system]
-            requires = ["fyn_build>=0.4.15,<0.5.0"]
+            requires = ["fyn-build>=0.4.15,<0.5.0"]
             build-backend = "fyn_build"
         "#
         }
@@ -1083,7 +1081,7 @@ mod tests {
             version = "0.1.0"
 
             [build-system]
-            requires = ["fyn_build>=0.4.15,<0.5.0"]
+            requires = ["fyn-build>=0.4.15,<0.5.0"]
             build-backend = "fyn_build"
         "#;
         let pyproject_toml: PyProjectToml = toml::from_str(contents).unwrap();
@@ -1166,7 +1164,7 @@ mod tests {
             foo-bar = "foo:bar"
 
             [build-system]
-            requires = ["fyn_build>=0.4.15,<0.5.0"]
+            requires = ["fyn-build>=0.4.15,<0.5.0"]
             build-backend = "fyn_build"
         "#
         };
@@ -1258,7 +1256,7 @@ mod tests {
             requires_python = ">=3.12"
 
             [build-system]
-            requires = ["fyn_build>=0.4.15,<0.5"]
+            requires = ["fyn-build>=0.4.15,<0.5"]
             build-backend = "fyn_build"
         "#
         };
@@ -1350,7 +1348,7 @@ mod tests {
             foo-bar = "foo:bar"
 
             [build-system]
-            requires = ["fyn_build>=0.4.15,<0.5.0"]
+            requires = ["fyn-build>=0.4.15,<0.5.0"]
             build-backend = "fyn_build"
         "#
         };
@@ -1429,13 +1427,13 @@ mod tests {
             version = "0.1.0"
 
             [build-system]
-            requires = ["fyn_build"]
+            requires = ["fyn-build"]
             build-backend = "fyn_build"
         "#};
         let pyproject_toml: PyProjectToml = toml::from_str(contents).unwrap();
         assert_snapshot!(
             pyproject_toml.check_build_system("0.4.15+test").join("\n"),
-            @r#"`build_system.requires = ["fyn_build"]` is missing an upper bound on the `fyn_build` version such as `<0.5`. Without bounding the `fyn_build` version, the source distribution will break when a future, breaking version of `fyn_build` is released."#
+            @r#"`build_system.requires = ["fyn-build"]` is missing an upper bound on the `fyn-build` version such as `<0.5`. Without bounding the `fyn-build` version, the source distribution will break when a future, breaking version of `fyn-build` is released."#
         );
     }
 
@@ -1447,13 +1445,13 @@ mod tests {
             version = "0.1.0"
 
             [build-system]
-            requires = ["fyn_build>=0.4.15,<0.5.0", "wheel"]
+            requires = ["fyn-build>=0.4.15,<0.5.0", "wheel"]
             build-backend = "fyn_build"
         "#};
         let pyproject_toml: PyProjectToml = toml::from_str(contents).unwrap();
         assert_snapshot!(
             pyproject_toml.check_build_system("0.4.15+test").join("\n"),
-            @"Expected `build-system.requires` to contain only `fyn_build`, found `uv-build>=0.4.15,<0.5.0`, `wheel`"
+            @"Expected `build-system.requires` to contain only `fyn-build`, found `fyn-build>=0.4.15,<0.5.0`, `wheel`"
         );
     }
 
@@ -1471,7 +1469,7 @@ mod tests {
         let pyproject_toml: PyProjectToml = toml::from_str(contents).unwrap();
         assert_snapshot!(
             pyproject_toml.check_build_system("0.4.15+test").join("\n"),
-            @"Expected `build-system.requires` to be `fyn_build`, found `setuptools`"
+            @"Expected `build-system.requires` to be `fyn-build`, found `setuptools`"
         );
     }
 
@@ -1483,7 +1481,7 @@ mod tests {
             version = "0.1.0"
 
             [build-system]
-            requires = ["fyn_build>=0.4.15,<0.5.0"]
+            requires = ["fyn-build>=0.4.15,<0.5.0"]
             build-backend = "setuptools"
         "#};
         let pyproject_toml: PyProjectToml = toml::from_str(contents).unwrap();
@@ -1722,7 +1720,7 @@ mod tests {
                 version = "0.1.0"
 
                 [build-system]
-                requires = ["fyn_build>=0.10.0,<0.11"]
+                requires = ["fyn-build>=0.10.0,<0.11"]
                 build-backend = "fyn_build"
             "#},
         )
@@ -1783,14 +1781,14 @@ mod tests {
                 version = "0.1.0"
 
                 [build-system]
-                requires = ["fyn_build>=0.10.0,<0.11", "wheel"]
+                requires = ["fyn-build>=0.10.0,<0.11", "wheel"]
                 build-backend = "fyn_build"
             "#},
         )
         .unwrap();
         assert_snapshot!(
             check_direct_build(temp_dir.path(), "0.10.0").unwrap_err(),
-            @"`build-system.requires` is not exactly `fyn_build`, but `uv-build>=0.10.0,<0.11`, `wheel`"
+            @"`build-system.requires` is not exactly `fyn-build`, but `fyn-build>=0.10.0,<0.11`, `wheel`"
         );
     }
 
@@ -1812,7 +1810,7 @@ mod tests {
         .unwrap();
         assert_snapshot!(
             check_direct_build(temp_dir.path(), "0.10.0").unwrap_err(),
-            @"`build-system.requires` is not `fyn_build`, but `setuptools`"
+            @"`build-system.requires` is not `fyn-build`, but `setuptools`"
         );
     }
 
@@ -1827,7 +1825,7 @@ mod tests {
                 version = "0.1.0"
 
                 [build-system]
-                requires = ["fyn_build @ https://example.com/fyn_build-0.10.0-py3-none-any.whl"]
+                requires = ["fyn-build @ https://example.com/fyn_build-0.10.0-py3-none-any.whl"]
                 build-backend = "fyn_build"
             "#},
         )
@@ -1849,14 +1847,14 @@ mod tests {
                 version = "0.1.0"
 
                 [build-system]
-                requires = ["fyn_build>=0.5.0,<0.6"]
+                requires = ["fyn-build>=0.5.0,<0.6"]
                 build-backend = "fyn_build"
             "#},
         )
         .unwrap();
         assert_snapshot!(
             check_direct_build(temp_dir.path(), "0.10.0").unwrap_err(),
-            @"`fyn_build>=0.5.0, <0.6` is not a known compatible range"
+            @"`fyn-build>=0.5.0, <0.6` is not a known compatible range"
         );
     }
 }

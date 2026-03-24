@@ -657,11 +657,11 @@ mod tests {
             fs_err::set_permissions(&path, perms).unwrap();
         }
 
-        // Redact the fyn_build version to keep the hash stable across releases
+        // Redact the fyn-build version to keep the hash stable across releases
         let pyproject_toml = fs_err::read_to_string(src.path().join("pyproject.toml")).unwrap();
         let current_requires =
-            Regex::new(r#"requires = \["fyn_build>=[0-9.]+,<[0-9.]+"\]"#).unwrap();
-        let mocked_requires = r#"requires = ["fyn_build>=1,<2"]"#;
+            Regex::new(r#"requires = \["fyn-build>=[0-9.]+,<[0-9.]+"\]"#).unwrap();
+        let mocked_requires = r#"requires = ["fyn-build>=1,<2"]"#;
         let pyproject_toml = current_requires.replace(pyproject_toml.as_str(), mocked_requires);
         fs_err::write(src.path().join("pyproject.toml"), pyproject_toml.as_bytes()).unwrap();
 
@@ -820,7 +820,7 @@ mod tests {
             license = { file = "license.txt" }
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
         "#
             },
@@ -892,7 +892,7 @@ mod tests {
             version = "1.0.0"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
         "#
             },
@@ -966,7 +966,7 @@ mod tests {
             version = "1.0.0"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
 
             [tool.fyn.build-backend]
@@ -1008,7 +1008,7 @@ mod tests {
             version = "1.0.0"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
 
             [tool.fyn.build-backend]
@@ -1033,7 +1033,7 @@ mod tests {
             version = "1.0.0"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
 
             [tool.fyn.build-backend]
@@ -1087,7 +1087,7 @@ mod tests {
                 version = "1.0.0"
 
                 [build-system]
-                requires = ["fyn_build>=0.5.15,<0.6.0"]
+                requires = ["fyn-build>=0.5.15,<0.6.0"]
                 build-backend = "fyn_build"
             "#},
         )
@@ -1128,7 +1128,7 @@ mod tests {
                 version = "1.0.0"
 
                 [build-system]
-                requires = ["fyn_build>=0.5.15,<0.6.0"]
+                requires = ["fyn-build>=0.5.15,<0.6.0"]
                 build-backend = "fyn_build"
             "#},
         )
@@ -1178,7 +1178,7 @@ mod tests {
                 version = "1.0.0"
 
                 [build-system]
-                requires = ["fyn_build>=0.5.15,<0.6.0"]
+                requires = ["fyn-build>=0.5.15,<0.6.0"]
                 build-backend = "fyn_build"
             "#},
         )
@@ -1240,7 +1240,7 @@ mod tests {
             version = "1.0.0"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
 
             [tool.fyn.build-backend]
@@ -1271,7 +1271,7 @@ mod tests {
             version = "1.0.0"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
             "#
         };
@@ -1322,7 +1322,7 @@ mod tests {
             version = "1.0.0"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
 
             [tool.fyn.build-backend]
@@ -1348,7 +1348,7 @@ mod tests {
             module-name = "simple_namespace.part"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
             "#
         };
@@ -1416,7 +1416,7 @@ mod tests {
             namespace = true
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
             "#
         };
@@ -1439,7 +1439,7 @@ mod tests {
             namespace = true
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
             "#
         };
@@ -1500,7 +1500,7 @@ mod tests {
             namespace = true
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
             "#
         };
@@ -1523,7 +1523,7 @@ mod tests {
             module-name = "cloud-stubs.db.schema"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
             "#
         };
@@ -1573,7 +1573,7 @@ mod tests {
             module-name = ["foo", "simple_namespace.part_a", "simple_namespace.part_b"]
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
             "#
         };
@@ -1740,7 +1740,7 @@ mod tests {
             module-name = ["foo", "foo", "bar.baz", "bar.baz.submodule"]
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
             "#
         };
@@ -1795,7 +1795,7 @@ mod tests {
             version = "1.0.0"
 
             [build-system]
-            requires = ["fyn_build>=0.5.15,<0.6.0"]
+            requires = ["fyn-build>=0.5.15,<0.6.0"]
             build-backend = "fyn_build"
         "#
             },
