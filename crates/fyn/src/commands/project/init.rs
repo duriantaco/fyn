@@ -1017,7 +1017,7 @@ fn pyproject_build_system(package: &PackageName, build_backend: ProjectBuildBack
             );
             indoc::formatdoc! {r#"
                 [build-system]
-                requires = ["fyn_build>={min_version},<{max_version}"]
+                requires = ["fyn-build>={min_version},<{max_version}"]
                 build-backend = "fyn_build"
             "#}
         },

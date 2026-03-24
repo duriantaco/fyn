@@ -1076,10 +1076,10 @@ impl TestContext {
         // Avoid breaking the tests when bumping the fyn version
         filters.push((
             format!(
-                r#"requires = \["fyn_build>={},<[0-9.]+"\]"#,
+                r#"requires = \["fyn-build>={},<[0-9.]+"\]"#,
                 fyn_version::version()
             ),
-            r#"requires = ["fyn_build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]"#.to_string(),
+            r#"requires = ["fyn-build>=[CURRENT_VERSION],<[NEXT_BREAKING]"]"#.to_string(),
         ));
         // Filter script environment hashes
         filters.push((
@@ -2283,7 +2283,7 @@ pub fn make_project(dir: &Path, name: &str, body: &str) -> anyhow::Result<()> {
         {body}
 
         [build-system]
-        requires = ["fyn_build>=0.9.0,<10000"]
+        requires = ["fyn-build>=0.9.0,<10000"]
         build-backend = "fyn_build"
         "#
     };

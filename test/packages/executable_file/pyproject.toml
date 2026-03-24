@@ -5,5 +5,5 @@ description = "A test package containing a file with executable permissions"
 requires-python = ">=3.12"
 
 [build-system]
-requires = ["fyn_build>=0.8.0,<0.11.0"]
+requires = ["fyn-build>=0.8.0,<0.11.0"]
 build-backend = "fyn_build"
