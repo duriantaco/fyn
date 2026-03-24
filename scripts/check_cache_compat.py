@@ -33,21 +33,21 @@ def install_package(*, uv: str, package: str, flags: list[str]):
 
     logging.info(f"Installing the package {package!r} with {uv!r}.")
     subprocess.run(
-        [fyn, "pip", "install", package, "--cache-dir", os.path.join(temp_dir, "cache")]
+        [uv, "pip", "install", package, "--cache-dir", os.path.join(temp_dir, "cache")]
         + flags,
         cwd=temp_dir,
         check=True,
     )
 
     logging.info(f"Checking that `{package}` is available.")
-    code = subprocess.run([fyn, "pip", "show", package], cwd=temp_dir)
+    code = subprocess.run([uv, "pip", "show", package], cwd=temp_dir)
     if code.returncode != 0:
         raise Exception(f"Could not show {package}.")
 
 
 def clean_cache(*, uv: str):
     subprocess.run(
-        [fyn, "cache", "clean", "--cache-dir", os.path.join(temp_dir, "cache")],
+        [uv, "cache", "clean", "--cache-dir", os.path.join(temp_dir, "cache")],
         cwd=temp_dir,
         check=True,
     )

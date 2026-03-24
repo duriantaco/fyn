@@ -187,7 +187,7 @@ fn python_pin() {
 fn python_pin_global_if_no_local() -> Result<()> {
     let context = fyn_test::test_context_with_versions!(&["3.11", "3.12"]);
     let fyn = context.user_config_dir.child("fyn");
-    uv.create_dir_all()?;
+    fyn.create_dir_all()?;
 
     // Without arguments, we attempt to read the current pin (which does not exist yet)
     fyn_snapshot!(context.filters(), context.python_pin(), @"
@@ -228,7 +228,7 @@ fn python_pin_global_if_no_local() -> Result<()> {
 fn python_pin_global_use_local_if_available() -> Result<()> {
     let context = fyn_test::test_context_with_versions!(&["3.11", "3.12"]);
     let fyn = context.user_config_dir.child("fyn");
-    uv.create_dir_all()?;
+    fyn.create_dir_all()?;
 
     // Given an argument, we globally pin to that version
     fyn_snapshot!(context.filters(), context.python_pin().arg("3.12").arg("--global"), @"
@@ -250,7 +250,7 @@ fn python_pin_global_use_local_if_available() -> Result<()> {
     ----- stderr -----
     ");
 
-    let mut global_version_path = PathBuf::from(uv.path());
+    let mut global_version_path = PathBuf::from(fyn.path());
     global_version_path.push(PYTHON_VERSION_FILENAME);
     let global_python_version = context.read(&global_version_path);
     insta::with_settings!({

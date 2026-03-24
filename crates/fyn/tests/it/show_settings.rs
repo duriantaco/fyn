@@ -2815,7 +2815,7 @@ fn resolve_top_level() -> anyhow::Result<()> {
 fn resolve_user_configuration() -> anyhow::Result<()> {
     let xdg = assert_fs::TempDir::new().expect("Failed to create temp dir");
     let fyn = xdg.child("fyn");
-    let config = uv.child("fyn.toml");
+    let config = fyn.child("fyn.toml");
     config.write_str(indoc::indoc! {r#"
         [pip]
         resolution = "lowest-direct"
@@ -3563,7 +3563,7 @@ fn resolve_tool() -> anyhow::Result<()> {
     // Create a temporary directory to store the user configuration.
     let xdg = assert_fs::TempDir::new().expect("Failed to create temp dir");
     let fyn = xdg.child("fyn");
-    let config = uv.child("fyn.toml");
+    let config = fyn.child("fyn.toml");
     config.write_str(indoc::indoc! {r#"
         resolution = "lowest-direct"
     "#})?;

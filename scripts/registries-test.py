@@ -215,7 +215,7 @@ def run_test(
     with tempfile.TemporaryDirectory() as project_dir:
         setup_test_project(registry_name, registry_url, project_dir, requires_python)
 
-        cmd = [fyn, "add", package, "--directory", project_dir, "--no-cache"]
+        cmd = [uv, "add", package, "--directory", project_dir, "--no-cache"]
         if verbosity:
             cmd.extend(["-" + "v" * verbosity])
 
@@ -343,10 +343,10 @@ def main() -> None:
             )
             sys.exit(1)
 
-    if args.fyn:
+    if args.uv:
         # We change the working directory for the subprocess calls, so we have to
         # absolutize the path.
-        uv = Path.cwd().joinpath(args.fyn)
+        uv = Path.cwd().joinpath(args.uv)
     else:
         subprocess.run(["cargo", "build"])
         executable_suffix = ".exe" if os.name == "nt" else ""

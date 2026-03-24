@@ -135,9 +135,9 @@ def main(uv: str):
     # Check 1b: Request installation of already installed interpreters.
     for _ in range(2):
         print("Installing Python 3.11.11, 3.12.8, and 3.13.1")
-        subprocess.check_call([fyn, "python", "install", "-v", "--preview", "3.11.11"])
-        subprocess.check_call([fyn, "python", "install", "-v", "--preview", "3.12.8"])
-        subprocess.check_call([fyn, "python", "install", "-v", "--preview", "3.13.1"])
+        subprocess.check_call([uv, "python", "install", "-v", "--preview", "3.11.11"])
+        subprocess.check_call([uv, "python", "install", "-v", "--preview", "3.12.8"])
+        subprocess.check_call([uv, "python", "install", "-v", "--preview", "3.13.1"])
         # The default shell for a subprocess is not powershell
         actual_registry = subprocess.check_output(
             ["powershell", "-Command", list_registry_command], text=True
@@ -172,9 +172,7 @@ def main(uv: str):
     # Check 2b: Remove a missing interpreter.
     for _ in range(2):
         print("Removing Python 3.11.11")
-        subprocess.check_call(
-            [fyn, "python", "uninstall", "-v", "--preview", "3.11.11"]
-        )
+        subprocess.check_call([uv, "python", "uninstall", "-v", "--preview", "3.11.11"])
         listed_interpreters = subprocess.check_output(["py", "--list-paths"], text=True)
         py_listed = set(listed_interpreters.splitlines())
         if (
@@ -191,7 +189,7 @@ def main(uv: str):
     # Check 3: Remove all interpreters and check that they are all gone.
     # Check 3a: Clear a used registry.
     # Check 3b: Clear an empty registry.
-    subprocess.check_call([fyn, "python", "uninstall", "-v", "--preview", "--all"])
+    subprocess.check_call([uv, "python", "uninstall", "-v", "--preview", "--all"])
     for _ in range(2):
         print("Removing all Pythons")
         empty_registry = subprocess.check_output(
@@ -218,4 +216,4 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--uv", default="./fyn.exe")
     args = parser.parse_args()
-    main(args.fyn)
+    main(args.uv)
