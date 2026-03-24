@@ -295,7 +295,7 @@ fn rename_module() -> Result<()> {
         module-name = "bar"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -376,7 +376,7 @@ fn rename_module_editable_build() -> Result<()> {
         module-name = "bar"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -435,7 +435,7 @@ fn build_module_name_normalization() -> Result<()> {
         version = "1.0.0"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.build-backend]
@@ -547,7 +547,7 @@ fn build_sdist_with_long_path() -> Result<()> {
         version = "1.0.0"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     context
@@ -590,7 +590,7 @@ fn sdist_error_without_module() -> Result<()> {
         version = "1.0.0"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -660,7 +660,7 @@ fn complex_namespace_packages() -> Result<()> {
             module-name = "{project_name_dist_info}.{part_name}"
 
             [build-system]
-            requires = ["fyn_build>=0.7,<10000"]
+            requires = ["fyn-build>=0.7,<10000"]
             build-backend = "fyn_build"
             "#
         };
@@ -783,7 +783,7 @@ fn license_glob_without_matches_errors() -> Result<()> {
         license-files = ["abc", "LICENSE.txt"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -824,7 +824,7 @@ fn license_file_must_be_utf8() -> Result<()> {
         license-files = ["LICENSE.bin"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -869,7 +869,7 @@ fn symlinked_file() -> Result<()> {
         license-files = ["LICENSE"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -938,7 +938,7 @@ fn symlinked_file() -> Result<()> {
 
 /// Ignore invalid build backend settings when not building.
 ///
-/// They may be from another `fyn_build` version that has a different schema.
+/// They may be from another `fyn-build` version that has a different schema.
 #[test]
 fn invalid_build_backend_settings_are_ignored() -> Result<()> {
     let context = fyn_test::test_context!("3.12");
@@ -955,7 +955,7 @@ fn invalid_build_backend_settings_are_ignored() -> Result<()> {
         source-include = "data/build-script.py"
 
         [build-system]
-        requires = ["fyn_build>=10000,<10001"]
+        requires = ["fyn-build>=10000,<10001"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -990,7 +990,7 @@ fn error_on_relative_module_root_outside_project_root() -> Result<()> {
         module-root = ".."
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -1041,7 +1041,7 @@ fn error_on_relative_data_dir_outside_project_root() -> Result<()> {
         headers = "../header"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -1131,7 +1131,7 @@ fn warn_on_redundant_module_names() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.build-backend]
@@ -1200,7 +1200,7 @@ fn invalid_pyproject_toml() -> Result<()> {
         version = "1.0.0"
 
         [build-system]
-        requires = ["fyn_build>=0.9,<10000"]
+        requires = ["fyn-build>=0.9,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -1277,7 +1277,7 @@ fn build_with_all_metadata() -> Result<()> {
         bar = "foo:bar_plugin"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     context
@@ -1580,7 +1580,7 @@ fn warn_on_license_classifier() -> Result<()> {
         classifiers = ["License :: OSI Approved :: MIT License"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     context.temp_dir.child("src/foo/__init__.py").touch()?;
