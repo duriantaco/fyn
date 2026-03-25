@@ -2585,7 +2585,7 @@ fn run_with_env_file() -> anyhow::Result<()> {
         script = "foo.main:run"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;

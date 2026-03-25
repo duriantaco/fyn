@@ -1403,7 +1403,7 @@ fn non_project_member() -> Result<()> {
         dependencies = ["iniconfig", "sniffio", "anyio"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
