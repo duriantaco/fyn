@@ -3,8 +3,8 @@
 An extremely fast Python package and project manager, written in Rust.
 
 **fyn** is an independent Python package manager built on [uv](https://github.com/astral-sh/uv)'s
-foundation, with telemetry removed, new features added, and long-standing bugs fixed. See
-[MANIFESTO.md](MANIFESTO.md) for the full story.
+foundation, with request metadata stripped back, new features added, and long-standing bugs fixed.
+See [MANIFESTO.md](MANIFESTO.md) for the full story.
 
 ## Highlights
 
@@ -22,7 +22,8 @@ foundation, with telemetry removed, new features added, and long-standing bugs f
   CLI.
 - Supports Cargo-style workspaces for scalable projects.
 - Disk-space efficient, with a global cache for dependency deduplication.
-- No telemetry — your installs are your business.
+- Minimal package-index User-Agent — fyn sends `fyn/<version>` instead of platform metadata in the
+  header.
 - Supports macOS, Linux, and Windows.
 
 ## Installation

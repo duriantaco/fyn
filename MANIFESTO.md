@@ -1,11 +1,11 @@
-# fyn — A uv fork, fast, private Python Package Manager
+# fyn — A uv fork with a smaller request-metadata footprint
 
 **fyn** is a Python package manager and project manager written in Rust. It's an independent fork of
-[uv](https://github.com/astral-sh/uv), which is the fastest Python package installer around- without
-telemetry, missing features added, and bugs fixed.
+[uv](https://github.com/astral-sh/uv), which is the fastest Python package installer around, with
+request metadata stripped back, missing features added, and bugs fixed.
 
-If you've used uv, you already know fyn. Same commands, same speed, easy migration. Just fewer
-things phoning home.
+If you've used uv, you already know fyn. Same commands, same speed, easy migration. The main
+behavior differences are below.
 
 ## Why fork uv?
 
@@ -22,12 +22,15 @@ So we forked it. We called it **fyn**. You can infer the first letter however yo
 We're not trying to rewrite the thing. uv is really solid and we're keeping most of it. We're just
 fixing the stuff that bugged us and adding the things people kept asking for.
 
-### No telemetry — your installs are your business
+### Reduced package-index request metadata
 
-uv was sending a surprising amount of info to package indexes every time you installed something.
-These things include your OS, py version, CPU architecture, Linux distro, whether you're in CI. All
-baked into the User-Agent header via something called "linehaul". We ripped that out. Now it just
-sends `fyn/0.10.13`. That's it.
+uv included LineHaul metadata in the `User-Agent` header it sent to package indexes. That could
+include details like OS, Python version, CPU architecture, Linux distro, and whether the command was
+running in CI. fyn removes that metadata and sends a minimal `fyn/<version>` User-Agent instead.
+
+This reduces what is exposed in the header, but it does not make package installs anonymous. Package
+indexes still see normal network and request information, including your IP address and the packages
+you ask for.
 
 ### New features we added
 
@@ -38,20 +41,20 @@ sends `fyn/0.10.13`. That's it.
 
 ## fyn vs uv — feature comparison
 
-| Feature                           | uv                             | fyn                 |
-| --------------------------------- | ------------------------------ | ------------------- |
-| Speed (10-100x faster than pip)   | Yes                            | Yes                 |
-| Telemetry / system profiling      | Sends OS, Python, CPU, CI info | None                |
-| `shell` command                   | Not available                  | `fyn shell`         |
-| `upgrade` command                 | Must chain two commands        | `fyn upgrade`       |
-| Cache size limit                  | No limit                       | `UV_CACHE_MAX_SIZE` |
-| Private index for transitive deps | Broken                         | Fixed               |
-| Env vars in index URLs            | Only in requirements.txt       | Everywhere          |
-| Custom lockfile name              | Not available                  | `UV_LOCKFILE`       |
-| `remove --group` sync behavior    | Wipes other group packages     | Fixed               |
-| Drop-in replacement for pip       | Yes                            | Yes                 |
-| Python version management         | Yes                            | Yes                 |
-| Lockfile support                  | Yes (`uv.lock`)                | Yes (`fyn.lock`)    |
+| Feature                           | uv                                | fyn                     |
+| --------------------------------- | --------------------------------- | ----------------------- |
+| Speed (10-100x faster than pip)   | Yes                               | Yes                     |
+| Package index User-Agent          | Includes OS, Python, CPU, CI info | Minimal `fyn/<version>` |
+| `shell` command                   | Not available                     | `fyn shell`             |
+| `upgrade` command                 | Must chain two commands           | `fyn upgrade`           |
+| Cache size limit                  | No limit                          | `UV_CACHE_MAX_SIZE`     |
+| Private index for transitive deps | Broken                            | Fixed                   |
+| Env vars in index URLs            | Only in requirements.txt          | Everywhere              |
+| Custom lockfile name              | Not available                     | `UV_LOCKFILE`           |
+| `remove --group` sync behavior    | Wipes other group packages        | Fixed                   |
+| Drop-in replacement for pip       | Yes                               | Yes                     |
+| Python version management         | Yes                               | Yes                     |
+| Lockfile support                  | Yes (`uv.lock`)                   | Yes (`fyn.lock`)        |
 
 ## Roadmap
 
