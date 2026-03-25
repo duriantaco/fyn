@@ -83,7 +83,7 @@ jobs:
             [[ "$file" =~ ^crates/fyn-publish/ || "$file" =~ ^scripts/publish/ || "$file" == "crates/fyn/src/commands/publish.rs" ]] && publish_code_changed=1
             [[ "$file" == ".github/workflows/test-windows-trampolines.yml" ]] && trampoline_workflow_changed=1
             [[ "$file" =~ ^crates/fyn-trampoline/ || "$file" =~ ^crates/fyn-trampoline-builder/ ]] && trampoline_code_changed=1
-            [[ "$file" =~ ^crates/fyn-build/ ]] && uv_build_changed=1
+            [[ "$file" =~ ^crates/fyn-build/ ]] && fyn_build_changed=1
             [[ "$file" == "Dockerfile" ]] && dockerfile_changed=1
             [[ "$file" == ".github/workflows/build-docker.yml" ]] && docker_workflow_changed=1
             [[ "$file" == ".github/workflows/bench.yml" ]] && bench_workflow_changed=1
@@ -96,7 +96,7 @@ jobs:
 
           # Derived groups
           [[ $rust_code_changed || $rust_deps_changed || $rust_config_changed ]] && any_rust_changed=1
-          [[ $python_config_changed || $rust_deps_changed || $rust_config_changed || $uv_build_changed || $release_workflow_changed ]] && release_build_changed=1
+          [[ $python_config_changed || $rust_deps_changed || $rust_config_changed || $fyn_build_changed || $release_workflow_changed ]] && release_build_changed=1
           [[ $publish_code_changed || $ci_workflow_changed ]] && publish_changed=1
           [[ $rust_deps_changed || $rust_config_changed || $workflow_changed ]] && cache_relevant_changed=1
           [[ $python_config_changed || $rust_deps_changed || $rust_config_changed || $dockerfile_changed || $docker_workflow_changed ]] && docker_build_changed=1
