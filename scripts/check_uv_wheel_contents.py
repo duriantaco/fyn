@@ -1,4 +1,4 @@
-"""Check that fyn and uv_build wheels contain exactly the expected files"""
+"""Check that fyn and fyn_build wheels contain exactly the expected files"""
 
 import re
 import sys
@@ -22,16 +22,16 @@ fyn_expected = {
     "uv/py.typed",
 }
 fyn_build_expected = {
-    "uv_build-VERSION.data/scripts/fyn-build",
-    "uv_build-VERSION.dist-info/METADATA",
-    "uv_build-VERSION.dist-info/RECORD",
-    "uv_build-VERSION.dist-info/WHEEL",
-    "uv_build-VERSION.dist-info/licenses/LICENSE-APACHE",
-    "uv_build-VERSION.dist-info/licenses/LICENSE-MIT",
-    "uv_build-VERSION.dist-info/sboms/fyn-build.cyclonedx.json",
-    "uv_build/__init__.py",
-    "uv_build/__main__.py",
-    "uv_build/py.typed",
+    "fyn_build-VERSION.data/scripts/fyn-build",
+    "fyn_build-VERSION.dist-info/METADATA",
+    "fyn_build-VERSION.dist-info/RECORD",
+    "fyn_build-VERSION.dist-info/WHEEL",
+    "fyn_build-VERSION.dist-info/licenses/LICENSE-APACHE",
+    "fyn_build-VERSION.dist-info/licenses/LICENSE-MIT",
+    "fyn_build-VERSION.dist-info/sboms/fyn-build.cyclonedx.json",
+    "fyn_build/__init__.py",
+    "fyn_build/__main__.py",
+    "fyn_build/py.typed",
 }
 
 
@@ -41,7 +41,7 @@ def check_fyn_wheel(fyn_wheel: Path) -> None:
         # Windows wheels contain fynw, the windowed launcher.
         if "-win" in fyn_wheel.name:
             expected = expected | {"fyn-VERSION.data/scripts/fynw"}
-    elif fyn_wheel.name.startswith("uv_build-"):
+    elif fyn_wheel.name.startswith("fyn_build-"):
         expected = fyn_build_expected
     else:
         raise RuntimeError(f"Unknown wheel filename: {fyn_wheel.name}")
