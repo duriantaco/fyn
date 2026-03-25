@@ -28,7 +28,7 @@ __pycache__
 *.pyd
 *.dll
 /dist
-/crates/uv-build/dist
+/crates/fyn-build/dist
 
 # Profiling
 flamegraph.svg
