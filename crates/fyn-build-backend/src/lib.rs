@@ -636,7 +636,7 @@ mod tests {
         for filename in [
             "pyproject.toml",
             "README.md",
-            "fyn.lock",
+            "uv.lock",
             "LICENSE-APACHE",
             "LICENSE-MIT",
         ] {
@@ -683,7 +683,7 @@ mod tests {
         // Check that the source dist is reproducible across platforms.
         assert_snapshot!(
             format!("{:x}", sha2::Sha256::digest(fs_err::read(&source_dist_path).unwrap())),
-            @"8bed1f7a8059064bcbeedb61a867cca7f63a474306011d0114280de631ac705e"
+            @"a39f80333119b5172f086779ba7173d05f73d546659f08314689aff711ac0be9"
         );
         // Check both the files we report and the actual files
         assert_snapshot!(format_file_list(build.source_dist_list_files, src.path()), @"
@@ -737,7 +737,7 @@ mod tests {
         // Check that the wheel is reproducible across platforms.
         assert_snapshot!(
             format!("{:x}", sha2::Sha256::digest(fs_err::read(&wheel_path).unwrap())),
-            @"dbe56fd8bd52184095b2e0ea3e83c95d1bc8b4aa53cf469cec5af62251b24abb"
+            @"6daf32592b8ffe20f626c7b9501a5be6cc3145e1594cf20ab5b3b91b418831bb"
         );
         assert_snapshot!(build.wheel_contents.join("\n"), @"
         built_by_uv-0.1.0.data/data/
@@ -799,10 +799,10 @@ mod tests {
         built_by_uv-0.1.0.dist-info/licenses/third-party-licenses/PEP-401.txt,sha256=KN-KAx829G2saLjVmByc08RFFtIDWvHulqPyD0qEBZI,270
         built_by_uv-0.1.0.data/headers/built_by_uv.h,sha256=p5-HBunJ1dY-xd4dMn03PnRClmGyRosScIp8rT46kg4,144
         built_by_uv-0.1.0.data/scripts/whoami.sh,sha256=T2cmhuDFuX-dTkiSkuAmNyIzvv8AKopjnuTCcr9o-eE,20
-        built_by_uv-0.1.0.data/data/data.csv,sha256=7z7u-wXu7Qr2eBZfynpBILlNUiGSngv_1vYqZHVWOU94,265
-        built_by_uv-0.1.0.dist-info/WHEEL,sha256=JBpLtoa_WBz5WPGpRsAUTD4Dz6H0KkkdiKWCkfMSS1U,84
+        built_by_uv-0.1.0.data/data/data.csv,sha256=7z7u-wXu7Qr2eBZFVpBILlNUiGSngv_1vYqZHVWOU94,265
+        built_by_uv-0.1.0.dist-info/WHEEL,sha256=BvxMN3Op0cAnbSX4ihNzRFhn2W4_hbeiPz2I69NhXP0,85
         built_by_uv-0.1.0.dist-info/entry_points.txt,sha256=-IO6yaq6x6HSl-zWH96rZmgYvfyHlH00L5WQoCpz-YI,50
-        built_by_uv-0.1.0.dist-info/METADATA,sha256=m6EkVvKrGmqx43b_VR45LHD37IZxPYC0NI6Qx9_UXLE,474
+        built_by_uv-0.1.0.dist-info/METADATA,sha256=HLhkAuto_2Dqq9AkbbgKy_4Jgi5i0w_gMREIAo33wzk,476
         built_by_uv-0.1.0.dist-info/RECORD,,
         ");
     }
