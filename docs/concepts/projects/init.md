@@ -113,8 +113,8 @@ dependencies = []
 example-pkg = "example_pkg:main"
 
 [build-system]
-requires = ["uv_build>=0.10.12,<0.11.0"]
-build-backend = "uv_build"
+requires = ["fyn_build>=0.10.12,<0.11.0"]
+build-backend = "fyn_build"
 ```
 
 !!! tip
@@ -136,8 +136,8 @@ dependencies = []
 example-pkg = "example_pkg:main"
 
 [build-system]
-requires = ["uv_build>=0.10.12,<0.11.0"]
-build-backend = "uv_build"
+requires = ["fyn_build>=0.10.12,<0.11.0"]
+build-backend = "fyn_build"
 ```
 
 The command can be executed with `fyn run`:
@@ -197,14 +197,14 @@ requires-python = ">=3.11"
 dependencies = []
 
 [build-system]
-requires = ["uv_build>=0.10.12,<0.11.0"]
-build-backend = "uv_build"
+requires = ["fyn_build>=0.10.12,<0.11.0"]
+build-backend = "fyn_build"
 ```
 
 !!! tip
 
     You can select a different build backend template by using `--build-backend` with `hatchling`,
-    `uv_build`, `flit-core`, `pdm-backend`, `setuptools`, `maturin`, or `scikit-build-core`. An
+    `fyn_build`, `flit-core`, `pdm-backend`, `setuptools`, `maturin`, or `scikit-build-core`. An
     alternative backend is required if you want to create a [library with extension modules](#projects-with-extension-modules).
 
 The created module defines a simple API function:
