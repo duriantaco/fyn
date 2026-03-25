@@ -1134,7 +1134,7 @@ fn no_duplicate_dependencies_with_markers() {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.8.22,<10000"]
+        requires = ["fyn-build>=0.8.22,<10000"]
         build-backend = "fyn_build"
     "#};
 
