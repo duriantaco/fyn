@@ -1,8 +1,8 @@
-# fyn — A uv fork with a smaller request-metadata footprint
+# fyn — A uv fork with a smaller package-index `User-Agent`
 
 **fyn** is a Python package manager and project manager written in Rust. It's an independent fork of
-[uv](https://github.com/astral-sh/uv), which is the fastest Python package installer around, with
-request metadata stripped back, missing features added, and bugs fixed.
+[uv](https://github.com/astral-sh/uv), which is the fastest Python package installer around, with a
+smaller package-index `User-Agent`, missing features added, and bugs fixed.
 
 If you've used uv, you already know fyn. Same commands, same speed, easy migration. The main
 behavior differences are below.
@@ -24,9 +24,10 @@ fixing the stuff that bugged us and adding the things people kept asking for.
 
 ### Reduced package-index request metadata
 
-uv included LineHaul metadata in the `User-Agent` header it sent to package indexes. That could
-include details like OS, Python version, CPU architecture, Linux distro, and whether the command was
-running in CI. fyn removes that metadata and sends a minimal `fyn/<version>` User-Agent instead.
+uv included LineHaul metadata in the `User-Agent` header it sent to package indexes such as PyPI.
+That header goes to the package index, not back to Astral or OpenAI. `pip` also sends package-index
+metadata by default; fyn's change is narrower. Compared with upstream uv, fyn removes the extra
+platform metadata from that header and sends a minimal `fyn/<version>` `User-Agent` instead.
 
 This reduces what is exposed in the header, but it does not make package installs anonymous. Package
 indexes still see normal network and request information, including your IP address and the packages
