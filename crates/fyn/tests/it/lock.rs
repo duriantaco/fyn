@@ -2923,7 +2923,7 @@ fn lock_conflicting_project_basic1() -> Result<()> {
         foo = ["sortedcontainers==2.4.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2963,7 +2963,7 @@ fn lock_conflicting_project_basic1() -> Result<()> {
         foo = ["sortedcontainers==2.4.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -3900,7 +3900,7 @@ fn lock_conflicting_project_basic2() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -4084,7 +4084,7 @@ fn lock_conflicting_mixed() -> Result<()> {
         project2 = ["sortedcontainers==2.4.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -4127,7 +4127,7 @@ fn lock_conflicting_mixed() -> Result<()> {
         project2 = ["sortedcontainers==2.4.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
