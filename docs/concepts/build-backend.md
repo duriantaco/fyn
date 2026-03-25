@@ -3,7 +3,7 @@
 A build backend transforms a source tree (i.e., a directory) into a source distribution or a wheel.
 
 fyn supports all build backends (as specified by [PEP 517](https://peps.python.org/pep-0517/)), but
-also provides a native build backend (`uv_build`) that integrates tightly with fyn to improve
+also provides a native build backend (`fyn_build`) that integrates tightly with fyn to improve
 performance and user experience.
 
 ## Choosing a build backend
@@ -26,19 +26,19 @@ required to build a
 
 ## Using the fyn build backend
 
-To use fyn as a build backend in an existing project, add `uv_build` to the
+To use fyn as a build backend in an existing project, add `fyn_build` to the
 [`[build-system]`](../concepts/projects/config.md#build-systems) section in your `pyproject.toml`:
 
 ```toml title="pyproject.toml"
 [build-system]
-requires = ["uv_build>=0.10.12,<0.11.0"]
-build-backend = "uv_build"
+requires = ["fyn_build>=0.10.12,<0.11.0"]
+build-backend = "fyn_build"
 ```
 
 !!! note
 
     The fyn build backend follows the same [versioning policy](../reference/policies/versioning.md)
-    as fyn. Including an upper bound on the `uv_build` version ensures that your package continues to
+    as fyn. Including an upper bound on the `fyn_build` version ensures that your package continues to
     build correctly as new versions are released.
 
 To create a new project that uses the fyn build backend, use `fyn init`:
@@ -52,12 +52,12 @@ will be used to create the source distribution and wheel.
 
 ## Bundled build backend
 
-The build backend is published as a separate package (`uv_build`) that is optimized for portability
+The build backend is published as a separate package (`fyn_build`) that is optimized for portability
 and small binary size. However, the `fyn` executable also includes a copy of the build backend,
 which will be used during builds performed by fyn, e.g., during `fyn build`, if its version is
-compatible with the `uv_build` requirement. If it's not compatible, a compatible version of the
-`uv_build` package will be used. Other build frontends, such as `python -m build`, will always use
-the `uv_build` package, typically choosing the latest compatible version.
+compatible with the `fyn_build` requirement. If it's not compatible, a compatible version of the
+`fyn_build` package will be used. Other build frontends, such as `python -m build`, will always use
+the `fyn_build` package, typically choosing the latest compatible version.
 
 ## Modules
 
