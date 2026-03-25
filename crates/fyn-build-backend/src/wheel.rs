@@ -948,16 +948,17 @@ mod test {
 
         # built_by_uv
 
-        A package to be built with the fyn build backend that uses all features exposed by the build backend.
+        A package to be built with the fyn build backend that uses all features exposed by the build
+        backend.
         ");
 
         let record_file = metadata_dir
             .path()
             .join("built_by_uv-0.1.0.dist-info/RECORD");
         assert_snapshot!(fs_err::read_to_string(record_file).unwrap(), @"
-        built_by_uv-0.1.0.dist-info/WHEEL,sha256=JBpLtoa_WBz5WPGpRsAUTD4Dz6H0KkkdiKWCkfMSS1U,84
+        built_by_uv-0.1.0.dist-info/WHEEL,sha256=BvxMN3Op0cAnbSX4ihNzRFhn2W4_hbeiPz2I69NhXP0,85
         built_by_uv-0.1.0.dist-info/entry_points.txt,sha256=-IO6yaq6x6HSl-zWH96rZmgYvfyHlH00L5WQoCpz-YI,50
-        built_by_uv-0.1.0.dist-info/METADATA,sha256=m6EkVvKrGmqx43b_VR45LHD37IZxPYC0NI6Qx9_UXLE,474
+        built_by_uv-0.1.0.dist-info/METADATA,sha256=HLhkAuto_2Dqq9AkbbgKy_4Jgi5i0w_gMREIAo33wzk,476
         built_by_uv-0.1.0.dist-info/RECORD,,
         ");
 
