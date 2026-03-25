@@ -3,7 +3,7 @@ def main():
 
     # This works both as redirect to use the proper fyn package and as smoke test.
     print(
-        "uv_build contains only the PEP 517 build backend for fyn and can't be used on the CLI. "
+        "fyn_build contains only the PEP 517 build backend for fyn and can't be used on the CLI. "
         "Use `fyn build` or another build frontend instead.",
         file=sys.stderr,
     )

@@ -17,8 +17,8 @@ def __getattr__(attr_name: str) -> object:
         "prepare_metadata_for_build_editable",
     }:
         err = (
-            f"Using `fyn.{attr_name}` is not allowed; build backend functionality is in the `uv_build` package. "
-            f"Did you mean to use `uv_build` as your build system?"
+            f"Using `fyn.{attr_name}` is not allowed; build backend functionality is in the `fyn_build` package. "
+            f"Did you mean to use `fyn_build` as your build system?"
         )
         raise AttributeError(err)
     raise AttributeError(f"module `{__name__}` has no attribute `{attr_name}`")
