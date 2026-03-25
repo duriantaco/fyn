@@ -1355,7 +1355,7 @@ fn workspace_inherit_sources() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.workspace]
@@ -1372,7 +1372,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     leaf.child("src/__init__.py").touch()?;
@@ -1386,7 +1386,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     library.child("src/__init__.py").touch()?;
@@ -1415,7 +1415,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -1443,7 +1443,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -1456,7 +1456,7 @@ fn workspace_inherit_sources() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -1532,7 +1532,7 @@ fn workspace_inherit_sources() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -1550,7 +1550,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -1589,7 +1589,7 @@ fn workspace_unsatisfiable_member_dependencies() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.workspace]
@@ -1606,7 +1606,7 @@ fn workspace_unsatisfiable_member_dependencies() -> Result<()> {
         dependencies = ["httpx>9999"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     leaf.child("src/__init__.py").touch()?;
@@ -1645,7 +1645,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.workspace]
@@ -1662,7 +1662,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting() -> Result<()> {
         dependencies = ["anyio==4.1.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     foo.child("src/__init__.py").touch()?;
@@ -1674,7 +1674,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting() -> Result<()> {
         dependencies = ["anyio==4.2.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     bar.child("src/__init__.py").touch()?;
@@ -1713,7 +1713,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_threeway() -> Result<
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.workspace]
@@ -1730,7 +1730,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_threeway() -> Result<
         dependencies = ["anyio==4.1.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     red.child("src/__init__.py").touch()?;
@@ -1742,7 +1742,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_threeway() -> Result<
         dependencies = ["anyio==4.2.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     knot.child("src/__init__.py").touch()?;
@@ -1757,7 +1757,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_threeway() -> Result<
         dependencies = ["anyio==4.3.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     bird.child("src/__init__.py").touch()?;
@@ -1796,7 +1796,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_extra() -> Result<()>
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.workspace]
@@ -1813,7 +1813,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_extra() -> Result<()>
         dependencies = ["anyio==4.1.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     foo.child("src/__init__.py").touch()?;
@@ -1827,7 +1827,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_extra() -> Result<()>
         some_extra = ["anyio==4.2.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     bar.child("src/__init__.py").touch()?;
@@ -1866,7 +1866,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_dev() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.workspace]
@@ -1883,7 +1883,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_dev() -> Result<()> {
         dependencies = ["anyio==4.1.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     foo.child("src/__init__.py").touch()?;
@@ -1894,7 +1894,7 @@ fn workspace_unsatisfiable_member_dependencies_conflicting_dev() -> Result<()> {
         version = "0.1.0"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn]
@@ -1937,7 +1937,7 @@ fn workspace_member_name_shadows_dependencies() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.workspace]
@@ -1954,7 +1954,7 @@ fn workspace_member_name_shadows_dependencies() -> Result<()> {
         dependencies = ["anyio==4.1.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     foo.child("src/__init__.py").touch()?;
@@ -1968,7 +1968,7 @@ fn workspace_member_name_shadows_dependencies() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     anyio.child("src/__init__.py").touch()?;
@@ -2372,7 +2372,7 @@ fn workspace_unmanaged_member_no_project() -> Result<()> {
         members = ["member"]
 
         [build-system]
-        requires = ["fyn_build>=0.9.0,<10000"]
+        requires = ["fyn-build>=0.9.0,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
