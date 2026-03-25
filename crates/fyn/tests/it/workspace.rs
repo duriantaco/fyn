@@ -1355,7 +1355,7 @@ fn workspace_inherit_sources() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.workspace]
@@ -1372,7 +1372,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     leaf.child("src/__init__.py").touch()?;
@@ -1386,7 +1386,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     library.child("src/__init__.py").touch()?;
@@ -1415,7 +1415,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -1443,7 +1443,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -1456,7 +1456,7 @@ fn workspace_inherit_sources() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -1532,7 +1532,7 @@ fn workspace_inherit_sources() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -1550,7 +1550,7 @@ fn workspace_inherit_sources() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
