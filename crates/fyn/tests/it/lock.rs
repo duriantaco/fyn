@@ -9594,7 +9594,7 @@ fn lock_no_workspace_source() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -9651,7 +9651,7 @@ fn lock_peer_member() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
         )?;
@@ -9762,7 +9762,7 @@ async fn lock_index_workspace_member() -> Result<()> {
         iniconfig = {{ index = "my-index" }}
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
         proxy_uri = proxy.uri()
@@ -9897,7 +9897,7 @@ fn lock_dev_transitive() -> Result<()> {
         dependencies = ["foo", "baz", "iniconfig>1"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -9922,7 +9922,7 @@ fn lock_dev_transitive() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn]
@@ -11063,7 +11063,7 @@ fn lock_no_sources() -> Result<()> {
         dependencies = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
