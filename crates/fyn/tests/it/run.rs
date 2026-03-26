@@ -29,7 +29,7 @@ fn run_with_python_version() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -165,7 +165,7 @@ fn run_args() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -225,7 +225,7 @@ fn run_no_args() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -299,7 +299,7 @@ fn run_pep723_script() -> Result<()> {
         dependencies = ["anyio"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
