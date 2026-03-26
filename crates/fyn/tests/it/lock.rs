@@ -13274,7 +13274,7 @@ fn lock_editable() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -13291,7 +13291,7 @@ fn lock_editable() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     library.child("src/__init__.py").touch()?;
@@ -13374,7 +13374,7 @@ fn lock_editable() -> Result<()> {
         dependencies = ["library"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
