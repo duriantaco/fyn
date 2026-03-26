@@ -5141,7 +5141,7 @@ fn cyclonedx_export_basic() -> Result<()> {
         dependencies = ["urllib3==2.2.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5223,7 +5223,7 @@ fn cyclonedx_export_direct_url() -> Result<()> {
         dependencies = ["idna @ https://files.pythonhosted.org/packages/c2/e7/a82b05cf63a603df6e68d59ae6a68bf5064484a0718ea5033660af4b54a9/idna-3.6-py3-none-any.whl"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5306,7 +5306,7 @@ fn cyclonedx_export_git_dependency() -> Result<()> {
         dependencies = ["urllib3 @ git+https://github.com/urllib3/urllib3.git@2.2.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5388,7 +5388,7 @@ fn cyclonedx_export_no_dependencies() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5461,7 +5461,7 @@ fn cyclonedx_export_mixed_source_types() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5571,7 +5571,7 @@ fn cyclonedx_export_project_extra() -> Result<()> {
         pytest = ["iniconfig==2.0.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5657,7 +5657,7 @@ fn cyclonedx_export_project_extra_with_optional_flag() -> Result<()> {
         pytest = ["iniconfig==2.0.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5770,7 +5770,7 @@ fn cyclonedx_export_with_workspace_member() -> Result<()> {
         child2 = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5785,7 +5785,7 @@ fn cyclonedx_export_with_workspace_member() -> Result<()> {
         dependencies = ["iniconfig==2.0.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5800,7 +5800,7 @@ fn cyclonedx_export_with_workspace_member() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5935,7 +5935,7 @@ fn cyclonedx_export_workspace_non_root() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -5950,7 +5950,7 @@ fn cyclonedx_export_workspace_non_root() -> Result<()> {
         dependencies = ["iniconfig==2.0.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6042,7 +6042,7 @@ fn cyclonedx_export_workspace_with_extras() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6057,7 +6057,7 @@ fn cyclonedx_export_workspace_with_extras() -> Result<()> {
         dependencies = ["typing-extensions==4.10.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
