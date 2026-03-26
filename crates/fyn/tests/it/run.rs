@@ -3310,7 +3310,7 @@ fn run_without_output() -> Result<()> {
         dependencies = ["anyio", "sniffio==1.3.1"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -3800,7 +3800,7 @@ fn run_isolated_does_not_modify_lock() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -3909,7 +3909,7 @@ fn run_isolated_with_frozen() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -4098,7 +4098,7 @@ fn run_invalid_project_table() -> Result<()> {
         repository = 'https://github.com/octocat/octocat-python'
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -6495,7 +6495,7 @@ fn run_target_workspace_discovery() -> Result<()> {
         dependencies = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
