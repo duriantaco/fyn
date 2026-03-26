@@ -148,12 +148,16 @@ jobs:
       code-changed: ${{ needs.plan.outputs.test-code }}
       save-rust-cache: ${{ needs.plan.outputs.save-rust-cache }}
 
+  check-docs:
+    uses: ./.github/workflows/check-docs.yml
+
   required-checks-passed:
     name: "all required jobs passed"
     if: always()
     needs:
       - check-fmt
       - check-lint
+      - check-docs
     runs-on: ubuntu-latest
     steps:
       - name: "Check required jobs passed"

@@ -28,4 +28,4 @@ jobs:
           cargo dev generate-env-vars-reference
 
       - name: "Build docs"
-        run: fyn run --only-group docs mkdocs build --strict -f mkdocs.yml
+        run: cargo run --bin fyn -- run --only-group docs mkdocs build --strict -f mkdocs.yml
