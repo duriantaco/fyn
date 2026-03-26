@@ -3850,7 +3850,7 @@ fn pep_751_export_no_header() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -3911,7 +3911,7 @@ fn pep_751_export_no_editable() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -3974,7 +3974,7 @@ fn pep_751_dependency_extra() -> Result<()> {
         dependencies = ["flask[dotenv]"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -4095,7 +4095,7 @@ fn pep_751_project_extra() -> Result<()> {
         pytest = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -4533,7 +4533,7 @@ fn pep_751_infer_output_format() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -4669,7 +4669,7 @@ fn pep_751_filename() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -4789,7 +4789,7 @@ fn pep_751_relative_and_absolute_paths() -> Result<()> {
         c = {{ path = '{}' }}
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
         context.temp_dir.join("c").display()
@@ -4807,7 +4807,7 @@ fn pep_751_relative_and_absolute_paths() -> Result<()> {
         license = {text = "MIT"}
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     context.temp_dir.child("b/b/__init__.py").touch()?;
@@ -4823,7 +4823,7 @@ fn pep_751_relative_and_absolute_paths() -> Result<()> {
         license = {text = "MIT"}
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     context.temp_dir.child("c/c/__init__.py").touch()?;
