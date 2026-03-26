@@ -626,7 +626,7 @@ fn run_pythonw_script() -> Result<()> {
         dependencies = ["anyio"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -1179,7 +1179,7 @@ fn run_managed_false() -> Result<()> {
         dependencies = ["anyio"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn]
@@ -1281,7 +1281,7 @@ fn run_with() -> Result<()> {
         dependencies = ["sniffio==1.3.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -1411,7 +1411,7 @@ fn run_with_local_wheel_refreshes_rebuilt_wheel() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -1542,7 +1542,7 @@ fn run_with_pyvenv_cfg_file() -> Result<()> {
         requires-python = ">=3.8"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -1568,7 +1568,7 @@ fn run_with_pyvenv_cfg_file() -> Result<()> {
     ----- stdout -----
     home = [PYTHON_HOME]
     implementation = CPython
-    uv = [UV_VERSION]
+    fyn = [fyn_VERSION]
     version_info = 3.12.[X]
     include-system-site-packages = false
     extends-environment = [PARENT_VENV]
@@ -1601,7 +1601,7 @@ fn run_with_overlay_interpreter() -> Result<()> {
         dependencies = ["anyio"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [project.scripts]
