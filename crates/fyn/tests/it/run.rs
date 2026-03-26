@@ -2429,7 +2429,7 @@ fn run_locked() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2522,7 +2522,7 @@ fn run_locked() -> Result<()> {
         dependencies = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2599,7 +2599,7 @@ fn run_frozen() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2632,7 +2632,7 @@ fn run_frozen() -> Result<()> {
         dependencies = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2670,7 +2670,7 @@ fn run_no_sync() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2735,7 +2735,7 @@ fn run_no_sync_env_var() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2796,7 +2796,7 @@ fn run_empty_requirements_txt() -> Result<()> {
         dependencies = ["anyio", "sniffio==1.3.1"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -2862,7 +2862,7 @@ fn run_requirements_txt() -> Result<()> {
         dependencies = ["anyio", "sniffio==1.3.1"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -3018,7 +3018,7 @@ fn run_requirements_txt_arguments() -> Result<()> {
         dependencies = ["typing_extensions"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
@@ -3078,7 +3078,7 @@ fn run_editable() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#
     })?;
