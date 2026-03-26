@@ -3477,7 +3477,7 @@ fn install_no_downgrade() -> Result<()> {
         dependencies = []
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
     "#})?;
     idna.child("src")
@@ -13392,7 +13392,7 @@ fn overlapping_packages_warning() -> Result<()> {
         module-name = "built_by_uv"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -13415,8 +13415,8 @@ fn overlapping_packages_warning() -> Result<()> {
     Resolved 2 packages in [TIME]
     Prepared 2 packages in [TIME]
     Installed 2 packages in [TIME]
-     + also-built-by-fyn==0.1.0 (from file://[TEMP_DIR]/also-built-by-uv)
-     + built-by-fyn==0.1.0 (from file://[WORKSPACE]/test/packages/built-by-uv)
+     + also-built-by-uv==0.1.0 (from file://[TEMP_DIR]/also-built-by-uv)
+     + built-by-uv==0.1.0 (from file://[WORKSPACE]/test/packages/built-by-uv)
     "
     );
 
@@ -13441,8 +13441,8 @@ fn overlapping_packages_warning() -> Result<()> {
     * also-built-by-uv (also_built_by_uv-0.1.0-py3-none-any.whl)
     * built-by-uv (built_by_uv-0.1.0-py3-none-any.whl)
     Installed 2 packages in [TIME]
-     + also-built-by-fyn==0.1.0 (from file://[TEMP_DIR]/also-built-by-uv)
-     + built-by-fyn==0.1.0 (from file://[WORKSPACE]/test/packages/built-by-uv)
+     + also-built-by-uv==0.1.0 (from file://[TEMP_DIR]/also-built-by-uv)
+     + built-by-uv==0.1.0 (from file://[WORKSPACE]/test/packages/built-by-uv)
     "
     );
 
@@ -13473,7 +13473,7 @@ fn overlapping_packages_warning() -> Result<()> {
 
     ----- stderr -----
     Uninstalled 1 package in [TIME]
-     - built-by-fyn==0.1.0 (from file://[WORKSPACE]/test/packages/built-by-uv)
+     - built-by-uv==0.1.0 (from file://[WORKSPACE]/test/packages/built-by-uv)
     "
     );
     fyn_snapshot!(context.filters(), context.pip_uninstall()
@@ -13484,7 +13484,7 @@ fn overlapping_packages_warning() -> Result<()> {
 
     ----- stderr -----
     Uninstalled 1 package in [TIME]
-     - also-built-by-fyn==0.1.0 (from file://[TEMP_DIR]/also-built-by-uv)
+     - also-built-by-uv==0.1.0 (from file://[TEMP_DIR]/also-built-by-uv)
     "
     );
 
@@ -13500,7 +13500,7 @@ fn overlapping_packages_warning() -> Result<()> {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + built-by-fyn==0.1.0 (from file://[WORKSPACE]/test/packages/built-by-uv)
+     + built-by-uv==0.1.0 (from file://[WORKSPACE]/test/packages/built-by-uv)
     "
     );
     // Currently, we don't warn if we install them one wheel at a time.
@@ -13515,7 +13515,7 @@ fn overlapping_packages_warning() -> Result<()> {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + also-built-by-fyn==0.1.0 (from file://[TEMP_DIR]/also-built-by-uv)
+     + also-built-by-uv==0.1.0 (from file://[TEMP_DIR]/also-built-by-uv)
     "
     );
 
@@ -13539,7 +13539,7 @@ fn overlapping_empty_init_py() -> Result<()> {
         module-name = "gpu"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -13568,7 +13568,7 @@ fn overlapping_empty_init_py() -> Result<()> {
         module-name = "gpu"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -13625,7 +13625,7 @@ fn overlapping_nested_files() -> Result<()> {
         namespace = true
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -13657,7 +13657,7 @@ fn overlapping_nested_files() -> Result<()> {
         namespace = true
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -13721,7 +13721,7 @@ fn overlapping_file_without_enclosing_directory() -> Result<()> {
         namespace = true
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -13743,7 +13743,7 @@ fn overlapping_file_without_enclosing_directory() -> Result<()> {
         namespace = true
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -14300,7 +14300,7 @@ fn record_uses_forward_slashes() -> Result<()> {
         version = "0.1.0"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.build-backend.data]
