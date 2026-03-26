@@ -6263,7 +6263,7 @@ fn cyclonedx_export_workspace_frozen() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6278,7 +6278,7 @@ fn cyclonedx_export_workspace_frozen() -> Result<()> {
         dependencies = ["iniconfig==2.0.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6424,7 +6424,7 @@ fn cyclonedx_export_workspace_all_packages() -> Result<()> {
         members = ["child1", "child2"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6439,7 +6439,7 @@ fn cyclonedx_export_workspace_all_packages() -> Result<()> {
         dependencies = ["iniconfig==2.0.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6454,7 +6454,7 @@ fn cyclonedx_export_workspace_all_packages() -> Result<()> {
         dependencies = ["sniffio==1.3.1"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6613,7 +6613,7 @@ fn cyclonedx_export_all_packages_non_workspace_root_dependency() -> Result<()> {
         dependencies = ["urllib3==2.2.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6719,7 +6719,7 @@ fn cyclonedx_export_workspace_mixed_dependencies() -> Result<()> {
         child1 = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6737,7 +6737,7 @@ fn cyclonedx_export_workspace_mixed_dependencies() -> Result<()> {
         child2 = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6752,7 +6752,7 @@ fn cyclonedx_export_workspace_mixed_dependencies() -> Result<()> {
         dependencies = ["sniffio==1.3.1"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6897,7 +6897,7 @@ fn cyclonedx_export_dependency_marker() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -7000,7 +7000,7 @@ fn cyclonedx_export_multiple_dependency_markers() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -7126,7 +7126,7 @@ fn cyclonedx_export_dependency_extra() -> Result<()> {
         dependencies = ["cryptography[ssh]==42.0.5"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
