@@ -15218,7 +15218,7 @@ fn lock_add_member_with_build_system() -> Result<()> {
         dependencies = ["anyio>3"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -16118,7 +16118,7 @@ fn lock_remove_member_non_project() -> Result<()> {
         dependencies = ["anyio>3"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -16954,7 +16954,7 @@ fn lock_narrowed_python_version() -> Result<()> {
         dependencies = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
