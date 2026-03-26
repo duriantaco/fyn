@@ -7812,7 +7812,7 @@ fn cyclonedx_export_no_emit() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -7827,7 +7827,7 @@ fn cyclonedx_export_no_emit() -> Result<()> {
         dependencies = ["iniconfig==2.0.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -8010,7 +8010,7 @@ fn cyclonedx_export_relative_path() -> Result<()> {
         dependencies = ["iniconfig==2.0.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -8028,7 +8028,7 @@ fn cyclonedx_export_relative_path() -> Result<()> {
         dependency = { path = "../dependency" }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -8325,7 +8325,7 @@ fn cyclonedx_export_dev_dependencies() -> Result<()> {
         dev-dependencies = ["urllib3==2.2.1"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -8546,7 +8546,7 @@ fn cyclonedx_export_all_packages_conflicting_workspace_members() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -8561,7 +8561,7 @@ fn cyclonedx_export_all_packages_conflicting_workspace_members() -> Result<()> {
         dependencies = ["sortedcontainers==2.4.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -8690,7 +8690,7 @@ fn cyclonedx_export_alternative_registry() -> Result<()> {
         dependencies = ["torch==2.6.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [[tool.fyn.index]]
@@ -9092,7 +9092,7 @@ fn pylock_toml_filter_by_requires_python() -> Result<()> {
         dependencies = ["numpy==1.26.4"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
