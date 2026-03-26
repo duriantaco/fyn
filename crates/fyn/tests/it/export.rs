@@ -1585,7 +1585,7 @@ fn requirements_txt_non_project_workspace() -> Result<()> {
         dependencies = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -1663,7 +1663,7 @@ fn requirements_txt_non_project_fork() -> Result<()> {
         dependencies = ["anyio==2.0.0 ; sys_platform == 'win32'", "anyio==3.0.0 ; sys_platform == 'linux'"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -1878,7 +1878,7 @@ fn requirements_txt_relative_path() -> Result<()> {
         dependencies = ["iniconfig>=2"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -1901,7 +1901,7 @@ fn requirements_txt_relative_path() -> Result<()> {
         dependency = { path = "../dependency" }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -1979,7 +1979,7 @@ fn devrequirements_txt_() -> Result<()> {
         dev-dependencies = ["anyio"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2071,7 +2071,7 @@ fn requirements_txt_no_hashes() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2113,7 +2113,7 @@ fn requirements_txt_output_file() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2186,7 +2186,7 @@ fn requirements_txt_no_emit() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2201,7 +2201,7 @@ fn requirements_txt_no_emit() -> Result<()> {
         dependencies = ["iniconfig>=2"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2343,7 +2343,7 @@ fn requirements_txt_no_emit() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2393,7 +2393,7 @@ fn requirements_txt_no_emit_workspace_all_packages() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.8.22,<10000"]
+        requires = ["fyn-build>=0.8.22,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2445,7 +2445,7 @@ fn requirements_txt_only_emit() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2460,7 +2460,7 @@ fn requirements_txt_only_emit() -> Result<()> {
         dependencies = ["iniconfig>=2"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2531,7 +2531,7 @@ fn requirements_txt_no_editable() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -2546,7 +2546,7 @@ fn requirements_txt_no_editable() -> Result<()> {
         dependencies = ["iniconfig>=2"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -3052,7 +3052,7 @@ fn requirements_txt_conflicts() -> Result<()> {
         extra2 = ["sortedcontainers==2.4.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -3787,7 +3787,7 @@ fn pep_751_dependency() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
