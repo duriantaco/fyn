@@ -2257,7 +2257,7 @@ fn build_with_nonnormalized_name() -> Result<()> {
 /// The error messages for a broken project are different for direct builds vs. PEP 517.
 #[test]
 fn force_pep517() -> Result<()> {
-    // We need to use a real `fyn_build` package.
+    // The direct and forced PEP 517 paths fail differently for broken projects.
     let context = fyn_test::test_context!("3.12").with_exclude_newer("2025-05-27T00:00:00Z");
 
     context.init().assert().success();
@@ -2272,7 +2272,7 @@ fn force_pep517() -> Result<()> {
         module-name = "does_not_exist"
 
         [build-system]
-        requires = ["fyn_build>=0.5.15,<10000"]
+        requires = ["fyn-build>=0.5.15,<10000"]
         build-backend = "fyn_build"
     "#})?;
 
@@ -2294,11 +2294,10 @@ fn force_pep517() -> Result<()> {
 
     ----- stderr -----
     Building source distribution...
-    Error: Missing source directory at: `src`
       × Failed to build `[TEMP_DIR]/`
-      ├─▶ The build backend returned an error
-      ╰─▶ Call to `fyn_build.build_sdist` failed (exit status: 1)
-          hint: This usually indicates a problem with the package or the build environment.
+      ├─▶ Failed to resolve requirements from `build-system.requires`
+      ├─▶ No solution found when resolving: `fyn-build>=0.5.15, <10000`
+      ╰─▶ Because fyn-build was not found in the package registry and you require fyn-build>=0.5.15,<10000, we can conclude that your requirements are unsatisfiable.
     ");
 
     Ok(())
