@@ -29,7 +29,7 @@ fn requirements_txt_dependency() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -77,7 +77,7 @@ fn requirements_txt_export_no_header() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -123,7 +123,7 @@ fn requirements_txt_dependency_extra() -> Result<()> {
         dependencies = ["flask[dotenv]"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -210,7 +210,7 @@ fn requirements_txt_project_extra() -> Result<()> {
         pytest = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -498,7 +498,7 @@ fn requirements_txt_dependency_marker() -> Result<()> {
         dependencies = ["anyio ; sys_platform == 'darwin'", "iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -553,7 +553,7 @@ fn requirements_txt_dependency_multiple_markers() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -636,7 +636,7 @@ fn requirements_txt_dependency_conflicting_markers() -> Result<()> {
         ]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -883,7 +883,7 @@ fn requirements_txt_non_root() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -898,7 +898,7 @@ fn requirements_txt_non_root() -> Result<()> {
         dependencies = ["iniconfig>=2"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -944,7 +944,7 @@ fn allrequirements_txt_() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -959,7 +959,7 @@ fn allrequirements_txt_() -> Result<()> {
         dependencies = ["iniconfig>=2"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -1019,7 +1019,7 @@ fn requirements_txt_frozen() -> Result<()> {
         child = { workspace = true }
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -1034,7 +1034,7 @@ fn requirements_txt_frozen() -> Result<()> {
         dependencies = ["iniconfig>=2"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -1101,7 +1101,7 @@ fn requirements_txt_create_missing_dir() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
