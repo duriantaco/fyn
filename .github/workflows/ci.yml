@@ -151,6 +151,13 @@ jobs:
   check-docs:
     uses: ./.github/workflows/check-docs.yml
 
+  check-generated-files:
+    needs: plan
+    uses: ./.github/workflows/check-generated-files.yml
+    with:
+      schema-changed: ${{ needs.plan.outputs.check-schema }}
+      save-rust-cache: ${{ needs.plan.outputs.save-rust-cache }}
+
   required-checks-passed:
     name: "all required jobs passed"
     if: always()
@@ -158,6 +165,7 @@ jobs:
       - check-fmt
       - check-lint
       - check-docs
+      - check-generated-files
     runs-on: ubuntu-latest
     steps:
       - name: "Check required jobs passed"
