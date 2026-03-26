@@ -19784,7 +19784,7 @@ fn lock_repeat_named_index_member() -> Result<()> {
         url = "https://astral-sh.github.io/pytorch-mirror/whl/cpu"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -20192,7 +20192,7 @@ fn lock_explicit_virtual_project() -> Result<()> {
         dependencies = ["black"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn]
@@ -25062,7 +25062,7 @@ fn lock_group_workspace() -> Result<()> {
         testing = ["pytest>8"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
