@@ -5778,7 +5778,7 @@ fn no_install_project_no_build() -> Result<()> {
         dependencies = ["anyio==3.7.0"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6228,7 +6228,7 @@ fn convert_to_virtual() -> Result<()> {
         dependencies = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -6429,7 +6429,7 @@ fn convert_to_package() -> Result<()> {
         dependencies = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -7522,7 +7522,7 @@ fn sync_update_project() -> Result<()> {
         dependencies = ["iniconfig"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -8211,7 +8211,7 @@ fn transitive_dev() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn]
@@ -8265,7 +8265,7 @@ fn sync_no_editable() -> Result<()> {
         dependencies = ["child"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.sources]
@@ -8301,7 +8301,7 @@ fn sync_no_editable() -> Result<()> {
         requires-python = ">=3.12"
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -8670,7 +8670,7 @@ fn build_system_requires_workspace() -> Result<()> {
         dependencies = ["typing-extensions>=3.10"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -8753,7 +8753,7 @@ fn build_system_requires_path() -> Result<()> {
         dependencies = ["typing-extensions>=3.10"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -9380,7 +9380,7 @@ fn sync_all() -> Result<()> {
         dependencies = ["anyio>3", "child"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
 
         [tool.fyn.workspace]
@@ -9408,7 +9408,7 @@ fn sync_all() -> Result<()> {
         dependencies = ["iniconfig>=1"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
@@ -12554,7 +12554,7 @@ fn sync_workspace_member_build_constraints() -> Result<()> {
         dependencies = ["json-merge-patch"]
 
         [build-system]
-        requires = ["fyn_build>=0.7,<10000"]
+        requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
         "#,
     )?;
