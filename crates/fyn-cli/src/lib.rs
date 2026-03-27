@@ -956,6 +956,22 @@ pub struct PipNamespace {
     pub command: PipCommand,
 }
 
+#[derive(Args)]
+pub struct PipIndexNamespace {
+    #[command(subcommand)]
+    pub command: PipIndexCommand,
+}
+
+#[derive(Subcommand)]
+pub enum PipIndexCommand {
+    /// Show available versions for a package.
+    #[command(
+        after_help = "Use `fyn help pip index versions` for more details.",
+        after_long_help = ""
+    )]
+    Versions(PipIndexVersionsArgs),
+}
+
 #[derive(Subcommand)]
 pub enum PipCommand {
     /// Compile a `requirements.in` file to a `requirements.txt` or `pylock.toml` file.
@@ -985,6 +1001,12 @@ pub enum PipCommand {
         after_long_help = ""
     )]
     Install(PipInstallArgs),
+    /// Inspect package indexes.
+    #[command(
+        after_help = "Use `fyn help pip index` for more details.",
+        after_long_help = ""
+    )]
+    Index(PipIndexNamespace),
     /// Upgrade packages in an environment.
     #[command(
         after_help = "Use `fyn help pip upgrade` for more details.",
@@ -3160,6 +3182,65 @@ pub struct PipListArgs {
 
     #[command(flatten)]
     pub compat_args: compat::PipListCompatArgs,
+}
+
+#[derive(Args)]
+pub struct PipIndexVersionsArgs {
+    /// The package to inspect.
+    #[arg(value_hint = ValueHint::Other)]
+    pub package: PackageName,
+
+    #[command(flatten)]
+    pub fetch: FetchArgs,
+
+    /// The Python interpreter to use when filtering compatible versions.
+    ///
+    /// By default, fyn uses the current Python interpreter and its platform tags.
+    ///
+    /// See `fyn help python` for details on Python discovery and supported request formats.
+    #[arg(
+        long,
+        short,
+        env = EnvVars::UV_PYTHON,
+        verbatim_doc_comment,
+        help_heading = "Python options",
+        value_parser = parse_maybe_string,
+        value_hint = ValueHint::Other,
+    )]
+    pub python: Option<Maybe<String>>,
+
+    /// Use the system Python environment when filtering compatible versions.
+    ///
+    /// Disables discovery of virtual environments.
+    ///
+    /// See `fyn help python` for details on Python discovery.
+    #[arg(
+        long,
+        env = EnvVars::UV_SYSTEM_PYTHON,
+        value_parser = clap::builder::BoolishValueParser::new(),
+        overrides_with("no_system")
+    )]
+    pub system: bool,
+
+    #[arg(long, overrides_with("system"), hide = true)]
+    pub no_system: bool,
+
+    /// The Python version to use when filtering compatible versions.
+    ///
+    /// Defaults to the version of the discovered Python interpreter.
+    #[arg(long)]
+    pub python_version: Option<PythonVersion>,
+
+    /// The platform to use when filtering compatible versions.
+    ///
+    /// Represented as a "target triple", a string that describes the target platform in terms of
+    /// its CPU, vendor, and operating system name, like `x86_64-unknown-linux-gnu` or
+    /// `aarch64-apple-darwin`.
+    #[arg(long)]
+    pub python_platform: Option<TargetTriple>,
+
+    #[command(flatten)]
+    pub compat_args: compat::PipGlobalCompatArgs,
 }
 
 #[derive(Args)]

@@ -55,8 +55,8 @@ use crate::commands::{ExitStatus, RunCommand, ScriptPath, ToolRunCommand};
 use crate::printer::Printer;
 use crate::settings::{
     CacheSettings, GlobalSettings, PipCheckSettings, PipCompileSettings, PipFreezeSettings,
-    PipInstallSettings, PipListSettings, PipShowSettings, PipSyncSettings, PipUninstallSettings,
-    PipUpgradeSettings, PublishSettings,
+    PipIndexVersionsSettings, PipInstallSettings, PipListSettings, PipShowSettings,
+    PipSyncSettings, PipUninstallSettings, PipUpgradeSettings, PublishSettings,
 };
 
 pub(crate) mod child;
@@ -1014,6 +1014,40 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
             ))
             .await
         }
+        Commands::Pip(PipNamespace {
+            command: PipCommand::Index(args),
+        }) => match args.command {
+            fyn_cli::PipIndexCommand::Versions(args) => {
+                args.compat_args.validate()?;
+
+                let args = PipIndexVersionsSettings::resolve(args, filesystem, environment);
+                show_settings!(args);
+
+                let cache = cache.init().await?;
+
+                commands::pip_index_versions(
+                    args.package,
+                    args.settings.index_locations,
+                    args.settings.index_strategy,
+                    args.settings.keyring_provider,
+                    args.settings.exclude_newer,
+                    args.settings.python.as_deref(),
+                    args.settings.system,
+                    args.settings.python_version,
+                    args.settings.python_platform,
+                    &client_builder.subcommand(vec![
+                        "pip".to_owned(),
+                        "index".to_owned(),
+                        "versions".to_owned(),
+                    ]),
+                    globals.concurrency,
+                    &cache,
+                    printer,
+                    globals.preview,
+                )
+                .await
+            }
+        },
         Commands::Pip(PipNamespace {
             command: PipCommand::Upgrade(args),
         }) => {

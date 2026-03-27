@@ -1306,6 +1306,13 @@ impl TestContext {
         command
     }
 
+    pub fn pip_index_versions(&self) -> Command {
+        let mut command = self.new_command();
+        command.arg("pip").arg("index").arg("versions");
+        self.add_shared_options(&mut command, true);
+        command
+    }
+
     /// Create a `fyn venv` command
     pub fn venv(&self) -> Command {
         let mut command = self.new_command();

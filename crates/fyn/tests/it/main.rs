@@ -68,6 +68,8 @@ mod pip_compile_scenarios;
 #[cfg(all(feature = "test-python", feature = "test-pypi"))]
 mod pip_freeze;
 
+mod pip_index_versions;
+
 #[cfg(all(feature = "test-python", feature = "test-pypi"))]
 mod pip_install;
 

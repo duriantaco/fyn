@@ -14,11 +14,11 @@ use fyn_cli::comma::CommaSeparatedRequirements;
 use fyn_cli::{
     AddArgs, AuditArgs, AuthLoginArgs, AuthLogoutArgs, AuthTokenArgs, ColorChoice, ExternalCommand,
     GlobalArgs, InitArgs, ListFormat, LockArgs, Maybe, PipCheckArgs, PipCompileArgs, PipFreezeArgs,
-    PipInstallArgs, PipListArgs, PipShowArgs, PipSyncArgs, PipTreeArgs, PipUninstallArgs,
-    PipUpgradeArgs, PythonFindArgs, PythonInstallArgs, PythonListArgs, PythonListFormat,
-    PythonPinArgs, PythonUninstallArgs, PythonUpgradeArgs, RemoveArgs, RunArgs, SyncArgs,
-    SyncFormat, ToolDirArgs, ToolInstallArgs, ToolListArgs, ToolRunArgs, ToolUninstallArgs,
-    TreeArgs, VenvArgs, VersionArgs, VersionBumpSpec, VersionFormat,
+    PipIndexVersionsArgs, PipInstallArgs, PipListArgs, PipShowArgs, PipSyncArgs, PipTreeArgs,
+    PipUninstallArgs, PipUpgradeArgs, PythonFindArgs, PythonInstallArgs, PythonListArgs,
+    PythonListFormat, PythonPinArgs, PythonUninstallArgs, PythonUpgradeArgs, RemoveArgs, RunArgs,
+    SyncArgs, SyncFormat, ToolDirArgs, ToolInstallArgs, ToolListArgs, ToolRunArgs,
+    ToolUninstallArgs, TreeArgs, VenvArgs, VersionArgs, VersionBumpSpec, VersionFormat,
 };
 use fyn_cli::{
     AuthorFrom, BuildArgs, ExportArgs, FormatArgs, PublishArgs, PythonDirArgs,
@@ -3275,6 +3275,48 @@ impl PipFreezeSettings {
                     target,
                     prefix,
                     ..PipOptions::default()
+                },
+                filesystem,
+                environment,
+            ),
+        }
+    }
+}
+
+/// The resolved settings to use for a `pip index versions` invocation.
+#[derive(Debug, Clone)]
+pub(crate) struct PipIndexVersionsSettings {
+    pub(crate) package: PackageName,
+    pub(crate) settings: PipSettings,
+}
+
+impl PipIndexVersionsSettings {
+    /// Resolve the [`PipIndexVersionsSettings`] from the CLI and filesystem configuration.
+    pub(crate) fn resolve(
+        args: PipIndexVersionsArgs,
+        filesystem: Option<FilesystemOptions>,
+        environment: EnvironmentOptions,
+    ) -> Self {
+        let PipIndexVersionsArgs {
+            package,
+            fetch,
+            python,
+            system,
+            no_system,
+            python_version,
+            python_platform,
+            compat_args: _,
+        } = args;
+
+        Self {
+            package,
+            settings: PipSettings::combine(
+                PipOptions {
+                    python: python.and_then(Maybe::into_option),
+                    system: flag(system, no_system, "system"),
+                    python_version,
+                    python_platform,
+                    ..PipOptions::from(fetch)
                 },
                 filesystem,
                 environment,
