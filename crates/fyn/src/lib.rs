@@ -1027,7 +1027,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
 
             let cache = cache.init().await?.with_refresh(refresh);
 
-            commands::pip_upgrade(
+            Box::pin(commands::pip_upgrade(
                 args.settings,
                 globals.python_downloads,
                 globals.python_preference,
@@ -1039,7 +1039,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 globals.installer_metadata,
                 printer,
                 globals.preview,
-            )
+            ))
             .await
         }
         Commands::Pip(PipNamespace {
