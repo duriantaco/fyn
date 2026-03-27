@@ -60,8 +60,6 @@ The following preview features are available:
 - `json-output`: Allows `--output-format json` for various fyn commands.
 - `package-conflicts`: Allows defining workspace conflicts at the package level.
 - `pylock`: Allows installing from `pylock.toml` files.
-- `python-install-default`: Allows
-  [installing `python` and `python3` executables](./python-versions.md#installing-python-executables).
 - `format`: Allows using `fyn format`.
 - `native-auth`: Enables storage of credentials in a
   [system-native location](../concepts/authentication/http.md#the-fyn-credentials-store).

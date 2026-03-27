@@ -135,7 +135,7 @@ target directory.
 
     If `~/.local/bin` is not in your `PATH`, you can add it with `fyn python update-shell`.
 
-To install `python` and `python3` executables, include the experimental `--default` option:
+To install `python` and `python3` executables, include the `--default` option:
 
 ```console
 $ fyn python install 3.12 --default
