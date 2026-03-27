@@ -36,6 +36,7 @@ pub(crate) use pip::show::pip_show;
 pub(crate) use pip::sync::pip_sync;
 pub(crate) use pip::tree::pip_tree;
 pub(crate) use pip::uninstall::pip_uninstall;
+pub(crate) use pip::upgrade::pip_upgrade;
 pub(crate) use project::add::add;
 pub(crate) use project::audit::audit;
 pub(crate) use project::export::export;

@@ -56,7 +56,7 @@ use crate::printer::Printer;
 use crate::settings::{
     CacheSettings, GlobalSettings, PipCheckSettings, PipCompileSettings, PipFreezeSettings,
     PipInstallSettings, PipListSettings, PipShowSettings, PipSyncSettings, PipUninstallSettings,
-    PublishSettings,
+    PipUpgradeSettings, PublishSettings,
 };
 
 pub(crate) mod child;
@@ -1012,6 +1012,34 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 printer,
                 globals.preview,
             ))
+            .await
+        }
+        Commands::Pip(PipNamespace {
+            command: PipCommand::Upgrade(args),
+        }) => {
+            let args = PipUpgradeSettings::resolve(args, filesystem, environment);
+            show_settings!(args);
+
+            let refresh = Refresh::from(args.settings.reinstall.clone())
+                .combine(Refresh::from(args.settings.upgrade.clone()));
+
+            globals.network_settings.check_refresh_conflict(&refresh);
+
+            let cache = cache.init().await?.with_refresh(refresh);
+
+            commands::pip_upgrade(
+                args.settings,
+                globals.python_downloads,
+                globals.python_preference,
+                &client_builder.subcommand(vec!["pip".to_owned(), "upgrade".to_owned()]),
+                globals.concurrency,
+                cache,
+                workspace_cache,
+                args.dry_run,
+                globals.installer_metadata,
+                printer,
+                globals.preview,
+            )
             .await
         }
         Commands::Pip(PipNamespace {

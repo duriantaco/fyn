@@ -132,6 +132,17 @@ $ fyn pip install --group some/path/pyproject.toml:foo --group other/pyproject.t
     For instance, `fyn pip install -r some/path/pyproject.toml --group foo` sources `foo`
     from `./pyproject.toml` and **not** `some/path/pyproject.toml`.
 
+## Upgrading installed packages
+
+To upgrade all installed packages in the current environment:
+
+```console
+$ fyn pip upgrade --all
+```
+
+This upgrades the packages already installed in the selected environment. The first release of
+`fyn pip upgrade` supports `--all` only.
+
 ## Uninstalling a package
 
 To uninstall a package, e.g., Flask:

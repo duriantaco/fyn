@@ -985,6 +985,12 @@ pub enum PipCommand {
         after_long_help = ""
     )]
     Install(PipInstallArgs),
+    /// Upgrade packages in an environment.
+    #[command(
+        after_help = "Use `fyn help pip upgrade` for more details.",
+        after_long_help = ""
+    )]
+    Upgrade(PipUpgradeArgs),
     /// Uninstall packages from an environment.
     #[command(
         after_help = "Use `fyn help pip uninstall` for more details.",
@@ -2468,6 +2474,448 @@ pub struct PipInstallArgs {
 
     #[command(flatten)]
     pub compat_args: compat::PipInstallCompatArgs,
+}
+
+#[derive(Args)]
+pub struct PipUpgradeArgs {
+    /// Upgrade all installed packages in the current environment.
+    #[arg(long, required = true)]
+    pub all: bool,
+
+    /// The Python interpreter into which packages should be upgraded.
+    ///
+    /// By default, upgrading requires a virtual environment. A path to an alternative Python can
+    /// be provided, but it is only recommended in continuous integration (CI) environments and
+    /// should be used with caution, as it can modify the system Python installation.
+    ///
+    /// See `fyn help python` for details on Python discovery and supported request formats.
+    #[arg(
+        long,
+        short,
+        env = EnvVars::UV_PYTHON,
+        verbatim_doc_comment,
+        help_heading = "Python options",
+        value_parser = parse_maybe_string,
+        value_hint = ValueHint::Other,
+    )]
+    pub python: Option<Maybe<String>>,
+
+    /// Upgrade packages in the system Python environment.
+    ///
+    /// By default, fyn upgrades packages in the virtual environment in the current working
+    /// directory or any parent directory. The `--system` option instructs fyn to instead use the
+    /// first Python found in the system `PATH`.
+    ///
+    /// WARNING: `--system` is intended for use in continuous integration (CI) environments and
+    /// should be used with caution, as it can modify the system Python installation.
+    #[arg(
+        long,
+        env = EnvVars::UV_SYSTEM_PYTHON,
+        value_parser = clap::builder::BoolishValueParser::new(),
+        overrides_with("no_system")
+    )]
+    pub system: bool,
+
+    #[arg(long, overrides_with("system"), hide = true)]
+    pub no_system: bool,
+
+    /// Allow fyn to modify an `EXTERNALLY-MANAGED` Python installation.
+    ///
+    /// WARNING: `--break-system-packages` is intended for use in continuous integration (CI)
+    /// environments, when installing into Python installations that are managed by an external
+    /// package manager, like `apt`. It should be used with caution, as such Python installations
+    /// explicitly recommend against modifications by other package managers (like fyn or `pip`).
+    #[arg(
+        long,
+        env = EnvVars::UV_BREAK_SYSTEM_PACKAGES,
+        value_parser = clap::builder::BoolishValueParser::new(),
+        overrides_with("no_break_system_packages")
+    )]
+    pub break_system_packages: bool,
+
+    #[arg(long, overrides_with("break_system_packages"))]
+    pub no_break_system_packages: bool,
+
+    /// Upgrade packages in the specified directory, rather than in the virtual or system Python
+    /// environment. The packages will be installed at the top-level of the directory.
+    ///
+    /// Unlike other upgrade operations, this command does not require discovery of an existing
+    /// Python environment and only searches for a Python interpreter to use for package
+    /// resolution. If a suitable Python interpreter cannot be found, fyn will install one.
+    /// To disable this, add `--no-python-downloads`.
+    #[arg(short = 't', long, conflicts_with = "prefix", value_hint = ValueHint::DirPath)]
+    pub target: Option<PathBuf>,
+
+    /// Upgrade packages in `lib`, `bin`, and other top-level folders under the specified
+    /// directory, as if a virtual environment were present at that location.
+    ///
+    /// In general, prefer the use of `--python` to upgrade an alternate environment, as scripts
+    /// and other artifacts installed via `--prefix` will reference the installing interpreter,
+    /// rather than any interpreter added to the `--prefix` directory, rendering them non-portable.
+    ///
+    /// Unlike other upgrade operations, this command does not require discovery of an existing
+    /// Python environment and only searches for a Python interpreter to use for package
+    /// resolution. If a suitable Python interpreter cannot be found, fyn will install one.
+    /// To disable this, add `--no-python-downloads`.
+    #[arg(long, conflicts_with = "target", value_hint = ValueHint::DirPath)]
+    pub prefix: Option<PathBuf>,
+
+    /// Don't build source distributions.
+    ///
+    /// When enabled, resolving will not run arbitrary Python code. The cached wheels of
+    /// already-built source distributions will be reused, but operations that require building
+    /// distributions will exit with an error.
+    ///
+    /// Alias for `--only-binary :all:`.
+    #[arg(
+        long,
+        conflicts_with = "no_binary",
+        conflicts_with = "only_binary",
+        overrides_with("build")
+    )]
+    pub no_build: bool,
+
+    #[arg(
+        long,
+        conflicts_with = "no_binary",
+        conflicts_with = "only_binary",
+        overrides_with("no_build"),
+        hide = true
+    )]
+    pub build: bool,
+
+    /// Don't install pre-built wheels.
+    ///
+    /// The given packages will be built and installed from source. The resolver will still use
+    /// pre-built wheels to extract package metadata, if available.
+    ///
+    /// Multiple packages may be provided. Disable binaries for all packages with `:all:`. Clear
+    /// previously specified packages with `:none:`.
+    #[arg(long, value_delimiter = ',', conflicts_with = "no_build")]
+    pub no_binary: Option<Vec<PackageNameSpecifier>>,
+
+    /// Only use pre-built wheels; don't build source distributions.
+    ///
+    /// When enabled, resolving will not run code from the given packages. The cached wheels of
+    /// already-built source distributions will be reused, but operations that require building
+    /// distributions will exit with an error.
+    ///
+    /// Multiple packages may be provided. Disable binaries for all packages with `:all:`. Clear
+    /// previously specified packages with `:none:`.
+    #[arg(long, value_delimiter = ',', conflicts_with = "no_build")]
+    pub only_binary: Option<Vec<PackageNameSpecifier>>,
+
+    /// The minimum Python version that should be supported by the requirements (e.g., `3.7` or
+    /// `3.7.9`).
+    ///
+    /// If a patch version is omitted, the minimum patch version is assumed. For example, `3.7` is
+    /// mapped to `3.7.0`.
+    #[arg(long)]
+    pub python_version: Option<PythonVersion>,
+
+    /// The platform for which requirements should be installed.
+    ///
+    /// Represented as a "target triple", a string that describes the target platform in terms of
+    /// its CPU, vendor, and operating system name, like `x86_64-unknown-linux-gnu` or
+    /// `aarch64-apple-darwin`.
+    ///
+    /// When targeting macOS (Darwin), the default minimum version is `13.0`. Use
+    /// `MACOSX_DEPLOYMENT_TARGET` to specify a different minimum version, e.g., `14.0`.
+    ///
+    /// When targeting iOS, the default minimum version is `13.0`. Use
+    /// `IPHONEOS_DEPLOYMENT_TARGET` to specify a different minimum version, e.g., `14.0`.
+    ///
+    /// When targeting Android, the default minimum Android API level is `24`. Use
+    /// `ANDROID_API_LEVEL` to specify a different minimum version, e.g., `26`.
+    ///
+    /// WARNING: When specified, fyn will select wheels that are compatible with the _target_
+    /// platform; as a result, the installed distributions may not be compatible with the _current_
+    /// platform. Conversely, any distributions that are built from source may be incompatible with
+    /// the _target_ platform, as they will be built for the _current_ platform. The
+    /// `--python-platform` option is intended for advanced use cases.
+    #[arg(long)]
+    pub python_platform: Option<TargetTriple>,
+
+    /// Validate the Python environment after completing the upgrade, to detect packages with
+    /// missing dependencies or other issues.
+    #[arg(long, overrides_with("no_strict"))]
+    pub strict: bool,
+
+    #[arg(long, overrides_with("strict"), hide = true)]
+    pub no_strict: bool,
+
+    /// Perform a dry run, i.e., don't actually install anything but resolve the dependencies and
+    /// print the resulting plan.
+    #[arg(long)]
+    pub dry_run: bool,
+
+    /// The backend to use when fetching packages in the PyTorch ecosystem (e.g., `cpu`, `cu126`, or `auto`).
+    ///
+    /// When set, fyn will ignore the configured index URLs for packages in the PyTorch ecosystem,
+    /// and will instead use the defined backend.
+    ///
+    /// For example, when set to `cpu`, fyn will use the CPU-only PyTorch index; when set to `cu126`,
+    /// fyn will use the PyTorch index for CUDA 12.6.
+    ///
+    /// The `auto` mode will attempt to detect the appropriate PyTorch index based on the currently
+    /// installed CUDA drivers.
+    ///
+    /// This option is in preview and may change in any future release.
+    #[arg(long, value_enum, env = EnvVars::UV_TORCH_BACKEND)]
+    pub torch_backend: Option<TorchMode>,
+
+    // The following is equivalent to flattening `ResolverInstallerArgs`, with the `--upgrade`, and
+    // `--upgrade-package` options hidden, and the `--no-upgrade` option removed.
+    /// Allow package upgrades, ignoring pinned versions in any existing output file. Implies
+    /// `--refresh`.
+    #[arg(hide = true, long, short = 'U', help_heading = "Resolver options")]
+    pub upgrade: bool,
+
+    /// Allow upgrades for a specific package, ignoring pinned versions in any existing output
+    /// file. Implies `--refresh-package`.
+    #[arg(hide = true, long, short = 'P', help_heading = "Resolver options", value_hint = ValueHint::Other)]
+    pub upgrade_package: Vec<Requirement<VerbatimParsedUrl>>,
+
+    #[command(flatten)]
+    pub index_args: IndexArgs,
+
+    /// Reinstall all packages, regardless of whether they're already installed. Implies
+    /// `--refresh`.
+    #[arg(
+        long,
+        alias = "force-reinstall",
+        overrides_with("no_reinstall"),
+        help_heading = "Installer options"
+    )]
+    pub reinstall: bool,
+
+    #[arg(
+        long,
+        overrides_with("reinstall"),
+        hide = true,
+        help_heading = "Installer options"
+    )]
+    pub no_reinstall: bool,
+
+    /// Reinstall a specific package, regardless of whether it's already installed. Implies
+    /// `--refresh-package`.
+    #[arg(long, help_heading = "Installer options", value_hint = ValueHint::Other)]
+    pub reinstall_package: Vec<PackageName>,
+
+    /// The strategy to use when resolving against multiple index URLs.
+    ///
+    /// By default, fyn will stop at the first index on which a given package is available, and limit
+    /// resolutions to those present on that first index (`first-index`). This prevents "dependency
+    /// confusion" attacks, whereby an attacker can upload a malicious package under the same name
+    /// to an alternate index.
+    #[arg(
+        long,
+        value_enum,
+        env = EnvVars::UV_INDEX_STRATEGY,
+        help_heading = "Index options"
+    )]
+    pub index_strategy: Option<IndexStrategy>,
+
+    /// Attempt to use `keyring` for authentication for index URLs.
+    ///
+    /// At present, only `--keyring-provider subprocess` is supported, which configures fyn to use
+    /// the `keyring` CLI to handle authentication.
+    ///
+    /// Defaults to `disabled`.
+    #[arg(
+        long,
+        value_enum,
+        env = EnvVars::UV_KEYRING_PROVIDER,
+        help_heading = "Index options"
+    )]
+    pub keyring_provider: Option<KeyringProviderType>,
+
+    /// The strategy to use when selecting between the different compatible versions for a given
+    /// package requirement.
+    ///
+    /// By default, fyn will use the latest compatible version of each package (`highest`).
+    #[arg(
+        long,
+        value_enum,
+        env = EnvVars::UV_RESOLUTION,
+        help_heading = "Resolver options"
+    )]
+    pub resolution: Option<ResolutionMode>,
+
+    /// The strategy to use when considering pre-release versions.
+    ///
+    /// By default, fyn will accept pre-releases for packages that _only_ publish pre-releases, along
+    /// with first-party requirements that contain an explicit pre-release marker in the declared
+    /// specifiers (`if-necessary-or-explicit`).
+    #[arg(
+        long,
+        value_enum,
+        env = EnvVars::UV_PRERELEASE,
+        help_heading = "Resolver options"
+    )]
+    pub prerelease: Option<PrereleaseMode>,
+
+    #[arg(long, hide = true)]
+    pub pre: bool,
+
+    /// The strategy to use when selecting multiple versions of a given package across Python
+    /// versions and platforms.
+    ///
+    /// By default, fyn will optimize for selecting the latest version of each package for each
+    /// supported Python version (`requires-python`), while minimizing the number of selected
+    /// versions across platforms.
+    ///
+    /// Under `fewest`, fyn will minimize the number of selected versions for each package,
+    /// preferring older versions that are compatible with a wider range of supported Python
+    /// versions or platforms.
+    #[arg(
+        long,
+        value_enum,
+        env = EnvVars::UV_FORK_STRATEGY,
+        help_heading = "Resolver options"
+    )]
+    pub fork_strategy: Option<ForkStrategy>,
+
+    /// Settings to pass to the PEP 517 build backend, specified as `KEY=VALUE` pairs.
+    #[arg(
+        long,
+        short = 'C',
+        alias = "config-settings",
+        help_heading = "Build options",
+        value_hint = ValueHint::Other,
+    )]
+    pub config_setting: Option<Vec<ConfigSettingEntry>>,
+
+    /// Settings to pass to the PEP 517 build backend for a specific package, specified as `PACKAGE:KEY=VALUE` pairs.
+    #[arg(
+        long,
+        alias = "config-settings-package",
+        help_heading = "Build options",
+        value_hint = ValueHint::Other,
+    )]
+    pub config_settings_package: Option<Vec<ConfigSettingPackageEntry>>,
+
+    /// Disable isolation when building source distributions.
+    ///
+    /// Assumes that build dependencies specified by PEP 518 are already installed.
+    #[arg(
+        long,
+        overrides_with("build_isolation"),
+        help_heading = "Build options",
+        env = EnvVars::UV_NO_BUILD_ISOLATION,
+        value_parser = clap::builder::BoolishValueParser::new(),
+    )]
+    pub no_build_isolation: bool,
+
+    /// Disable isolation when building source distributions for a specific package.
+    ///
+    /// Assumes that the packages' build dependencies specified by PEP 518 are already installed.
+    #[arg(long, help_heading = "Build options", value_hint = ValueHint::Other)]
+    pub no_build_isolation_package: Vec<PackageName>,
+
+    #[arg(
+        long,
+        overrides_with("no_build_isolation"),
+        hide = true,
+        help_heading = "Build options"
+    )]
+    pub build_isolation: bool,
+
+    /// Limit candidate packages to those that were uploaded prior to the given date.
+    ///
+    /// Accepts RFC 3339 timestamps (e.g., `2006-12-02T02:07:43Z`), local dates in the same format
+    /// (e.g., `2006-12-02`) resolved based on your system's configured time zone, a "friendly"
+    /// duration (e.g., `24 hours`, `1 week`, `30 days`), or an ISO 8601 duration (e.g., `PT24H`,
+    /// `P7D`, `P30D`).
+    ///
+    /// Durations do not respect semantics of the local time zone and are always resolved to a fixed
+    /// number of seconds assuming that a day is 24 hours (e.g., DST transitions are ignored).
+    /// Calendar units such as months and years are not allowed.
+    #[arg(
+        long,
+        env = EnvVars::UV_EXCLUDE_NEWER,
+        help_heading = "Resolver options",
+        value_hint = ValueHint::Other,
+    )]
+    pub exclude_newer: Option<ExcludeNewerValue>,
+
+    /// Limit candidate packages for specific packages to those that were uploaded prior to the
+    /// given date.
+    ///
+    /// Accepts package-date pairs in the format `PACKAGE=DATE`, where `DATE` is an RFC 3339
+    /// timestamp (e.g., `2006-12-02T02:07:43Z`), a local date in the same format (e.g.,
+    /// `2006-12-02`) resolved based on your system's configured time zone, a "friendly" duration
+    /// (e.g., `24 hours`, `1 week`, `30 days`), or an ISO 8601 duration (e.g., `PT24H`, `P7D`,
+    /// `P30D`).
+    ///
+    /// Durations do not respect semantics of the local time zone and are always resolved to a fixed
+    /// number of seconds assuming that a day is 24 hours (e.g., DST transitions are ignored).
+    /// Calendar units such as months and years are not allowed.
+    ///
+    /// Can be provided multiple times for different packages.
+    #[arg(long, help_heading = "Resolver options", value_hint = ValueHint::Other)]
+    pub exclude_newer_package: Option<Vec<ExcludeNewerPackageEntry>>,
+
+    /// The method to use when installing packages from the global cache.
+    ///
+    /// Defaults to `clone` (also known as Copy-on-Write) on macOS and Linux, and `hardlink` on
+    /// Windows.
+    ///
+    /// WARNING: The use of symlink link mode is discouraged, as they create tight coupling between
+    /// the cache and the target environment. For example, clearing the cache (`fyn cache clean`)
+    /// will break all installed packages by way of removing the underlying source files. Use
+    /// symlinks with caution.
+    #[arg(
+        long,
+        value_enum,
+        env = EnvVars::UV_LINK_MODE,
+        help_heading = "Installer options"
+    )]
+    pub link_mode: Option<fyn_install_wheel::LinkMode>,
+
+    /// Compile Python files to bytecode after installation.
+    ///
+    /// By default, fyn does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);
+    /// instead, compilation is performed lazily the first time a module is imported. For use-cases
+    /// in which start time is critical, such as CLI applications and Docker containers, this option
+    /// can be enabled to trade longer installation times for faster start times.
+    ///
+    /// When enabled, fyn will process the entire site-packages directory (including packages that
+    /// are not being modified by the current operation) for consistency. Like pip, it will also
+    /// ignore errors.
+    #[arg(
+        long,
+        alias = "compile",
+        overrides_with("no_compile_bytecode"),
+        help_heading = "Installer options",
+        env = EnvVars::UV_COMPILE_BYTECODE,
+        value_parser = clap::builder::BoolishValueParser::new(),
+    )]
+    pub compile_bytecode: bool,
+
+    #[arg(
+        long,
+        alias = "no-compile",
+        overrides_with("compile_bytecode"),
+        hide = true,
+        help_heading = "Installer options"
+    )]
+    pub no_compile_bytecode: bool,
+
+    /// Ignore the `tool.fyn.sources` table when resolving dependencies. Used to lock against the
+    /// standards-compliant, publishable package metadata, as opposed to using any workspace, Git,
+    /// URL, or local path sources.
+    #[arg(
+        long,
+        env = EnvVars::UV_NO_SOURCES,
+        value_parser = clap::builder::BoolishValueParser::new(),
+        help_heading = "Resolver options",
+    )]
+    pub no_sources: bool,
+
+    /// Don't use sources from the `tool.fyn.sources` table for the specified packages.
+    #[arg(long, help_heading = "Resolver options", env = EnvVars::UV_NO_SOURCES_PACKAGE, value_delimiter = ' ')]
+    pub no_sources_package: Vec<PackageName>,
 }
 
 #[derive(Args)]
