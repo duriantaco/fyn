@@ -120,8 +120,8 @@ Installing into system Python across platforms and distributions is notoriously 
 supports the common cases, but will not work in all cases. For example, installing into system
 Python on Debian prior to Python 3.10 is unsupported due to the
 [distribution's patching of `distutils` (but not `sysconfig`)](https://ffy00.github.io/blog/02-python-debian-and-the-install-locations/).
-While we always recommend the use of virtual environments, fyn considers them to be required in these
-non-standard environments.
+While we always recommend the use of virtual environments, fyn considers them to be required in
+these non-standard environments.
 
 If fyn is installed in a Python environment, e.g., with `pip`, it can still be used to modify other
 environments. However, when invoked with `python -m fyn`, fyn will default to using the parent
@@ -143,8 +143,8 @@ will search for a virtual environment in the following order:
 If no virtual environment is found, fyn will prompt the user to create one in the current directory
 via `fyn venv`.
 
-If the `--system` flag is included, fyn will skip virtual environments search for an installed Python
-version. Similarly, when running a command that does not mutate the environment such as
+If the `--system` flag is included, fyn will skip virtual environments search for an installed
+Python version. Similarly, when running a command that does not mutate the environment such as
 `fyn pip compile`, fyn does not _require_ a virtual environment — however, a Python interpreter is
 still required. See the documentation on
 [Python discovery](../concepts/python-versions.md#discovery-of-python-versions) for details on the

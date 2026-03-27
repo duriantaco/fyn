@@ -22,8 +22,8 @@ Indexes are prioritized in the order in which they’re defined, such that the f
 the configuration file is the first index consulted when resolving dependencies, with indexes
 provided via the command line taking precedence over those in the configuration file.
 
-By default, fyn includes the Python Package Index (PyPI) as the "default" index, i.e., the index used
-when a package is not found on any other index. To exclude PyPI from the list of indexes, set
+By default, fyn includes the Python Package Index (PyPI) as the "default" index, i.e., the index
+used when a package is not found on any other index. To exclude PyPI from the list of indexes, set
 `default = true` on another index entry (or use the `--default-index` command-line option):
 
 ```toml
@@ -101,9 +101,9 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 ```
 
-Named indexes referenced via `tool.fyn.sources` must be defined within the project's `pyproject.toml`
-file; indexes provided via the command-line, environment variables, or user-level configuration will
-not be recognized.
+Named indexes referenced via `tool.fyn.sources` must be defined within the project's
+`pyproject.toml` file; indexes provided via the command-line, environment variables, or user-level
+configuration will not be recognized.
 
 If an index is marked as both `default = true` and `explicit = true`, it will be treated as an
 explicit index (i.e., only usable via `tool.fyn.sources`) while also removing PyPI as the default
@@ -181,8 +181,8 @@ name = "internal"
 url = "https://public:koala@pypi-proxy.corp.dev/simple"
 ```
 
-For security purposes, credentials are _never_ stored in the `fyn.lock` file; as such, fyn _must_ have
-access to the authenticated URL at installation time.
+For security purposes, credentials are _never_ stored in the `fyn.lock` file; as such, fyn _must_
+have access to the authenticated URL at installation time.
 
 ### Using credential providers
 
@@ -216,8 +216,8 @@ credentials cannot be found.
 
 When using the [first-index strategy](#searching-across-multiple-indexes), fyn will stop searching
 across indexes if an HTTP 401 Unauthorized or HTTP 403 Forbidden status code is encountered. The one
-exception is that fyn will ignore 403s when searching the `pytorch` index (since this index returns a
-403 when a package is not present).
+exception is that fyn will ignore 403s when searching the `pytorch` index (since this index returns
+a 403 when a package is not present).
 
 To configure which error codes are ignored for an index, use the `ignored-error-codes` setting. For
 example, to ignore 403s (but not 401s) for a private index:
@@ -287,9 +287,9 @@ approach to caching headers, i.e., setting `api = "max-age=600"` and
 ## "Flat" indexes
 
 By default, `[[tool.fyn.index]]` entries are assumed to be PyPI-style registries that implement the
-[PEP 503](https://peps.python.org/pep-0503/) Simple Repository API. However, fyn also supports "flat"
-indexes, which are local directories or HTML pages that contain flat lists of wheels and source
-distributions. In pip, such indexes are specified using the `--find-links` option.
+[PEP 503](https://peps.python.org/pep-0503/) Simple Repository API. However, fyn also supports
+"flat" indexes, which are local directories or HTML pages that contain flat lists of wheels and
+source distributions. In pip, such indexes are specified using the `--find-links` option.
 
 To define a flat index in your `pyproject.toml`, use the `format = "flat"` option:
 
@@ -305,16 +305,16 @@ Flat indexes support the same feature set as Simple Repository API indexes (e.g.
 
 ## `--index-url` and `--extra-index-url`
 
-In addition to the `[[tool.fyn.index]]` configuration option, fyn supports pip-style `--index-url` and
-`--extra-index-url` command-line options for compatibility, where `--index-url` defines the default
-index and `--extra-index-url` defines additional indexes.
+In addition to the `[[tool.fyn.index]]` configuration option, fyn supports pip-style `--index-url`
+and `--extra-index-url` command-line options for compatibility, where `--index-url` defines the
+default index and `--extra-index-url` defines additional indexes.
 
 These options can be used in conjunction with the `[[tool.fyn.index]]` configuration option, and
 follow the same prioritization rules:
 
 - The default index is always treated as lowest priority, whether defined via the legacy
-  `--index-url` argument, the recommended `--default-index` argument, or a `[[tool.fyn.index]]` entry
-  with `default = true`.
+  `--index-url` argument, the recommended `--default-index` argument, or a `[[tool.fyn.index]]`
+  entry with `default = true`.
 - Indexes are consulted in the order in which they’re defined, either via the legacy
   `--extra-index-url` argument, the recommended `--index` argument, or `[[tool.fyn.index]]` entries.
 

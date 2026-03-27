@@ -103,12 +103,12 @@ configure a build system in the `[build-system]` table of the `pyproject.toml`.
 
 fyn uses the presence of a build system to determine if a project contains a package that should be
 installed in the project virtual environment. If a build system is not defined, fyn will not attempt
-to build or install the project itself, just its dependencies. If a build system is defined, fyn will
-build and install the project into the project environment.
+to build or install the project itself, just its dependencies. If a build system is defined, fyn
+will build and install the project into the project environment.
 
 The `--build-backend` option can be provided to `fyn init` to create a packaged project with an
-appropriate layout. The `--package` option can be provided to `fyn init` to create a packaged project
-with the default build system.
+appropriate layout. The `--package` option can be provided to `fyn init` to create a packaged
+project with the default build system.
 
 !!! note
 
@@ -407,8 +407,8 @@ $ fyn pip install cython setuptools
 $ fyn pip install cchardet --no-build-isolation
 ```
 
-fyn simplifies this process by allowing you to specify packages that should not be built in isolation
-via the `no-build-isolation-package` setting in your `pyproject.toml` and the
+fyn simplifies this process by allowing you to specify packages that should not be built in
+isolation via the `no-build-isolation-package` setting in your `pyproject.toml` and the
 `--no-build-isolation-package` flag in the command line. Further, when a package is marked for
 disabling build isolation, fyn will perform a two-phase install, first installing any packages that
 support build isolation, followed by those that do not. As a result, if a project's build
@@ -431,8 +431,8 @@ dependencies = ["cchardet", "cython", "setuptools"]
 no-build-isolation-package = ["cchardet"]
 ```
 
-When running `fyn sync`, fyn will first install `cython` and `setuptools` in the project environment,
-followed by `cchardet` (without build isolation):
+When running `fyn sync`, fyn will first install `cython` and `setuptools` in the project
+environment, followed by `cchardet` (without build isolation):
 
 ```console
 $ fyn sync --extra build
@@ -545,10 +545,10 @@ requires-dist = ["torch", "einops"]
 ## Editable mode
 
 By default, the project will be installed in editable mode, such that changes to the source code are
-immediately reflected in the environment. `fyn sync` and `fyn run` both accept a `--no-editable` flag,
-which instructs fyn to install the project in non-editable mode. `--no-editable` is intended for
-deployment use-cases, such as building a Docker container, in which the project should be included
-in the deployed environment without a dependency on the originating source code.
+immediately reflected in the environment. `fyn sync` and `fyn run` both accept a `--no-editable`
+flag, which instructs fyn to install the project in non-editable mode. `--no-editable` is intended
+for deployment use-cases, such as building a Docker container, in which the project should be
+included in the deployed environment without a dependency on the originating source code.
 
 ## Conflicting dependencies
 
