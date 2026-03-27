@@ -3,7 +3,7 @@
 An extremely fast Python package and project manager, written in Rust.
 
 **fyn** is an independent Python package manager built on [uv](https://github.com/astral-sh/uv)'s
-foundation, with a smaller package-index `User-Agent`, new features added, and long-standing bugs
+foundation, with reduced package-index request metadata, new features added, and long-standing bugs
 fixed. See [MANIFESTO.md](MANIFESTO.md) for the full story.
 
 ## Highlights
@@ -22,9 +22,10 @@ fixed. See [MANIFESTO.md](MANIFESTO.md) for the full story.
   CLI.
 - Supports Cargo-style workspaces for scalable projects.
 - Disk-space efficient, with a global cache for dependency deduplication.
-- Smaller package-index `User-Agent` — compared with upstream uv, fyn sends a minimal
-  `fyn/<version>` header to package indexes such as PyPI, instead of the extra platform metadata uv
-  included. This reduces what is exposed in that header, but it does not make installs anonymous.
+- Reduced package-index request metadata — compared with upstream uv, fyn sends a minimal
+  `fyn/<version>` `User-Agent` header to package indexes such as PyPI, instead of `uv/<version>`
+  plus the extra LineHaul environment metadata uv included. This reduces what is exposed in that
+  header, but package indexes still receive normal network and request information.
 - Supports macOS, Linux, and Windows.
 
 ## Installation
@@ -278,21 +279,22 @@ name = "private"
 url = "https://${PYPI_TOKEN}@pypi.example.com/simple/"
 ```
 
-Explicit indexes are also respected for transitive dependencies — you don't have to list every
-internal package as a direct dependency anymore.
+Explicit indexes are also respected for transitive dependencies, so you don't have to list every
+internal package as a direct dependency.
 
 ## Migrating from uv
 
-fyn is a drop-in replacement for uv. Same config files, same `pyproject.toml` settings, same
-`fyn.lock` format, same `UV_*` environment variables. The only change is the binary name.
+fyn is close to uv, but not a zero-edit rename. Most command-line workflows and `UV_*` environment
+variables carry over, but project metadata and lockfile names differ.
 
 ```bash
-# before
-uv sync
-uv run pytest
-uvx ruff check .
+# 1. Rename your lockfile
+mv uv.lock fyn.lock
 
-# after
+# 2. In pyproject.toml, rename [tool.uv] to [tool.fyn]
+sed -i 's/\[tool\.uv\]/[tool.fyn]/' pyproject.toml
+
+# 3. Use fyn instead of uv
 fyn sync
 fyn run pytest
 fynx ruff check .
@@ -311,23 +313,22 @@ The same ones as uv: macOS, Linux, and Windows, across x86_64 and aarch64.
 
 #### Is fyn compatible with uv?
 
-Yes. Same config format, same lockfile, same environment variables. You can switch between them
-freely on the same project.
+Mostly at the workflow level, but not as a byte-for-byte drop-in replacement. Commands and many
+`UV_*` environment variables carry over, but projects need `[tool.uv]` renamed to `[tool.fyn]` and
+`uv.lock` renamed to `fyn.lock` unless you override the lockfile name.
 
 #### What's different from uv?
 
 See [MANIFESTO.md](MANIFESTO.md) for the full comparison, or the table below for a quick summary:
 
-| Feature                            | uv                        | fyn                 |
-| ---------------------------------- | ------------------------- | ------------------- |
-| Telemetry (linehaul)               | Sends OS, Python, CI info | None                |
-| Task runner                        | Not available             | `[tool.fyn.tasks]`  |
-| `shell` command                    | Not available             | `fyn shell`         |
-| `upgrade` command                  | Must chain two commands   | `fyn upgrade`       |
-| Cache size limit                   | No limit                  | `UV_CACHE_MAX_SIZE` |
-| Custom lockfile name               | Not available             | `UV_LOCKFILE`       |
-| Explicit index for transitive deps | Broken                    | Fixed               |
-| Env vars in index URLs             | Only in requirements.txt  | Everywhere          |
+| Feature                  | uv                                    | fyn                     |
+| ------------------------ | ------------------------------------- | ----------------------- |
+| Package index User-Agent | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>` |
+| Task runner              | Not available                         | `[tool.fyn.tasks]`      |
+| `shell` command          | Not available                         | `fyn shell`             |
+| `upgrade` command        | Must chain two commands               | `fyn upgrade`           |
+| Cache size limit         | No limit                              | `UV_CACHE_MAX_SIZE`     |
+| Custom lockfile name     | Not available                         | `UV_LOCKFILE`           |
 
 ## Acknowledgements
 
