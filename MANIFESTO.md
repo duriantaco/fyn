@@ -26,8 +26,10 @@ fixing the stuff that bugged us and adding the things people kept asking for.
 
 uv included LineHaul metadata in the `User-Agent` header it sent to package indexes such as PyPI.
 That header goes to the package index, not back to Astral or OpenAI. `pip` also sends package-index
-metadata by default; fyn's change is narrower. Compared with upstream uv, fyn removes the extra
-platform metadata from that header and sends a minimal `fyn/<version>` `User-Agent` instead.
+environment information by default and does not describe that as telemetry in its privacy notice;
+fyn's change is narrower and specific to the `User-Agent` header. Compared with upstream uv, fyn
+removes the extra LineHaul environment metadata from that header and sends a minimal `fyn/<version>`
+`User-Agent` instead.
 
 This reduces what is exposed in the header, but it does not make package installs anonymous. Package
 indexes still see normal network and request information, including your IP address and the packages
@@ -42,34 +44,31 @@ you ask for.
 
 ## fyn vs uv — feature comparison
 
-| Feature                           | uv                                | fyn                     |
-| --------------------------------- | --------------------------------- | ----------------------- |
-| Speed (10-100x faster than pip)   | Yes                               | Yes                     |
-| Package index User-Agent          | Includes OS, Python, CPU, CI info | Minimal `fyn/<version>` |
-| `shell` command                   | Not available                     | `fyn shell`             |
-| `upgrade` command                 | Must chain two commands           | `fyn upgrade`           |
-| Cache size limit                  | No limit                          | `UV_CACHE_MAX_SIZE`     |
-| Private index for transitive deps | Broken                            | Fixed                   |
-| Env vars in index URLs            | Only in requirements.txt          | Everywhere              |
-| Custom lockfile name              | Not available                     | `UV_LOCKFILE`           |
-| `remove --group` sync behavior    | Wipes other group packages        | Fixed                   |
-| Drop-in replacement for pip       | Yes                               | Yes                     |
-| Python version management         | Yes                               | Yes                     |
-| Lockfile support                  | Yes (`uv.lock`)                   | Yes (`fyn.lock`)        |
+| Feature                         | uv                                    | fyn                     |
+| ------------------------------- | ------------------------------------- | ----------------------- |
+| Speed (10-100x faster than pip) | Yes                                   | Yes                     |
+| Package index User-Agent        | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>` |
+| `shell` command                 | Not available                         | `fyn shell`             |
+| `upgrade` command               | Must chain two commands               | `fyn upgrade`           |
+| Cache size limit                | No limit                              | `UV_CACHE_MAX_SIZE`     |
+| Custom lockfile name            | Not available                         | `UV_LOCKFILE`           |
+| `remove --group` sync behavior  | Wipes other group packages            | Fixed                   |
+| Drop-in replacement for pip     | Yes                                   | Yes                     |
+| Python version management       | Yes                                   | Yes                     |
+| Lockfile support                | Yes (`uv.lock`)                       | Yes (`fyn.lock`)        |
 
 ## Roadmap
 
 In no particular order:
 
-1. **Task runner** in `fyn run` — like `npm run` but for Python
-2. **Centralized venv storage** — keep .venvs out of your project dirs
-3. **Glob-pattern source declarations** — `mycompany-*` all goes to your private index, borrowed
+1. **Centralized venv storage** — keep .venvs out of your project dirs
+2. **Glob-pattern source declarations** — `mycompany-*` all goes to your private index, borrowed
    from how PDM does it
-4. **`pip.conf` support** — read your existing pip config
-5. **`pip wheel` and `pip download` commands**
-6. **Plugin system** eventually — custom indexes, auth providers, etc.
-7. **`fyn bundle`** — make standalone executables, like PyInstaller but built-in
-8. **Conda support** maybe — if we can do it without making a mess
+3. **`pip.conf` support** — read your existing pip config
+4. **`pip wheel`**
+5. **Plugin system** eventually — custom indexes, auth providers, etc.
+6. **`fyn bundle`** — make standalone executables, like PyInstaller but built-in
+7. **Conda support** maybe — if we can do it without making a mess
 
 ## Installation
 
