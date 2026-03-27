@@ -29,6 +29,7 @@ use fyn_scripts::Pep723Script;
 pub(crate) use help::help;
 pub(crate) use pip::check::pip_check;
 pub(crate) use pip::compile::pip_compile;
+pub(crate) use pip::download::pip_download;
 pub(crate) use pip::freeze::pip_freeze;
 pub(crate) use pip::index::pip_index_versions;
 pub(crate) use pip::install::pip_install;

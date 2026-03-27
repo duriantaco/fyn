@@ -10,8 +10,8 @@ use fyn_settings::{Combine, EnvFlag, PipOptions, ResolverInstallerOptions, Resol
 use fyn_warnings::owo_colors::OwoColorize;
 
 use crate::{
-    BuildOptionsArgs, FetchArgs, IndexArgs, InstallerArgs, Maybe, RefreshArgs, ResolverArgs,
-    ResolverInstallerArgs,
+    BuildOptionsArgs, DownloadResolverArgs, FetchArgs, IndexArgs, InstallerArgs, Maybe,
+    RefreshArgs, ResolverArgs, ResolverInstallerArgs,
 };
 
 /// Given a boolean flag pair (like `--upgrade` and `--no-upgrade`), resolve the value of the flag.
@@ -232,6 +232,57 @@ impl From<ResolverArgs> for PipOptions {
             } else {
                 prerelease
             },
+            config_settings: config_setting
+                .map(|config_settings| config_settings.into_iter().collect::<ConfigSettings>()),
+            config_settings_package: config_settings_package.map(|config_settings| {
+                config_settings
+                    .into_iter()
+                    .collect::<PackageConfigSettings>()
+            }),
+            no_build_isolation: flag(no_build_isolation, build_isolation, "build-isolation"),
+            no_build_isolation_package: Some(no_build_isolation_package),
+            exclude_newer,
+            exclude_newer_package: exclude_newer_package.map(ExcludeNewerPackage::from_iter),
+            link_mode,
+            no_sources: if no_sources { Some(true) } else { None },
+            no_sources_package: Some(no_sources_package),
+            ..Self::from(index_args)
+        }
+    }
+}
+
+impl From<DownloadResolverArgs> for PipOptions {
+    fn from(args: DownloadResolverArgs) -> Self {
+        let DownloadResolverArgs {
+            index_args,
+            index_strategy,
+            keyring_provider,
+            resolution,
+            prerelease,
+            pre,
+            fork_strategy,
+            config_setting,
+            config_settings_package,
+            no_build_isolation,
+            no_build_isolation_package,
+            build_isolation,
+            exclude_newer,
+            link_mode,
+            no_sources,
+            no_sources_package,
+            exclude_newer_package,
+        } = args;
+
+        Self {
+            index_strategy,
+            keyring_provider,
+            resolution,
+            prerelease: if pre {
+                Some(PrereleaseMode::Allow)
+            } else {
+                prerelease
+            },
+            fork_strategy,
             config_settings: config_setting
                 .map(|config_settings| config_settings.into_iter().collect::<ConfigSettings>()),
             config_settings_package: config_settings_package.map(|config_settings| {

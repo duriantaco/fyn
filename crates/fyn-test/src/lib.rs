@@ -1329,6 +1329,14 @@ impl TestContext {
         command
     }
 
+    /// Create a `pip download` command with options shared across scenarios.
+    pub fn pip_download(&self) -> Command {
+        let mut command = self.new_command();
+        command.arg("pip").arg("download");
+        self.add_shared_options(&mut command, true);
+        command
+    }
+
     /// Create a `pip upgrade` command with options shared across scenarios.
     pub fn pip_upgrade(&self) -> Command {
         let mut command = self.new_command();
