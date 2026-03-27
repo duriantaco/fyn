@@ -76,7 +76,7 @@ jobs:
           version: "0.10.10"
 
       - name: "Build docs"
-        run: fyn run --only-group docs mkdocs build --strict -f mkdocs.yml
+        run: cargo run --bin fyn -- run --isolated --only-group docs mkdocs build --strict -f mkdocs.yml
 
       - name: "Clone docs repo"
         run: |
