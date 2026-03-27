@@ -97,10 +97,10 @@ regardless of where fyn is installed. Note that if `VIRTUAL_ENV` is set to a dir
 **not** a [PEP 405 compliant](https://peps.python.org/pep-0405/#specification) virtual environment,
 it will be ignored.
 
-fyn can also install into arbitrary, even non-virtual environments, with the `--python` argument
-provided to `fyn pip sync` or `fyn pip install`. For example,
-`fyn pip install --python /path/to/python` will install into the environment linked to the
-`/path/to/python` interpreter.
+fyn can also install into arbitrary, even non-virtual environments, with the `--python` option. For
+example, `fyn pip install --python /path/to/python` will install into the environment linked to the
+`/path/to/python` interpreter regardless of whether or not it is a virtual environment. The
+`--python` option also accepts a path to the root directory of a virtual environment.
 
 For convenience, `fyn pip install --system` will install into the system Python environment. Using
 `--system` is roughly equivalent to `fyn pip install --python $(which python)`, but note that
