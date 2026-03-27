@@ -32,7 +32,7 @@ $ python3.13
 ```
 
 fyn only installs a _versioned_ executable by default. To install `python` and `python3`
-executables, include the experimental `--default` option:
+executables, include the `--default` option:
 
 ```console
 $ fyn python install --default

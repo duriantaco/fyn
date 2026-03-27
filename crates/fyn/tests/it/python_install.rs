@@ -1618,7 +1618,6 @@ fn python_install_default() {
     ----- stdout -----
 
     ----- stderr -----
-    warning: The `--default` option is experimental and may change without warning. Pass `--preview-features python-install-default` to disable this warning
     Installed Python 3.14.[LATEST] in [TIME]
      + cpython-3.14.[LATEST]-[PLATFORM] (python, python3)
     ");
@@ -1652,7 +1651,6 @@ fn python_install_default() {
     ----- stdout -----
 
     ----- stderr -----
-    warning: The `--default` option is experimental and may change without warning. Pass `--preview-features python-install-default` to disable this warning
     Installed Python 3.14.[LATEST] in [TIME]
      + cpython-3.14.[LATEST]-[PLATFORM] (python, python3, python3.14)
     ");
@@ -1737,7 +1735,6 @@ fn python_install_default() {
     ----- stdout -----
 
     ----- stderr -----
-    warning: The `--default` option is experimental and may change without warning. Pass `--preview-features python-install-default` to disable this warning
     error: The `--default` flag cannot be used with multiple targets
     ");
 
@@ -1748,7 +1745,6 @@ fn python_install_default() {
     ----- stdout -----
 
     ----- stderr -----
-    warning: The `--default` option is experimental and may change without warning. Pass `--preview-features python-install-default` to disable this warning
     Installed Python 3.12.[LATEST] in [TIME]
      + cpython-3.12.[LATEST]-[PLATFORM] (python, python3, python3.12)
     ");
@@ -2286,8 +2282,6 @@ fn python_install_default_prerelease() {
     context
         .python_install()
         .arg("--default")
-        .arg("--preview-features")
-        .arg("python-install-default")
         .arg("3.15")
         .assert()
         .success();

@@ -307,17 +307,6 @@ async fn perform_install(
 ) -> Result<ExitStatus> {
     let start = std::time::Instant::now();
 
-    // TODO(zanieb): We should consider marking the Python installation as the default when
-    // `--default` is used. It's not clear how this overlaps with a global Python pin, but I'd be
-    // surprised if `fyn python find` returned the "newest" Python version rather than the one I just
-    // installed with the `--default` flag.
-    if default && !preview.is_enabled(PreviewFeature::PythonInstallDefault) {
-        warn_user!(
-            "The `--default` option is experimental and may change without warning. Pass `--preview-features {}` to disable this warning",
-            PreviewFeature::PythonInstallDefault
-        );
-    }
-
     if default && targets.len() > 1 {
         anyhow::bail!("The `--default` flag cannot be used with multiple targets");
     }
