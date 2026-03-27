@@ -28,10 +28,10 @@ To show available versions for a package from the configured package sources:
 $ fyn pip index versions numpy
 ```
 
-Like `pip index versions`, `fyn pip index versions` filters the results to versions compatible
-with the selected Python target. By default, that target comes from the current Python
-interpreter. Use `--python`, `--python-version`, `--python-platform`, or `--system` to change the
-target, and use `--find-links` or `--no-index` to change the package sources being queried.
+Like `pip index versions`, `fyn pip index versions` filters the results to versions compatible with
+the selected Python target. By default, that target comes from the current Python interpreter. Use
+`--python`, `--python-version`, `--python-platform`, or `--system` to change the target, and use
+`--find-links` or `--no-index` to change the package sources being queried.
 
 ## Inspecting a package
 
