@@ -1322,6 +1322,14 @@ impl TestContext {
         command
     }
 
+    /// Create a `pip upgrade` command with options shared across scenarios.
+    pub fn pip_upgrade(&self) -> Command {
+        let mut command = self.new_command();
+        command.arg("pip").arg("upgrade");
+        self.add_shared_options(&mut command, true);
+        command
+    }
+
     /// Create a `pip uninstall` command with options shared across scenarios.
     pub fn pip_uninstall(&self) -> Command {
         let mut command = self.new_command();

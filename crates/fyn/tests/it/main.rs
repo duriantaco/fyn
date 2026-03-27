@@ -73,6 +73,9 @@ mod pip_install;
 
 mod pip_install_scenarios;
 
+#[cfg(all(feature = "test-python", feature = "test-pypi"))]
+mod pip_upgrade;
+
 mod pip_list;
 
 mod pip_show;

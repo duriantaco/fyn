@@ -15,10 +15,10 @@ use fyn_cli::{
     AddArgs, AuditArgs, AuthLoginArgs, AuthLogoutArgs, AuthTokenArgs, ColorChoice, ExternalCommand,
     GlobalArgs, InitArgs, ListFormat, LockArgs, Maybe, PipCheckArgs, PipCompileArgs, PipFreezeArgs,
     PipInstallArgs, PipListArgs, PipShowArgs, PipSyncArgs, PipTreeArgs, PipUninstallArgs,
-    PythonFindArgs, PythonInstallArgs, PythonListArgs, PythonListFormat, PythonPinArgs,
-    PythonUninstallArgs, PythonUpgradeArgs, RemoveArgs, RunArgs, SyncArgs, SyncFormat, ToolDirArgs,
-    ToolInstallArgs, ToolListArgs, ToolRunArgs, ToolUninstallArgs, TreeArgs, VenvArgs, VersionArgs,
-    VersionBumpSpec, VersionFormat,
+    PipUpgradeArgs, PythonFindArgs, PythonInstallArgs, PythonListArgs, PythonListFormat,
+    PythonPinArgs, PythonUninstallArgs, PythonUpgradeArgs, RemoveArgs, RunArgs, SyncArgs,
+    SyncFormat, ToolDirArgs, ToolInstallArgs, ToolListArgs, ToolRunArgs, ToolUninstallArgs,
+    TreeArgs, VenvArgs, VersionArgs, VersionBumpSpec, VersionFormat,
 };
 use fyn_cli::{
     AuthorFrom, BuildArgs, ExportArgs, FormatArgs, PublishArgs, PythonDirArgs,
@@ -3044,6 +3044,129 @@ impl PipInstallSettings {
                     python_platform,
                     require_hashes: flag(require_hashes, no_require_hashes, "require-hashes"),
                     verify_hashes: flag(verify_hashes, no_verify_hashes, "verify-hashes"),
+                    torch_backend,
+                    ..PipOptions::from(installer)
+                },
+                filesystem,
+                environment,
+            ),
+        }
+    }
+}
+
+/// The resolved settings to use for a `pip upgrade` invocation.
+#[derive(Debug, Clone)]
+pub(crate) struct PipUpgradeSettings {
+    pub(crate) dry_run: DryRun,
+    pub(crate) settings: PipSettings,
+}
+
+impl PipUpgradeSettings {
+    /// Resolve the [`PipUpgradeSettings`] from the CLI and filesystem configuration.
+    pub(crate) fn resolve(
+        args: PipUpgradeArgs,
+        filesystem: Option<FilesystemOptions>,
+        environment: EnvironmentOptions,
+    ) -> Self {
+        let PipUpgradeArgs {
+            all: _,
+            python,
+            system,
+            no_system,
+            break_system_packages,
+            no_break_system_packages,
+            target,
+            prefix,
+            no_build,
+            build,
+            no_binary,
+            only_binary,
+            python_version,
+            python_platform,
+            strict,
+            no_strict,
+            dry_run,
+            torch_backend,
+            upgrade,
+            upgrade_package,
+            index_args,
+            reinstall,
+            no_reinstall,
+            reinstall_package,
+            index_strategy,
+            keyring_provider,
+            resolution,
+            prerelease,
+            pre,
+            fork_strategy,
+            config_setting,
+            config_settings_package,
+            no_build_isolation,
+            no_build_isolation_package,
+            build_isolation,
+            exclude_newer,
+            exclude_newer_package,
+            link_mode,
+            compile_bytecode,
+            no_compile_bytecode,
+            no_sources,
+            no_sources_package,
+        } = args;
+
+        if upgrade {
+            warn_user_once!("`--upgrade` is enabled by default on `fyn pip upgrade`");
+        }
+        if !upgrade_package.is_empty() {
+            warn_user_once!("`--upgrade-package` is enabled by default on `fyn pip upgrade`");
+        }
+
+        let installer = ResolverInstallerArgs {
+            index_args,
+            upgrade: upgrade_package.is_empty(),
+            no_upgrade: false,
+            upgrade_package,
+            reinstall,
+            no_reinstall,
+            reinstall_package,
+            index_strategy,
+            keyring_provider,
+            resolution,
+            prerelease,
+            pre,
+            fork_strategy,
+            config_setting,
+            config_settings_package,
+            no_build_isolation,
+            no_build_isolation_package,
+            build_isolation,
+            exclude_newer,
+            exclude_newer_package,
+            link_mode,
+            compile_bytecode,
+            no_compile_bytecode,
+            no_sources,
+            no_sources_package,
+        };
+
+        Self {
+            dry_run: DryRun::from_args(dry_run),
+            settings: PipSettings::combine(
+                PipOptions {
+                    python: python.and_then(Maybe::into_option),
+                    system: flag(system, no_system, "system"),
+                    break_system_packages: flag(
+                        break_system_packages,
+                        no_break_system_packages,
+                        "break-system-packages",
+                    ),
+                    target,
+                    prefix,
+                    no_build: flag(no_build, build, "build"),
+                    no_binary,
+                    only_binary,
+                    strict: flag(strict, no_strict, "strict"),
+                    python_version,
+                    python_platform,
                     torch_backend,
                     ..PipOptions::from(installer)
                 },
