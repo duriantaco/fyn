@@ -25,19 +25,19 @@ theme:
         icon: material/brightness-auto
         name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
-      scheme: default
+      scheme: astral-light
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
-      scheme: slate
+      scheme: astral-dark
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
   custom_dir: docs/.overrides
 repo_url: https://github.com/oha/fyn
 repo_name: fyn
-site_author: charliermarsh
+site_author: fyn contributors
 site_url: https://github.com/oha/fyn
 site_dir: site/fyn
 site_description: fyn is an extremely fast Python package and project manager, written in Rust.
@@ -84,18 +84,18 @@ plugins:
         "configuration/environment.md": "reference/environment.md"
         "guides/export.md": "concepts/projects/export.md"
         "guides/integration/dependency-bots.md": "guides/integration/renovate.md"
+        "guides/integration/alternative-indexes.md": "concepts/authentication/third-party.md"
   - llmstxt:
       markdown_description: |
         You can use fyn to install Python dependencies, run scripts, manage virtual environments,
         build and publish packages, and even install Python itself. fyn is capable of replacing
         `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`, `twine`, `virtualenv`, and more.
 
-        fyn includes both a pip-compatible CLI (prepend `uv` to a pip command, e.g., `fyn pip install ruff`)
+        fyn includes both a pip-compatible CLI (prepend `fyn` to a pip command, e.g., `fyn pip install ruff`)
         and a first-class project interface (e.g., `fyn add ruff`) complete with lockfiles and
         workspace support.
 
-        When fetching documentation, use explicit `index.md` paths for directories, e.g.,
-        `https://docs.astral.sh/uv/concepts/projects/dependencies/index.md`. This returns
+        When fetching documentation, use explicit `index.md` paths for directories. This returns
         clean markdown instead of rendered HTML with JS/CSS.
       sections:
         Getting started:
@@ -117,7 +117,10 @@ plugins:
           - guides/integration/pre-commit.md
           - guides/integration/pytorch.md
           - guides/integration/fastapi.md
-          - guides/integration/alternative-indexes.md
+          - guides/integration/azure.md
+          - guides/integration/google.md
+          - guides/integration/aws.md
+          - guides/integration/jfrog.md
           - guides/integration/renovate.md
           - guides/integration/dependabot.md
           - guides/integration/aws-lambda.md
@@ -166,9 +169,7 @@ extra:
     - icon: fontawesome/brands/discord
       link: https://github.com/oha/fyn/discussions
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/uv/
-    - icon: fontawesome/brands/x-twitter
-      link: https://x.com/astral_sh
+      link: https://pypi.org/project/fyn/
 nav:
   - Introduction: index.md
   - Getting started:
@@ -197,7 +198,10 @@ nav:
           - Pre-commit: guides/integration/pre-commit.md
           - PyTorch: guides/integration/pytorch.md
           - FastAPI: guides/integration/fastapi.md
-          - Alternative indexes: guides/integration/alternative-indexes.md
+          - Azure Artifacts: guides/integration/azure.md
+          - Google Artifact Registry: guides/integration/google.md
+          - AWS CodeArtifact: guides/integration/aws.md
+          - JFrog Artifactory: guides/integration/jfrog.md
           - Renovate: guides/integration/renovate.md
           - Dependabot: guides/integration/dependabot.md
           - AWS Lambda: guides/integration/aws-lambda.md
