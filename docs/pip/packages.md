@@ -132,6 +132,36 @@ $ fyn pip install --group some/path/pyproject.toml:foo --group other/pyproject.t
     For instance, `fyn pip install -r some/path/pyproject.toml --group foo` sources `foo`
     from `./pyproject.toml` and **not** `some/path/pyproject.toml`.
 
+## Downloading distribution archives
+
+To download a package archive into the current working directory without installing it:
+
+```console
+$ fyn pip download flask
+```
+
+To place downloaded archives in a specific directory:
+
+```console
+$ fyn pip download flask --dest ./packages
+```
+
+To download all archives referenced by a requirements file:
+
+```console
+$ fyn pip download -r requirements.txt --dest ./packages
+```
+
+To prefer source distributions over wheels:
+
+```console
+$ fyn pip download tqdm --no-binary :all: --dest ./packages
+```
+
+The first release of `fyn pip download` supports package specs, requirements files, dependency
+groups, local wheel and source archive paths, and `--find-links` sources. It does not yet support
+Git requirements or local source tree directories.
+
 ## Upgrading installed packages
 
 To upgrade all installed packages in the current environment:

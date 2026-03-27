@@ -7,6 +7,7 @@ use fyn_python::{Interpreter, PythonVersion};
 
 pub(crate) mod check;
 pub(crate) mod compile;
+pub(crate) mod download;
 pub(crate) mod freeze;
 pub(crate) mod index;
 pub(crate) mod install;

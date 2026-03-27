@@ -13,12 +13,13 @@ use fyn_cache::{CacheArgs, Refresh};
 use fyn_cli::comma::CommaSeparatedRequirements;
 use fyn_cli::{
     AddArgs, AuditArgs, AuthLoginArgs, AuthLogoutArgs, AuthTokenArgs, ColorChoice, ExternalCommand,
-    GlobalArgs, InitArgs, ListFormat, LockArgs, Maybe, PipCheckArgs, PipCompileArgs, PipFreezeArgs,
-    PipIndexVersionsArgs, PipInstallArgs, PipListArgs, PipShowArgs, PipSyncArgs, PipTreeArgs,
-    PipUninstallArgs, PipUpgradeArgs, PythonFindArgs, PythonInstallArgs, PythonListArgs,
-    PythonListFormat, PythonPinArgs, PythonUninstallArgs, PythonUpgradeArgs, RemoveArgs, RunArgs,
-    SyncArgs, SyncFormat, ToolDirArgs, ToolInstallArgs, ToolListArgs, ToolRunArgs,
-    ToolUninstallArgs, TreeArgs, VenvArgs, VersionArgs, VersionBumpSpec, VersionFormat,
+    GlobalArgs, InitArgs, ListFormat, LockArgs, Maybe, PipCheckArgs, PipCompileArgs,
+    PipDownloadArgs, PipFreezeArgs, PipIndexVersionsArgs, PipInstallArgs, PipListArgs, PipShowArgs,
+    PipSyncArgs, PipTreeArgs, PipUninstallArgs, PipUpgradeArgs, PythonFindArgs, PythonInstallArgs,
+    PythonListArgs, PythonListFormat, PythonPinArgs, PythonUninstallArgs, PythonUpgradeArgs,
+    RemoveArgs, RunArgs, SyncArgs, SyncFormat, ToolDirArgs, ToolInstallArgs, ToolListArgs,
+    ToolRunArgs, ToolUninstallArgs, TreeArgs, VenvArgs, VersionArgs, VersionBumpSpec,
+    VersionFormat,
 };
 use fyn_cli::{
     AuthorFrom, BuildArgs, ExportArgs, FormatArgs, PublishArgs, PythonDirArgs,
@@ -3046,6 +3047,158 @@ impl PipInstallSettings {
                     verify_hashes: flag(verify_hashes, no_verify_hashes, "verify-hashes"),
                     torch_backend,
                     ..PipOptions::from(installer)
+                },
+                filesystem,
+                environment,
+            ),
+        }
+    }
+}
+
+/// The resolved settings to use for a `pip download` invocation.
+#[derive(Debug, Clone)]
+pub(crate) struct PipDownloadSettings {
+    pub(crate) package: Vec<String>,
+    pub(crate) requirements: Vec<PathBuf>,
+    pub(crate) constraints: Vec<PathBuf>,
+    pub(crate) overrides: Vec<PathBuf>,
+    pub(crate) excludes: Vec<PathBuf>,
+    pub(crate) build_constraints: Vec<PathBuf>,
+    pub(crate) dest: Option<PathBuf>,
+    pub(crate) constraints_from_workspace: Vec<Requirement>,
+    pub(crate) overrides_from_workspace: Vec<Requirement>,
+    pub(crate) excludes_from_workspace: Vec<PackageName>,
+    pub(crate) build_constraints_from_workspace: Vec<Requirement>,
+    pub(crate) refresh: Refresh,
+    pub(crate) settings: PipSettings,
+}
+
+impl PipDownloadSettings {
+    /// Resolve the [`PipDownloadSettings`] from the CLI and filesystem configuration.
+    pub(crate) fn resolve(
+        args: PipDownloadArgs,
+        filesystem: Option<FilesystemOptions>,
+        environment: EnvironmentOptions,
+    ) -> Self {
+        let PipDownloadArgs {
+            package,
+            requirements,
+            constraints,
+            overrides,
+            excludes,
+            build_constraints,
+            extra,
+            all_extras,
+            no_all_extras,
+            group,
+            resolver,
+            refresh,
+            no_deps,
+            deps,
+            dest,
+            python,
+            system,
+            no_system,
+            no_build,
+            build,
+            no_binary,
+            only_binary,
+            python_version,
+            python_platform,
+            torch_backend,
+        } = args;
+
+        let constraints_from_workspace = if let Some(configuration) = &filesystem {
+            configuration
+                .constraint_dependencies
+                .clone()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|requirement| {
+                    Requirement::from(requirement.with_origin(RequirementOrigin::Workspace))
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+
+        let overrides_from_workspace = if let Some(configuration) = &filesystem {
+            configuration
+                .override_dependencies
+                .clone()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|requirement| {
+                    Requirement::from(requirement.with_origin(RequirementOrigin::Workspace))
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+
+        let excludes_from_workspace = if let Some(configuration) = &filesystem {
+            configuration
+                .exclude_dependencies
+                .clone()
+                .unwrap_or_default()
+        } else {
+            Vec::new()
+        };
+
+        let build_constraints_from_workspace = if let Some(configuration) = &filesystem {
+            configuration
+                .build_constraint_dependencies
+                .clone()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|requirement| {
+                    Requirement::from(requirement.with_origin(RequirementOrigin::Workspace))
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+
+        Self {
+            package,
+            requirements,
+            constraints: constraints
+                .into_iter()
+                .filter_map(Maybe::into_option)
+                .collect(),
+            overrides: overrides
+                .into_iter()
+                .filter_map(Maybe::into_option)
+                .collect(),
+            excludes: excludes
+                .into_iter()
+                .filter_map(Maybe::into_option)
+                .collect(),
+            build_constraints: build_constraints
+                .into_iter()
+                .filter_map(Maybe::into_option)
+                .collect(),
+            dest,
+            constraints_from_workspace,
+            overrides_from_workspace,
+            excludes_from_workspace,
+            build_constraints_from_workspace,
+            refresh: Refresh::from(refresh),
+            settings: PipSettings::combine(
+                PipOptions {
+                    python: python.and_then(Maybe::into_option),
+                    system: flag(system, no_system, "system"),
+                    no_build: flag(no_build, build, "build"),
+                    no_binary,
+                    only_binary,
+                    extra,
+                    all_extras: flag(all_extras, no_all_extras, "all-extras"),
+                    no_deps: flag(no_deps, deps, "deps"),
+                    group: Some(group),
+                    python_version,
+                    python_platform,
+                    torch_backend,
+                    ..PipOptions::from(resolver)
                 },
                 filesystem,
                 environment,
