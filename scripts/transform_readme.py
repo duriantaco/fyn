@@ -58,7 +58,10 @@ def main(target: str) -> None:
             version = pyproject["project"]["version"]
         else:
             raise ValueError("Version not found in pyproject.toml")
-        if "urls" in pyproject["project"] and "Repository" in pyproject["project"]["urls"]:
+        if (
+            "urls" in pyproject["project"]
+            and "Repository" in pyproject["project"]["urls"]
+        ):
             repository = pyproject["project"]["urls"]["Repository"].rstrip("/")
         else:
             raise ValueError("Repository URL not found in pyproject.toml")
@@ -85,9 +88,7 @@ def main(target: str) -> None:
     def replace(match: re.Match) -> str:
         url = match.group(1)
         if not url.startswith("http"):
-            url = urllib.parse.urljoin(
-                f"{repository}/blob/{version}/README.md", url
-            )
+            url = urllib.parse.urljoin(f"{repository}/blob/{version}/README.md", url)
         return f"]({url})"
 
     content = re.sub(r"]\(([^)]+)\)", replace, content)
