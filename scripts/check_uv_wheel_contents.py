@@ -16,10 +16,10 @@ fyn_expected = {
     "fyn-VERSION.dist-info/licenses/LICENSE-APACHE",
     "fyn-VERSION.dist-info/licenses/LICENSE-MIT",
     "fyn-VERSION.dist-info/sboms/fyn.cyclonedx.json",
-    "uv/__init__.py",
-    "uv/__main__.py",
-    "uv/_find_uv.py",
-    "uv/py.typed",
+    "fyn/__init__.py",
+    "fyn/__main__.py",
+    "fyn/_find_uv.py",
+    "fyn/py.typed",
 }
 fyn_build_expected = {
     "fyn_build-VERSION.data/scripts/fyn-build",
