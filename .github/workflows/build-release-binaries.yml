@@ -241,7 +241,7 @@ jobs:
             runner: github-windows-2025-x86_64-8
           - target: aarch64-pc-windows-msvc
             arch: arm64
-            runner: github-windows-11-aarch64-8
+            runner: windows-11-arm
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
