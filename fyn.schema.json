@@ -41,7 +41,7 @@
       }
     },
     "cache-dir": {
-      "description": "Path to the cache directory.\n\nDefaults to `$XDG_CACHE_HOME/fyn` or `$HOME/.cache/fyn` on Linux and macOS, and\n`%LOCALAPPDATA%\\uv\\cache` on Windows.",
+      "description": "Path to the cache directory.\n\nDefaults to `$XDG_CACHE_HOME/fyn` or `$HOME/.cache/fyn` on Linux and macOS, and\n`%LOCALAPPDATA%\\fyn\\cache` on Windows.",
       "type": ["string", "null"]
     },
     "cache-keys": {
@@ -139,7 +139,7 @@
       "description": "Additional settings for `dependency-groups`.\n\nCurrently this can only be used to add `requires-python` constraints\nto dependency groups (typically to inform fyn that your dev tooling\nhas a higher python requirement than your actual project).\n\nThis cannot be used to define dependency groups, use the top-level\n`[dependency-groups]` table for that.",
       "anyOf": [
         {
-          "$ref": "#/definitions/ToofynDependencyGroups"
+          "$ref": "#/definitions/ToolfynDependencyGroups"
         },
         {
           "type": "null"
@@ -510,10 +510,21 @@
       ]
     },
     "sources": {
-      "description": "The sources to use when resolving dependencies.\n\n`tool.fyn.sources` enriches the dependency metadata with additional sources, incorporated\nduring development. A dependency source can be a Git repository, a URL, a local path, or an\nalternative registry.\n\nSee [Dependencies](https://docs.astral.sh/fyn/concepts/projects/dependencies/) for more.",
+      "description": "The sources to use when resolving dependencies.\n\n`tool.fyn.sources` enriches the dependency metadata with additional sources, incorporated\nduring development. A dependency source can be a Git repository, a URL, a local path, or an\nalternative registry.\n\nSee [Dependencies](https://github.com/oha/fyn) for more.",
       "anyOf": [
         {
-          "$ref": "#/definitions/ToofynSources"
+          "$ref": "#/definitions/ToolfynSources"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tasks": {
+      "description": "Project tasks that can be run via `fyn run <name>`.\n\nEach task is either a command string or a table with `cmd`, `chain`,\n`description`, and `env` fields.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ToolfynTasks"
         },
         {
           "type": "null"
@@ -521,7 +532,7 @@
       ]
     },
     "torch-backend": {
-      "description": "The backend to use when fetching packages in the PyTorch ecosystem.\n\nWhen set, fyn will ignore the configured index URLs for packages in the PyTorch ecosystem,\nand will instead use the defined backend.\n\nFor example, when set to `cpu`, fyn will use the CPU-only PyTorch index; when set to `cu126`,\nuv will use the PyTorch index for CUDA 12.6.\n\nThe `auto` mode will attempt to detect the appropriate PyTorch index based on the currently\ninstalled CUDA drivers.\n\nThis setting is only respected by `fyn pip` commands.\n\nThis option is in preview and may change in any future release.",
+      "description": "The backend to use when fetching packages in the PyTorch ecosystem.\n\nWhen set, fyn will ignore the configured index URLs for packages in the PyTorch ecosystem,\nand will instead use the defined backend.\n\nFor example, when set to `cpu`, fyn will use the CPU-only PyTorch index; when set to `cu126`,\nfyn will use the PyTorch index for CUDA 12.6.\n\nThe `auto` mode will attempt to detect the appropriate PyTorch index based on the currently\ninstalled CUDA drivers.\n\nThis setting is only respected by `fyn pip` commands.\n\nThis option is in preview and may change in any future release.",
       "anyOf": [
         {
           "$ref": "#/definitions/TorchMode"
@@ -532,7 +543,7 @@
       ]
     },
     "trusted-publishing": {
-      "description": "Configure trusted publishing.\n\nBy default, fyn checks for trusted publishing when running in a supported environment, but\nignores it if it isn't configured.\n\nuv's supported environments for trusted publishing include GitHub Actions and GitLab CI/CD.",
+      "description": "Configure trusted publishing.\n\nBy default, fyn checks for trusted publishing when running in a supported environment, but\nignores it if it isn't configured.\n\nfyn's supported environments for trusted publishing include GitHub Actions and GitLab CI/CD.",
       "anyOf": [
         {
           "$ref": "#/definitions/TrustedPublishing"
@@ -557,7 +568,7 @@
       "description": "The workspace definition for the project, if any.",
       "anyOf": [
         {
-          "$ref": "#/definitions/ToofynWorkspace"
+          "$ref": "#/definitions/ToolfynWorkspace"
         },
         {
           "type": "null"
@@ -799,8 +810,36 @@
         }
       }
     },
+    "DetailedTask": {
+      "description": "A detailed task definition with optional extras.",
+      "type": "object",
+      "properties": {
+        "chain": {
+          "description": "A list of other task names to run in sequence.",
+          "type": ["array", "null"],
+          "items": {
+            "type": "string"
+          }
+        },
+        "cmd": {
+          "description": "The command to run. Mutually exclusive with `chain`.",
+          "type": ["string", "null"]
+        },
+        "description": {
+          "description": "A human-readable description, shown in `--list-tasks`.",
+          "type": ["string", "null"]
+        },
+        "env": {
+          "description": "Environment variables to set when running this task.",
+          "type": ["object", "null"],
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "DisplaySafeUrl": {
-      "description": "A [`Url`] wrapper that redacts credentials when displaying the URL.\n\n`DisplaySafeUrl` wraps the standard [`url::Url`] type, providing functionality to mask\nsecrets by default when the URL is displayed or logged. This helps prevent accidental\nexposure of sensitive information in logs and debug output.\n\n# Examples\n\n```\nuse uv_redacted::DisplaySafeUrl;\nuse std::str::FromStr;\n\n// Create a `DisplaySafeUrl` from a `&str`\nlet mut url = DisplaySafeUrl::parse(\"https://user:password@example.com\").unwrap();\n\n// Display will mask secrets\nassert_eq!(url.to_string(), \"https://user:****@example.com/\");\n\n// You can still access the username and password\nassert_eq!(url.username(), \"user\");\nassert_eq!(url.password(), Some(\"password\"));\n\n// And you can still update the username and password\nlet _ = url.set_username(\"new_user\");\nlet _ = url.set_password(Some(\"new_password\"));\nassert_eq!(url.username(), \"new_user\");\nassert_eq!(url.password(), Some(\"new_password\"));\n\n// It is also possible to remove the credentials entirely\nurl.remove_credentials();\nassert_eq!(url.username(), \"\");\nassert_eq!(url.password(), None);\n```",
+      "description": "A [`Url`] wrapper that redacts credentials when displaying the URL.\n\n`DisplaySafeUrl` wraps the standard [`url::Url`] type, providing functionality to mask\nsecrets by default when the URL is displayed or logged. This helps prevent accidental\nexposure of sensitive information in logs and debug output.\n\n# Examples\n\n```\nuse fyn_redacted::DisplaySafeUrl;\nuse std::str::FromStr;\n\n// Create a `DisplaySafeUrl` from a `&str`\nlet mut url = DisplaySafeUrl::parse(\"https://user:password@example.com\").unwrap();\n\n// Display will mask secrets\nassert_eq!(url.to_string(), \"https://user:****@example.com/\");\n\n// You can still access the username and password\nassert_eq!(url.username(), \"user\");\nassert_eq!(url.password(), Some(\"password\"));\n\n// And you can still update the username and password\nlet _ = url.set_username(\"new_user\");\nlet _ = url.set_password(Some(\"new_password\"));\nassert_eq!(url.username(), \"new_user\");\nassert_eq!(url.password(), Some(\"new_password\"));\n\n// It is also possible to remove the credentials entirely\nurl.remove_credentials();\nassert_eq!(url.username(), \"\");\nassert_eq!(url.password(), None);\n```",
       "type": "string",
       "format": "uri"
     },
@@ -1051,7 +1090,7 @@
       ]
     },
     "LinkMode": {
-      "description": "The method to use when linking.\n\nDefaults to [`Clone`](LinkMode::Clone) on macOS and Linux (which support copy-on-write on\nAPFS and btrfs/xfs/bcachefs respectively), and [`Hardlink`](LinkMode::Hardlink) on other\nplatforms.",
+      "description": "The method to use when linking.\n\nDefaults to [`LinkMode::Clone`] on macOS and Linux (which support copy-on-write on\nAPFS and btrfs/xfs/bcachefs respectively), and [`LinkMode::Hardlink`] on other\nplatforms.",
       "oneOf": [
         {
           "description": "Clone (i.e., copy-on-write) packages from the source into the destination.",
@@ -1415,11 +1454,11 @@
           }
         },
         "no-strip-extras": {
-          "description": "Include extras in the output file.\n\nBy default, uv strips extras, as any packages pulled in by the extras are already included\nas dependencies in the output file directly. Further, output files generated with\n`--no-strip-extras` cannot be used as constraints files in `install` and `sync` invocations.",
+          "description": "Include extras in the output file.\n\nBy default, fyn strips extras, as any packages pulled in by the extras are already included\nas dependencies in the output file directly. Further, output files generated with\n`--no-strip-extras` cannot be used as constraints files in `install` and `sync` invocations.",
           "type": ["boolean", "null"]
         },
         "no-strip-markers": {
-          "description": "Include environment markers in the output file generated by `fyn pip compile`.\n\nBy default, uv strips environment markers, as the resolution generated by `compile` is\nonly guaranteed to be correct for the target environment.",
+          "description": "Include environment markers in the output file generated by `fyn pip compile`.\n\nBy default, fyn strips environment markers, as the resolution generated by `compile` is\nonly guaranteed to be correct for the target environment.",
           "type": ["boolean", "null"]
         },
         "only-binary": {
@@ -1505,7 +1544,7 @@
           "type": ["boolean", "null"]
         },
         "system": {
-          "description": "Install packages into the system Python environment.\n\nBy default, fyn installs into the virtual environment in the current working directory or\nany parent directory. The `--system` option instructs uv to instead use the first Python\nfound in the system `PATH`.\n\nWARNING: `--system` is intended for use in continuous integration (CI) environments and\nshould be used with caution, as it can modify the system Python installation.",
+          "description": "Install packages into the system Python environment.\n\nBy default, fyn installs into the virtual environment in the current working directory or\nany parent directory. The `--system` option instructs fyn to instead use the first Python\nfound in the system `PATH`.\n\nWARNING: `--system` is intended for use in continuous integration (CI) environments and\nshould be used with caution, as it can modify the system Python installation.",
           "type": ["boolean", "null"]
         },
         "target": {
@@ -1513,7 +1552,7 @@
           "type": ["string", "null"]
         },
         "torch-backend": {
-          "description": "The backend to use when fetching packages in the PyTorch ecosystem.\n\nWhen set, fyn will ignore the configured index URLs for packages in the PyTorch ecosystem,\nand will instead use the defined backend.\n\nFor example, when set to `cpu`, fyn will use the CPU-only PyTorch index; when set to `cu126`,\nuv will use the PyTorch index for CUDA 12.6.\n\nThe `auto` mode will attempt to detect the appropriate PyTorch index based on the currently\ninstalled CUDA drivers.\n\nThis setting is only respected by `fyn pip` commands.\n\nThis option is in preview and may change in any future release.",
+          "description": "The backend to use when fetching packages in the PyTorch ecosystem.\n\nWhen set, fyn will ignore the configured index URLs for packages in the PyTorch ecosystem,\nand will instead use the defined backend.\n\nFor example, when set to `cpu`, fyn will use the CPU-only PyTorch index; when set to `cu126`,\nfyn will use the PyTorch index for CUDA 12.6.\n\nThe `auto` mode will attempt to detect the appropriate PyTorch index based on the currently\ninstalled CUDA drivers.\n\nThis setting is only respected by `fyn pip` commands.\n\nThis option is in preview and may change in any future release.",
           "anyOf": [
             {
               "$ref": "#/definitions/TorchMode"
@@ -2224,19 +2263,53 @@
         }
       ]
     },
-    "ToofynDependencyGroups": {
+    "TaskDefinition": {
+      "description": "A task that can be run via `fyn run <name>`.\n\nSupports both a simple string form (`\"pytest -xvs\"`) and a table form\nwith optional fields like `description`, `chain`, and `env`.",
+      "oneOf": [
+        {
+          "description": "A plain command string, e.g. `test = \"pytest -xvs\"`.",
+          "type": "object",
+          "properties": {
+            "Cmd": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": ["Cmd"]
+        },
+        {
+          "description": "A table with structured options.",
+          "type": "object",
+          "properties": {
+            "Detailed": {
+              "$ref": "#/definitions/DetailedTask"
+            }
+          },
+          "additionalProperties": false,
+          "required": ["Detailed"]
+        }
+      ]
+    },
+    "ToolfynDependencyGroups": {
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/DependencyGroupSettings"
       }
     },
-    "ToofynSources": {
+    "ToolfynSources": {
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/Sources"
       }
     },
-    "ToofynWorkspace": {
+    "ToolfynTasks": {
+      "description": "A map of task names to their definitions, as declared in `[tool.fyn.tasks]`.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/TaskDefinition"
+      }
+    },
+    "ToolfynWorkspace": {
       "type": "object",
       "properties": {
         "exclude": {

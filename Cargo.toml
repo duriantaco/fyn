@@ -16,77 +16,77 @@ authors = ["fyn"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-fyn-audit = { version = "0.0.32", path = "crates/fyn-audit" }
-fyn-auth = { version = "0.0.32", path = "crates/fyn-auth" }
-fyn-bin-install = { version = "0.0.32", path = "crates/fyn-bin-install" }
-fyn-build-backend = { version = "0.0.32", path = "crates/fyn-build-backend" }
-fyn-build-frontend = { version = "0.0.32", path = "crates/fyn-build-frontend" }
-fyn-cache = { version = "0.0.32", path = "crates/fyn-cache" }
-fyn-cache-info = { version = "0.0.32", path = "crates/fyn-cache-info" }
-fyn-cache-key = { version = "0.0.32", path = "crates/fyn-cache-key" }
-fyn-cli = { version = "0.0.32", path = "crates/fyn-cli" }
-fyn-client = { version = "0.0.32", path = "crates/fyn-client" }
-fyn-configuration = { version = "0.0.32", path = "crates/fyn-configuration" }
-fyn-console = { version = "0.0.32", path = "crates/fyn-console" }
-fyn-dirs = { version = "0.0.32", path = "crates/fyn-dirs" }
-fyn-dispatch = { version = "0.0.32", path = "crates/fyn-dispatch" }
-fyn-distribution = { version = "0.0.32", path = "crates/fyn-distribution" }
-fyn-distribution-filename = { version = "0.0.32", path = "crates/fyn-distribution-filename" }
-fyn-distribution-types = { version = "0.0.32", path = "crates/fyn-distribution-types" }
-fyn-extract = { version = "0.0.32", path = "crates/fyn-extract" }
-fyn-flags = { version = "0.0.32", path = "crates/fyn-flags" }
-fyn-fs = { version = "0.0.32", path = "crates/fyn-fs", features = [
+fyn-audit = { version = "0.0.33", path = "crates/fyn-audit" }
+fyn-auth = { version = "0.0.33", path = "crates/fyn-auth" }
+fyn-bin-install = { version = "0.0.33", path = "crates/fyn-bin-install" }
+fyn-build-backend = { version = "0.0.33", path = "crates/fyn-build-backend" }
+fyn-build-frontend = { version = "0.0.33", path = "crates/fyn-build-frontend" }
+fyn-cache = { version = "0.0.33", path = "crates/fyn-cache" }
+fyn-cache-info = { version = "0.0.33", path = "crates/fyn-cache-info" }
+fyn-cache-key = { version = "0.0.33", path = "crates/fyn-cache-key" }
+fyn-cli = { version = "0.0.33", path = "crates/fyn-cli" }
+fyn-client = { version = "0.0.33", path = "crates/fyn-client" }
+fyn-configuration = { version = "0.0.33", path = "crates/fyn-configuration" }
+fyn-console = { version = "0.0.33", path = "crates/fyn-console" }
+fyn-dirs = { version = "0.0.33", path = "crates/fyn-dirs" }
+fyn-dispatch = { version = "0.0.33", path = "crates/fyn-dispatch" }
+fyn-distribution = { version = "0.0.33", path = "crates/fyn-distribution" }
+fyn-distribution-filename = { version = "0.0.33", path = "crates/fyn-distribution-filename" }
+fyn-distribution-types = { version = "0.0.33", path = "crates/fyn-distribution-types" }
+fyn-extract = { version = "0.0.33", path = "crates/fyn-extract" }
+fyn-flags = { version = "0.0.33", path = "crates/fyn-flags" }
+fyn-fs = { version = "0.0.33", path = "crates/fyn-fs", features = [
   "serde",
   "tokio",
 ] }
-fyn-git = { version = "0.0.32", path = "crates/fyn-git" }
-fyn-git-types = { version = "0.0.32", path = "crates/fyn-git-types" }
-fyn-globfilter = { version = "0.0.32", path = "crates/fyn-globfilter" }
-fyn-install-wheel = { version = "0.0.32", path = "crates/fyn-install-wheel", default-features = false }
-fyn-installer = { version = "0.0.32", path = "crates/fyn-installer" }
-fyn-keyring = { version = "0.0.32", path = "crates/fyn-keyring" }
-fyn-logging = { version = "0.0.32", path = "crates/fyn-logging" }
-fyn-macros = { version = "0.0.32", path = "crates/fyn-macros" }
-fyn-metadata = { version = "0.0.32", path = "crates/fyn-metadata" }
-fyn-normalize = { version = "0.0.32", path = "crates/fyn-normalize" }
-fyn-once-map = { version = "0.0.32", path = "crates/fyn-once-map" }
-fyn-options-metadata = { version = "0.0.32", path = "crates/fyn-options-metadata" }
-fyn-performance-memory-allocator = { version = "0.0.32", path = "crates/fyn-performance-memory-allocator" }
-fyn-pep440 = { version = "0.0.32", path = "crates/fyn-pep440", features = [
+fyn-git = { version = "0.0.33", path = "crates/fyn-git" }
+fyn-git-types = { version = "0.0.33", path = "crates/fyn-git-types" }
+fyn-globfilter = { version = "0.0.33", path = "crates/fyn-globfilter" }
+fyn-install-wheel = { version = "0.0.33", path = "crates/fyn-install-wheel", default-features = false }
+fyn-installer = { version = "0.0.33", path = "crates/fyn-installer" }
+fyn-keyring = { version = "0.0.33", path = "crates/fyn-keyring" }
+fyn-logging = { version = "0.0.33", path = "crates/fyn-logging" }
+fyn-macros = { version = "0.0.33", path = "crates/fyn-macros" }
+fyn-metadata = { version = "0.0.33", path = "crates/fyn-metadata" }
+fyn-normalize = { version = "0.0.33", path = "crates/fyn-normalize" }
+fyn-once-map = { version = "0.0.33", path = "crates/fyn-once-map" }
+fyn-options-metadata = { version = "0.0.33", path = "crates/fyn-options-metadata" }
+fyn-performance-memory-allocator = { version = "0.0.33", path = "crates/fyn-performance-memory-allocator" }
+fyn-pep440 = { version = "0.0.33", path = "crates/fyn-pep440", features = [
   "tracing",
   "rkyv",
   "version-ranges",
 ] }
-fyn-pep508 = { version = "0.0.32", path = "crates/fyn-pep508", features = [
+fyn-pep508 = { version = "0.0.33", path = "crates/fyn-pep508", features = [
   "non-pep508-extensions",
 ] }
-fyn-platform = { version = "0.0.32", path = "crates/fyn-platform" }
-fyn-platform-tags = { version = "0.0.32", path = "crates/fyn-platform-tags" }
-fyn-preview = { version = "0.0.32", path = "crates/fyn-preview" }
-fyn-publish = { version = "0.0.32", path = "crates/fyn-publish" }
-fyn-pypi-types = { version = "0.0.32", path = "crates/fyn-pypi-types" }
-fyn-python = { version = "0.0.32", path = "crates/fyn-python" }
-fyn-redacted = { version = "0.0.32", path = "crates/fyn-redacted" }
-fyn-requirements = { version = "0.0.32", path = "crates/fyn-requirements" }
-fyn-requirements-txt = { version = "0.0.32", path = "crates/fyn-requirements-txt" }
-fyn-resolver = { version = "0.0.32", path = "crates/fyn-resolver" }
-fyn-scripts = { version = "0.0.32", path = "crates/fyn-scripts" }
-fyn-settings = { version = "0.0.32", path = "crates/fyn-settings" }
-fyn-shell = { version = "0.0.32", path = "crates/fyn-shell" }
-fyn-small-str = { version = "0.0.32", path = "crates/fyn-small-str" }
-fyn-state = { version = "0.0.32", path = "crates/fyn-state" }
-fyn-static = { version = "0.0.32", path = "crates/fyn-static" }
-fyn-test = { version = "0.0.32", path = "crates/fyn-test" }
-fyn-tool = { version = "0.0.32", path = "crates/fyn-tool" }
-fyn-torch = { version = "0.0.32", path = "crates/fyn-torch" }
-fyn-trampoline-builder = { version = "0.0.32", path = "crates/fyn-trampoline-builder" }
-fyn-types = { version = "0.0.32", path = "crates/fyn-types" }
-fyn-unix = { version = "0.0.32", path = "crates/fyn-unix" }
-fyn-version = { version = "0.10.12", path = "crates/fyn-version" }
-fyn-virtualenv = { version = "0.0.32", path = "crates/fyn-virtualenv" }
-fyn-warnings = { version = "0.0.32", path = "crates/fyn-warnings" }
-fyn-windows = { version = "0.0.32", path = "crates/fyn-windows" }
-fyn-workspace = { version = "0.0.32", path = "crates/fyn-workspace" }
+fyn-platform = { version = "0.0.33", path = "crates/fyn-platform" }
+fyn-platform-tags = { version = "0.0.33", path = "crates/fyn-platform-tags" }
+fyn-preview = { version = "0.0.33", path = "crates/fyn-preview" }
+fyn-publish = { version = "0.0.33", path = "crates/fyn-publish" }
+fyn-pypi-types = { version = "0.0.33", path = "crates/fyn-pypi-types" }
+fyn-python = { version = "0.0.33", path = "crates/fyn-python" }
+fyn-redacted = { version = "0.0.33", path = "crates/fyn-redacted" }
+fyn-requirements = { version = "0.0.33", path = "crates/fyn-requirements" }
+fyn-requirements-txt = { version = "0.0.33", path = "crates/fyn-requirements-txt" }
+fyn-resolver = { version = "0.0.33", path = "crates/fyn-resolver" }
+fyn-scripts = { version = "0.0.33", path = "crates/fyn-scripts" }
+fyn-settings = { version = "0.0.33", path = "crates/fyn-settings" }
+fyn-shell = { version = "0.0.33", path = "crates/fyn-shell" }
+fyn-small-str = { version = "0.0.33", path = "crates/fyn-small-str" }
+fyn-state = { version = "0.0.33", path = "crates/fyn-state" }
+fyn-static = { version = "0.0.33", path = "crates/fyn-static" }
+fyn-test = { version = "0.0.33", path = "crates/fyn-test" }
+fyn-tool = { version = "0.0.33", path = "crates/fyn-tool" }
+fyn-torch = { version = "0.0.33", path = "crates/fyn-torch" }
+fyn-trampoline-builder = { version = "0.0.33", path = "crates/fyn-trampoline-builder" }
+fyn-types = { version = "0.0.33", path = "crates/fyn-types" }
+fyn-unix = { version = "0.0.33", path = "crates/fyn-unix" }
+fyn-version = { version = "0.10.13", path = "crates/fyn-version" }
+fyn-virtualenv = { version = "0.0.33", path = "crates/fyn-virtualenv" }
+fyn-warnings = { version = "0.0.33", path = "crates/fyn-warnings" }
+fyn-windows = { version = "0.0.33", path = "crates/fyn-windows" }
+fyn-workspace = { version = "0.0.33", path = "crates/fyn-workspace" }
 
 ambient-id = { version = "0.0.10", default-features = false, features = [
   "astral-reqwest-middleware",

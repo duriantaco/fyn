@@ -113,7 +113,7 @@ dependencies = []
 example-pkg = "example_pkg:main"
 
 [build-system]
-requires = ["fyn_build>=0.10.12,<0.11.0"]
+requires = ["fyn_build>=0.10.13,<0.11.0"]
 build-backend = "fyn_build"
 ```
 
@@ -136,7 +136,7 @@ dependencies = []
 example-pkg = "example_pkg:main"
 
 [build-system]
-requires = ["fyn_build>=0.10.12,<0.11.0"]
+requires = ["fyn_build>=0.10.13,<0.11.0"]
 build-backend = "fyn_build"
 ```
 
@@ -197,7 +197,7 @@ requires-python = ">=3.11"
 dependencies = []
 
 [build-system]
-requires = ["fyn_build>=0.10.12,<0.11.0"]
+requires = ["fyn_build>=0.10.13,<0.11.0"]
 build-backend = "fyn_build"
 ```
 

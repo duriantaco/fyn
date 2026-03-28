@@ -19,7 +19,7 @@ To make sure your `fyn.lock` file is up to date even if your `pyproject.toml` fi
 repos:
   - repo: https://github.com/oha/fyn-pre-commit
     # fyn version.
-    rev: 0.10.12
+    rev: 0.10.13
     hooks:
       - id: fyn-lock
 ```
@@ -30,7 +30,7 @@ To keep a `requirements.txt` file in sync with your `fyn.lock` file:
 repos:
   - repo: https://github.com/oha/fyn-pre-commit
     # fyn version.
-    rev: 0.10.12
+    rev: 0.10.13
     hooks:
       - id: fyn-export
 ```
@@ -41,7 +41,7 @@ To compile requirements files:
 repos:
   - repo: https://github.com/oha/fyn-pre-commit
     # fyn version.
-    rev: 0.10.12
+    rev: 0.10.13
     hooks:
       # Compile requirements
       - id: pip-compile
@@ -54,7 +54,7 @@ To compile alternative requirements files, modify `args` and `files`:
 repos:
   - repo: https://github.com/oha/fyn-pre-commit
     # fyn version.
-    rev: 0.10.12
+    rev: 0.10.13
     hooks:
       # Compile requirements
       - id: pip-compile
@@ -68,7 +68,7 @@ To run the hook over multiple files at the same time, add additional entries:
 repos:
   - repo: https://github.com/oha/fyn-pre-commit
     # fyn version.
-    rev: 0.10.12
+    rev: 0.10.13
     hooks:
       # Compile requirements
       - id: pip-compile

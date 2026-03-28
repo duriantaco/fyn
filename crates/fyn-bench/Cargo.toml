@@ -1,6 +1,6 @@
 [package]
 name = "fyn-bench"
-version = "0.0.32"
+version = "0.0.33"
 description = "This is an internal component crate of fyn"
 publish = false
 authors = { workspace = true }

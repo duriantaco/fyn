@@ -22,7 +22,7 @@ echo "Updating crate READMEs..."
 
 echo "Updating lockfiles..."
 cargo update -p fyn
-pushd crates/fyn-trampoline; cargo update -p uv-trampoline; popd
+pushd crates/fyn-trampoline; cargo update; popd
 "${fyn_cmd[@]}" lock
 
 echo "Generating JSON schema..."
