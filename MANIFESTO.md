@@ -4,8 +4,8 @@
 [uv](https://github.com/astral-sh/uv), which is the fastest Python package installer around, with a
 smaller package-index `User-Agent`, missing features added, and bugs fixed.
 
-If you've used uv, you already know fyn. Same commands, same speed, easy migration. The main
-behavior differences are below.
+If you've used uv, fyn should feel familiar. Most day-to-day commands carry over, migration is
+usually straightforward, and the main behavior differences are below.
 
 ## Why fork uv?
 

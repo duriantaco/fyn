@@ -109,7 +109,7 @@ FROM python:3.12-slim-trixie
 COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
 ```
 
-Or, with the installer:
+Or, with an installer script you downloaded from a GitHub release:
 
 ```dockerfile title="Dockerfile"
 FROM python:3.12-slim-trixie
@@ -117,8 +117,8 @@ FROM python:3.12-slim-trixie
 # The installer requires curl (and certificates) to download the release archive
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
 
-# Download the latest installer
-ADD https://astral.sh/fyn/install.sh /fyn-installer.sh
+# Copy a release installer script into the build context first
+COPY install.sh /fyn-installer.sh
 
 # Run the installer then remove it
 RUN sh /fyn-installer.sh && rm /fyn-installer.sh
@@ -147,11 +147,8 @@ COPY --from=ghcr.io/oha/fyn:0.10.13 /fyn /fynx /bin/
     COPY --from=ghcr.io/oha/fyn@sha256:2381d6aa60c326b71fd40023f921a0a3b8f91b14d5db6b90402e65a635053709 /fyn /fynx /bin/
     ```
 
-Or, with the installer:
-
-```dockerfile
-ADD https://astral.sh/fyn/0.10.13/install.sh /fyn-installer.sh
-```
+Or, if you prefer the installer flow, use the same `COPY install.sh /fyn-installer.sh` pattern with
+an installer script from the release you want to pin.
 
 ### Installing a project
 

@@ -29,32 +29,24 @@ An extremely fast Python package and project manager, written in Rust.
   CLI.
 - Supports Cargo-style [workspaces](./concepts/projects/workspaces.md) for scalable projects.
 - Disk-space efficient, with a [global cache](./concepts/cache.md) for dependency deduplication.
-- Installable without Rust or Python via `curl` or `pip`.
+- Installable without Rust or Python via prebuilt distributions or `pip`.
 - Supports macOS, Linux, and Windows.
 
 fyn is an independent community fork of [uv](https://github.com/astral-sh/uv).
 
 ## Installation
 
-Install fyn with our official standalone installer:
+Install fyn with `pipx`:
 
-=== "macOS and Linux"
-
-    ```console
-    $ curl -LsSf https://astral.sh/fyn/install.sh | sh
-    ```
-
-=== "Windows"
-
-    ```pwsh-session
-    PS> powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/fyn/install.ps1 | iex"
-    ```
+```console
+$ pipx install fyn
+```
 
 Then, check out the [first steps](./getting-started/first-steps.md) or read on for a brief overview.
 
 !!! tip
 
-    fyn may also be installed with pip, Homebrew, and more. See all of the methods on the
+    fyn may also be installed with standalone release assets, Homebrew, and more. See all of the methods on the
     [installation page](./getting-started/installation.md).
 
 ## Projects
@@ -198,14 +190,15 @@ See the [installing Python guide](./guides/install-python.md) to get started.
 
 ## The pip interface
 
-fyn provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands.
+fyn provides a fast, pip-compatible interface for common `pip`, `pip-tools`, and `virtualenv`
+workflows.
 
 fyn extends their interfaces with advanced features, such as dependency version overrides,
 platform-independent resolutions, reproducible resolutions, alternative resolution strategies, and
 more.
 
-Migrate to fyn without changing your existing workflows — and experience a 10-100x speedup — with
-the `fyn pip` interface.
+For many common workflows, you can switch to the `fyn pip` interface with minimal changes and keep
+the same overall workflow shape, while getting a 10-100x speedup.
 
 Compile requirements into a platform-independent requirements file:
 

@@ -1,10 +1,10 @@
 # Compatibility with `pip` and `pip-tools`
 
-fyn is designed as a drop-in replacement for common `pip` and `pip-tools` workflows.
+fyn is designed to be highly compatible with common `pip` and `pip-tools` workflows.
 
-Informally, the intent is such that existing `pip` and `pip-tools` users can switch to fyn without
-making meaningful changes to their packaging workflows; and, in most cases, swapping out
-`pip install` for `fyn pip install` should "just work".
+Informally, the intent is that existing `pip` and `pip-tools` users can switch to fyn with minimal
+changes to their packaging workflows; and, in many common cases, swapping out `pip install` for
+`fyn pip install` should "just work".
 
 However, fyn is _not_ intended to be an _exact_ clone of `pip`, and the further you stray from
 common `pip` workflows, the more likely you are to encounter differences in behavior. In some cases,

@@ -2,47 +2,26 @@
 
 ## Installation methods
 
-Install fyn with our standalone installers or your package manager of choice.
+Install fyn with PyPI, GitHub release assets, or your package manager of choice.
 
 ### Standalone installer
 
-fyn provides a standalone installer to download and install fyn:
+When a release includes standalone installer scripts, download the matching script from the
+[GitHub release page](https://github.com/oha/fyn/releases) and run it locally:
 
 === "macOS and Linux"
 
-    Use `curl` to download the script and execute it with `sh`:
-
     ```console
-    $ curl -LsSf https://github.com/oha/fyn/releases/latest/download/install.sh | sh
-    ```
-
-    If your system doesn't have `curl`, you can use `wget`:
-
-    ```console
-    $ wget -qO- https://github.com/oha/fyn/releases/latest/download/install.sh | sh
-    ```
-
-    Request a specific version by including it in the URL:
-
-    ```console
-    $ curl -LsSf https://github.com/oha/fyn/releases/download/0.10.13/install.sh | sh
+    $ sh install.sh
     ```
 
 === "Windows"
 
-    Use `irm` to download the script and execute it with `iex`:
-
     ```pwsh-session
-    PS> powershell -ExecutionPolicy ByPass -c "irm https://github.com/oha/fyn/releases/latest/download/install.ps1 | iex"
+    PS> powershell -ExecutionPolicy ByPass -File .\install.ps1
     ```
 
     Changing the [execution policy](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.4#powershell-execution-policies) allows running a script from the internet.
-
-    Request a specific version by including it in the URL:
-
-    ```pwsh-session
-    PS> powershell -ExecutionPolicy ByPass -c "irm https://github.com/oha/fyn/releases/download/0.10.13/install.ps1 | iex"
-    ```
 
 !!! tip
 
@@ -51,16 +30,17 @@ fyn provides a standalone installer to download and install fyn:
     === "macOS and Linux"
 
         ```console
-        $ curl -LsSf https://github.com/oha/fyn/releases/latest/download/install.sh | less
+        $ less install.sh
         ```
 
     === "Windows"
 
         ```pwsh-session
-        PS> powershell -c "irm https://github.com/oha/fyn/releases/latest/download/install.ps1 | more"
+        PS> Get-Content .\install.ps1
         ```
 
-    Alternatively, the installer or binaries can be downloaded directly from [GitHub](#github-releases).
+    Alternatively, use `pipx install fyn`, or download a platform archive directly from
+    [GitHub Releases](#github-releases).
 
 See the reference documentation on the [installer](../reference/installer.md) for details on
 customizing your fyn installation.
@@ -132,8 +112,8 @@ See our guide on [using fyn in Docker](../guides/integration/docker.md) for more
 fyn release artifacts can be downloaded directly from
 [GitHub Releases](https://github.com/oha/fyn/releases).
 
-Each release page includes binaries for all supported platforms as well as instructions for using
-the standalone installer via GitHub.
+Each release page includes binaries for supported platforms, and may also include standalone
+installer scripts.
 
 ### Cargo
 
