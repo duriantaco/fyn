@@ -43,12 +43,9 @@ def main(target: str) -> None:
     # Replace the benchmark images based on the target.
     with Path("README.md").open(encoding="utf8") as fp:
         content = fp.read()
-        if GITHUB not in content:
-            msg = "README.md is not in the expected format."
-            raise ValueError(msg)
-
     if target == "pypi":
-        content = content.replace(GITHUB, PYPI)
+        if GITHUB in content:
+            content = content.replace(GITHUB, PYPI)
     else:
         msg = f"Unknown target: {target}"
         raise ValueError(msg)
@@ -61,6 +58,10 @@ def main(target: str) -> None:
             version = pyproject["project"]["version"]
         else:
             raise ValueError("Version not found in pyproject.toml")
+        if "urls" in pyproject["project"] and "Repository" in pyproject["project"]["urls"]:
+            repository = pyproject["project"]["urls"]["Repository"].rstrip("/")
+        else:
+            raise ValueError("Repository URL not found in pyproject.toml")
 
     # Replace the badges with versioned URLs.
     for existing, replacement in [
@@ -77,16 +78,15 @@ def main(target: str) -> None:
             f"https://img.shields.io/pypi/fynersions/fyn/{version}.svg",
         ),
     ]:
-        if existing not in content:
-            raise ValueError(f"Badge not found in README.md: {existing}")
-        content = content.replace(existing, replacement)
+        if existing in content:
+            content = content.replace(existing, replacement)
 
     # Replace any relative URLs (e.g., `[PIP_COMPATIBILITY.md`) with absolute URLs.
     def replace(match: re.Match) -> str:
         url = match.group(1)
         if not url.startswith("http"):
             url = urllib.parse.urljoin(
-                f"https://github.com/astral-sh/fyn/blob/{version}/README.md", url
+                f"{repository}/blob/{version}/README.md", url
             )
         return f"]({url})"
 
