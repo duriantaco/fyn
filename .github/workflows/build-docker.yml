@@ -54,25 +54,27 @@ jobs:
           TAG: ${{ inputs.plan != '' && fromJson(inputs.plan).announcement_tag }}
           PUSH_DEV: ${{ inputs.push-dev }}
           IS_LOCAL_PR: ${{ github.event.pull_request.head.repo.full_name == 'oha/fyn' }}
+          HAS_DOCKERHUB_RO: ${{ secrets.DOCKERHUB_TOKEN_RO != '' }}
+          HAS_DOCKERHUB_RW: ${{ secrets.DOCKERHUB_TOKEN_RW != '' }}
         id: plan
         run: |
-          if [ "${PUSH_DEV}" == "true" ] && [ "${IS_LOCAL_PR}" == "true" ]; then
+          if [ "${PUSH_DEV}" == "true" ] && [ "${IS_LOCAL_PR}" == "true" ] && [ "${HAS_DOCKERHUB_RW}" == "true" ]; then
             echo "login=true" >> "$GITHUB_OUTPUT"
             echo "push=true" >> "$GITHUB_OUTPUT"
             echo "push-version=false" >> "$GITHUB_OUTPUT"
             echo "tag=sha" >> "$GITHUB_OUTPUT"
             echo "action=build and publish to fyn-dev" >> "$GITHUB_OUTPUT"
-          elif [ "${DRY_RUN}" == "false" ]; then
+          elif [ "${DRY_RUN}" == "false" ] && [ "${HAS_DOCKERHUB_RW}" == "true" ]; then
             echo "login=true" >> "$GITHUB_OUTPUT"
             echo "push=true" >> "$GITHUB_OUTPUT"
             echo "push-version=true" >> "$GITHUB_OUTPUT"
             echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
             echo "action=build and publish" >> "$GITHUB_OUTPUT"
           else
-            echo "login=${IS_LOCAL_PR}" >> "$GITHUB_OUTPUT"
+            echo "login=${HAS_DOCKERHUB_RO}" >> "$GITHUB_OUTPUT"
             echo "push=false" >> "$GITHUB_OUTPUT"
             echo "push-version=false" >> "$GITHUB_OUTPUT"
-            echo "tag=dry-run" >> "$GITHUB_OUTPUT"
+            echo "tag=${TAG:-dry-run}" >> "$GITHUB_OUTPUT"
             echo "action=build" >> "$GITHUB_OUTPUT"
           fi
 
