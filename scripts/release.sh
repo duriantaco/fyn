@@ -6,27 +6,28 @@ set -eu
 
 script_root="$(realpath "$(dirname "$0")")"
 project_root="$(dirname "$script_root")"
+fyn_cmd=(cargo run --bin fyn --)
 
 echo "Updating metadata with rooster..."
 cd "$project_root"
 
 # Update the changelog
-fynx --python 3.12 rooster@0.1.1 release "$@"
+"${fyn_cmd[@]}" tool run --python 3.12 rooster@0.1.1 release "$@"
 
 # Bump library crate versions
-fyn run "$project_root/scripts/bump-workspace-crate-versions.py"
+"${fyn_cmd[@]}" run "$project_root/scripts/bump-workspace-crate-versions.py"
 
 echo "Updating crate READMEs..."
-fyn run "$project_root/scripts/generate-crate-readmes.py"
+"${fyn_cmd[@]}" run "$project_root/scripts/generate-crate-readmes.py"
 
 echo "Updating lockfiles..."
-cargo update -p uv
+cargo update -p fyn
 pushd crates/fyn-trampoline; cargo update -p uv-trampoline; popd
-fyn lock
+"${fyn_cmd[@]}" lock
 
 echo "Generating JSON schema..."
 cargo dev generate-json-schema
 
 echo "Creating release branch..."
-git checkout -b "release/$(fyn version --short)"
-git commit -am "Bump version to $(fyn version --short)"
+git checkout -b "release/$("${fyn_cmd[@]}" version --short)"
+git commit -am "Bump version to $("${fyn_cmd[@]}" version --short)"
