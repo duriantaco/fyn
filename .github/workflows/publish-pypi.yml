@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: release
+      deployment: false
     permissions:
       actions: read
       contents: read
@@ -53,13 +54,14 @@ jobs:
             gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" -n "$artifact" -D wheels_fyn
           done
       - name: Publish to PyPI
-        run: uv publish -v wheels_fyn/*
+        run: uv publish --trusted-publishing always -v wheels_fyn/*
 
   pypi-publish-fyn-build:
     name: Upload fyn-build to PyPI
     runs-on: ubuntu-latest
     environment:
       name: release
+      deployment: false
     permissions:
       actions: read
       contents: read
@@ -90,4 +92,4 @@ jobs:
             gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" -n "$artifact" -D wheels_fyn_build
           done
       - name: Publish to PyPI
-        run: uv publish -v wheels_fyn_build/*
+        run: uv publish --trusted-publishing always -v wheels_fyn_build/*
