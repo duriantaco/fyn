@@ -119,6 +119,7 @@ jobs:
       - plan
       - custom-build-release-binaries
       - custom-build-docker
+    if: ${{ always() && needs.plan.result == 'success' && (needs.custom-build-release-binaries.result == 'skipped' || needs.custom-build-release-binaries.result == 'success') && (needs.custom-build-docker.result == 'skipped' || needs.custom-build-docker.result == 'success') }}
     runs-on: "ubuntu-latest"
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -287,6 +288,11 @@ jobs:
         run: |
           # Write and read notes from a file to avoid quoting breaking things
           echo "$ANNOUNCEMENT_BODY" > $RUNNER_TEMP/notes.txt
+          python3 scripts/normalize_release_notes.py \
+            --notes-file "$RUNNER_TEMP/notes.txt" \
+            --artifacts-dir artifacts \
+            --repo "${GITHUB_REPOSITORY}" \
+            --tag "${{ needs.plan.outputs.tag }}"
 
           gh release create "${{ needs.plan.outputs.tag }}" --target "$RELEASE_COMMIT" $PRERELEASE_FLAG --title "$ANNOUNCEMENT_TITLE" --notes-file "$RUNNER_TEMP/notes.txt" artifacts/*
 

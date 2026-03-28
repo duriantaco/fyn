@@ -7,6 +7,14 @@
 
 Released on 2026-03-28.
 
+### Highlights
+
+- Added `fyn pip download`.
+- Added `fyn pip index versions`.
+- Added `fyn pip upgrade --all`.
+- Stabilized `fyn python install --default`.
+- Fixed export output for conflicting workspace members.
+
 ### Other changes
 
 - Release/hygiene 0.10.13 ([#53](https://github.com/duriantaco/fyn/pull/53))

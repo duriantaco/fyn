@@ -215,10 +215,11 @@ Pinned `.python-version` to `3.11`
 
 ### The pip interface
 
-fyn provides a drop-in replacement for common `pip`, `pip-tools`, and `virtualenv` commands.
+fyn provides a fast, pip-compatible interface for common `pip`, `pip-tools`, and `virtualenv`
+workflows.
 
-Migrate to fyn without changing your existing workflows — and experience a 10-100x speedup — with
-the `fyn pip` interface.
+For many common workflows, you can switch to the `fyn pip` interface with minimal changes and keep
+the same overall workflow shape, while getting a 10-100x speedup.
 
 Compile requirements into a platform-independent requirements file:
 
