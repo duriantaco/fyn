@@ -5,7 +5,7 @@
 
 ## 0.10.13
 
-Released on 2026-03-22. First release as **fyn**, a community fork of uv.
+Unreleased. First release as **fyn**, a community fork of uv.
 See [MANIFESTO.md](MANIFESTO.md) for why this exists.
 
 ### Breaking changes
@@ -22,7 +22,7 @@ See [MANIFESTO.md](MANIFESTO.md) for why this exists.
 - Add `fyn upgrade [packages...]` command to upgrade and sync dependencies in one step. Supports
   `--dry-run` and `--no-sync`
   ([astral-sh/uv#6794](https://github.com/astral-sh/uv/issues/6794))
-- Add task runner via `[tool.uv.tasks]` in `pyproject.toml`. Supports string and table forms,
+- Add task runner via `[tool.fyn.tasks]` in `pyproject.toml`. Supports string and table forms,
   `--list-tasks`, and extra arg passthrough
   ([astral-sh/uv#5903](https://github.com/astral-sh/uv/issues/5903))
 - Add `UV_CACHE_MAX_SIZE` environment variable for automatic cache size limiting with LRU
@@ -32,6 +32,14 @@ See [MANIFESTO.md](MANIFESTO.md) for why this exists.
   ([astral-sh/uv#6830](https://github.com/astral-sh/uv/issues/6830))
 - Expand environment variables (`${VAR}`) in index URLs from `pyproject.toml` and `uv.toml`
   ([astral-sh/uv#5734](https://github.com/astral-sh/uv/issues/5734))
+- Stabilize `fyn python install --default`
+  ([astral-sh/uv#6265](https://github.com/astral-sh/uv/issues/6265))
+- Add `fyn pip upgrade --all`
+  ([astral-sh/uv#1419](https://github.com/astral-sh/uv/issues/1419))
+- Add `fyn pip index versions <package>`
+  ([astral-sh/uv#2111](https://github.com/astral-sh/uv/issues/2111))
+- Add `fyn pip download`
+  ([astral-sh/uv#3163](https://github.com/astral-sh/uv/issues/3163))
 
 ### Bug fixes
 
@@ -39,11 +47,12 @@ See [MANIFESTO.md](MANIFESTO.md) for why this exists.
   ([astral-sh/uv#8253](https://github.com/astral-sh/uv/issues/8253))
 - Fix `fyn remove --group` re-sync not including the target group, causing other group packages
   to be uninstalled ([astral-sh/uv#9012](https://github.com/astral-sh/uv/issues/9012))
+- Fix export of conflicting workspace members so package and requirements exports stay intact
 
 ### Privacy
 
-- Remove linehaul telemetry module. User-Agent header is now `fyn/<version>` with no system
-  profiling
+- Remove LineHaul environment metadata from package-index requests. The package-index `User-Agent`
+  header is now `fyn/<version>`
 - Remove `releases.astral.sh` as download mirror. Downloads go to GitHub directly
 - Disable self-update (previously pointed to `astral-sh/uv` releases)
 
