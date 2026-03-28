@@ -5,60 +5,56 @@
 
 ## 0.10.13
 
-Unreleased. First release as **fyn**, a community fork of uv.
-See [MANIFESTO.md](MANIFESTO.md) for why this exists.
+Released on 2026-03-28.
 
-### Breaking changes
+### Other changes
 
-- Renamed binary from `uv` to `fyn`, `uvx` to `fynx`, `uvw` to `fynw`. All 70 workspace crates
-  renamed from `uv-*` to `fyn-*`. Configuration files and environment variables (`UV_*`) are
-  unchanged for backwards compatibility.
-
-### Enhancements
-
-- Add `fyn shell` command to spawn a new shell with the virtual environment activated. Detects
-  bash, zsh, fish, nushell, powershell, and cmd automatically
-  ([astral-sh/uv#1910](https://github.com/astral-sh/uv/issues/1910))
-- Add `fyn upgrade [packages...]` command to upgrade and sync dependencies in one step. Supports
-  `--dry-run` and `--no-sync`
-  ([astral-sh/uv#6794](https://github.com/astral-sh/uv/issues/6794))
-- Add task runner via `[tool.fyn.tasks]` in `pyproject.toml`. Supports string and table forms,
-  `--list-tasks`, and extra arg passthrough
-  ([astral-sh/uv#5903](https://github.com/astral-sh/uv/issues/5903))
-- Add `UV_CACHE_MAX_SIZE` environment variable for automatic cache size limiting with LRU
-  eviction. Supports `K`, `M`, `G`, and `T` suffixes
-  ([astral-sh/uv#5731](https://github.com/astral-sh/uv/issues/5731))
-- Add `UV_LOCKFILE` environment variable to override the default lockfile name
-  ([astral-sh/uv#6830](https://github.com/astral-sh/uv/issues/6830))
-- Expand environment variables (`${VAR}`) in index URLs from `pyproject.toml` and `uv.toml`
-  ([astral-sh/uv#5734](https://github.com/astral-sh/uv/issues/5734))
-- Stabilize `fyn python install --default`
-  ([astral-sh/uv#6265](https://github.com/astral-sh/uv/issues/6265))
-- Add `fyn pip upgrade --all`
-  ([astral-sh/uv#1419](https://github.com/astral-sh/uv/issues/1419))
-- Add `fyn pip index versions <package>`
-  ([astral-sh/uv#2111](https://github.com/astral-sh/uv/issues/2111))
-- Add `fyn pip download`
-  ([astral-sh/uv#3163](https://github.com/astral-sh/uv/issues/3163))
-
-### Bug fixes
-
-- Fix explicit index not respected for transitive dependencies
-  ([astral-sh/uv#8253](https://github.com/astral-sh/uv/issues/8253))
-- Fix `fyn remove --group` re-sync not including the target group, causing other group packages
-  to be uninstalled ([astral-sh/uv#9012](https://github.com/astral-sh/uv/issues/9012))
-- Fix export of conflicting workspace members so package and requirements exports stay intact
-
-### Privacy
-
-- Remove LineHaul environment metadata from package-index requests. The package-index `User-Agent`
-  header is now `fyn/<version>`
-- Remove `releases.astral.sh` as download mirror. Downloads go to GitHub directly
-- Disable self-update (previously pointed to `astral-sh/uv` releases)
-
-### Internal
-
-- Update all crate READMEs and documentation links
-- Replace `panic!()` with `.expect()` in lockfile path handling
-- Add path traversal protection on `UV_LOCKFILE` environment variable
-- Fix `CARGO_BIN_EXE` compile-time reference in test framework for renamed binary
+- Release/hygiene 0.10.13 ([#53](https://github.com/duriantaco/fyn/pull/53))
+- chore: rename remaining uv-build labels ([#14](https://github.com/duriantaco/fyn/pull/14))
+- ci: add back check-docs ([#34](https://github.com/duriantaco/fyn/pull/34))
+- ci: add back check-generated-files ([#36](https://github.com/duriantaco/fyn/pull/36))
+- ci: fix check-generated-files path ([#35](https://github.com/duriantaco/fyn/pull/35))
+- ci: fix docs build and python bootstrap ([#45](https://github.com/duriantaco/fyn/pull/45))
+- ci: stabilize required checks ([#3](https://github.com/duriantaco/fyn/pull/3))
+- docs: clarify package-index header wording ([#15](https://github.com/duriantaco/fyn/pull/15))
+- docs: clarify request metadata claims ([#10](https://github.com/duriantaco/fyn/pull/10))
+- docs: sync selected upstream docs updates ([#46](https://github.com/duriantaco/fyn/pull/46))
+- docs: tighten uv comparison and request metadata wording ([#52](https://github.com/duriantaco/fyn/pull/52))
+- docs: update fyn_build references ([#12](https://github.com/duriantaco/fyn/pull/12))
+- feat: add pip download ([#51](https://github.com/duriantaco/fyn/pull/51))
+- feat: add pip index versions ([#50](https://github.com/duriantaco/fyn/pull/50))
+- feat: add pip upgrade --all ([#49](https://github.com/duriantaco/fyn/pull/49))
+- feat: stabilize python install --default ([#47](https://github.com/duriantaco/fyn/pull/47))
+- fix: align build backend package naming ([#6](https://github.com/duriantaco/fyn/pull/6))
+- fix: align fyn-build Python package layout ([#11](https://github.com/duriantaco/fyn/pull/11))
+- fix: export conflicting workspace members correctly ([#48](https://github.com/duriantaco/fyn/pull/48))
+- test: finish export fixtures ([#41](https://github.com/duriantaco/fyn/pull/41))
+- test: finish pip compile fixtures ([#43](https://github.com/duriantaco/fyn/pull/43))
+- test: finish pip install fixtures ([#42](https://github.com/duriantaco/fyn/pull/42))
+- test: finish run fixtures ([#30](https://github.com/duriantaco/fyn/pull/30))
+- test: finish sync fixtures ([#32](https://github.com/duriantaco/fyn/pull/32))
+- test: fix force-pep517 build fixture ([#44](https://github.com/duriantaco/fyn/pull/44))
+- test: fix fyn-build-backend fixture snapshots ([#16](https://github.com/duriantaco/fyn/pull/16))
+- test: update build backend fixtures ([#7](https://github.com/duriantaco/fyn/pull/7))
+- test: update build-related fixtures ([#9](https://github.com/duriantaco/fyn/pull/9))
+- test: update edit fixtures ([#13](https://github.com/duriantaco/fyn/pull/13))
+- test: update export cyclonedx fixtures ([#39](https://github.com/duriantaco/fyn/pull/39))
+- test: update export cyclonedx workspace fixtures ([#40](https://github.com/duriantaco/fyn/pull/40))
+- test: update export pylock fixtures ([#38](https://github.com/duriantaco/fyn/pull/38))
+- test: update export requirements fixtures ([#33](https://github.com/duriantaco/fyn/pull/33))
+- test: update export workspace fixtures ([#37](https://github.com/duriantaco/fyn/pull/37))
+- test: update init fixtures ([#8](https://github.com/duriantaco/fyn/pull/8))
+- test: update local lock fixtures ([#23](https://github.com/duriantaco/fyn/pull/23))
+- test: update lock editable fixtures ([#22](https://github.com/duriantaco/fyn/pull/22))
+- test: update lock fixtures  ([#19](https://github.com/duriantaco/fyn/pull/19))
+- test: update lock fixtures part 2 ([#20](https://github.com/duriantaco/fyn/pull/20))
+- test: update lock fixtures part 3 ([#21](https://github.com/duriantaco/fyn/pull/21))
+- test: update lock index and group fixtures ([#25](https://github.com/duriantaco/fyn/pull/25))
+- test: update lock index fixtures ([#24](https://github.com/duriantaco/fyn/pull/24))
+- test: update lock script fixtures ([#26](https://github.com/duriantaco/fyn/pull/26))
+- test: update more run fixtures ([#28](https://github.com/duriantaco/fyn/pull/28))
+- test: update remaining workspace fixtures ([#18](https://github.com/duriantaco/fyn/pull/18))
+- test: update run fixtures ([#27](https://github.com/duriantaco/fyn/pull/27))
+- test: update run lock and requirements fixtures ([#29](https://github.com/duriantaco/fyn/pull/29))
+- test: update sync workspace fixtures ([#31](https://github.com/duriantaco/fyn/pull/31))
+- test: update workspace inherit-sources fixtures ([#17](https://github.com/duriantaco/fyn/pull/17))
