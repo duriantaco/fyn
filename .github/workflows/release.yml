@@ -102,7 +102,7 @@ jobs:
   custom-build-docker:
     needs:
       - plan
-    if: ${{ needs.plan.outputs.publishing == 'true' || fromJson(needs.plan.outputs.val).ci.github.pr_run_mode == 'upload' || inputs.tag == 'dry-run' }}
+    if: ${{ github.repository == 'astral-sh/uv' && (needs.plan.outputs.publishing == 'true' || fromJson(needs.plan.outputs.val).ci.github.pr_run_mode == 'upload' || inputs.tag == 'dry-run') }}
     uses: ./.github/workflows/build-docker.yml
     with:
       plan: ${{ needs.plan.outputs.val }}
