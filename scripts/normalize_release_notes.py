@@ -29,7 +29,9 @@ def replace_release_urls(body: str, repo: str, tag: str) -> str:
 
 def build_install_section(tag: str, repo: str, assets: set[str]) -> str:
     shell_asset = next((name for name in sorted(assets) if name.endswith(".sh")), None)
-    powershell_asset = next((name for name in sorted(assets) if name.endswith(".ps1")), None)
+    powershell_asset = next(
+        (name for name in sorted(assets) if name.endswith(".ps1")), None
+    )
 
     if not shell_asset and not powershell_asset:
         return ""
@@ -80,7 +82,11 @@ def normalize_notes(body: str, repo: str, tag: str, assets: set[str]) -> str:
     install_start = body.find(f"## Install fyn {tag}")
     download_start = body.find(download_heading)
     if install_start != -1 and download_start != -1 and install_start < download_start:
-        body = body[:install_start] + build_install_section(tag, repo, assets) + body[download_start:]
+        body = (
+            body[:install_start]
+            + build_install_section(tag, repo, assets)
+            + body[download_start:]
+        )
 
     table_match = re.search(
         rf"({re.escape(download_heading)}\n\n\|  File  \| Platform \| Checksum \|\n\|[-|]+\|\n(?:\|.*\n)+)",
@@ -104,7 +110,9 @@ def main() -> None:
     args = parser.parse_args()
 
     notes_path = Path(args.notes_file)
-    assets = {path.name for path in Path(args.artifacts_dir).iterdir() if path.is_file()}
+    assets = {
+        path.name for path in Path(args.artifacts_dir).iterdir() if path.is_file()
+    }
     body = notes_path.read_text()
     notes_path.write_text(normalize_notes(body, args.repo, args.tag, assets))
 
