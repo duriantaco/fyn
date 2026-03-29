@@ -11,7 +11,7 @@ permissions: {}
 
 jobs:
   sync:
-    if: github.repository == 'oha/fyn'
+    if: github.repository == 'duriantaco/fyn'
     runs-on: ubuntu-latest
     permissions:
       contents: write
