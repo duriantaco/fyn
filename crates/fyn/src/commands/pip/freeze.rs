@@ -8,7 +8,7 @@ use rustc_hash::FxHashSet;
 use tracing::debug;
 
 use fyn_cache::Cache;
-use fyn_distribution_types::{Diagnostic, InstalledDistKind, Name};
+use fyn_distribution_types::{DependencyMetadata, Diagnostic, InstalledDistKind, Name};
 use fyn_fs::Simplified;
 use fyn_installer::SitePackages;
 use fyn_normalize::PackageName;
@@ -25,6 +25,7 @@ pub(crate) fn pip_freeze(
     exclude_editable: bool,
     exclude: &FxHashSet<PackageName>,
     strict: bool,
+    dependency_metadata: &DependencyMetadata,
     python: Option<&str>,
     system: bool,
     target: Option<Target>,
@@ -124,7 +125,7 @@ pub(crate) fn pip_freeze(
         let tags = environment.interpreter().tags()?;
 
         for entry in site_packages {
-            for diagnostic in entry.diagnostics(&markers, tags)? {
+            for diagnostic in entry.diagnostics(&markers, tags, dependency_metadata)? {
                 writeln!(
                     printer.stderr(),
                     "{}{} {}",

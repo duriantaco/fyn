@@ -6,7 +6,7 @@ use owo_colors::OwoColorize;
 
 use fyn_cache::Cache;
 use fyn_configuration::TargetTriple;
-use fyn_distribution_types::{Diagnostic, InstalledDist};
+use fyn_distribution_types::{DependencyMetadata, Diagnostic, InstalledDist};
 use fyn_installer::{SitePackages, SitePackagesDiagnostic};
 use fyn_preview::Preview;
 use fyn_python::{
@@ -24,6 +24,7 @@ pub(crate) fn pip_check(
     system: bool,
     python_version: Option<&PythonVersion>,
     python_platform: Option<&TargetTriple>,
+    dependency_metadata: &DependencyMetadata,
     cache: &Cache,
     printer: Printer,
     preview: Preview,
@@ -63,7 +64,7 @@ pub(crate) fn pip_check(
 
     // Run the diagnostics.
     let diagnostics: Vec<SitePackagesDiagnostic> = site_packages
-        .diagnostics(&markers, &tags)?
+        .diagnostics(&markers, &tags, dependency_metadata)?
         .into_iter()
         .collect();
 
