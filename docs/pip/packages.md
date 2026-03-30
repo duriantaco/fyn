@@ -162,6 +162,36 @@ The first release of `fyn pip download` supports package specs, requirements fil
 groups, local wheel and source archive paths, and `--find-links` sources. It does not yet support
 Git requirements or local source tree directories.
 
+## Building wheels
+
+To build wheels into the current working directory without installing them:
+
+```console
+$ fyn pip wheel flask
+```
+
+To place built wheels in a specific directory:
+
+```console
+$ fyn pip wheel flask --wheel-dir ./packages
+```
+
+To build wheels for the packages referenced by a requirements file:
+
+```console
+$ fyn pip wheel -r requirements.txt --wheel-dir ./packages
+```
+
+To build a wheel from a local source tree:
+
+```console
+$ fyn pip wheel ./some-package --wheel-dir ./packages
+```
+
+The first release of `fyn pip wheel` supports package specs, requirements files, dependency groups,
+local wheel paths, and local source tree inputs. For source distributions, it builds a wheel into
+the target directory instead of saving the original archive.
+
 ## Upgrading installed packages
 
 To upgrade all installed packages in the current environment:

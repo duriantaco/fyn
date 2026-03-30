@@ -4,10 +4,8 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use anyhow::{Context, Result, anyhow};
-use futures::StreamExt;
 use itertools::Itertools;
 use owo_colors::OwoColorize;
-use tokio::io::AsyncWriteExt;
 use tracing::debug;
 
 use fyn_cache::Cache;
@@ -18,11 +16,11 @@ use fyn_configuration::{
     Reinstall, TargetTriple, Upgrade,
 };
 use fyn_dispatch::{BuildDispatch, SharedState};
-use fyn_distribution::LoweredExtraBuildDependencies;
+use fyn_distribution::{DistributionDatabase, LoweredExtraBuildDependencies};
 use fyn_distribution_types::{
-    BuiltDist, ConfigSettings, DependencyMetadata, Dist, ExtraBuildVariables, Index,
-    IndexLocations, NameRequirementSpecification, Origin, PackageConfigSettings, RemoteSource,
-    Requirement, Resolution, ResolvedDist, SourceDist, UnresolvedRequirementSpecification,
+    BuiltDist, ConfigSettings, DependencyMetadata, Dist, ExtraBuildVariables, HashPolicy, Index,
+    IndexLocations, NameRequirementSpecification, Origin, PackageConfigSettings, Requirement,
+    Resolution, ResolvedDist, UnresolvedRequirementSpecification,
 };
 use fyn_fs::Simplified;
 use fyn_install_wheel::LinkMode;
@@ -45,14 +43,15 @@ use fyn_warnings::warn_user;
 use fyn_workspace::WorkspaceCache;
 use fyn_workspace::pyproject::ExtraBuildDependencies;
 
+use crate::commands::pip::download::{copy_local_archive, download_from_url};
 use crate::commands::pip::loggers::DefaultResolveLogger;
 use crate::commands::pip::{operations, resolution_markers, resolution_tags};
 use crate::commands::reporters::PythonDownloadReporter;
 use crate::commands::{ExitStatus, diagnostics, elapsed};
 use crate::printer::Printer;
 
-/// Download distribution archives into a directory.
-pub(crate) async fn pip_download(
+/// Build wheels into a directory.
+pub(crate) async fn pip_wheel(
     requirements: &[RequirementsSource],
     constraints: &[RequirementsSource],
     overrides: &[RequirementsSource],
@@ -93,7 +92,7 @@ pub(crate) async fn pip_download(
     concurrency: Concurrency,
     cache: Cache,
     workspace_cache: WorkspaceCache,
-    dest: Option<&Path>,
+    wheel_dir: Option<&Path>,
     printer: Printer,
     preview: Preview,
 ) -> Result<ExitStatus> {
@@ -146,7 +145,7 @@ pub(crate) async fn pip_download(
 
     if pylock.is_some() {
         return Err(anyhow!(
-            "`pylock.toml` is not a supported input format for `fyn pip download`"
+            "`pylock.toml` is not a supported input format for `fyn pip wheel`"
         ));
     }
 
@@ -449,18 +448,24 @@ pub(crate) async fn pip_download(
 
     operations::diagnose_resolution(resolution.diagnostics(), printer)?;
 
-    let dest = if let Some(dest) = dest {
-        std::path::absolute(dest)?
+    let wheel_dir = if let Some(wheel_dir) = wheel_dir {
+        std::path::absolute(wheel_dir)?
     } else {
         std::env::current_dir()?
     };
-    if dest.exists() && !dest.is_dir() {
+    if wheel_dir.exists() && !wheel_dir.is_dir() {
         return Err(anyhow!(
             "Destination is not a directory: {}",
-            dest.user_display()
+            wheel_dir.user_display()
         ));
     }
-    fs_err::tokio::create_dir_all(&dest).await?;
+    fs_err::tokio::create_dir_all(&wheel_dir).await?;
+
+    let database = DistributionDatabase::new(
+        &client,
+        &build_dispatch,
+        concurrency.downloads_semaphore.clone(),
+    );
 
     let resolved = resolution
         .distributions()
@@ -471,20 +476,20 @@ pub(crate) async fn pip_download(
         .sorted_by_key(std::string::ToString::to_string)
         .collect::<Vec<_>>();
 
-    let mut downloaded = 0usize;
+    let mut saved = 0usize;
     for dist in resolved {
-        let path = download_distribution(dist, &dest, &client).await?;
+        let path = save_distribution_as_wheel(dist, &wheel_dir, &client, &database, &tags).await?;
         writeln!(printer.stderr(), "Saved {}", path.user_display().cyan())?;
-        downloaded += 1;
+        saved += 1;
     }
 
-    let s = if downloaded == 1 { "" } else { "s" };
+    let s = if saved == 1 { "" } else { "s" };
     writeln!(
         printer.stderr(),
         "{}",
         format!(
-            "Downloaded {} file{s} {}",
-            downloaded.to_string().bold(),
+            "Saved {} wheel{s} {}",
+            saved.to_string().bold(),
             format!("in {}", elapsed(start.elapsed())).dimmed()
         )
         .dimmed()
@@ -493,16 +498,17 @@ pub(crate) async fn pip_download(
     Ok(ExitStatus::Success)
 }
 
-async fn download_distribution(
+async fn save_distribution_as_wheel(
     dist: &Dist,
-    dest_dir: &Path,
+    wheel_dir: &Path,
     client: &RegistryClient,
+    database: &DistributionDatabase<'_, BuildDispatch<'_>>,
+    tags: &fyn_platform_tags::Tags,
 ) -> Result<PathBuf> {
-    let filename = dist.filename()?.into_owned();
-    let target = dest_dir.join(&filename);
-
     match dist {
         Dist::Built(BuiltDist::Registry(dist)) => {
+            let filename = dist.best_wheel().filename.to_string();
+            let target = wheel_dir.join(&filename);
             let url = dist
                 .best_wheel()
                 .file
@@ -510,106 +516,25 @@ async fn download_distribution(
                 .to_url()
                 .context("Failed to resolve wheel download URL")?;
             download_from_url(&url, &target, client).await?;
-        }
-        Dist::Source(SourceDist::Registry(dist)) => {
-            let url = dist
-                .file
-                .url
-                .to_url()
-                .context("Failed to resolve source distribution download URL")?;
-            download_from_url(&url, &target, client).await?;
+            Ok(target)
         }
         Dist::Built(BuiltDist::DirectUrl(dist)) => {
+            let target = wheel_dir.join(dist.filename.to_string());
             download_from_url(dist.location.as_ref(), &target, client).await?;
-        }
-        Dist::Source(SourceDist::DirectUrl(dist)) => {
-            download_from_url(dist.location.as_ref(), &target, client).await?;
+            Ok(target)
         }
         Dist::Built(BuiltDist::Path(dist)) => {
+            let target = wheel_dir.join(dist.filename.to_string());
             copy_local_archive(dist.install_path.as_ref(), &target).await?;
+            Ok(target)
         }
-        Dist::Source(SourceDist::Path(dist)) => {
-            copy_local_archive(dist.install_path.as_ref(), &target).await?;
-        }
-        Dist::Source(SourceDist::Git(dist)) => {
-            return Err(anyhow!(
-                "`fyn pip download` does not support Git requirements yet: {}",
-                dist.url
-            ));
-        }
-        Dist::Source(SourceDist::Directory(dist)) => {
-            return Err(anyhow!(
-                "`fyn pip download` does not support local source trees yet: {}",
-                dist.install_path.user_display()
-            ));
+        Dist::Source(source) => {
+            let wheel = database
+                .build_wheel_file(source, tags, HashPolicy::None)
+                .await?;
+            let target = wheel_dir.join(wheel.filename().to_string());
+            copy_local_archive(wheel.path(), &target).await?;
+            Ok(target)
         }
     }
-
-    Ok(target)
-}
-
-pub(super) async fn copy_local_archive(source: &Path, target: &Path) -> Result<()> {
-    if source == target {
-        return Ok(());
-    }
-
-    fs_err::tokio::copy(source, target).await.with_context(|| {
-        format!(
-            "Failed to copy `{}` to `{}`",
-            source.user_display(),
-            target.user_display()
-        )
-    })?;
-    Ok(())
-}
-
-pub(super) async fn download_from_url(
-    url: &fyn_redacted::DisplaySafeUrl,
-    target: &Path,
-    client: &RegistryClient,
-) -> Result<()> {
-    if url.scheme() == "file" {
-        let path = url
-            .to_file_path()
-            .map_err(|()| anyhow!("Non-file URL: {url}"))?;
-        copy_local_archive(&path, target).await?;
-        return Ok(());
-    }
-
-    let filename = target
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or_else(|| anyhow!("Invalid target filename: {}", target.user_display()))?;
-    let temp_path = target.with_file_name(format!(".{filename}.part"));
-
-    let result = async {
-        let response = client
-            .uncached_client(url)
-            .get(url::Url::from(url.clone()))
-            .header(
-                "accept-encoding",
-                reqwest::header::HeaderValue::from_static("identity"),
-            )
-            .send()
-            .await?;
-        response.error_for_status_ref()?;
-
-        let mut file = fs_err::tokio::File::create(&temp_path).await?;
-        let mut reader = response.bytes_stream();
-        while let Some(chunk) = reader.next().await {
-            file.write_all(&chunk?).await?;
-        }
-        file.flush().await?;
-        drop(file);
-
-        fs_err::tokio::rename(&temp_path, target).await?;
-        Ok::<(), anyhow::Error>(())
-    }
-    .await;
-
-    if result.is_err() {
-        let _ = fs_err::tokio::remove_file(&temp_path).await;
-    }
-
-    result.with_context(|| format!("Failed to download `{url}`"))
 }

@@ -1,5 +1,5 @@
 pub use distribution_database::{DistributionDatabase, HttpArchivePointer, LocalArchivePointer};
-pub use download::LocalWheel;
+pub use download::{LocalWheel, LocalWheelFile};
 pub use error::Error;
 pub use index::{BuiltWheelIndex, RegistryWheelIndex};
 pub use metadata::{

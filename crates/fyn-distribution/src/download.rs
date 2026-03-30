@@ -74,3 +74,45 @@ impl std::fmt::Display for LocalWheel {
         write!(f, "{}", self.remote())
     }
 }
+
+/// A locally available wheel file.
+#[derive(Debug, Clone)]
+pub struct LocalWheelFile {
+    /// The remote distribution from which this wheel was produced.
+    pub(crate) dist: Dist,
+    /// The parsed filename.
+    pub(crate) filename: WheelFilename,
+    /// The path to the wheel file in the cache.
+    pub(crate) path: Box<Path>,
+    /// The computed hashes of the wheel.
+    pub(crate) hashes: HashDigests,
+}
+
+impl LocalWheelFile {
+    /// Return the path to the wheel file in the cache.
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
+    /// Return the [`Dist`] from which this wheel was produced.
+    pub fn remote(&self) -> &Dist {
+        &self.dist
+    }
+
+    /// Return the [`WheelFilename`] of this wheel.
+    pub fn filename(&self) -> &WheelFilename {
+        &self.filename
+    }
+}
+
+impl Hashed for LocalWheelFile {
+    fn hashes(&self) -> &[HashDigest] {
+        self.hashes.as_slice()
+    }
+}
+
+impl std::fmt::Display for LocalWheelFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.remote())
+    }
+}

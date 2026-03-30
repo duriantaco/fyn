@@ -1007,6 +1007,12 @@ pub enum PipCommand {
         after_long_help = ""
     )]
     Download(PipDownloadArgs),
+    /// Build wheels into a directory.
+    #[command(
+        after_help = "Use `fyn help pip wheel` for more details.",
+        after_long_help = ""
+    )]
+    Wheel(PipWheelArgs),
     /// Inspect package indexes.
     #[command(
         after_help = "Use `fyn help pip index` for more details.",
@@ -2748,6 +2754,200 @@ pub struct PipDownloadArgs {
     /// installed CUDA drivers.
     ///
     /// This option is in preview and may change in any future release.
+    #[arg(long, value_enum, env = EnvVars::UV_TORCH_BACKEND)]
+    pub torch_backend: Option<TorchMode>,
+}
+
+#[derive(Args)]
+#[command(group = clap::ArgGroup::new("sources").required(true).multiple(true))]
+pub struct PipWheelArgs {
+    /// Build wheels for all listed packages.
+    ///
+    /// The order of the packages is used to determine priority during resolution.
+    #[arg(group = "sources", value_hint = ValueHint::Other)]
+    pub package: Vec<String>,
+
+    /// Build wheels for the packages listed in the given files.
+    ///
+    /// The following formats are supported: `requirements.txt`, `.py` files with inline metadata,
+    /// `pyproject.toml`, `setup.py`, and `setup.cfg`.
+    ///
+    /// If a `pyproject.toml`, `setup.py`, or `setup.cfg` file is provided, fyn will extract the
+    /// requirements for the relevant project.
+    ///
+    /// If `-` is provided, then requirements will be read from stdin.
+    #[arg(
+        long,
+        short,
+        alias = "requirement",
+        group = "sources",
+        value_parser = parse_file_path,
+        value_hint = ValueHint::FilePath,
+    )]
+    pub requirements: Vec<PathBuf>,
+
+    /// Constrain versions using the given requirements files.
+    #[arg(
+        long,
+        short,
+        alias = "constraint",
+        env = EnvVars::UV_CONSTRAINT,
+        value_delimiter = ' ',
+        value_parser = parse_maybe_file_path,
+        value_hint = ValueHint::FilePath,
+    )]
+    pub constraints: Vec<Maybe<PathBuf>>,
+
+    /// Override versions using the given requirements files.
+    #[arg(
+        long,
+        alias = "override",
+        env = EnvVars::UV_OVERRIDE,
+        value_delimiter = ' ',
+        value_parser = parse_maybe_file_path,
+        value_hint = ValueHint::FilePath,
+    )]
+    pub overrides: Vec<Maybe<PathBuf>>,
+
+    /// Exclude packages from resolution using the given requirements files.
+    #[arg(
+        long,
+        alias = "exclude",
+        env = EnvVars::UV_EXCLUDE,
+        value_delimiter = ' ',
+        value_parser = parse_maybe_file_path,
+        value_hint = ValueHint::FilePath,
+    )]
+    pub excludes: Vec<Maybe<PathBuf>>,
+
+    /// Constrain build dependencies using the given requirements files when building source
+    /// distributions.
+    #[arg(
+        long,
+        short,
+        alias = "build-constraint",
+        env = EnvVars::UV_BUILD_CONSTRAINT,
+        value_delimiter = ' ',
+        value_parser = parse_maybe_file_path,
+        value_hint = ValueHint::FilePath,
+    )]
+    pub build_constraints: Vec<Maybe<PathBuf>>,
+
+    /// Include optional dependencies from the specified extra name; may be provided more than once.
+    ///
+    /// Only applies to `pyproject.toml`, `setup.py`, and `setup.cfg` sources.
+    #[arg(long, value_delimiter = ',', conflicts_with = "all_extras", value_parser = extra_name_with_clap_error)]
+    pub extra: Option<Vec<ExtraName>>,
+
+    /// Include all optional dependencies.
+    ///
+    /// Only applies to `pyproject.toml`, `setup.py`, and `setup.cfg` sources.
+    #[arg(long, conflicts_with = "extra", overrides_with = "no_all_extras")]
+    pub all_extras: bool,
+
+    #[arg(long, overrides_with("all_extras"), hide = true)]
+    pub no_all_extras: bool,
+
+    /// Build wheels for the specified dependency group from a `pyproject.toml`.
+    ///
+    /// If no path is provided, the `pyproject.toml` in the working directory is used.
+    ///
+    /// May be provided multiple times.
+    #[arg(long, group = "sources")]
+    pub group: Vec<PipGroupName>,
+
+    #[command(flatten)]
+    pub resolver: DownloadResolverArgs,
+
+    #[command(flatten)]
+    pub refresh: RefreshArgs,
+
+    /// Ignore package dependencies, instead only building wheels for those packages explicitly
+    /// listed on the command line or in the requirements files.
+    #[arg(long, overrides_with("deps"))]
+    pub no_deps: bool,
+
+    #[arg(long, overrides_with("no_deps"), hide = true)]
+    pub deps: bool,
+
+    /// Store built wheels in the given directory.
+    ///
+    /// Defaults to the current working directory.
+    #[arg(long, short = 'w', value_hint = ValueHint::DirPath)]
+    pub wheel_dir: Option<PathBuf>,
+
+    /// The Python interpreter to use during resolution and wheel builds.
+    ///
+    /// This option respects `UV_PYTHON`, but when set via environment variable, it is overridden
+    /// by `--python-version`.
+    ///
+    /// See `fyn help python` for details on Python discovery and supported request formats.
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        help_heading = "Python options",
+        value_parser = parse_maybe_string,
+        value_hint = ValueHint::Other,
+    )]
+    pub python: Option<Maybe<String>>,
+
+    /// Use a system Python interpreter during resolution.
+    #[arg(
+        long,
+        env = EnvVars::UV_SYSTEM_PYTHON,
+        value_parser = clap::builder::BoolishValueParser::new(),
+        overrides_with("no_system")
+    )]
+    pub system: bool,
+
+    #[arg(long, overrides_with("system"), hide = true)]
+    pub no_system: bool,
+
+    /// Don't build source distributions.
+    ///
+    /// Alias for `--only-binary :all:`.
+    #[arg(
+        long,
+        conflicts_with = "no_binary",
+        conflicts_with = "only_binary",
+        overrides_with("build")
+    )]
+    pub no_build: bool,
+
+    #[arg(
+        long,
+        conflicts_with = "no_binary",
+        conflicts_with = "only_binary",
+        overrides_with("no_build"),
+        hide = true
+    )]
+    pub build: bool,
+
+    /// Don't download pre-built wheels.
+    ///
+    /// Multiple packages may be provided. Disable binaries for all packages with `:all:`. Clear
+    /// previously specified packages with `:none:`.
+    #[arg(long, value_delimiter = ',', conflicts_with = "no_build")]
+    pub no_binary: Option<Vec<PackageNameSpecifier>>,
+
+    /// Only download pre-built wheels; don't build source distributions.
+    ///
+    /// Multiple packages may be provided. Disable binaries for all packages with `:all:`. Clear
+    /// previously specified packages with `:none:`.
+    #[arg(long, value_delimiter = ',', conflicts_with = "no_build")]
+    pub only_binary: Option<Vec<PackageNameSpecifier>>,
+
+    /// The minimum Python version that should be supported by the built wheels (e.g., `3.7` or
+    /// `3.7.9`).
+    #[arg(long)]
+    pub python_version: Option<PythonVersion>,
+
+    /// The platform for which wheels should be built.
+    #[arg(long)]
+    pub python_platform: Option<TargetTriple>,
+
+    /// The backend to use when fetching packages in the PyTorch ecosystem (e.g., `cpu`, `cu126`, or `auto`).
     #[arg(long, value_enum, env = EnvVars::UV_TORCH_BACKEND)]
     pub torch_backend: Option<TorchMode>,
 }

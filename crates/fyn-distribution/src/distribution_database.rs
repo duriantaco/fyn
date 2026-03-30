@@ -34,7 +34,7 @@ use fyn_warnings::warn_user_once;
 use crate::archive::Archive;
 use crate::metadata::{ArchiveMetadata, Metadata};
 use crate::source::SourceDistributionBuilder;
-use crate::{Error, LocalWheel, Reporter, RequiresDist};
+use crate::{Error, LocalWheel, LocalWheelFile, Reporter, RequiresDist};
 
 /// A cached high-level interface to convert distributions (a requirement resolved to a location)
 /// to a wheel or wheel metadata.
@@ -121,6 +121,26 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
             Dist::Built(built) => self.get_wheel(built, hashes).await,
             Dist::Source(source) => self.build_wheel(source, tags, hashes).await,
         }
+    }
+
+    /// Build a wheel file from a source distribution and return the cached wheel file.
+    ///
+    /// Unlike [`DistributionDatabase::get_or_build_wheel`], this returns the built `.whl` file
+    /// itself instead of the unpacked wheel archive directory.
+    #[instrument(skip_all, fields(%dist))]
+    pub async fn build_wheel_file(
+        &self,
+        dist: &SourceDist,
+        tags: &Tags,
+        hashes: HashPolicy<'_>,
+    ) -> Result<LocalWheelFile, Error> {
+        let built_wheel = self.build_wheel_artifact(dist, tags, hashes).await?;
+        Ok(LocalWheelFile {
+            dist: Dist::Source(dist.clone()),
+            path: built_wheel.path,
+            filename: built_wheel.filename,
+            hashes: built_wheel.hashes,
+        })
     }
 
     /// Either fetch the only wheel metadata (directly from the index or with range requests) or
@@ -387,6 +407,61 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
         tags: &Tags,
         hashes: HashPolicy<'_>,
     ) -> Result<LocalWheel, Error> {
+        let built_wheel = self.build_wheel_artifact(dist, tags, hashes).await?;
+
+        // Acquire the advisory lock.
+        #[cfg(windows)]
+        let _lock = {
+            let lock_entry = CacheEntry::new(
+                built_wheel.target.parent().unwrap(),
+                format!(
+                    "{}.lock",
+                    built_wheel.target.file_name().unwrap().to_str().unwrap()
+                ),
+            );
+            lock_entry.lock().await.map_err(Error::CacheLock)?
+        };
+
+        // If the wheel was unzipped previously, respect it. Source distributions are
+        // cached under a unique revision ID, so unzipped directories are never stale.
+        match self.build_context.cache().resolve_link(&built_wheel.target) {
+            Ok(archive) => {
+                return Ok(LocalWheel {
+                    dist: Dist::Source(dist.clone()),
+                    archive: archive.into_boxed_path(),
+                    filename: built_wheel.filename,
+                    hashes: built_wheel.hashes,
+                    cache: built_wheel.cache_info,
+                    build: Some(built_wheel.build_info),
+                });
+            }
+            Err(err) if err.kind() == io::ErrorKind::NotFound => {}
+            Err(err) => return Err(Error::CacheRead(err)),
+        }
+
+        // Otherwise, unzip the wheel.
+        let id = self
+            .unzip_wheel(&built_wheel.path, &built_wheel.target)
+            .await?;
+
+        Ok(LocalWheel {
+            dist: Dist::Source(dist.clone()),
+            archive: self.build_context.cache().archive(&id).into_boxed_path(),
+            hashes: built_wheel.hashes,
+            filename: built_wheel.filename,
+            cache: built_wheel.cache_info,
+            build: Some(built_wheel.build_info),
+        })
+    }
+
+    /// Convert a source distribution into a wheel file, fetching it from the cache or building it
+    /// if necessary.
+    async fn build_wheel_artifact(
+        &self,
+        dist: &SourceDist,
+        tags: &Tags,
+        hashes: HashPolicy<'_>,
+    ) -> Result<crate::source::BuiltWheelMetadata, Error> {
         // Warn if the source distribution isn't PEP 625 compliant.
         // We do this here instead of in `SourceDistExtension::from_path` to minimize log volume:
         // a non-compliant distribution isn't a huge problem if it's not actually being
@@ -441,50 +516,7 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
                 })
             };
         }
-
-        // Acquire the advisory lock.
-        #[cfg(windows)]
-        let _lock = {
-            let lock_entry = CacheEntry::new(
-                built_wheel.target.parent().unwrap(),
-                format!(
-                    "{}.lock",
-                    built_wheel.target.file_name().unwrap().to_str().unwrap()
-                ),
-            );
-            lock_entry.lock().await.map_err(Error::CacheLock)?
-        };
-
-        // If the wheel was unzipped previously, respect it. Source distributions are
-        // cached under a unique revision ID, so unzipped directories are never stale.
-        match self.build_context.cache().resolve_link(&built_wheel.target) {
-            Ok(archive) => {
-                return Ok(LocalWheel {
-                    dist: Dist::Source(dist.clone()),
-                    archive: archive.into_boxed_path(),
-                    filename: built_wheel.filename,
-                    hashes: built_wheel.hashes,
-                    cache: built_wheel.cache_info,
-                    build: Some(built_wheel.build_info),
-                });
-            }
-            Err(err) if err.kind() == io::ErrorKind::NotFound => {}
-            Err(err) => return Err(Error::CacheRead(err)),
-        }
-
-        // Otherwise, unzip the wheel.
-        let id = self
-            .unzip_wheel(&built_wheel.path, &built_wheel.target)
-            .await?;
-
-        Ok(LocalWheel {
-            dist: Dist::Source(dist.clone()),
-            archive: self.build_context.cache().archive(&id).into_boxed_path(),
-            hashes: built_wheel.hashes,
-            filename: built_wheel.filename,
-            cache: built_wheel.cache_info,
-            build: Some(built_wheel.build_info),
-        })
+        Ok(built_wheel)
     }
 
     /// Fetch the wheel metadata from the index, or from the cache if possible.
