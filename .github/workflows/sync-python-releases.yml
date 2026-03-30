@@ -29,7 +29,7 @@ jobs:
           save-if: false
       - name: Sync Python Releases
         run: |
-          fyn run -- fetch-download-metadata.py
+          uv run -- fetch-download-metadata.py
         working-directory: ./crates/fyn-python
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,7 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Update Python version constants"
-        run: fyn run --no-project scripts/sync-python-version-constants.py
+        run: uv run --no-project scripts/sync-python-version-constants.py
 
       - name: "Create Pull Request"
         uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
