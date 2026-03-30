@@ -56,7 +56,8 @@ use crate::printer::Printer;
 use crate::settings::{
     CacheSettings, GlobalSettings, PipCheckSettings, PipCompileSettings, PipDownloadSettings,
     PipFreezeSettings, PipIndexVersionsSettings, PipInstallSettings, PipListSettings,
-    PipShowSettings, PipSyncSettings, PipUninstallSettings, PipUpgradeSettings, PublishSettings,
+    PipShowSettings, PipSyncSettings, PipUninstallSettings, PipUpgradeSettings, PipWheelSettings,
+    PublishSettings,
 };
 
 pub(crate) mod child;
@@ -1103,6 +1104,100 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 cache,
                 workspace_cache,
                 args.dest.as_deref(),
+                printer,
+                globals.preview,
+            ))
+            .await
+        }
+        Commands::Pip(PipNamespace {
+            command: PipCommand::Wheel(args),
+        }) => {
+            let args = PipWheelSettings::resolve(args, filesystem, environment);
+            show_settings!(args);
+
+            globals
+                .network_settings
+                .check_refresh_conflict(&args.refresh);
+
+            let cache = cache.init().await?.with_refresh(args.refresh);
+
+            let mut requirements = Vec::with_capacity(args.package.len() + args.requirements.len());
+            for package in args.package {
+                requirements.push(RequirementsSource::from_package_argument(&package)?);
+            }
+            requirements.extend(
+                args.requirements
+                    .into_iter()
+                    .map(RequirementsSource::from_requirements_file)
+                    .collect::<Result<Vec<_>, _>>()?,
+            );
+            let constraints = args
+                .constraints
+                .into_iter()
+                .map(RequirementsSource::from_constraints_txt)
+                .collect::<Result<Vec<_>, _>>()?;
+            let overrides = args
+                .overrides
+                .into_iter()
+                .map(RequirementsSource::from_overrides_txt)
+                .collect::<Result<Vec<_>, _>>()?;
+            let excludes = args
+                .excludes
+                .into_iter()
+                .map(RequirementsSource::from_requirements_txt)
+                .collect::<Result<Vec<_>, _>>()?;
+            let build_constraints = args
+                .build_constraints
+                .into_iter()
+                .map(RequirementsSource::from_constraints_txt)
+                .collect::<Result<Vec<_>, _>>()?;
+            let groups = GroupsSpecification {
+                root: project_dir.to_path_buf(),
+                groups: args.settings.groups,
+            };
+
+            Box::pin(commands::pip::wheel::pip_wheel(
+                &requirements,
+                &constraints,
+                &overrides,
+                &excludes,
+                &build_constraints,
+                args.constraints_from_workspace,
+                args.overrides_from_workspace,
+                args.excludes_from_workspace,
+                args.build_constraints_from_workspace,
+                &args.settings.extras,
+                &groups,
+                args.settings.resolution,
+                args.settings.prerelease,
+                args.settings.fork_strategy,
+                args.settings.dependency_mode,
+                args.settings.index_locations,
+                args.settings.index_strategy,
+                args.settings.torch_backend,
+                args.settings.dependency_metadata,
+                args.settings.keyring_provider,
+                &client_builder.subcommand(vec!["pip".to_owned(), "wheel".to_owned()]),
+                args.settings.config_setting,
+                args.settings.config_settings_package,
+                args.settings.build_isolation,
+                &args.settings.extra_build_dependencies,
+                &args.settings.extra_build_variables,
+                args.settings.build_options,
+                args.settings.install_mirrors,
+                args.settings.python_version,
+                args.settings.python_platform,
+                globals.python_downloads,
+                args.settings.exclude_newer,
+                args.settings.sources,
+                args.settings.link_mode,
+                args.settings.python,
+                args.settings.system,
+                globals.python_preference,
+                globals.concurrency,
+                cache,
+                workspace_cache,
+                args.wheel_dir.as_deref(),
                 printer,
                 globals.preview,
             ))

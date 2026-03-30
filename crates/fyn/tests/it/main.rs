@@ -66,6 +66,7 @@ mod pip_compile;
 mod pip_compile_scenarios;
 
 mod pip_download;
+mod pip_wheel;
 
 #[cfg(all(feature = "test-python", feature = "test-pypi"))]
 mod pip_freeze;

@@ -51,7 +51,8 @@ use fyn_workspace::pyproject::ToolfynSources;
 use crate::distribution_database::ManagedClient;
 use crate::error::Error;
 use crate::metadata::{ArchiveMetadata, GitWorkspaceMember, Metadata};
-use crate::source::built_wheel_metadata::{BuiltWheelFile, BuiltWheelMetadata};
+use crate::source::built_wheel_metadata::BuiltWheelFile;
+pub(crate) use crate::source::built_wheel_metadata::BuiltWheelMetadata;
 use crate::source::revision::Revision;
 use crate::{Reporter, RequiresDist};
 
