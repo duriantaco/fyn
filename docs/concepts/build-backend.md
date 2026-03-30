@@ -31,7 +31,7 @@ To use fyn as a build backend in an existing project, add `fyn_build` to the
 
 ```toml title="pyproject.toml"
 [build-system]
-requires = ["fyn_build>=0.10.13,<0.11.0"]
+requires = ["fyn_build>=0.10.14,<0.11.0"]
 build-backend = "fyn_build"
 ```
 

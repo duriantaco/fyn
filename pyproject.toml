@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "fyn"
-version = "0.10.13"
+version = "0.10.14"
 description = "An extremely fast Python package and project manager, written in Rust."
 authors = [{ name = "fyn contributors" }]
 requires-python = ">=3.8"

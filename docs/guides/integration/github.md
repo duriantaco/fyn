@@ -51,7 +51,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           # Install a specific version of fyn.
-          version: "0.10.13"
+          version: "0.10.14"
 ```
 
 ## Setting up Python
