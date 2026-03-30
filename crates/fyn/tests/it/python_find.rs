@@ -1513,3 +1513,26 @@ fn python_find_prerelease_with_patch_request() {
     ----- stderr -----
     ");
 }
+
+#[test]
+fn python_find_equal() {
+    let context = fyn_test::test_context_with_versions!(&["3.11", "3.12"]);
+
+    fyn_snapshot!(context.filters(), context.python_find().arg("==3.11"), @r###"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    [PYTHON-3.11]
+
+    ----- stderr -----
+    "###);
+
+    fyn_snapshot!(context.filters(), context.python_find().arg("==3.12"), @r###"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    [PYTHON-3.12]
+
+    ----- stderr -----
+    "###);
+}
