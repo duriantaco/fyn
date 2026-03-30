@@ -3,6 +3,26 @@
 <!-- prettier-ignore-start -->
 
 
+## 0.10.14
+
+Released on 2026-03-30.
+
+### Other changes
+
+- Sync latest Python releases ([#69](https://github.com/duriantaco/fyn/pull/69))
+- chore: sync Python download metadata ([#65](https://github.com/duriantaco/fyn/pull/65))
+- ci: fetch cargo-dist directly in release workflows ([#64](https://github.com/duriantaco/fyn/pull/64))
+- ci: update rust-cache to v2.9.1 ([#70](https://github.com/duriantaco/fyn/pull/70))
+- ci: use uv in Python downloads sync workflow ([#68](https://github.com/duriantaco/fyn/pull/68))
+- feat: add pip wheel ([#71](https://github.com/duriantaco/fyn/pull/71))
+- fix: fallback to direct download when direct URL streaming fails ([#67](https://github.com/duriantaco/fyn/pull/67))
+- fix: respect dependency metadata in pip diagnostics ([#66](https://github.com/duriantaco/fyn/pull/66))
+- release: allow publishing PyPI from an existing run ([#59](https://github.com/duriantaco/fyn/pull/59))
+- release: guard against non-ancestor release tags ([#63](https://github.com/duriantaco/fyn/pull/63))
+- release: harden release notes and installer docs ([#61](https://github.com/duriantaco/fyn/pull/61))
+- release: require trusted publishing for PyPI ([#60](https://github.com/duriantaco/fyn/pull/60))
+- style: format release notes normalizer ([#62](https://github.com/duriantaco/fyn/pull/62))
+
 ## 0.10.13
 
 Released on 2026-03-28.

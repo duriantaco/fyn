@@ -31,7 +31,7 @@ $ docker run --rm -it ghcr.io/oha/fyn:debian uv --help
 The following distroless images are available:
 
 - `ghcr.io/oha/fyn:latest`
-- `ghcr.io/oha/fyn:{major}.{minor}.{patch}`, e.g., `ghcr.io/oha/fyn:0.10.13`
+- `ghcr.io/oha/fyn:{major}.{minor}.{patch}`, e.g., `ghcr.io/oha/fyn:0.10.14`
 - `ghcr.io/oha/fyn:{major}.{minor}`, e.g., `ghcr.io/oha/fyn:0.8` (the latest patch version)
 
 And the following derived images are available:
@@ -91,7 +91,7 @@ And the following derived images are available:
 
 As with the distroless image, each derived image is published with fyn version tags as
 `ghcr.io/oha/fyn:{major}.{minor}.{patch}-{base}` and `ghcr.io/oha/fyn:{major}.{minor}-{base}`, e.g.,
-`ghcr.io/oha/fyn:0.10.13-alpine`.
+`ghcr.io/oha/fyn:0.10.14-alpine`.
 
 In addition, starting with `0.8` each derived image also sets `UV_TOOL_BIN_DIR` to `/usr/local/bin`
 to allow `fyn tool install` to work as expected with the default user.
@@ -132,7 +132,7 @@ Note this requires `curl` to be available.
 In either case, it is best practice to pin to a specific fyn version, e.g., with:
 
 ```dockerfile
-COPY --from=ghcr.io/oha/fyn:0.10.13 /fyn /fynx /bin/
+COPY --from=ghcr.io/oha/fyn:0.10.14 /fyn /fynx /bin/
 ```
 
 !!! tip
@@ -615,5 +615,5 @@ Verified OK
 !!! tip
 
     These examples use `latest`, but best practice is to verify the attestation for a specific
-    version tag, e.g., `ghcr.io/oha/fyn:0.10.13`, or (even better) the specific image digest,
+    version tag, e.g., `ghcr.io/oha/fyn:0.10.14`, or (even better) the specific image digest,
     such as `ghcr.io/oha/fyn:0.5.27@sha256:5adf09a5a526f380237408032a9308000d14d5947eafa687ad6c6a2476787b4f`.

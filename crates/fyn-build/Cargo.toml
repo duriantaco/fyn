@@ -1,6 +1,6 @@
 [package]
 name = "fyn-build"
-version = "0.10.13"
+version = "0.10.14"
 description = "A Python build backend"
 edition = { workspace = true }
 rust-version = { workspace = true }
