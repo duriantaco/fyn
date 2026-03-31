@@ -15,11 +15,14 @@ use petgraph::visit::EdgeRef;
 use rustc_hash::{FxBuildHasher, FxHashMap, FxHashSet};
 use serde::Serializer;
 use toml_edit::{Array, ArrayOfTables, InlineTable, Item, Table, Value, value};
-use tracing::{debug, instrument};
+use tracing::{debug, instrument, trace};
 use url::Url;
 
 use fyn_cache_key::RepositoryUrl;
-use fyn_configuration::{BuildOptions, Constraints, InstallTarget};
+use fyn_configuration::{
+    BuildOptions, Constraints, DependencyGroupsWithDefaults, ExtrasSpecificationWithDefaults,
+    InstallTarget,
+};
 use fyn_distribution::{DistributionDatabase, FlatRequiresDist};
 use fyn_distribution_filename::{
     BuildTag, DistExtension, ExtensionError, SourceDistExtension, WheelFilename,
@@ -808,6 +811,145 @@ impl Lock {
                 .cloned()
                 .map(|requirement| requirement.to_absolute(root)),
         )
+    }
+
+    /// Returns the set of packages that should be audited, respecting the given
+    /// extras and dependency groups filters.
+    ///
+    /// Workspace members and packages without version information are excluded
+    /// unconditionally, since neither can be meaningfully looked up in a
+    /// vulnerability database.
+    pub fn packages_for_audit<'lock>(
+        &'lock self,
+        extras: &'lock ExtrasSpecificationWithDefaults,
+        groups: &'lock DependencyGroupsWithDefaults,
+    ) -> Vec<(&'lock PackageName, &'lock Version)> {
+        fn enqueue_dep<'lock>(
+            lock: &'lock Lock,
+            seen: &mut FxHashSet<(&'lock PackageId, Option<&'lock ExtraName>)>,
+            queue: &mut VecDeque<(&'lock Package, Option<&'lock ExtraName>)>,
+            dep: &'lock Dependency,
+        ) {
+            let dep_pkg = lock.find_by_id(&dep.package_id);
+            for maybe_extra in std::iter::once(None).chain(dep.extra.iter().map(Some)) {
+                if seen.insert((&dep.package_id, maybe_extra)) {
+                    queue.push_back((dep_pkg, maybe_extra));
+                }
+            }
+        }
+
+        let workspace_member_ids: FxHashSet<&PackageId> = if self.members().is_empty() {
+            self.root().into_iter().map(|package| &package.id).collect()
+        } else {
+            self.packages
+                .iter()
+                .filter(|package| self.members().contains(&package.id.name))
+                .map(|package| &package.id)
+                .collect()
+        };
+
+        let mut queue: VecDeque<(&Package, Option<&ExtraName>)> = VecDeque::new();
+        let mut seen: FxHashSet<(&PackageId, Option<&ExtraName>)> = FxHashSet::default();
+
+        for package in self
+            .packages
+            .iter()
+            .filter(|package| workspace_member_ids.contains(&package.id))
+        {
+            if seen.insert((&package.id, None)) {
+                queue.push_back((package, None));
+            }
+            if groups.prod() {
+                for extra in extras.extra_names(package.optional_dependencies.keys()) {
+                    if seen.insert((&package.id, Some(extra))) {
+                        queue.push_back((package, Some(extra)));
+                    }
+                }
+            }
+        }
+
+        for requirement in self.requirements() {
+            for package in self
+                .packages
+                .iter()
+                .filter(|package| package.id.name == requirement.name)
+            {
+                if seen.insert((&package.id, None)) {
+                    queue.push_back((package, None));
+                }
+                for extra in &requirement.extras {
+                    if seen.insert((&package.id, Some(extra))) {
+                        queue.push_back((package, Some(extra)));
+                    }
+                }
+            }
+        }
+
+        for (group, requirements) in self.dependency_groups() {
+            if !groups.contains(group) {
+                continue;
+            }
+            for requirement in requirements {
+                for package in self
+                    .packages
+                    .iter()
+                    .filter(|package| package.id.name == requirement.name)
+                {
+                    if seen.insert((&package.id, None)) {
+                        queue.push_back((package, None));
+                    }
+                    for extra in &requirement.extras {
+                        if seen.insert((&package.id, Some(extra))) {
+                            queue.push_back((package, Some(extra)));
+                        }
+                    }
+                }
+            }
+        }
+
+        let mut auditable: BTreeSet<(&PackageName, &Version)> = BTreeSet::default();
+
+        while let Some((package, extra)) = queue.pop_front() {
+            let is_member = workspace_member_ids.contains(&package.id);
+
+            if !is_member {
+                if let Some(version) = package.version() {
+                    auditable.insert((package.name(), version));
+                } else {
+                    trace!(
+                        "Skipping audit for `{}` because it has no version information",
+                        package.name()
+                    );
+                }
+            }
+
+            if is_member && extra.is_none() {
+                for dep in package
+                    .dependency_groups
+                    .iter()
+                    .filter(|(group, _)| groups.contains(group))
+                    .flat_map(|(_, deps)| deps)
+                {
+                    enqueue_dep(self, &mut seen, &mut queue, dep);
+                }
+            }
+
+            let dependencies: &[Dependency] = match extra {
+                Some(extra) => package
+                    .optional_dependencies
+                    .get(extra)
+                    .map(Vec::as_slice)
+                    .unwrap_or_default(),
+                None if is_member && !groups.prod() => &[],
+                None => &package.dependencies,
+            };
+
+            for dep in dependencies {
+                enqueue_dep(self, &mut seen, &mut queue, dep);
+            }
+        }
+
+        auditable.into_iter().collect()
     }
 
     /// Return the workspace root used to generate this lock.
@@ -6429,6 +6571,10 @@ pub(crate) fn is_wheel_unreachable(
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
+    use fyn_configuration::{DependencyGroups, ExtrasSpecification};
+    use fyn_normalize::{DefaultExtras, DefaultGroups};
     use fyn_warnings::anstream;
 
     use super::*;
@@ -6774,6 +6920,139 @@ wheels = [
             Source::Registry(RegistrySource::Path(
                 Path::new("C:/Users/user/links").into()
             ))
+        );
+    }
+
+    fn audit_test_lock() -> Lock {
+        toml::from_str(
+            r#"
+version = 1
+requires-python = ">=3.12"
+
+[manifest]
+members = ["project"]
+
+[[package]]
+name = "project"
+source = { editable = "" }
+dependencies = [{ name = "iniconfig", version = "2.0.0", source = { registry = "https://pypi.org/simple" } }]
+
+[package.optional-dependencies]
+web = [{ name = "typing-extensions", version = "4.10.0", source = { registry = "https://pypi.org/simple" } }]
+
+[package.dev-dependencies]
+lint = [{ name = "sniffio", version = "1.3.1", source = { registry = "https://pypi.org/simple" } }]
+
+[[package]]
+name = "iniconfig"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://example.com/iniconfig-2.0.0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 0 }
+
+[[package]]
+name = "typing-extensions"
+version = "4.10.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://example.com/typing-extensions-4.10.0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 0 }
+
+[[package]]
+name = "sniffio"
+version = "1.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://example.com/sniffio-1.3.1.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 0 }
+"#,
+        )
+        .unwrap()
+    }
+
+    fn audited_package_names(packages: Vec<(&PackageName, &Version)>) -> Vec<String> {
+        packages
+            .into_iter()
+            .map(|(name, _)| name.to_string())
+            .collect()
+    }
+
+    fn audit_test_lock_with_root_requirement_extra() -> Lock {
+        toml::from_str(
+            r#"
+version = 1
+requires-python = ">=3.12"
+
+[manifest]
+requirements = [{ name = "base", extras = ["web"], version = "1.0.0", source = { registry = "https://pypi.org/simple" } }]
+
+[[package]]
+name = "base"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://example.com/base-1.0.0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 0 }
+
+[package.optional-dependencies]
+web = [{ name = "typing-extensions", version = "4.10.0", source = { registry = "https://pypi.org/simple" } }]
+
+[[package]]
+name = "typing-extensions"
+version = "4.10.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://example.com/typing-extensions-4.10.0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 0 }
+"#,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn packages_for_audit_respects_explicit_extra_selection() {
+        let lock = audit_test_lock();
+
+        let extras = ExtrasSpecification::from_args(
+            vec![ExtraName::from_str("web").unwrap()],
+            vec![],
+            false,
+            vec![],
+            false,
+        )
+        .with_defaults(DefaultExtras::default());
+        let groups = DependencyGroups::default().with_defaults(DefaultGroups::List(vec![]));
+
+        assert_eq!(
+            audited_package_names(lock.packages_for_audit(&extras, &groups)),
+            vec!["iniconfig".to_string(), "typing-extensions".to_string()]
+        );
+    }
+
+    #[test]
+    fn packages_for_audit_respects_only_group_selection() {
+        let lock = audit_test_lock();
+
+        let extras = ExtrasSpecification::default().with_defaults(DefaultExtras::default());
+        let groups = DependencyGroups::from_args(
+            false,
+            false,
+            false,
+            vec![],
+            vec![],
+            false,
+            vec![GroupName::from_str("lint").unwrap()],
+            false,
+        )
+        .with_defaults(DefaultGroups::List(vec![]));
+
+        assert_eq!(
+            audited_package_names(lock.packages_for_audit(&extras, &groups)),
+            vec!["sniffio".to_string()]
+        );
+    }
+
+    #[test]
+    fn packages_for_audit_includes_extras_requested_by_root_requirements() {
+        let lock = audit_test_lock_with_root_requirement_extra();
+
+        let extras = ExtrasSpecification::default().with_defaults(DefaultExtras::default());
+        let groups = DependencyGroups::default().with_defaults(DefaultGroups::List(vec![]));
+
+        assert_eq!(
+            audited_package_names(lock.packages_for_audit(&extras, &groups)),
+            vec!["base".to_string(), "typing-extensions".to_string()]
         );
     }
 }
