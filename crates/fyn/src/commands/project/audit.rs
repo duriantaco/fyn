@@ -19,7 +19,7 @@ use crate::settings::{FrozenSource, LockCheck, ResolverSettings};
 
 use anyhow::{Result, anyhow};
 use fyn_audit::service::{VulnerabilityServiceFormat, osv};
-use fyn_audit::types::{Dependency, Finding};
+use fyn_audit::types::{Dependency, Finding, VulnerabilityID};
 use fyn_cache::Cache;
 use fyn_client::BaseClientBuilder;
 use fyn_configuration::{Concurrency, DependencyGroups, ExtrasSpecification, TargetTriple};
@@ -54,6 +54,8 @@ pub(crate) async fn audit(
     preview: Preview,
     service: VulnerabilityServiceFormat,
     service_url: Option<String>,
+    ignore: Vec<VulnerabilityID>,
+    ignore_until_fixed: Vec<VulnerabilityID>,
 ) -> Result<ExitStatus> {
     // Check if the audit feature is in preview
     if !preview.is_enabled(PreviewFeature::Audit) {
@@ -213,14 +215,32 @@ pub(crate) async fn audit(
 
     reporter.on_audit_complete();
 
+    let all_findings: Vec<_> = all_findings
+        .into_iter()
+        .filter(|finding| match finding {
+            Finding::Vulnerability(vulnerability) => {
+                if ignore.iter().any(|id| vulnerability.matches(id)) {
+                    return false;
+                }
+                if vulnerability.fix_versions.is_empty()
+                    && ignore_until_fixed
+                        .iter()
+                        .any(|id| vulnerability.matches(id))
+                {
+                    return false;
+                }
+                true
+            }
+            Finding::ProjectStatus(_) => true,
+        })
+        .collect();
+
     let display = AuditResults {
         printer,
         n_packages: auditable.len(),
         findings: all_findings,
     };
-    display.render()?;
-
-    Ok(ExitStatus::Success)
+    display.render()
 }
 
 struct AuditResults {
@@ -230,7 +250,7 @@ struct AuditResults {
 }
 
 impl AuditResults {
-    fn render(&self) -> Result<()> {
+    fn render(&self) -> Result<ExitStatus> {
         let (vulns, statuses): (Vec<_>, Vec<_>) =
             self.findings.iter().partition_map(|finding| match finding {
                 Finding::Vulnerability(vuln) => itertools::Either::Left(vuln),
@@ -260,8 +280,19 @@ impl AuditResults {
         writeln!(
             self.printer.stderr(),
             "Found {vuln_banner} and {status_banner} in {packages}",
-            packages = format!("{npackages} packages", npackages = self.n_packages).bold()
+            packages = format!(
+                "{npackages} {label}",
+                npackages = self.n_packages,
+                label = if self.n_packages == 1 {
+                    "package"
+                } else {
+                    "packages"
+                }
+            )
+            .bold()
         )?;
+
+        let has_findings = !vulns.is_empty() || !statuses.is_empty();
 
         if !vulns.is_empty() {
             writeln!(self.printer.stdout_important(), "\nVulnerabilities:\n")?;
@@ -316,8 +347,6 @@ impl AuditResults {
                         )?;
                     }
                 }
-
-                writeln!(self.printer.stdout_important())?;
             }
         }
 
@@ -328,6 +357,10 @@ impl AuditResults {
             // any adverse project statuses at the moment.
         }
 
-        Ok(())
+        if has_findings {
+            Ok(ExitStatus::Failure)
+        } else {
+            Ok(ExitStatus::Success)
+        }
     }
 }

@@ -9,6 +9,7 @@ use rustc_hash::FxHashSet;
 
 use crate::commands::{PythonUpgrade, PythonUpgradeSource};
 use fyn_audit::service::VulnerabilityServiceFormat;
+use fyn_audit::types::VulnerabilityID;
 use fyn_auth::Service;
 use fyn_cache::{CacheArgs, Refresh};
 use fyn_cli::comma::CommaSeparatedRequirements;
@@ -54,8 +55,9 @@ use fyn_resolver::{
     PrereleaseMode, ResolutionMode,
 };
 use fyn_settings::{
-    Combine, EnvironmentOptions, FilesystemOptions, Options, PipOptions, PublishOptions,
-    PythonInstallMirrors, ResolverInstallerOptions, ResolverInstallerSchema, ResolverOptions,
+    AuditOptions, Combine, EnvironmentOptions, FilesystemOptions, Options, PipOptions,
+    PublishOptions, PythonInstallMirrors, ResolverInstallerOptions, ResolverInstallerSchema,
+    ResolverOptions,
 };
 use fyn_static::EnvVars;
 use fyn_torch::TorchMode;
@@ -2482,6 +2484,8 @@ pub(crate) struct AuditSettings {
     pub(crate) settings: ResolverSettings,
     pub(crate) service_format: VulnerabilityServiceFormat,
     pub(crate) service_url: Option<String>,
+    pub(crate) ignore: Vec<VulnerabilityID>,
+    pub(crate) ignore_until_fixed: Vec<VulnerabilityID>,
 }
 
 impl AuditSettings {
@@ -2511,6 +2515,8 @@ impl AuditSettings {
             frozen,
             build,
             resolver,
+            ignore,
+            ignore_until_fixed,
             service_format,
             service_url,
         } = args;
@@ -2518,6 +2524,10 @@ impl AuditSettings {
         let filesystem_install_mirrors = filesystem
             .clone()
             .map(|fs| fs.install_mirrors.clone())
+            .unwrap_or_default();
+        let filesystem_audit = filesystem
+            .as_ref()
+            .and_then(|fs| fs.audit.clone())
             .unwrap_or_default();
 
         let dev = dev || environment.dev.value == Some(true);
@@ -2560,6 +2570,24 @@ impl AuditSettings {
             settings: ResolverSettings::combine(resolver_options(resolver, build), filesystem),
             service_format,
             service_url,
+            ignore: {
+                let AuditOptions {
+                    ignore: config_ignore,
+                    ..
+                } = filesystem_audit.clone();
+                let mut merged = ignore;
+                merged.extend(config_ignore.unwrap_or_default());
+                merged.into_iter().map(VulnerabilityID::new).collect()
+            },
+            ignore_until_fixed: {
+                let AuditOptions {
+                    ignore_until_fixed: config_ignore_until_fixed,
+                    ..
+                } = filesystem_audit;
+                let mut merged = ignore_until_fixed;
+                merged.extend(config_ignore_until_fixed.unwrap_or_default());
+                merged.into_iter().map(VulnerabilityID::new).collect()
+            },
         }
     }
 }
