@@ -222,6 +222,7 @@ fn validate_uv_toml(path: &Path, options: &Options) -> Result<(), Error> {
         install_mirrors: _,
         publish: _,
         add: _,
+        audit: _,
         pip: _,
         cache_keys: _,
         override_dependencies: _,
@@ -372,6 +373,7 @@ fn warn_uv_toml_masked_fields(options: &Options) {
                 check_url,
             },
         add: AddOptions { add_bounds },
+        audit,
         pip,
         cache_keys,
         override_dependencies,
@@ -552,6 +554,9 @@ fn warn_uv_toml_masked_fields(options: &Options) {
     }
     if add_bounds.is_some() {
         masked_fields.push("add-bounds");
+    }
+    if audit.is_some() {
+        masked_fields.push("audit");
     }
     if pip.is_some() {
         masked_fields.push("pip");
