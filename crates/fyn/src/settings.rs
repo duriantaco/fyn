@@ -8,6 +8,7 @@ use std::time::Duration;
 use rustc_hash::FxHashSet;
 
 use crate::commands::{PythonUpgrade, PythonUpgradeSource};
+use fyn_audit::service::VulnerabilityServiceFormat;
 use fyn_auth::Service;
 use fyn_cache::{CacheArgs, Refresh};
 use fyn_cli::comma::CommaSeparatedRequirements;
@@ -2479,6 +2480,8 @@ pub(crate) struct AuditSettings {
     pub(crate) python_platform: Option<TargetTriple>,
     pub(crate) install_mirrors: PythonInstallMirrors,
     pub(crate) settings: ResolverSettings,
+    pub(crate) service_format: VulnerabilityServiceFormat,
+    pub(crate) service_url: Option<String>,
 }
 
 impl AuditSettings {
@@ -2508,6 +2511,8 @@ impl AuditSettings {
             frozen,
             build,
             resolver,
+            service_format,
+            service_url,
         } = args;
 
         let filesystem_install_mirrors = filesystem
@@ -2553,6 +2558,8 @@ impl AuditSettings {
                 .install_mirrors
                 .combine(filesystem_install_mirrors),
             settings: ResolverSettings::combine(resolver_options(resolver, build), filesystem),
+            service_format,
+            service_url,
         }
     }
 }

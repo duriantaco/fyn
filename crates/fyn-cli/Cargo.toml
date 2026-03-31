@@ -16,6 +16,7 @@ doctest = false
 workspace = true
 
 [dependencies]
+fyn-audit = { workspace = true, features = ["clap"] }
 fyn-auth = { workspace = true }
 fyn-cache = { workspace = true, features = ["clap"] }
 fyn-configuration = { workspace = true, features = ["clap"] }
