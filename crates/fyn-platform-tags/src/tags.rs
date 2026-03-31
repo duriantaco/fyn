@@ -390,6 +390,11 @@ impl Tags {
         self.python_version
     }
 
+    /// Returns whether this is a free-threaded Python target.
+    pub fn is_freethreaded(&self) -> bool {
+        self.is_freethreaded
+    }
+
     pub fn is_cross(&self) -> bool {
         self.is_cross
     }

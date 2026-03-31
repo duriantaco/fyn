@@ -33,6 +33,7 @@ fyn-normalize = { workspace = true }
 fyn-pep440 = { workspace = true }
 fyn-pep508 = { workspace = true }
 fyn-platform-tags = { workspace = true }
+fyn-python = { workspace = true }
 fyn-pypi-types = { workspace = true }
 fyn-redacted = { workspace = true }
 fyn-types = { workspace = true }
