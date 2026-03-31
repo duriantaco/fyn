@@ -2425,6 +2425,7 @@ dependencies = [
  "fyn-pep508",
  "fyn-platform-tags",
  "fyn-pypi-types",
+ "fyn-python",
  "fyn-redacted",
  "fyn-types",
  "fyn-warnings",

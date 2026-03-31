@@ -27,6 +27,7 @@ use fyn_extract::hash::Hasher;
 use fyn_fs::write_atomic;
 use fyn_platform_tags::Tags;
 use fyn_pypi_types::{HashDigest, HashDigests, PyProjectToml};
+use fyn_python::PythonVariant;
 use fyn_redacted::DisplaySafeUrl;
 use fyn_types::{BuildContext, BuildStack};
 use fyn_warnings::warn_user_once;
@@ -506,13 +507,27 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
                 Err(Error::BuiltWheelIncompatibleTargetPlatform {
                     filename: built_wheel.filename,
                     python_platform: tags.python_platform().clone(),
-                    python_version: tags.python_version(),
+                    python_version: crate::error::PythonVersion {
+                        version: tags.python_version(),
+                        variant: if tags.is_freethreaded() {
+                            PythonVariant::Freethreaded
+                        } else {
+                            PythonVariant::Default
+                        },
+                    },
                 })
             } else {
                 Err(Error::BuiltWheelIncompatibleHostPlatform {
                     filename: built_wheel.filename,
                     python_platform: tags.python_platform().clone(),
-                    python_version: tags.python_version(),
+                    python_version: crate::error::PythonVersion {
+                        version: tags.python_version(),
+                        variant: if tags.is_freethreaded() {
+                            PythonVariant::Freethreaded
+                        } else {
+                            PythonVariant::Default
+                        },
+                    },
                 })
             };
         }

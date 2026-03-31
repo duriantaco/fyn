@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::PathBuf;
 
 use owo_colors::OwoColorize;
@@ -15,8 +16,22 @@ use fyn_normalize::PackageName;
 use fyn_pep440::{Version, VersionSpecifiers};
 use fyn_platform_tags::Platform;
 use fyn_pypi_types::{HashAlgorithm, HashDigest};
+use fyn_python::PythonVariant;
 use fyn_redacted::DisplaySafeUrl;
 use fyn_types::AnyErrorBuild;
+
+#[derive(Debug, Clone, Copy)]
+pub struct PythonVersion {
+    pub(crate) version: (u8, u8),
+    pub(crate) variant: PythonVariant,
+}
+
+impl fmt::Display for PythonVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (major, minor) = self.version;
+        write!(f, "{major}.{minor}{}", self.variant.executable_suffix())
+    }
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -79,32 +94,28 @@ pub enum Error {
     },
     /// This shouldn't happen, it's a bug in the build backend.
     #[error(
-        "The built wheel `{}` is not compatible with the current Python {}.{} on {} {}",
+        "The built wheel `{}` is not compatible with the current Python {} on {}",
         filename,
-        python_version.0,
-        python_version.1,
-        python_platform.os(),
-        python_platform.arch(),
+        python_version,
+        python_platform.pretty(),
     )]
     BuiltWheelIncompatibleHostPlatform {
         filename: WheelFilename,
         python_platform: Platform,
-        python_version: (u8, u8),
+        python_version: PythonVersion,
     },
     /// This may happen when trying to cross-install native dependencies without their build backend
     /// being aware that the target is a cross-install.
     #[error(
-        "The built wheel `{}` is not compatible with the target Python {}.{} on {} {}. Consider using `--no-build` to disable building wheels.",
+        "The built wheel `{}` is not compatible with the target Python {} on {}. Consider using `--no-build` to disable building wheels.",
         filename,
-        python_version.0,
-        python_version.1,
-        python_platform.os(),
-        python_platform.arch(),
+        python_version,
+        python_platform.pretty(),
     )]
     BuiltWheelIncompatibleTargetPlatform {
         filename: WheelFilename,
         python_platform: Platform,
-        python_version: (u8, u8),
+        python_version: PythonVersion,
     },
     #[error("Failed to parse metadata from built wheel")]
     Metadata(#[from] fyn_pypi_types::MetadataError),
@@ -266,5 +277,39 @@ impl Error {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use fyn_distribution_filename::WheelFilename;
+    use fyn_platform_tags::{Arch, Os, Platform};
+    use fyn_python::PythonVariant;
+
+    use super::{Error, PythonVersion};
+
+    #[test]
+    fn built_wheel_error_mentions_pretty_platform_and_variant() {
+        let error = Error::BuiltWheelIncompatibleHostPlatform {
+            filename: WheelFilename::from_str("demo-1.0.0-cp313-cp313-linux_x86_64.whl").unwrap(),
+            python_platform: Platform::new(
+                Os::Manylinux {
+                    major: 2,
+                    minor: 17,
+                },
+                Arch::X86_64,
+            ),
+            python_version: PythonVersion {
+                version: (3, 13),
+                variant: PythonVariant::Freethreaded,
+            },
+        };
+
+        assert_eq!(
+            error.to_string(),
+            "The built wheel `demo-1.0.0-cp313-cp313-linux_x86_64.whl` is not compatible with the current Python 3.13t on Linux x86_64"
+        );
     }
 }
