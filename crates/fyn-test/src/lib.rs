@@ -1385,6 +1385,14 @@ impl TestContext {
         command
     }
 
+    /// Create a `fyn audit` command with options shared across scenarios.
+    pub fn audit(&self) -> Command {
+        let mut command = self.new_command();
+        command.arg("audit");
+        self.add_shared_options(&mut command, false);
+        command
+    }
+
     /// Create a `fyn init` command with options shared across scenarios and
     /// isolated from any git repository that may exist in a parent directory.
     pub fn init(&self) -> Command {

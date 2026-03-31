@@ -22,6 +22,7 @@ fyn-normalize = { workspace = true }
 fyn-redacted = { workspace = true }
 fyn-small-str = { workspace = true }
 
+clap = { workspace = true, optional = true }
 futures = { workspace = true }
 jiff = { workspace = true }
 reqwest-middleware = { workspace = true, features = ["json"] }

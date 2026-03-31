@@ -17,8 +17,8 @@ use crate::commands::reporters::AuditReporter;
 use crate::printer::Printer;
 use crate::settings::{FrozenSource, LockCheck, ResolverSettings};
 
-use anyhow::Result;
-use fyn_audit::service::osv;
+use anyhow::{Result, anyhow};
+use fyn_audit::service::{VulnerabilityServiceFormat, osv};
 use fyn_audit::types::{Dependency, Finding};
 use fyn_cache::Cache;
 use fyn_client::BaseClientBuilder;
@@ -52,6 +52,8 @@ pub(crate) async fn audit(
     cache: Cache,
     printer: Printer,
     preview: Preview,
+    service: VulnerabilityServiceFormat,
+    service_url: Option<String>,
 ) -> Result<ExitStatus> {
     // Check if the audit feature is in preview
     if !preview.is_enabled(PreviewFeature::Audit) {
@@ -186,23 +188,28 @@ pub(crate) async fn audit(
     let auditable = lock.packages_for_audit(&extras, &groups);
 
     // Perform the audit.
-    let base_client = client_builder.build();
-    let osv_url =
-        DisplaySafeUrl::parse(osv::API_BASE).expect("impossible: embedded URL is invalid");
-    let service = osv::Osv::new(
-        base_client.for_host(&osv_url).raw_client().clone(),
-        None,
-        concurrency,
-    );
-    trace!("Auditing {n} dependencies against OSV", n = auditable.len());
-
     let reporter = AuditReporter::from(printer);
 
     let dependencies: Vec<Dependency> = auditable
         .iter()
         .map(|(name, version)| Dependency::new((*name).clone(), (*version).clone()))
         .collect();
-    let all_findings = service.query_batch(&dependencies).await?;
+    let base_client = client_builder.build();
+    let all_findings = match service {
+        VulnerabilityServiceFormat::Osv => {
+            let osv_url = if let Some(service_url) = service_url.as_deref() {
+                service_url
+                    .parse()
+                    .map_err(|err| anyhow!("Invalid OSV service base URL `{service_url}`: {err}"))?
+            } else {
+                DisplaySafeUrl::parse(osv::API_BASE).expect("impossible: embedded URL is invalid")
+            };
+            let client = base_client.for_host(&osv_url).raw_client().clone();
+            let service = osv::Osv::new(client, Some(osv_url), concurrency);
+            trace!("Auditing {n} dependencies against OSV", n = auditable.len());
+            service.query_batch(&dependencies).await?
+        }
+    };
 
     reporter.on_audit_complete();
 
