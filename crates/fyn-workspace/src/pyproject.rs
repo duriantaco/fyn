@@ -127,6 +127,12 @@ impl PyProjectToml {
         Ok(Self { raw, ..pyproject })
     }
 
+    /// Return the preferred tool configuration, using `tool.fyn` when present and falling back to
+    /// `tool.uv` otherwise.
+    pub fn tool_fyn(&self) -> Option<&Toolfyn> {
+        self.tool.as_ref().and_then(Tool::preferred)
+    }
+
     /// Returns `true` if the project should be considered a Python package, as opposed to a
     /// non-package ("virtual") project.
     pub fn is_package(&self, require_build_system: bool) -> bool {
@@ -141,10 +147,7 @@ impl PyProjectToml {
 
     /// Returns the value of `tool.fyn.package` if set.
     fn tool_fyn_package(&self) -> Option<bool> {
-        self.tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
-            .and_then(|fyn| fyn.package)
+        self.tool_fyn().and_then(|fyn| fyn.package)
     }
 
     /// Returns `true` if the project uses a dynamic version.
@@ -169,10 +172,7 @@ impl PyProjectToml {
         let Some(project) = self.project.as_ref() else {
             return empty;
         };
-        let Some(tool) = self.tool.as_ref() else {
-            return empty;
-        };
-        let Some(toolfyn) = tool.fyn.as_ref() else {
+        let Some(toolfyn) = self.tool_fyn() else {
             return empty;
         };
         let Some(conflicting) = toolfyn.conflicts.as_ref() else {
@@ -270,6 +270,17 @@ impl TryFrom<ProjectWire> for Project {
 #[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Tool {
     pub fyn: Option<Toolfyn>,
+    pub uv: Option<Toolfyn>,
+}
+
+impl Tool {
+    pub fn preferred(&self) -> Option<&Toolfyn> {
+        self.fyn.as_ref().or(self.uv.as_ref())
+    }
+
+    pub fn into_preferred(self) -> Option<Toolfyn> {
+        self.fyn.or(self.uv)
+    }
 }
 
 /// Validates the `tool.fyn.index` field.

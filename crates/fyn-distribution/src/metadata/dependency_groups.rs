@@ -116,9 +116,7 @@ impl SourcedDependencyGroups {
         let empty = vec![];
         let project_indexes = project
             .pyproject_toml()
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.index.as_deref())
             .unwrap_or(&empty);
 
@@ -126,9 +124,7 @@ impl SourcedDependencyGroups {
         let empty = BTreeMap::default();
         let project_sources = project
             .pyproject_toml()
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.sources.as_ref())
             .map(ToolfynSources::inner)
             .unwrap_or(&empty);

@@ -810,7 +810,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 groups: args.settings.groups,
             };
 
-            commands::pip_sync(
+            Box::pin(commands::pip_sync(
                 &requirements,
                 &constraints,
                 &build_constraints,
@@ -853,7 +853,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 args.dry_run,
                 printer,
                 globals.preview,
-            )
+            ))
             .await
         }
         Commands::Pip(PipNamespace {

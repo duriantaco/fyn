@@ -11246,6 +11246,152 @@ fn no_sources_workspace_discovery() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn tool_uv_workspace_sources() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    context.temp_dir.child("pyproject.toml").write_str(indoc! {
+        r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        dependencies = ["anyio"]
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+
+        [tool.uv.sources]
+        anyio = { workspace = true }
+
+        [tool.uv.workspace]
+        members = ["anyio"]
+        "#
+    })?;
+    context
+        .temp_dir
+        .child("src")
+        .child("foo")
+        .child("__init__.py")
+        .touch()?;
+
+    let anyio = context.temp_dir.child("anyio");
+    anyio.child("pyproject.toml").write_str(indoc! {
+        r#"
+        [project]
+        name = "anyio"
+        version = "2.0.0"
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+        "#
+    })?;
+    anyio
+        .child("src")
+        .child("anyio")
+        .child("__init__.py")
+        .touch()?;
+
+    fyn_snapshot!(context.filters(), context.pip_install()
+        .arg("."), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    Prepared 2 packages in [TIME]
+    Installed 2 packages in [TIME]
+     + anyio==2.0.0 (from file://[TEMP_DIR]/anyio)
+     + foo==1.0.0 (from file://[TEMP_DIR]/)
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn tool_fyn_sources_preferred_over_tool_uv_sources() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    context.temp_dir.child("pyproject.toml").write_str(indoc! {
+        r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        dependencies = ["anyio"]
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+
+        [tool.fyn.sources]
+        anyio = { path = "anyio-fyn" }
+
+        [tool.uv.sources]
+        anyio = { path = "anyio-uv" }
+        "#
+    })?;
+    context
+        .temp_dir
+        .child("src")
+        .child("foo")
+        .child("__init__.py")
+        .touch()?;
+
+    let anyio_fyn = context.temp_dir.child("anyio-fyn");
+    anyio_fyn.child("pyproject.toml").write_str(indoc! {
+        r#"
+        [project]
+        name = "anyio"
+        version = "2.0.0"
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+        "#
+    })?;
+    anyio_fyn
+        .child("src")
+        .child("anyio")
+        .child("__init__.py")
+        .touch()?;
+
+    let anyio_uv = context.temp_dir.child("anyio-uv");
+    anyio_uv.child("pyproject.toml").write_str(indoc! {
+        r#"
+        [project]
+        name = "anyio"
+        version = "3.0.0"
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+        "#
+    })?;
+    anyio_uv
+        .child("src")
+        .child("anyio")
+        .child("__init__.py")
+        .touch()?;
+
+    fyn_snapshot!(context.filters(), context.pip_install()
+        .arg("."), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    Prepared 2 packages in [TIME]
+    Installed 2 packages in [TIME]
+     + anyio==2.0.0 (from file://[TEMP_DIR]/anyio-fyn)
+     + foo==1.0.0 (from file://[TEMP_DIR]/)
+    "
+    );
+
+    Ok(())
+}
+
 /// Test `--no-sources-package` with pip install to selectively disable sources.
 #[test]
 #[cfg(feature = "test-git")]

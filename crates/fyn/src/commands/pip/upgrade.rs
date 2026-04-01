@@ -156,7 +156,7 @@ pub(crate) async fn pip_upgrade(
         return Ok(ExitStatus::Success);
     }
 
-    pip_install(
+    Box::pin(pip_install(
         &requirements,
         &[],
         &[],
@@ -209,7 +209,7 @@ pub(crate) async fn pip_upgrade(
         dry_run,
         printer,
         preview,
-    )
+    ))
     .await
 }
 
