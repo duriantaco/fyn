@@ -876,10 +876,10 @@ mod tests {
         let root = TempDir::new()?;
         write_file(
             root.path().join("pyproject.toml"),
-            r#"
+            r"
             [tool.uv]
             offline = true
-            "#,
+            ",
         )?;
 
         let options =
@@ -894,13 +894,13 @@ mod tests {
         let root = TempDir::new()?;
         write_file(
             root.path().join("pyproject.toml"),
-            r#"
+            r"
             [tool.fyn]
             offline = true
 
             [tool.uv]
             offline = false
-            "#,
+            ",
         )?;
 
         let options =
@@ -915,16 +915,16 @@ mod tests {
         let root = TempDir::new()?;
         write_file(
             root.path().join("fyn.toml"),
-            r#"
+            r"
             offline = true
-            "#,
+            ",
         )?;
         write_file(
             root.path().join("pyproject.toml"),
-            r#"
+            r"
             [tool.uv]
             offline = false
-            "#,
+            ",
         )?;
 
         let options =
