@@ -16,8 +16,8 @@ in workspace members. Since the workspace is locked as a single unit, configurat
 all members.
 
 If a `pyproject.toml` file is found, fyn will read configuration from the `[tool.fyn]` table,
-falling back to `[tool.uv]` when `[tool.fyn]` is absent. For example, to set a persistent index
-URL, add the following to a `pyproject.toml`:
+falling back to `[tool.uv]` when `[tool.fyn]` is absent. For example, to set a persistent index URL,
+add the following to a `pyproject.toml`:
 
 ```toml title="pyproject.toml"
 [[tool.fyn.index]]

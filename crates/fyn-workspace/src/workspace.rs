@@ -2793,13 +2793,13 @@ bar = ["b"]
 
     #[test]
     fn pyproject_prefers_tool_fyn_over_tool_uv() {
-        let toml = r#"
+        let toml = r"
 [tool.fyn]
 managed = false
 
 [tool.uv]
 managed = true
-"#;
+";
 
         let result = PyProjectToml::from_string(toml.to_string(), "pyproject.toml")
             .expect("Deserialization should succeed");
