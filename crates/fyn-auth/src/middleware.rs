@@ -551,8 +551,10 @@ impl AuthMiddleware {
             return next.run(request, extensions).await;
         };
         let url = DisplaySafeUrl::from_url(request.url().clone());
-        if matches!(auth_policy, AuthPolicy::Always) && credentials.password().is_none() {
-            return Err(Error::Middleware(format_err!("Missing password for {url}")));
+        if matches!(auth_policy, AuthPolicy::Always) && !credentials.is_authenticated() {
+            return Err(Error::Middleware(format_err!(
+                "Incomplete credentials for {url}"
+            )));
         }
         let result = next.run(request, extensions).await;
 
@@ -582,9 +584,9 @@ impl AuthMiddleware {
     ) -> reqwest_middleware::Result<Response> {
         let credentials = Arc::new(credentials);
 
-        // If there's a password, send the request and cache
+        // If the request already contains complete authentication, send it and cache it.
         if credentials.is_authenticated() {
-            trace!("Request for {url} already contains username and password");
+            trace!("Request for {url} already contains complete authentication");
             return self
                 .complete_request(Some(credentials), request, extensions, next, auth_policy)
                 .await;
@@ -953,6 +955,31 @@ mod tests {
 
         Mock::given(method("GET"))
             .respond_with(ResponseTemplate::new(401))
+            .mount(&server)
+            .await;
+
+        server
+    }
+
+    async fn start_bearer_test_server(token: &'static str) -> MockServer {
+        let server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path_regex("/.*"))
+            .respond_with(move |req: &wiremock::Request| {
+                let authorized = req
+                    .headers
+                    .get("authorization")
+                    .and_then(|value| value.to_str().ok())
+                    .is_some_and(|value| value == format!("Bearer {token}"));
+
+                if authorized {
+                    ResponseTemplate::new(200)
+                } else {
+                    ResponseTemplate::new(401)
+                        .insert_header("WWW-Authenticate", r#"Bearer realm="authenticated""#)
+                }
+            })
             .mount(&server)
             .await;
 
@@ -1449,6 +1476,74 @@ mod tests {
                 Err(reqwest_middleware::Error::Middleware(_))
             ),
             "If the username does not match, a password should not be fetched, and the middleware should fail eagerly since `authenticate = always` is not satisfied"
+        );
+
+        Ok(())
+    }
+
+    #[test(tokio::test)]
+    async fn test_always_authenticate_with_incomplete_basic_credentials_errors() -> Result<(), Error>
+    {
+        let username = "user";
+        let password = "password";
+        let server = start_test_server(username, password).await;
+        let base_url = Url::parse(&server.uri())?;
+
+        let client = test_client_builder()
+            .with(
+                AuthMiddleware::new()
+                    .with_cache(CredentialsCache::new())
+                    .with_indexes(indexes_for(&base_url, AuthPolicy::Always)),
+            )
+            .build();
+
+        let mut url = base_url.clone();
+        url.set_username(username).unwrap();
+
+        let error = client.get(url).send().await.expect_err(
+            "Username-only credentials should fail eagerly when authenticate=always is set",
+        );
+        assert!(
+            matches!(error, reqwest_middleware::Error::Middleware(_)),
+            "Expected middleware error for incomplete credentials"
+        );
+        assert!(
+            error.to_string().contains("Incomplete credentials"),
+            "Error should explain that the provided credentials are incomplete"
+        );
+
+        Ok(())
+    }
+
+    #[test(tokio::test)]
+    async fn test_always_authenticate_with_bearer_credentials_succeeds() -> Result<(), Error> {
+        let token = "bearer-token";
+        let server = start_bearer_test_server(token).await;
+        let base_url = Url::parse(&server.uri())?;
+
+        let client = test_client_builder()
+            .with(
+                AuthMiddleware::new()
+                    .with_cache(CredentialsCache::new())
+                    .with_indexes(indexes_for(&base_url, AuthPolicy::Always)),
+            )
+            .build();
+
+        assert_eq!(
+            client
+                .get(server.uri())
+                .bearer_auth(token)
+                .send()
+                .await?
+                .status(),
+            200,
+            "Bearer credentials should satisfy authenticate=always"
+        );
+
+        assert_eq!(
+            client.get(server.uri()).send().await?.status(),
+            200,
+            "Successful Bearer auth should be cached for subsequent requests"
         );
 
         Ok(())
