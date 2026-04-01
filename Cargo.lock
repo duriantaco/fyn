@@ -3220,6 +3220,7 @@ dependencies = [
  "fyn-workspace",
  "schemars",
  "serde",
+ "tempfile",
  "textwrap",
  "thiserror 2.0.18",
  "toml",
