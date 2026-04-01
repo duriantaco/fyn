@@ -26,11 +26,17 @@ use fyn_torch::TorchMode;
 use fyn_workspace::pyproject::ExtraBuildDependencies;
 use fyn_workspace::pyproject_mut::AddBoundsKind;
 
-/// A `pyproject.toml` with an (optional) `[tool.fyn]` section.
+/// A `pyproject.toml` with optional `[tool.fyn]` and `[tool.uv]` sections.
 #[allow(dead_code)]
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct PyProjectToml {
     pub(crate) tool: Option<Tools>,
+}
+
+impl PyProjectToml {
+    pub(crate) fn into_options(self) -> Option<Options> {
+        self.tool.and_then(Tools::into_options)
+    }
 }
 
 /// A `[tool]` section.
@@ -38,9 +44,16 @@ pub(crate) struct PyProjectToml {
 #[derive(Debug, Clone, Default, Deserialize)]
 pub(crate) struct Tools {
     pub(crate) fyn: Option<Options>,
+    pub(crate) uv: Option<Options>,
 }
 
-/// A `[tool.fyn]` section.
+impl Tools {
+    pub(crate) fn into_options(self) -> Option<Options> {
+        self.fyn.or(self.uv)
+    }
+}
+
+/// A `[tool.fyn]` or `[tool.uv]` section.
 #[allow(dead_code)]
 #[derive(Debug, Clone, Default, Deserialize, CombineOptions, OptionsMetadata)]
 #[serde(from = "OptionsWire", rename_all = "kebab-case")]

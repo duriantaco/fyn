@@ -51,6 +51,7 @@ url = { workspace = true }
 ignored = ["fyn-options-metadata", "clap"]
 
 [dev-dependencies]
+tempfile = { workspace = true }
 
 [features]
 tracing-durations-export = []

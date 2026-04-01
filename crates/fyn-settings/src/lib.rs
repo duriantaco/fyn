@@ -126,15 +126,13 @@ impl FilesystemOptions {
                         .map_err(|err| Error::UvToml(path.clone(), Box::new(err)))?
                         .relative_to(&std::path::absolute(dir)?)?;
 
-                // If the directory also contains a `[tool.fyn]` table in a `pyproject.toml` file,
-                // warn.
+                // If the directory also contains a supported tool table in `pyproject.toml`,
+                // warn about any masked fields.
                 let pyproject = dir.join("pyproject.toml");
                 if let Ok(content) = fs_err::read_to_string(&pyproject) {
                     let result = info_span!("toml::from_str filesystem options pyproject.toml", path = %pyproject.display())
                         .in_scope(|| toml::from_str::<PyProjectToml>(&content)).ok();
-                    if let Some(options) =
-                        result.and_then(|pyproject| pyproject.tool.and_then(|tool| tool.fyn))
-                    {
+                    if let Some(options) = result.and_then(PyProjectToml::into_options) {
                         warn_uv_toml_masked_fields(&options);
                     }
                 }
@@ -151,7 +149,7 @@ impl FilesystemOptions {
         let path = dir.join("pyproject.toml");
         match fs_err::read_to_string(&path) {
             Ok(content) => {
-                // Parse, but skip any `pyproject.toml` that doesn't have a `[tool.fyn]` section.
+                // Parse, but skip any `pyproject.toml` that doesn't have a supported tool section.
                 let pyproject =
                     info_span!("toml::from_str filesystem options pyproject.toml", path = %path.display())
                         .in_scope(|| toml::from_str::<PyProjectToml>(&content))
@@ -163,9 +161,9 @@ impl FilesystemOptions {
                     );
                     return Ok(None);
                 };
-                let Some(options) = tool.fyn else {
+                let Some(options) = tool.into_options() else {
                     tracing::debug!(
-                        "Skipping `pyproject.toml` in `{}` (no `[tool.fyn]` section)",
+                        "Skipping `pyproject.toml` in `{}` (no `[tool.fyn]` or `[tool.uv]` section)",
                         dir.display()
                     );
                     return Ok(None);
@@ -579,7 +577,7 @@ fn warn_uv_toml_masked_fields(options: &Options) {
     if !masked_fields.is_empty() {
         let field_listing = masked_fields.join("\n- ");
         warn_user!(
-            "Found both a `fyn.toml` file and a `[tool.fyn]` section in an adjacent `pyproject.toml`. The following fields from `[tool.fyn]` will be ignored in favor of the `fyn.toml` file:\n- {}",
+            "Found both a `fyn.toml` file and a supported tool section in an adjacent `pyproject.toml`. The following fields from `pyproject.toml` will be ignored in favor of the `fyn.toml` file:\n- {}",
             field_listing,
         );
     }
@@ -862,5 +860,104 @@ impl From<&EnvironmentOptions> for EnvironmentFlags {
             flags.insert(Self::HIDE_BUILD_OUTPUT);
         }
         flags
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use tempfile::TempDir;
+
+    use super::FilesystemOptions;
+
+    #[test]
+    fn from_directory_falls_back_to_tool_uv() -> Result<(), Box<dyn std::error::Error>> {
+        let root = TempDir::new()?;
+        write_file(
+            root.path().join("pyproject.toml"),
+            r"
+            [tool.uv]
+            offline = true
+            ",
+        )?;
+
+        let options =
+            FilesystemOptions::from_directory(root.path())?.expect("expected pyproject settings");
+
+        assert_eq!(options.globals.offline, Some(true));
+        Ok(())
+    }
+
+    #[test]
+    fn from_directory_prefers_tool_fyn_over_tool_uv() -> Result<(), Box<dyn std::error::Error>> {
+        let root = TempDir::new()?;
+        write_file(
+            root.path().join("pyproject.toml"),
+            r"
+            [tool.fyn]
+            offline = true
+
+            [tool.uv]
+            offline = false
+            ",
+        )?;
+
+        let options =
+            FilesystemOptions::from_directory(root.path())?.expect("expected pyproject settings");
+
+        assert_eq!(options.globals.offline, Some(true));
+        Ok(())
+    }
+
+    #[test]
+    fn from_directory_prefers_fyn_toml_over_tool_uv() -> Result<(), Box<dyn std::error::Error>> {
+        let root = TempDir::new()?;
+        write_file(
+            root.path().join("fyn.toml"),
+            r"
+            offline = true
+            ",
+        )?;
+        write_file(
+            root.path().join("pyproject.toml"),
+            r"
+            [tool.uv]
+            offline = false
+            ",
+        )?;
+
+        let options =
+            FilesystemOptions::from_directory(root.path())?.expect("expected workspace settings");
+
+        assert_eq!(options.globals.offline, Some(true));
+        Ok(())
+    }
+
+    #[test]
+    fn from_directory_ignores_pyproject_without_supported_tool_sections()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = TempDir::new()?;
+        write_file(
+            root.path().join("pyproject.toml"),
+            r#"
+            [project]
+            name = "example"
+            version = "0.1.0"
+            "#,
+        )?;
+
+        let options = FilesystemOptions::from_directory(root.path())?;
+
+        assert!(options.is_none());
+        Ok(())
+    }
+
+    fn write_file(
+        path: impl AsRef<Path>,
+        contents: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        fs_err::write(path.as_ref(), contents)?;
+        Ok(())
     }
 }
