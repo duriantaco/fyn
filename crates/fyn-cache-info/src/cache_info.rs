@@ -76,7 +76,7 @@ impl CacheInfo {
             if let Ok(pyproject_toml) = result {
                 pyproject_toml
                     .tool
-                    .and_then(|tool| tool.fyn)
+                    .and_then(Tool::into_preferred)
                     .and_then(|tool_fyn| tool_fyn.cache_keys)
             } else {
                 None
@@ -316,7 +316,7 @@ impl CacheInfo {
     }
 }
 
-/// A `pyproject.toml` with an (optional) `[tool.fyn]` section.
+/// A `pyproject.toml` with optional `[tool.fyn]` and `[tool.uv]` sections.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 struct PyProjectToml {
@@ -327,6 +327,13 @@ struct PyProjectToml {
 #[serde(rename_all = "kebab-case")]
 struct Tool {
     fyn: Option<Toolfyn>,
+    uv: Option<Toolfyn>,
+}
+
+impl Tool {
+    fn into_preferred(self) -> Option<Toolfyn> {
+        self.fyn.or(self.uv)
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -378,6 +385,60 @@ pub enum FilePattern {
 enum DirectoryTimestamp {
     Timestamp(Timestamp),
     Inode(u64),
+}
+
+#[cfg(test)]
+mod tests {
+    use anyhow::Result;
+
+    use super::{CacheInfo, Timestamp};
+
+    #[test]
+    fn cache_info_falls_back_to_tool_uv_cache_keys() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs_err::write(
+            dir.path().join("pyproject.toml"),
+            r#"
+            [tool.uv]
+            cache-keys = ["tracked.txt"]
+            "#,
+        )?;
+        let tracked = dir.path().join("tracked.txt");
+        fs_err::write(&tracked, "")?;
+
+        let cache_info = CacheInfo::from_directory(dir.path())?;
+
+        assert_eq!(
+            cache_info.timestamp,
+            Some(Timestamp::from_metadata(&tracked.metadata()?))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn cache_info_prefers_tool_fyn_cache_keys_over_tool_uv() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs_err::write(
+            dir.path().join("pyproject.toml"),
+            r#"
+            [tool.fyn]
+            cache-keys = ["tracked.txt"]
+
+            [tool.uv]
+            cache-keys = ["ignored.txt"]
+            "#,
+        )?;
+        let tracked = dir.path().join("tracked.txt");
+        fs_err::write(&tracked, "")?;
+
+        let cache_info = CacheInfo::from_directory(dir.path())?;
+
+        assert_eq!(
+            cache_info.timestamp,
+            Some(Timestamp::from_metadata(&tracked.metadata()?))
+        );
+        Ok(())
+    }
 }
 
 #[cfg(all(test, unix))]

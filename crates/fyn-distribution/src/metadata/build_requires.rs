@@ -84,9 +84,7 @@ impl BuildRequires {
             project_workspace
                 .current_project()
                 .pyproject_toml()
-                .tool
-                .as_ref()
-                .and_then(|tool| tool.fyn.as_ref())
+                .tool_fyn()
                 .and_then(|fyn| fyn.index.as_deref())
                 .unwrap_or(&empty)
         };
@@ -99,9 +97,7 @@ impl BuildRequires {
             project_workspace
                 .current_project()
                 .pyproject_toml()
-                .tool
-                .as_ref()
-                .and_then(|tool| tool.fyn.as_ref())
+                .tool_fyn()
                 .and_then(|fyn| fyn.sources.as_ref())
                 .map(ToolfynSources::inner)
                 .unwrap_or(&empty)
@@ -166,9 +162,7 @@ impl BuildRequires {
         let empty = vec![];
         let project_indexes = workspace
             .pyproject_toml()
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.index.as_deref())
             .unwrap_or(&empty);
 
@@ -176,9 +170,7 @@ impl BuildRequires {
         let empty = BTreeMap::default();
         let project_sources = workspace
             .pyproject_toml()
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.sources.as_ref())
             .map(ToolfynSources::inner)
             .unwrap_or(&empty);
@@ -254,18 +246,14 @@ impl LoweredExtraBuildDependencies {
                 // Collect project sources and indexes
                 let project_indexes = workspace
                     .pyproject_toml()
-                    .tool
-                    .as_ref()
-                    .and_then(|tool| tool.fyn.as_ref())
+                    .tool_fyn()
                     .and_then(|fyn| fyn.index.as_deref())
                     .unwrap_or(&[]);
 
                 let empty_sources = BTreeMap::default();
                 let project_sources = workspace
                     .pyproject_toml()
-                    .tool
-                    .as_ref()
-                    .and_then(|tool| tool.fyn.as_ref())
+                    .tool_fyn()
                     .and_then(|fyn| fyn.sources.as_ref())
                     .map(ToolfynSources::inner)
                     .unwrap_or(&empty_sources);

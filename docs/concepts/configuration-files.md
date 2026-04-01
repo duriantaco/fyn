@@ -15,8 +15,9 @@ In workspaces, fyn will begin its search at the workspace root, ignoring any con
 in workspace members. Since the workspace is locked as a single unit, configuration is shared across
 all members.
 
-If a `pyproject.toml` file is found, fyn will read configuration from the `[tool.fyn]` table. For
-example, to set a persistent index URL, add the following to a `pyproject.toml`:
+If a `pyproject.toml` file is found, fyn will read configuration from the `[tool.fyn]` table,
+falling back to `[tool.uv]` when `[tool.fyn]` is absent. For example, to set a persistent index
+URL, add the following to a `pyproject.toml`:
 
 ```toml title="pyproject.toml"
 [[tool.fyn.index]]
@@ -24,7 +25,7 @@ url = "https://test.pypi.org/simple"
 default = true
 ```
 
-(If there is no such table, the `pyproject.toml` file will be ignored, and fyn will continue
+(If neither table is present, the `pyproject.toml` file will be ignored, and fyn will continue
 searching in the directory hierarchy.)
 
 fyn will also search for `fyn.toml` files, which follow an identical structure, but omit the
@@ -40,7 +41,7 @@ default = true
 
     `fyn.toml` files take precedence over `pyproject.toml` files, so if both `fyn.toml` and
     `pyproject.toml` files are present in a directory, configuration will be read from `fyn.toml`, and
-    `[tool.fyn]` section in the accompanying `pyproject.toml` will be ignored.
+    any supported tool section in the accompanying `pyproject.toml` will be ignored.
 
 fyn will also discover `fyn.toml` configuration files in the user- and system-level
 [configuration directories](../reference/storage.md#configuration-directories), e.g., user-level

@@ -55,7 +55,7 @@ pub enum WorkspaceError {
     MissingWorkspace(PathBuf),
     #[error("The project is marked as unmanaged: {}", _0.simplified_display())]
     NonWorkspace(PathBuf),
-    #[error("Nested workspaces are not supported, but workspace member has a `tool.fyn.workspace` table: {}", _0.simplified_display())]
+    #[error("Nested workspaces are not supported, but workspace member has a supported workspace table (`tool.fyn.workspace` or `tool.uv.workspace`): {}", _0.simplified_display())]
     NestedWorkspace(PathBuf),
     #[error("The workspace does not have a member {}: {}", _0, _1.simplified_display())]
     NoSuchMember(PackageName, PathBuf),
@@ -75,7 +75,9 @@ pub enum WorkspaceError {
     #[error("Failed to find directories for glob: `{0}`")]
     Pattern(String, #[source] PatternError),
     // Syntax and other errors.
-    #[error("Directory walking failed for `tool.fyn.workspace.members` glob: `{0}`")]
+    #[error(
+        "Directory walking failed for a supported workspace-members glob (`tool.fyn.workspace.members` or `tool.uv.workspace.members`): `{0}`"
+    )]
     GlobWalk(String, #[source] GlobError),
     #[error(transparent)]
     Io(#[from] std::io::Error),
@@ -208,13 +210,7 @@ impl Workspace {
             .map_err(|err| WorkspaceError::Toml(pyproject_path.clone(), Box::new(err)))?;
 
         // Check if the project is explicitly marked as unmanaged.
-        if pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
-            .and_then(|fyn| fyn.managed)
-            == Some(false)
-        {
+        if pyproject_toml.tool_fyn().and_then(|fyn| fyn.managed) == Some(false) {
             debug!(
                 "Project `{}` is marked as unmanaged",
                 project_path.simplified_display()
@@ -224,9 +220,7 @@ impl Workspace {
 
         // Check if the current project is also an explicit workspace root.
         let explicit_root = pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.workspace.as_ref())
             .map(|workspace| {
                 (
@@ -317,7 +311,7 @@ impl Workspace {
             let workspace_sources = workspace_pyproject_toml
                 .tool
                 .clone()
-                .and_then(|tool| tool.fyn)
+                .and_then(|tool| tool.into_preferred())
                 .and_then(|fyn| fyn.sources)
                 .map(ToolfynSources::into_inner)
                 .unwrap_or_default();
@@ -433,9 +427,7 @@ impl Workspace {
                     .filter_map(|(name, member)| {
                         member
                             .pyproject_toml
-                            .tool
-                            .as_ref()
-                            .and_then(|tool| tool.fyn.as_ref())
+                            .tool_fyn()
                             .and_then(|fyn| fyn.sources.as_ref())
                             .map(ToolfynSources::inner)
                             .map(move |sources| {
@@ -485,9 +477,7 @@ impl Workspace {
                     .unwrap_or_default();
                 if member
                     .pyproject_toml
-                    .tool
-                    .as_ref()
-                    .and_then(|tool| tool.fyn.as_ref())
+                    .tool_fyn()
                     .and_then(|fyn| fyn.dev_dependencies.as_ref())
                     .is_some()
                 {
@@ -532,18 +522,14 @@ impl Workspace {
     /// Returns the set of supported environments for the workspace.
     pub fn environments(&self) -> Option<&SupportedEnvironments> {
         self.pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.environments.as_ref())
     }
 
     /// Returns the set of required platforms for the workspace.
     pub fn required_environments(&self) -> Option<&SupportedEnvironments> {
         self.pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.required_environments.as_ref())
     }
 
@@ -637,9 +623,7 @@ impl Workspace {
     pub fn overrides(&self) -> Vec<fyn_pep508::Requirement<VerbatimParsedUrl>> {
         let Some(overrides) = self
             .pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.override_dependencies.as_ref())
         else {
             return vec![];
@@ -651,9 +635,7 @@ impl Workspace {
     pub fn exclude_dependencies(&self) -> Vec<fyn_normalize::PackageName> {
         let Some(excludes) = self
             .pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.exclude_dependencies.as_ref())
         else {
             return vec![];
@@ -665,9 +647,7 @@ impl Workspace {
     pub fn constraints(&self) -> Vec<fyn_pep508::Requirement<VerbatimParsedUrl>> {
         let Some(constraints) = self
             .pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.constraint_dependencies.as_ref())
         else {
             return vec![];
@@ -679,9 +659,7 @@ impl Workspace {
     pub fn build_constraints(&self) -> Vec<fyn_pep508::Requirement<VerbatimParsedUrl>> {
         let Some(build_constraints) = self
             .pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.build_constraint_dependencies.as_ref())
         else {
             return vec![];
@@ -803,9 +781,7 @@ impl Workspace {
     pub fn excludes(&self, project_path: &Path) -> Result<bool, WorkspaceError> {
         if let Some(workspace) = self
             .pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.workspace.as_ref())
         {
             is_excluded_from_workspace(project_path, &self.install_path, workspace)
@@ -818,9 +794,7 @@ impl Workspace {
     pub fn includes(&self, project_path: &Path) -> Result<bool, WorkspaceError> {
         if let Some(workspace) = self
             .pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.workspace.as_ref())
         {
             is_included_in_workspace(project_path, &self.install_path, workspace)
@@ -889,7 +863,7 @@ impl Workspace {
         let workspace_sources = workspace_pyproject_toml
             .tool
             .clone()
-            .and_then(|tool| tool.fyn)
+            .and_then(|tool| tool.into_preferred())
             .and_then(|fyn| fyn.sources)
             .map(ToolfynSources::into_inner)
             .unwrap_or_default();
@@ -897,7 +871,7 @@ impl Workspace {
         let workspace_indexes = workspace_pyproject_toml
             .tool
             .clone()
-            .and_then(|tool| tool.fyn)
+            .and_then(|tool| tool.into_preferred())
             .and_then(|fyn| fyn.index)
             .unwrap_or_default();
 
@@ -912,9 +886,7 @@ impl Workspace {
             .filter_map(|(_, member)| {
                 member
                     .pyproject_toml
-                    .tool
-                    .as_ref()
-                    .and_then(|tool| tool.fyn.as_ref())
+                    .tool_fyn()
                     .and_then(|fyn| fyn.dev_dependencies.as_ref())
                     .map(|_| format!("`{}`", member.root().join("pyproject.toml").user_display()))
             })
@@ -1071,13 +1043,7 @@ impl Workspace {
                     .map_err(|err| WorkspaceError::Toml(pyproject_path.clone(), Box::new(err)))?;
 
                 // Check if the current project is explicitly marked as unmanaged.
-                if pyproject_toml
-                    .tool
-                    .as_ref()
-                    .and_then(|tool| tool.fyn.as_ref())
-                    .and_then(|fyn| fyn.managed)
-                    == Some(false)
-                {
+                if pyproject_toml.tool_fyn().and_then(|fyn| fyn.managed) == Some(false) {
                     if let Some(project) = pyproject_toml.project.as_ref() {
                         debug!(
                             "Project `{}` is marked as unmanaged; omitting from workspace members",
@@ -1124,9 +1090,7 @@ impl Workspace {
             if member.root() != workspace_root
                 && member
                     .pyproject_toml
-                    .tool
-                    .as_ref()
-                    .and_then(|tool| tool.fyn.as_ref())
+                    .tool_fyn()
                     .and_then(|fyn| fyn.workspace.as_ref())
                     .is_some()
             {
@@ -1393,9 +1357,7 @@ impl ProjectWorkspace {
 
         // Check if workspaces are explicitly disabled for the project.
         if project_pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.managed)
             == Some(false)
         {
@@ -1405,9 +1367,7 @@ impl ProjectWorkspace {
 
         // Check if the current project is also an explicit workspace root.
         let mut workspace = project_pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.workspace.as_ref())
             .map(|workspace| {
                 (
@@ -1519,9 +1479,7 @@ async fn find_workspace(
             .map_err(|err| WorkspaceError::Toml(pyproject_path.clone(), Box::new(err)))?;
 
         return if let Some(workspace) = pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.workspace.as_ref())
         {
             if !is_included_in_workspace(project_root, workspace_root, workspace)? {
@@ -1615,7 +1573,7 @@ fn has_only_gitignored_files(path: &Path) -> bool {
     true
 }
 
-/// Check if we're in the `tool.fyn.workspace.excluded` of a workspace.
+/// Check if we're in the `tool.fyn.workspace.exclude` or `tool.uv.workspace.exclude` of a workspace.
 fn is_excluded_from_workspace(
     project_path: &Path,
     workspace_root: &Path,
@@ -1638,7 +1596,7 @@ fn is_excluded_from_workspace(
     Ok(false)
 }
 
-/// Check if we're in the `tool.fyn.workspace.members` of a workspace.
+/// Check if we're in the `tool.fyn.workspace.members` or `tool.uv.workspace.members` of a workspace.
 fn is_included_in_workspace(
     project_path: &Path,
     workspace_root: &Path,
@@ -1727,13 +1685,11 @@ impl VirtualProject {
             .await?;
             Ok(Self::Project(project))
         } else if let Some(workspace) = pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.workspace.as_ref())
             .filter(|_| options.project.allows_non_project_workspace())
         {
-            // Otherwise, if it contains a `tool.fyn.workspace` table, it's a non-project workspace
+            // Otherwise, if it contains a supported workspace table, it's a non-project workspace
             // root.
             let project_path = std::path::absolute(project_root)
                 .map_err(WorkspaceError::Normalize)?
@@ -1862,7 +1818,7 @@ mod tests {
     use assert_fs::prelude::*;
     use insta::{assert_json_snapshot, assert_snapshot};
 
-    use fyn_normalize::GroupName;
+    use fyn_normalize::{GroupName, PackageName};
     use fyn_pypi_types::DependencyGroupSpecifier;
 
     use crate::pyproject::PyProjectToml;
@@ -2110,6 +2066,7 @@ mod tests {
                         ]
                       },
                       "index": null,
+                      "tasks": null,
                       "workspace": {
                         "members": [
                           "packages/*"
@@ -2129,7 +2086,8 @@ mod tests {
                       "required-environments": null,
                       "conflicts": null,
                       "build-backend": null
-                    }
+                    },
+                    "uv": null
                   },
                   "dependency-groups": null
                 }
@@ -2211,6 +2169,7 @@ mod tests {
                     "fyn": {
                       "sources": null,
                       "index": null,
+                      "tasks": null,
                       "workspace": {
                         "members": [
                           "packages/*"
@@ -2230,7 +2189,8 @@ mod tests {
                       "required-environments": null,
                       "conflicts": null,
                       "build-backend": null
-                    }
+                    },
+                    "uv": null
                   },
                   "dependency-groups": null
                 }
@@ -2423,6 +2383,7 @@ mod tests {
                     "fyn": {
                       "sources": null,
                       "index": null,
+                      "tasks": null,
                       "workspace": {
                         "members": [
                           "packages/*"
@@ -2444,7 +2405,8 @@ mod tests {
                       "required-environments": null,
                       "conflicts": null,
                       "build-backend": null
-                    }
+                    },
+                    "uv": null
                   },
                   "dependency-groups": null
                 }
@@ -2532,6 +2494,7 @@ mod tests {
                     "fyn": {
                       "sources": null,
                       "index": null,
+                      "tasks": null,
                       "workspace": {
                         "members": [
                           "packages/seeds",
@@ -2554,7 +2517,8 @@ mod tests {
                       "required-environments": null,
                       "conflicts": null,
                       "build-backend": null
-                    }
+                    },
+                    "uv": null
                   },
                   "dependency-groups": null
                 }
@@ -2655,6 +2619,7 @@ mod tests {
                     "fyn": {
                       "sources": null,
                       "index": null,
+                      "tasks": null,
                       "workspace": {
                         "members": [
                           "packages/seeds",
@@ -2677,7 +2642,8 @@ mod tests {
                       "required-environments": null,
                       "conflicts": null,
                       "build-backend": null
-                    }
+                    },
+                    "uv": null
                   },
                   "dependency-groups": null
                 }
@@ -2752,6 +2718,7 @@ mod tests {
                     "fyn": {
                       "sources": null,
                       "index": null,
+                      "tasks": null,
                       "workspace": {
                         "members": [
                           "packages/seeds",
@@ -2774,7 +2741,8 @@ mod tests {
                       "required-environments": null,
                       "conflicts": null,
                       "build-backend": null
-                    }
+                    },
+                    "uv": null
                   },
                   "dependency-groups": null
                 }
@@ -2822,6 +2790,75 @@ bar = ["b"]
         );
     }
 
+    #[test]
+    fn pyproject_prefers_tool_fyn_over_tool_uv() {
+        let toml = r#"
+[tool.fyn]
+managed = false
+
+[tool.uv]
+managed = true
+"#;
+
+        let result = PyProjectToml::from_string(toml.to_string(), "pyproject.toml")
+            .expect("Deserialization should succeed");
+
+        assert_eq!(result.tool_fyn().and_then(|tool| tool.managed), Some(false));
+    }
+
+    #[tokio::test]
+    async fn tool_uv_workspace_root() -> Result<()> {
+        let root = tempfile::TempDir::new()?;
+        let root = ChildPath::new(root.path());
+
+        root.child("pyproject.toml").write_str(
+            r#"
+            [project]
+            name = "albatross"
+            version = "0.1.0"
+            requires-python = ">=3.12"
+            dependencies = ["bird-feeder"]
+
+            [tool.uv.workspace]
+            members = ["packages/*"]
+
+            [tool.uv.sources]
+            bird-feeder = { workspace = true }
+            "#,
+        )?;
+
+        root.child("packages")
+            .child("bird-feeder")
+            .child("pyproject.toml")
+            .write_str(
+                r#"
+                [project]
+                name = "bird-feeder"
+                version = "1.0.0"
+                requires-python = ">=3.12"
+                dependencies = []
+                "#,
+            )?;
+
+        let (project, _) = temporary_test(root.as_ref()).await.unwrap();
+
+        assert_eq!(project.workspace().packages().len(), 2);
+        assert!(
+            project
+                .workspace()
+                .required_members()
+                .contains_key(&PackageName::from_str("bird-feeder")?)
+        );
+        assert!(
+            project
+                .workspace()
+                .sources()
+                .contains_key(&PackageName::from_str("bird-feeder")?)
+        );
+
+        Ok(())
+    }
+
     #[tokio::test]
     async fn nested_workspace() -> Result<()> {
         let root = tempfile::TempDir::new()?;
@@ -2863,7 +2900,7 @@ bar = ["b"]
         insta::with_settings!({filters => filters}, {
             assert_snapshot!(
                 error,
-            @"Nested workspaces are not supported, but workspace member has a `tool.fyn.workspace` table: [ROOT]/packages/seeds");
+            @"Nested workspaces are not supported, but workspace member has a supported workspace table (`tool.fyn.workspace` or `tool.uv.workspace`): [ROOT]/packages/seeds");
         });
 
         Ok(())

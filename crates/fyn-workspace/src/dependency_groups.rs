@@ -33,9 +33,7 @@ impl FlatDependencyGroups {
     ) -> Result<Self, DependencyGroupError> {
         // First, collect `tool.fyn.dev_dependencies`
         let dev_dependencies = pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.dev_dependencies.as_ref());
 
         // Then, collect `dependency-groups`
@@ -48,9 +46,7 @@ impl FlatDependencyGroups {
         // Get additional settings
         let empty_settings = ToolfynDependencyGroups::default();
         let group_settings = pyproject_toml
-            .tool
-            .as_ref()
-            .and_then(|tool| tool.fyn.as_ref())
+            .tool_fyn()
             .and_then(|fyn| fyn.dependency_groups.as_ref())
             .unwrap_or(&empty_settings);
 
