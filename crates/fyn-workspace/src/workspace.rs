@@ -21,7 +21,8 @@ use fyn_warnings::warn_user_once;
 
 use crate::dependency_groups::{DependencyGroupError, FlatDependencyGroup, FlatDependencyGroups};
 use crate::pyproject::{
-    Project, PyProjectToml, PyprojectTomlError, Source, Sources, ToolfynSources, ToolfynWorkspace,
+    Project, PyProjectToml, PyprojectTomlError, Source, Sources, Tool, ToolfynSources,
+    ToolfynWorkspace,
 };
 
 type WorkspaceMembers = Arc<BTreeMap<PackageName, WorkspaceMember>>;
@@ -311,7 +312,7 @@ impl Workspace {
             let workspace_sources = workspace_pyproject_toml
                 .tool
                 .clone()
-                .and_then(|tool| tool.into_preferred())
+                .and_then(Tool::into_preferred)
                 .and_then(|fyn| fyn.sources)
                 .map(ToolfynSources::into_inner)
                 .unwrap_or_default();
@@ -863,7 +864,7 @@ impl Workspace {
         let workspace_sources = workspace_pyproject_toml
             .tool
             .clone()
-            .and_then(|tool| tool.into_preferred())
+            .and_then(Tool::into_preferred)
             .and_then(|fyn| fyn.sources)
             .map(ToolfynSources::into_inner)
             .unwrap_or_default();
@@ -871,7 +872,7 @@ impl Workspace {
         let workspace_indexes = workspace_pyproject_toml
             .tool
             .clone()
-            .and_then(|tool| tool.into_preferred())
+            .and_then(Tool::into_preferred)
             .and_then(|fyn| fyn.index)
             .unwrap_or_default();
 
