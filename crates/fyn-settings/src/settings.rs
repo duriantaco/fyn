@@ -2206,6 +2206,7 @@ pub struct OptionsWire {
     // #[serde(flatten)]
     // globals: GlobalOptions
     required_version: Option<RequiredVersion>,
+    #[serde(alias = "system-certs")]
     native_tls: Option<bool>,
     offline: Option<bool>,
     no_cache: Option<bool>,

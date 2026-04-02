@@ -1,6 +1,8 @@
 use anyhow::Result;
 use assert_cmd::assert::OutputAssertExt;
 use assert_fs::fixture::PathChild;
+use assert_fs::prelude::*;
+use indoc::indoc;
 
 use fyn_test::{copy_dir_ignore, fyn_snapshot};
 
@@ -318,4 +320,82 @@ fn workspace_metadata_no_project() {
     error: No `pyproject.toml` found in current directory or any parent directory
     "
     );
+}
+
+#[test]
+fn workspace_metadata_includes_member_dependencies_from_lock() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let workspace = context.temp_dir.child("workspace");
+
+    workspace.child("pyproject.toml").write_str(indoc! {r#"
+        [project]
+        name = "root"
+        version = "0.1.0"
+        dependencies = ["member"]
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+
+        [tool.fyn.sources]
+        member = { workspace = true }
+
+        [tool.fyn.workspace]
+        members = ["packages/*"]
+    "#})?;
+    workspace
+        .child("src")
+        .child("root")
+        .child("__init__.py")
+        .touch()?;
+
+    let member = workspace.child("packages").child("member");
+    member.child("pyproject.toml").write_str(indoc! {r#"
+        [project]
+        name = "member"
+        version = "0.2.0"
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+    "#})?;
+    member
+        .child("src")
+        .child("member")
+        .child("__init__.py")
+        .touch()?;
+
+    context.lock().current_dir(&workspace).assert().success();
+
+    fyn_snapshot!(context.filters(), context.workspace_metadata().current_dir(&workspace), @r#"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    {
+      "schema": {
+        "version": "preview"
+      },
+      "workspace_root": "[TEMP_DIR]/workspace",
+      "members": [
+        {
+          "name": "member",
+          "path": "[TEMP_DIR]/workspace/packages/member",
+          "dependencies": []
+        },
+        {
+          "name": "root",
+          "path": "[TEMP_DIR]/workspace",
+          "dependencies": [
+            "member"
+          ]
+        }
+      ]
+    }
+
+    ----- stderr -----
+    warning: The `fyn workspace metadata` command is experimental and may change without warning. Pass `--preview-features workspace-metadata` to disable this warning.
+    "#
+    );
+
+    Ok(())
 }

@@ -649,7 +649,8 @@ impl From<Hashes> for HashDigests {
             usize::from(value.sha512.is_some())
                 + usize::from(value.sha384.is_some())
                 + usize::from(value.sha256.is_some())
-                + usize::from(value.md5.is_some()),
+                + usize::from(value.md5.is_some())
+                + usize::from(value.blake2b.is_some()),
         );
         if let Some(sha512) = value.sha512 {
             digests.push(HashDigest {
@@ -673,6 +674,12 @@ impl From<Hashes> for HashDigests {
             digests.push(HashDigest {
                 algorithm: HashAlgorithm::Md5,
                 digest: md5,
+            });
+        }
+        if let Some(blake2b) = value.blake2b {
+            digests.push(HashDigest {
+                algorithm: HashAlgorithm::Blake2b,
+                digest: blake2b,
             });
         }
         Self::from(digests)
@@ -744,7 +751,7 @@ pub enum HashError {
 
 #[cfg(test)]
 mod tests {
-    use crate::{HashError, Hashes};
+    use crate::{HashAlgorithm, HashDigest, HashDigests, HashError, Hashes};
 
     #[test]
     fn parse_hashes() -> Result<(), HashError> {
@@ -832,6 +839,27 @@ mod tests {
         assert!(result.is_err());
 
         Ok(())
+    }
+
+    #[test]
+    fn convert_hashes_to_digests_preserves_blake2b() {
+        let hashes = Hashes {
+            md5: None,
+            sha256: None,
+            sha384: None,
+            sha512: None,
+            blake2b: Some(
+                "af4793213ee66ef8fae3b93b3e29206f6b251e65c97bd91d8e1c5596ef15af0a".into(),
+            ),
+        };
+
+        assert_eq!(
+            HashDigests::from(hashes).to_vec(),
+            vec![HashDigest {
+                algorithm: HashAlgorithm::Blake2b,
+                digest: "af4793213ee66ef8fae3b93b3e29206f6b251e65c97bd91d8e1c5596ef15af0a".into(),
+            }]
+        );
     }
 }
 

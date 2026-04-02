@@ -935,6 +935,24 @@ mod tests {
     }
 
     #[test]
+    fn from_directory_accepts_system_certs_alias() -> Result<(), Box<dyn std::error::Error>> {
+        let root = TempDir::new()?;
+        write_file(
+            root.path().join("pyproject.toml"),
+            r"
+            [tool.uv]
+            system-certs = true
+            ",
+        )?;
+
+        let options =
+            FilesystemOptions::from_directory(root.path())?.expect("expected pyproject settings");
+
+        assert_eq!(options.globals.native_tls, Some(true));
+        Ok(())
+    }
+
+    #[test]
     fn from_directory_ignores_pyproject_without_supported_tool_sections()
     -> Result<(), Box<dyn std::error::Error>> {
         let root = TempDir::new()?;
