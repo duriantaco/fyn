@@ -786,7 +786,7 @@ impl Plan {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fyn_platform_tags::{Arch, Os, Platform};
+    use fyn_platform_tags::{Arch, Os, Platform, TagsOptions};
     use std::str::FromStr;
 
     #[test]
@@ -804,9 +804,12 @@ mod tests {
             (3, 14),   // python_version
             "cpython", // implementation_name
             (3, 14),   // implementation_version
-            true,      // manylinux_compatible
-            true,      // gil_disabled (free-threaded)
-            false,     // is_cross
+            TagsOptions {
+                manylinux_compatible: true,
+                gil_disabled: true,
+                debug_enabled: false,
+                is_cross: false,
+            },
         )
         .unwrap();
 
@@ -836,9 +839,12 @@ mod tests {
             (3, 14),   // python_version
             "cpython", // implementation_name
             (3, 14),   // implementation_version
-            true,      // manylinux_compatible
-            true,      // gil_disabled (free-threaded)
-            false,     // is_cross
+            TagsOptions {
+                manylinux_compatible: true,
+                gil_disabled: true,
+                debug_enabled: false,
+                is_cross: false,
+            },
         )
         .unwrap();
 
@@ -868,9 +874,12 @@ mod tests {
             (3, 14),   // python_version
             "cpython", // implementation_name
             (3, 14),   // implementation_version
-            true,      // manylinux_compatible
-            false,     // gil_disabled (regular Python)
-            false,     // is_cross
+            TagsOptions {
+                manylinux_compatible: true,
+                gil_disabled: false,
+                debug_enabled: false,
+                is_cross: false,
+            },
         )
         .unwrap();
 

@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use fyn_configuration::TargetTriple;
-use fyn_platform_tags::{Tags, TagsError};
+use fyn_platform_tags::{Tags, TagsError, TagsOptions};
 use fyn_pypi_types::ResolverMarkerEnvironment;
 use fyn_python::{Interpreter, PythonVersion};
 
@@ -70,9 +70,12 @@ pub(crate) fn resolution_tags<'env>(
         version_tuple,
         interpreter.implementation_name(),
         interpreter.implementation_tuple(),
-        manylinux_compatible,
-        interpreter.gil_disabled(),
-        true,
+        TagsOptions {
+            manylinux_compatible,
+            gil_disabled: interpreter.gil_disabled(),
+            debug_enabled: interpreter.debug_enabled(),
+            is_cross: true,
+        },
     )?;
     Ok(Cow::Owned(tags))
 }

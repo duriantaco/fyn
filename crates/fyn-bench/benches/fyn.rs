@@ -125,7 +125,7 @@ mod resolver {
     use fyn_install_wheel::LinkMode;
     use fyn_pep440::Version;
     use fyn_pep508::{MarkerEnvironment, MarkerEnvironmentBuilder};
-    use fyn_platform_tags::{Arch, Os, Platform, Tags};
+    use fyn_platform_tags::{Arch, Os, Platform, Tags, TagsOptions};
     use fyn_preview::Preview;
     use fyn_pypi_types::{Conflicts, ResolverMarkerEnvironment};
     use fyn_python::Interpreter;
@@ -161,7 +161,14 @@ mod resolver {
     );
 
     static TAGS: LazyLock<Tags> = LazyLock::new(|| {
-        Tags::from_env(&PLATFORM, (3, 11), "cpython", (3, 11), false, false, false).unwrap()
+        Tags::from_env(
+            &PLATFORM,
+            (3, 11),
+            "cpython",
+            (3, 11),
+            TagsOptions::default(),
+        )
+        .unwrap()
     });
 
     pub(crate) async fn resolve(
