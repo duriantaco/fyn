@@ -1525,6 +1525,7 @@ impl PythonFindSettings {
 pub(crate) struct PythonPinSettings {
     pub(crate) request: Option<String>,
     pub(crate) resolved: bool,
+    pub(crate) upgrade: bool,
     pub(crate) no_project: bool,
     pub(crate) global: bool,
     pub(crate) rm: bool,
@@ -1542,6 +1543,7 @@ impl PythonPinSettings {
             request,
             no_resolved,
             resolved,
+            upgrade,
             no_project,
             global,
             rm,
@@ -1554,6 +1556,7 @@ impl PythonPinSettings {
         Self {
             request,
             resolved: flag(resolved, no_resolved, "resolved").unwrap_or(false),
+            upgrade,
             no_project,
             global,
             rm,

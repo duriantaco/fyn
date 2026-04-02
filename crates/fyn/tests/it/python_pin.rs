@@ -307,10 +307,10 @@ fn python_pin_global_use_local_if_available() -> Result<()> {
 #[test]
 fn python_pin_global_creates_parent_dirs() {
     let context = fyn_test::test_context_with_versions!(&["3.12"]);
-    let uv_global_config_dir = context.user_config_dir.child("uv");
+    let fyn_global_config_dir = context.user_config_dir.child("fyn");
 
     assert!(
-        !uv_global_config_dir.exists(),
+        !fyn_global_config_dir.exists(),
         "Global config directory should not exist yet."
     );
 
@@ -324,7 +324,7 @@ fn python_pin_global_creates_parent_dirs() {
     ");
 
     assert!(
-        uv_global_config_dir.exists(),
+        fyn_global_config_dir.exists(),
         "Global config directory should be automatically created (if missing) after global pin."
     );
 }
@@ -740,6 +740,85 @@ fn python_pin_resolve() {
     }, {
         assert_snapshot!(python_version, @"[PYTHON-3.13]");
     });
+}
+
+#[test]
+fn python_pin_upgrade() -> Result<()> {
+    let context =
+        fyn_test::test_context_with_versions!(&["3.10"]).with_filtered_latest_python_versions();
+    context
+        .temp_dir
+        .child(PYTHON_VERSION_FILENAME)
+        .write_str("3.10.17\n")?;
+
+    fyn_snapshot!(context.filters(), context.python_pin().arg("--upgrade"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    Updated `.python-version` from `3.10.[X]` -> `3.10.[X]`
+
+    ----- stderr -----
+    ");
+
+    let python_version = context.read(PYTHON_VERSION_FILENAME);
+    assert_eq!(python_version.trim(), fyn_test::LATEST_PYTHON_3_10);
+
+    fyn_snapshot!(context.filters(), context.python_pin().arg("--upgrade"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    `3.10.[X]` is already pinned to the latest compatible version
+
+    ----- stderr -----
+    ");
+
+    Ok(())
+}
+
+#[test]
+fn python_pin_upgrade_respects_requires_python() -> Result<()> {
+    let context =
+        fyn_test::test_context_with_versions!(&["3.11"]).with_filtered_latest_python_versions();
+    context.temp_dir.child("pyproject.toml").write_str(
+        r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.11,<3.12"
+        "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context.python_pin().arg("cpython").arg("--upgrade"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    Pinned `.python-version` to `cpython@3.11.[X]`
+
+    ----- stderr -----
+    ");
+
+    let python_version = context.read(PYTHON_VERSION_FILENAME);
+    assert_eq!(
+        python_version.trim(),
+        format!("cpython@{}", fyn_test::LATEST_PYTHON_3_11)
+    );
+
+    Ok(())
+}
+
+#[test]
+fn python_pin_upgrade_rejects_path_request() {
+    let context = fyn_test::test_context_with_versions!(&["3.11"]);
+    let path = &context.python_versions.first().unwrap().1;
+
+    fyn_snapshot!(context.filters(), context.python_pin().arg("--upgrade").arg(path), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: `--upgrade` is only supported for version, implementation, or download requests; got path `[PYTHON-3.11]`
+    ");
 }
 
 #[test]

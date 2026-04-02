@@ -7748,6 +7748,16 @@ pub struct PythonPinArgs {
     #[arg(long, overrides_with("no_resolved"), hide = true)]
     pub no_resolved: bool,
 
+    /// Upgrade the Python pin to the latest compatible exact version.
+    ///
+    /// If a request is provided, fyn upgrades that request. Otherwise, fyn upgrades the first
+    /// entry from the discovered `.python-version` or `.python-versions` file.
+    ///
+    /// When a project or workspace is discovered, the selected version must also satisfy its
+    /// `requires-python` constraint.
+    #[arg(long, short = 'U', conflicts_with = "rm")]
+    pub upgrade: bool,
+
     /// Avoid validating the Python pin is compatible with the project or workspace.
     ///
     /// By default, a project or workspace is discovered in the current directory or any parent
