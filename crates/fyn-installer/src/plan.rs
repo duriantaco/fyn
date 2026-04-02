@@ -18,7 +18,7 @@ use fyn_distribution_types::{
 };
 use fyn_fs::Simplified;
 use fyn_normalize::PackageName;
-use fyn_platform_tags::{AbiTag, IncompatibleTag, TagCompatibility, Tags};
+use fyn_platform_tags::{IncompatibleTag, TagCompatibility, Tags};
 use fyn_pypi_types::VerbatimParsedUrl;
 use fyn_python::PythonEnvironment;
 use fyn_types::HashStrategy;
@@ -588,7 +588,7 @@ fn generate_wheel_compatibility_hint(filename: &WheelFilename, tags: &Tags) -> O
                 .abi_tags()
                 .iter()
                 .map(|tag| match tag {
-                    AbiTag::Abi3 => format!("the stable ABI (`{}`)", tag.cyan()),
+                    tag if tag.is_stable_abi() => format!("the stable ABI (`{}`)", tag.cyan()),
                     _ => {
                         if let Some(pretty) = tag.pretty() {
                             format!("the {} ABI (`{}`)", pretty.cyan(), tag.cyan())
@@ -891,6 +891,39 @@ mod tests {
         let hint = generate_wheel_compatibility_hint(&filename, &tags);
 
         // No hint should be generated because the wheel is compatible
+        assert!(
+            hint.is_none(),
+            "Expected no hint (wheel should be compatible), got: {hint:?}"
+        );
+    }
+
+    #[test]
+    fn test_abi3t_on_free_threaded_python_no_special_hint() {
+        let platform = Platform::new(
+            Os::Manylinux {
+                major: 2,
+                minor: 28,
+            },
+            Arch::X86_64,
+        );
+        let tags = Tags::from_env(
+            &platform,
+            (3, 14),
+            "cpython",
+            (3, 14),
+            TagsOptions {
+                manylinux_compatible: true,
+                gil_disabled: true,
+                debug_enabled: false,
+                is_cross: false,
+            },
+        )
+        .unwrap();
+
+        let filename =
+            WheelFilename::from_str("foo-1.0-cp314-abi3t-manylinux_2_17_x86_64.whl").unwrap();
+
+        let hint = generate_wheel_compatibility_hint(&filename, &tags);
         assert!(
             hint.is_none(),
             "Expected no hint (wheel should be compatible), got: {hint:?}"
