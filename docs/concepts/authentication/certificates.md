@@ -8,8 +8,9 @@ performance (especially on macOS, where reading the system trust store incurs a 
 
 In some cases, you may want to use the platform's native certificate store, especially if you're
 relying on a corporate trust root (e.g., for a mandatory proxy) that's included in your system's
-certificate store. To instruct fyn to use the system's trust store, run fyn with the `--native-tls`
-command-line flag, or set the `UV_NATIVE_TLS` environment variable to `true`.
+certificate store. To instruct fyn to use the system's trust store, run fyn with the
+`--system-certs` command-line flag. The legacy `--native-tls` flag is also accepted for
+compatibility, and the `UV_NATIVE_TLS` environment variable can be set to `true`.
 
 ## Custom certificates
 

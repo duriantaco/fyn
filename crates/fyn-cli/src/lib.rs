@@ -245,10 +245,22 @@ pub struct GlobalArgs {
     /// However, in some cases, you may want to use the platform's native certificate store,
     /// especially if you're relying on a corporate trust root (e.g., for a mandatory proxy) that's
     /// included in your system's certificate store.
-    #[arg(global = true, long, value_parser = clap::builder::BoolishValueParser::new(), overrides_with("no_native_tls"))]
+    #[arg(
+        global = true,
+        long,
+        alias = "system-certs",
+        value_parser = clap::builder::BoolishValueParser::new(),
+        overrides_with("no_native_tls")
+    )]
     pub native_tls: bool,
 
-    #[arg(global = true, long, overrides_with("native_tls"), hide = true)]
+    #[arg(
+        global = true,
+        long,
+        alias = "no-system-certs",
+        overrides_with("native_tls"),
+        hide = true
+    )]
     pub no_native_tls: bool,
 
     /// Disable network access [env: UV_OFFLINE=]
@@ -9237,4 +9249,26 @@ pub enum BuildBackendCommand {
     GetRequiresForBuildEditable,
     /// PEP 660 hook `prepare_metadata_for_build_editable`.
     PrepareMetadataForBuildEditable { wheel_directory: PathBuf },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Cli;
+    use clap::Parser;
+
+    #[test]
+    fn parses_system_certs_alias() {
+        let cli = Cli::try_parse_from(["fyn", "--system-certs", "venv"]).unwrap();
+
+        assert!(cli.top_level.global_args.native_tls);
+        assert!(!cli.top_level.global_args.no_native_tls);
+    }
+
+    #[test]
+    fn parses_no_system_certs_alias() {
+        let cli = Cli::try_parse_from(["fyn", "--no-system-certs", "venv"]).unwrap();
+
+        assert!(!cli.top_level.global_args.native_tls);
+        assert!(cli.top_level.global_args.no_native_tls);
+    }
 }

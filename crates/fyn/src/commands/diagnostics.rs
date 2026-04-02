@@ -366,7 +366,8 @@ pub(crate) fn native_tls_hint(err: fyn_client::Error) {
     let report = miette::Report::new(Error {
         err,
         help: format!(
-            "Consider enabling use of system TLS certificates with the `{}` command-line flag",
+            "Consider enabling use of system TLS certificates with the `{}` or `{}` command-line flag",
+            "--system-certs".green(),
             "--native-tls".green()
         ),
     });
