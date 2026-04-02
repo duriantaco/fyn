@@ -30,6 +30,9 @@ pub struct VerbatimUrl {
     /// Even if originally set, this will be [`None`] after
     /// serialization/deserialization.
     given: Option<ArcStr>,
+    /// Given value is a [`Pep508Url`] which contained variable references which were successfully
+    /// expanded.
+    expanded: bool,
 }
 
 impl Hash for VerbatimUrl {
@@ -53,16 +56,23 @@ impl PartialEq for VerbatimUrl {
 impl VerbatimUrl {
     /// Create a [`VerbatimUrl`] from a [`Url`].
     pub fn from_url(url: DisplaySafeUrl) -> Self {
-        Self { url, given: None }
+        Self {
+            url,
+            given: None,
+            expanded: false,
+        }
     }
 
-    /// Parse a URL from a string, expanding any `${VAR}` environment variables.
+    /// Parse a URL from a string.
     pub fn parse_url(given: impl AsRef<str>) -> Result<Self, VerbatimUrlError> {
         let given = given.as_ref();
-        let expanded = expand_env_vars(given);
-        let url = DisplaySafeUrl::parse(&expanded)?;
+        let url = DisplaySafeUrl::parse(given)?;
 
-        Ok(Self { url, given: None })
+        Ok(Self {
+            url,
+            given: None,
+            expanded: false,
+        })
     }
 
     /// Convert a [`VerbatimUrl`] from a path or a URL.
@@ -139,7 +149,11 @@ impl VerbatimUrl {
             url.set_fragment(Some(fragment));
         }
 
-        Ok(Self { url, given: None })
+        Ok(Self {
+            url,
+            given: None,
+            expanded: false,
+        })
     }
 
     /// Parse a URL from an absolute path.
@@ -169,7 +183,11 @@ impl VerbatimUrl {
             url.set_fragment(Some(fragment));
         }
 
-        Ok(Self { url, given: None })
+        Ok(Self {
+            url,
+            given: None,
+            expanded: false,
+        })
     }
 
     /// Parse a URL from a normalized path.
@@ -197,7 +215,11 @@ impl VerbatimUrl {
             url.set_fragment(Some(fragment));
         }
 
-        Ok(Self { url, given: None })
+        Ok(Self {
+            url,
+            given: None,
+            expanded: false,
+        })
     }
 
     /// Set the verbatim representation of the URL.
@@ -219,14 +241,25 @@ impl VerbatimUrl {
         let Some(given) = &self.given else {
             return false;
         };
+        if self.expanded {
+            return false;
+        }
 
-        if let Some((scheme, _)) = split_scheme(given) {
-            if let Some(parsed_scheme) = Scheme::parse(scheme) {
-                return parsed_scheme.is_file();
-            }
+        if let Some((scheme, _)) = split_scheme(given)
+            && let Some(parsed_scheme) = Scheme::parse(scheme)
+        {
+            return parsed_scheme.is_file();
         }
 
         Path::new(given.as_str()).is_absolute()
+    }
+
+    /// Set the "given value contained variables which were expanded" flag.
+    ///
+    /// Intended to only be used by the [`Pep508Url`] impl.
+    #[must_use]
+    fn with_expanded(self, expanded: bool) -> Self {
+        Self { expanded, ..self }
     }
 
     /// Return the underlying [`DisplaySafeUrl`].
@@ -337,6 +370,16 @@ impl Pep508Url for VerbatimUrl {
         // Expand environment variables in the URL.
         let expanded = expand_env_vars(url);
 
+        // Since `expand_env_vars` can return `Cow::Owned` even when variables were not expanded,
+        // the check needs to fall back to comparison for that case.
+        //
+        // Note: If a variable named `FOO` expands to `${FOO}` then this will produce a false
+        // negative. This seems like too much of a corner case to justify trying to fix it.
+        let vars_expanded = match &expanded {
+            Cow::Owned(owned) => owned != url,
+            Cow::Borrowed(_) => false,
+        };
+
         if let Some((scheme, path)) = split_scheme(&expanded) {
             match Scheme::parse(scheme) {
                 // Ex) `file:///home/ferris/project/scripts/...`, `file://localhost/home/ferris/project/scripts/...`, or `file:../ferris/`
@@ -351,13 +394,19 @@ impl Pep508Url for VerbatimUrl {
                         let path = normalize_url_path(path);
 
                         if let Some(working_dir) = working_dir {
-                            return Ok(Self::from_path(path.as_ref(), working_dir)?.with_given(url));
+                            return Ok(Self::from_path(path.as_ref(), working_dir)?
+                                .with_given(url)
+                                .with_expanded(vars_expanded));
                         }
 
-                        Ok(Self::from_absolute_path(path.as_ref())?.with_given(url))
+                        Ok(Self::from_absolute_path(path.as_ref())?
+                            .with_given(url)
+                            .with_expanded(vars_expanded))
                     }
                     #[cfg(not(feature = "non-pep508-extensions"))]
-                    Ok(Self::parse_url(expanded)?.with_given(url))
+                    Ok(Self::parse_url(expanded)?
+                        .with_given(url)
+                        .with_expanded(vars_expanded))
                 }
 
                 // Ex) `https://download.pytorch.org/whl/torch_stable.html`
@@ -371,12 +420,14 @@ impl Pep508Url for VerbatimUrl {
                     #[cfg(feature = "non-pep508-extensions")]
                     {
                         if let Some(working_dir) = working_dir {
-                            return Ok(
-                                Self::from_path(expanded.as_ref(), working_dir)?.with_given(url)
-                            );
+                            return Ok(Self::from_path(expanded.as_ref(), working_dir)?
+                                .with_given(url)
+                                .with_expanded(vars_expanded));
                         }
 
-                        Ok(Self::from_absolute_path(expanded.as_ref())?.with_given(url))
+                        Ok(Self::from_absolute_path(expanded.as_ref())?
+                            .with_given(url)
+                            .with_expanded(vars_expanded))
                     }
                     #[cfg(not(feature = "non-pep508-extensions"))]
                     Err(Self::Err::NotAUrl(expanded.to_string()))
@@ -387,10 +438,14 @@ impl Pep508Url for VerbatimUrl {
             #[cfg(feature = "non-pep508-extensions")]
             {
                 if let Some(working_dir) = working_dir {
-                    return Ok(Self::from_path(expanded.as_ref(), working_dir)?.with_given(url));
+                    return Ok(Self::from_path(expanded.as_ref(), working_dir)?
+                        .with_given(url)
+                        .with_expanded(vars_expanded));
                 }
 
-                Ok(Self::from_absolute_path(expanded.as_ref())?.with_given(url))
+                Ok(Self::from_absolute_path(expanded.as_ref())?
+                    .with_given(url)
+                    .with_expanded(vars_expanded))
             }
 
             #[cfg(not(feature = "non-pep508-extensions"))]
@@ -663,6 +718,8 @@ impl std::fmt::Display for Scheme {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use insta::assert_snapshot;
 
     use super::*;
@@ -791,5 +848,59 @@ mod tests {
             VerbatimUrl::parse_url("https://user.com/name:password@domain/a/b/c").unwrap_err().to_string(),
             @"ambiguous user/pass authority in URL (not percent-encoded?): https:***@domain/a/b/c"
         );
+    }
+
+    #[cfg(feature = "non-pep508-extensions")]
+    #[test]
+    fn pep508_expanded_project_root_path_is_not_given_absolute() {
+        let url = <VerbatimUrl as Pep508Url>::parse_url(
+            "${PROJECT_ROOT}/wheel-0.1.0-py3-none-any.whl",
+            Some(Path::new("/tmp")),
+        )
+        .unwrap();
+
+        let expected = VerbatimUrl::from_absolute_path(
+            expand_env_vars("${PROJECT_ROOT}/wheel-0.1.0-py3-none-any.whl").as_ref(),
+        )
+        .unwrap();
+
+        assert_eq!(url.raw(), expected.raw());
+        assert_eq!(
+            url.given(),
+            Some("${PROJECT_ROOT}/wheel-0.1.0-py3-none-any.whl")
+        );
+        assert!(!url.was_given_absolute());
+    }
+
+    #[cfg(feature = "non-pep508-extensions")]
+    #[test]
+    fn pep508_expanded_project_root_file_url_is_not_given_absolute() {
+        let url = <VerbatimUrl as Pep508Url>::parse_url(
+            "file://${PROJECT_ROOT}/wheel-0.1.0-py3-none-any.whl",
+            Some(Path::new("/tmp")),
+        )
+        .unwrap();
+
+        let expected = VerbatimUrl::from_absolute_path(
+            expand_env_vars("${PROJECT_ROOT}/wheel-0.1.0-py3-none-any.whl").as_ref(),
+        )
+        .unwrap();
+
+        assert_eq!(url.raw(), expected.raw());
+        assert_eq!(
+            url.given(),
+            Some("file://${PROJECT_ROOT}/wheel-0.1.0-py3-none-any.whl")
+        );
+        assert!(!url.was_given_absolute());
+    }
+
+    #[cfg(feature = "non-pep508-extensions")]
+    #[test]
+    fn pep508_absolute_path_is_given_absolute_without_expansion() {
+        let absolute_path = expand_env_vars("${PROJECT_ROOT}/wheel-0.1.0-py3-none-any.whl");
+        let url = <VerbatimUrl as Pep508Url>::parse_url(absolute_path.as_ref(), None).unwrap();
+
+        assert_eq!(url.given(), Some(absolute_path.as_ref()));
+        assert!(url.was_given_absolute());
     }
 }
