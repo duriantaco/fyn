@@ -16,7 +16,7 @@ use fyn_distribution_types::{
 use fyn_git_types::{GitLfs, GitOid};
 use fyn_normalize::PackageName;
 use fyn_pep440::Version;
-use fyn_platform_tags::{AbiTag, IncompatibleTag, TagCompatibility, Tags};
+use fyn_platform_tags::{IncompatibleTag, TagCompatibility, Tags};
 use fyn_pypi_types::{DirInfo, DirectUrl, VcsInfo, VcsKind};
 
 use crate::InstallationStrategy;
@@ -461,7 +461,7 @@ fn generate_dist_compatibility_hint(wheel_tags: &ExpandedTags, tags: &Tags) -> O
             let wheel_abi = wheel_tags
                 .abi_tags()
                 .map(|tag| match tag {
-                    AbiTag::Abi3 => format!("the stable ABI (`{tag}`)"),
+                    tag if tag.is_stable_abi() => format!("the stable ABI (`{tag}`)"),
                     _ => {
                         if let Some(pretty) = tag.pretty() {
                             format!("the {pretty} ABI (`{tag}`)")
