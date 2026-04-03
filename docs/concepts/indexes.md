@@ -101,9 +101,45 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 ```
 
-Named indexes referenced via `tool.fyn.sources` must be defined within the project's
-`pyproject.toml` file; indexes provided via the command-line, environment variables, or user-level
-configuration will not be recognized.
+Named indexes referenced via `tool.fyn.sources` must still be declared within the project's
+`pyproject.toml` (or the workspace root's `pyproject.toml` for workspace-wide sources). This keeps
+the project's source pinning explicit and reviewable.
+
+However, fyn also allows _local overrides_ for those named indexes. If a user- or system-level
+`fyn.toml` defines an index with the same name, fyn will use that URL instead of the declared
+project URL when resolving packages pinned via `tool.fyn.sources`.
+
+This is useful when the project should keep a stable logical index name like `internal`, but
+different environments need different concrete URLs, such as:
+
+- a developer machine using a local mirror
+- CI using a corporate proxy or private registry
+- a shared project that should not hardcode environment-specific index URLs into `pyproject.toml`
+
+For example:
+
+```toml title="pyproject.toml"
+[tool.fyn.sources]
+torch = { index = "pytorch" }
+
+[[tool.fyn.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+```
+
+```toml title="~/.config/fyn/fyn.toml"
+[[index]]
+name = "pytorch"
+url = "https://mirror.example.com/pytorch/cu124"
+explicit = true
+```
+
+In this case, the project still declares that `torch` is pinned to the `pytorch` index, but the
+current machine resolves that name through the locally configured mirror.
+
+Local configuration cannot introduce a _new_ named index for `tool.fyn.sources`; it can only
+override an index name that is already declared in project or workspace metadata.
 
 If an index is marked as both `default = true` and `explicit = true`, it will be treated as an
 explicit index (i.e., only usable via `tool.fyn.sources`) while also removing PyPI as the default

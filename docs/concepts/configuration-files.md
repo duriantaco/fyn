@@ -65,6 +65,11 @@ configuration tables, the project-level value will be used, and the user-level v
 ignored. If an array is present in both tables, the arrays will be concatenated, with the
 project-level settings appearing earlier in the merged array.
 
+One exception is named indexes referenced via `tool.fyn.sources`: the source pin itself must still
+be declared in project or workspace metadata, but a user- or system-level `fyn.toml` can replace the
+URL for that same index name locally. This allows teams to keep stable logical names in
+`pyproject.toml` while using different mirrors or private endpoints on developer machines and in CI.
+
 Settings provided via environment variables take precedence over persistent configuration, and
 settings provided via the command line take precedence over both.
 
