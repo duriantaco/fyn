@@ -61,6 +61,10 @@ used, though use of a version number is recommended for interoperability with ot
 A `.python-version` file can be created in the current directory with the
 [`fyn python pin`](../reference/cli.md/#fyn-python-pin) command.
 
+A discovered Python pin can be upgraded to the latest compatible exact version with
+[`fyn python pin --upgrade`](../reference/cli.md/#fyn-python-pin). If a project or workspace is
+found, the upgraded version must still satisfy its `requires-python` constraint.
+
 A global `.python-version` file can be created in the user configuration directory with the
 [`fyn python pin --global`](../reference/cli.md/#fyn-python-pin) command.
 
