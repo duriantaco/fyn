@@ -19658,6 +19658,70 @@ fn lock_named_index_user_config_file_hint() -> Result<()> {
     Ok(())
 }
 
+/// If a named index is declared in project metadata, a user-level `fyn.toml` can override that
+/// index locally without changing the project's `pyproject.toml`.
+#[test]
+#[cfg_attr(
+    windows,
+    ignore = "Configuration tests are not yet supported on Windows"
+)]
+fn lock_named_index_user_config_override() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let packse_index = packse_index_url();
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(
+        r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["local-simple-a>=1.2.3"]
+
+        [tool.fyn.sources]
+        local-simple-a = { index = "test" }
+
+        [[tool.fyn.index]]
+        name = "test"
+        url = "https://test.pypi.org/simple"
+        explicit = true
+        "#,
+    )?;
+
+    let xdg = assert_fs::TempDir::new().expect("Failed to create temp dir");
+    let user_config = xdg.child("fyn").child("fyn.toml");
+    user_config.write_str(&format!(
+        r#"
+        [[index]]
+        name = "test"
+        url = "{packse_index}"
+        explicit = true
+        "#
+    ))?;
+
+    fyn_snapshot!(
+        context.filters(),
+        context
+            .lock()
+            .env_remove(EnvVars::UV_EXCLUDE_NEWER)
+            .env(EnvVars::XDG_CONFIG_HOME, xdg.path()),
+        @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    "
+    );
+
+    let lock = fs_err::read_to_string(context.temp_dir.join("fyn.lock"))?;
+    assert!(lock.contains(&packse_index), "{lock}");
+    assert!(!lock.contains("https://test.pypi.org/simple"), "{lock}");
+
+    Ok(())
+}
+
 /// If a name is reused, within a single file, we should raise an error.
 #[test]
 fn lock_repeat_named_index() -> Result<()> {

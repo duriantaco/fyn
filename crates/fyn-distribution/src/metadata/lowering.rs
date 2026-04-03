@@ -216,17 +216,11 @@ impl LoweredRequirement {
                             extra,
                             group,
                         } => {
-                            // Identify the named index from either the project indexes or the workspace indexes,
-                            // in that order.
-                            let Some(index) = locations
-                                .indexes()
-                                .filter(|index| matches!(index.origin, Some(Origin::Cli)))
-                                .chain(project_indexes.iter())
-                                .chain(workspace.indexes().iter())
-                                .find(|Index { name, .. }| {
-                                    name.as_ref().is_some_and(|name| *name == index)
-                                })
-                            else {
+                            let Some(index) = resolve_named_source_index(
+                                locations,
+                                project_indexes.iter().chain(workspace.indexes().iter()),
+                                &index,
+                            ) else {
                                 let hint = missing_index_hint(locations, &index);
                                 return Err(LoweringError::MissingIndex {
                                     package: requirement.name.clone(),
@@ -457,13 +451,8 @@ impl LoweredRequirement {
                             (source, marker)
                         }
                         Source::Registry { index, marker, .. } => {
-                            let Some(index) = locations
-                                .indexes()
-                                .filter(|index| matches!(index.origin, Some(Origin::Cli)))
-                                .chain(indexes.iter())
-                                .find(|Index { name, .. }| {
-                                    name.as_ref().is_some_and(|name| *name == index)
-                                })
+                            let Some(index) =
+                                resolve_named_source_index(locations, indexes.iter(), &index)
                             else {
                                 let hint = missing_index_hint(locations, &index);
                                 return Err(LoweringError::MissingIndex {
@@ -609,6 +598,40 @@ fn missing_index_hint(locations: &IndexLocations, index: &IndexName) -> Option<S
              `pyproject.toml`"
         ))
     })
+}
+
+/// Resolve an index referenced from `tool.fyn.sources`.
+///
+/// The index name must still be declared in project or workspace metadata. However, a CLI index
+/// or a user/system configuration index with the same name can replace the declared URL locally.
+fn resolve_named_source_index<'a>(
+    locations: &'a IndexLocations,
+    declared_indexes: impl IntoIterator<Item = &'a Index>,
+    index_name: &IndexName,
+) -> Option<&'a Index> {
+    if !locations.no_index() {
+        if let Some(index) = locations
+            .configured_indexes()
+            .filter(|index| matches!(index.origin, Some(Origin::Cli)))
+            .find(|Index { name, .. }| name.as_ref().is_some_and(|name| *name == *index_name))
+        {
+            return Some(index);
+        }
+    }
+
+    let declared_index = declared_indexes
+        .into_iter()
+        .find(|Index { name, .. }| name.as_ref().is_some_and(|name| *name == *index_name))?;
+
+    if locations.no_index() {
+        return Some(declared_index);
+    }
+
+    locations
+        .configured_indexes()
+        .filter(|index| matches!(index.origin, Some(Origin::User | Origin::System)))
+        .find(|Index { name, .. }| name.as_ref().is_some_and(|name| *name == *index_name))
+        .or(Some(declared_index))
 }
 
 /// Convert a Git source into a [`RequirementSource`].
