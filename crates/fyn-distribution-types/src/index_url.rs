@@ -364,6 +364,11 @@ impl<'a> IndexLocations {
         }
     }
 
+    /// Return the configured registry indexes without de-duplicating by name.
+    pub fn configured_indexes(&'a self) -> impl Iterator<Item = &'a Index> + 'a {
+        self.indexes.iter()
+    }
+
     /// Return an iterator over the [`FlatIndexLocation`] entries.
     pub fn flat_indexes(&'a self) -> impl Iterator<Item = &'a Index> + 'a {
         self.flat_index.iter()
