@@ -478,7 +478,7 @@ pub enum Commands {
         after_long_help = ""
     )]
     Python(PythonNamespace),
-    /// Manage Python packages with a pip-compatible interface.
+    /// Manage Python packages directly in an environment.
     #[command(
         after_help = "Use `fyn help pip` for more details.",
         after_long_help = ""
@@ -7302,9 +7302,9 @@ pub enum PythonCommand {
     /// Supports CPython and PyPy. CPython distributions are downloaded from the Astral
     /// `python-build-standalone` project. PyPy distributions are downloaded from `python.org`. The
     /// available Python versions are bundled with each fyn release. To install new Python versions,
-    /// you may need upgrade uv.
+    /// you may need upgrade fyn.
     ///
-    /// Python versions are installed into the fyn Python directory, which can be retrieved with `uv
+    /// Python versions are installed into the fyn Python directory, which can be retrieved with `fyn
     /// python dir`.
     ///
     /// By default, Python executables are added to a directory on the path with a minor version
