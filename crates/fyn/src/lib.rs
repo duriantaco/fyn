@@ -3047,6 +3047,22 @@ fn pip_in_project_policy(filesystem: Option<&FilesystemOptions>) -> PipInProject
         .unwrap_or_default()
 }
 
+fn managed_project_pip_message(command: ManagedPipCommand) -> String {
+    format!(
+        concat!(
+            "`fyn pip {}` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.\n",
+            "\n",
+            "State impact:\n",
+            "  environment: direct changes only\n",
+            "  pyproject.toml: unchanged\n",
+            "  fyn.lock: unchanged\n",
+            "\n",
+            "Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead."
+        ),
+        command.name()
+    )
+}
+
 async fn enforce_managed_project_pip_policy(
     command: ManagedPipCommand,
     project_dir: &Path,
@@ -3069,16 +3085,13 @@ async fn enforce_managed_project_pip_policy(
         return Ok(());
     };
 
-    let message = format!(
-        "`fyn pip {}` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.",
-        command.name()
-    );
+    let message = managed_project_pip_message(command);
 
     match policy {
         PipInProjectPolicy::Allow => {}
         PipInProjectPolicy::Warn => warn_user!("{message}"),
         PipInProjectPolicy::Error => bail!(
-            "{message} Set `pip-in-project = \"allow\"` to permit direct environment changes in this project."
+            "{message}\n\nSet `pip-in-project = \"allow\"` to permit direct environment changes in this project."
         ),
     }
 

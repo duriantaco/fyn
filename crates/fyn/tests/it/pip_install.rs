@@ -91,7 +91,14 @@ fn install_warns_inside_managed_project() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+    
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+    
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     warning: Requirements file `requirements.txt` does not contain any dependencies
     Checked in [TIME]
     "
@@ -158,7 +165,16 @@ fn install_error_in_managed_project_blocks_command() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    error: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead. Set `pip-in-project = \"allow\"` to permit direct environment changes in this project.
+    error: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+    
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+    
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
+    
+    Set `pip-in-project = \"allow\"` to permit direct environment changes in this project.
     "
     );
 
