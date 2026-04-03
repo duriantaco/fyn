@@ -2146,6 +2146,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 &project_dir,
                 args.request,
                 args.resolved,
+                args.upgrade,
                 globals.python_preference,
                 globals.python_downloads,
                 args.no_project,
