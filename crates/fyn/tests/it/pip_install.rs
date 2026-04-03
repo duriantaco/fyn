@@ -91,9 +91,74 @@ fn install_warns_inside_managed_project() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, prefer `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     warning: Requirements file `requirements.txt` does not contain any dependencies
     Checked in [TIME]
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn install_allow_in_managed_project_suppresses_warning() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let requirements_txt = context.temp_dir.child("requirements.txt");
+    requirements_txt.touch()?;
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
+    "#})?;
+
+    fyn_snapshot!(context.pip_install()
+        .arg("-r")
+        .arg("requirements.txt"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    warning: Requirements file `requirements.txt` does not contain any dependencies
+    Checked in [TIME]
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn install_error_in_managed_project_blocks_command() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let requirements_txt = context.temp_dir.child("requirements.txt");
+    requirements_txt.touch()?;
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+
+        [tool.fyn.pip]
+        pip-in-project = "error"
+    "#})?;
+
+    fyn_snapshot!(context.pip_install()
+        .arg("-r")
+        .arg("requirements.txt"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead. Set `pip-in-project = \"allow\"` to permit direct environment changes in this project.
     "
     );
 

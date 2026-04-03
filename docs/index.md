@@ -200,6 +200,10 @@ more.
 For many common workflows, you can switch to the `fyn pip` interface with minimal changes and keep
 the same overall workflow shape, while getting a 10-100x speedup.
 
+Mutating `fyn pip` commands operate directly on the selected environment. They do not update
+`pyproject.toml` or `fyn.lock`; for managed project workflows, use `fyn add`, `fyn remove`,
+`fyn sync`, or `fyn upgrade` instead.
+
 Compile requirements into a platform-independent requirements file:
 
 ```console

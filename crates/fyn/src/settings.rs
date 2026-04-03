@@ -4402,6 +4402,7 @@ impl PipSettings {
             verify_hashes,
             no_sources,
             no_sources_package,
+            pip_in_project: _,
             upgrade,
             upgrade_package,
             reinstall,
