@@ -46,6 +46,7 @@ use fyn_python::PythonRequest;
 use fyn_requirements::{GroupsSpecification, RequirementsSource};
 use fyn_requirements_txt::RequirementsTxtRequirement;
 use fyn_scripts::{Pep723Error, Pep723Item, Pep723Metadata, Pep723Script};
+use fyn_settings::PipInProjectPolicy;
 use fyn_settings::{Combine, EnvironmentOptions, FilesystemOptions, Options};
 use fyn_static::EnvVars;
 use fyn_warnings::{warn_user, warn_user_once};
@@ -774,6 +775,8 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         }) => {
             args.compat_args.validate()?;
 
+            let pip_filesystem = filesystem.clone();
+
             // Resolve the settings from the command-line arguments and workspace configuration.
             let args = PipSyncSettings::resolve(args, filesystem, environment);
             show_settings!(args);
@@ -806,13 +809,14 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 .map(RequirementsSource::from_constraints_txt)
                 .collect::<Result<Vec<_>, _>>()?;
 
-            warn_if_managed_project_pip_command(
+            enforce_managed_project_pip_policy(
                 ManagedPipCommand::Sync,
                 project_dir.as_ref(),
                 &args.settings,
+                pip_filesystem.as_ref(),
                 &workspace_cache,
             )
-            .await;
+            .await?;
 
             let groups = GroupsSpecification {
                 root: project_dir.to_path_buf(),
@@ -869,6 +873,8 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
             command: PipCommand::Install(args),
         }) => {
             args.compat_args.validate()?;
+
+            let pip_filesystem = filesystem.clone();
 
             // Resolve the settings from the command-line arguments and workspace configuration.
             let mut args = PipInstallSettings::resolve(args, filesystem, environment);
@@ -964,13 +970,14 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                     .combine(Refresh::from(args.settings.upgrade.clone())),
             );
 
-            warn_if_managed_project_pip_command(
+            enforce_managed_project_pip_policy(
                 ManagedPipCommand::Install,
                 project_dir.as_ref(),
                 &args.settings,
+                pip_filesystem.as_ref(),
                 &workspace_cache,
             )
-            .await;
+            .await?;
 
             let groups = GroupsSpecification {
                 root: project_dir.to_path_buf(),
@@ -1258,6 +1265,8 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         Commands::Pip(PipNamespace {
             command: PipCommand::Upgrade(args),
         }) => {
+            let pip_filesystem = filesystem.clone();
+
             let args = PipUpgradeSettings::resolve(args, filesystem, environment);
             show_settings!(args);
 
@@ -1268,13 +1277,14 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
 
             let cache = cache.init().await?.with_refresh(refresh);
 
-            warn_if_managed_project_pip_command(
+            enforce_managed_project_pip_policy(
                 ManagedPipCommand::Upgrade,
                 project_dir.as_ref(),
                 &args.settings,
+                pip_filesystem.as_ref(),
                 &workspace_cache,
             )
-            .await;
+            .await?;
 
             Box::pin(commands::pip_upgrade(
                 args.settings,
@@ -1294,6 +1304,8 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         Commands::Pip(PipNamespace {
             command: PipCommand::Uninstall(args),
         }) => {
+            let pip_filesystem = filesystem.clone();
+
             // Resolve the settings from the command-line arguments and workspace configuration.
             let args = PipUninstallSettings::resolve(args, filesystem, environment);
             show_settings!(args);
@@ -1312,13 +1324,14 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                     .collect::<Result<Vec<_>, _>>()?,
             );
 
-            warn_if_managed_project_pip_command(
+            enforce_managed_project_pip_policy(
                 ManagedPipCommand::Uninstall,
                 project_dir.as_ref(),
                 &args.settings,
+                pip_filesystem.as_ref(),
                 &workspace_cache,
             )
-            .await;
+            .await?;
 
             commands::pip_uninstall(
                 &sources,
@@ -3028,26 +3041,48 @@ fn pip_targets_active_environment(settings: &settings::PipSettings) -> bool {
         && settings.prefix.is_none()
 }
 
-async fn warn_if_managed_project_pip_command(
+fn pip_in_project_policy(filesystem: Option<&FilesystemOptions>) -> PipInProjectPolicy {
+    filesystem
+        .and_then(|filesystem| filesystem.pip.as_ref().and_then(|pip| pip.pip_in_project))
+        .unwrap_or_default()
+}
+
+async fn enforce_managed_project_pip_policy(
     command: ManagedPipCommand,
     project_dir: &Path,
     settings: &settings::PipSettings,
+    filesystem: Option<&FilesystemOptions>,
     workspace_cache: &WorkspaceCache,
-) {
+) -> Result<()> {
     if !pip_targets_active_environment(settings) {
-        return;
+        return Ok(());
+    }
+
+    let policy = pip_in_project_policy(filesystem);
+    if matches!(policy, PipInProjectPolicy::Allow) {
+        return Ok(());
     }
 
     let Ok(_workspace) =
         Workspace::discover(project_dir, &DiscoveryOptions::default(), workspace_cache).await
     else {
-        return;
+        return Ok(());
     };
 
-    warn_user!(
-        "`fyn pip {}` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, prefer `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.",
+    let message = format!(
+        "`fyn pip {}` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.",
         command.name()
     );
+
+    match policy {
+        PipInProjectPolicy::Allow => {}
+        PipInProjectPolicy::Warn => warn_user!("{message}"),
+        PipInProjectPolicy::Error => bail!(
+            "{message} Set `pip-in-project = \"allow\"` to permit direct environment changes in this project."
+        ),
+    }
+
+    Ok(())
 }
 
 /// The main entry point for a fyn invocation.

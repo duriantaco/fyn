@@ -414,6 +414,16 @@ pub struct GlobalOptions {
     pub allow_insecure_host: Option<Vec<TrustedHost>>,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub enum PipInProjectPolicy {
+    Allow,
+    #[default]
+    Warn,
+    Error,
+}
+
 /// Settings relevant to all installer operations.
 #[derive(Debug, Clone, Default, CombineOptions)]
 pub struct InstallerOptions {
@@ -1241,6 +1251,20 @@ pub struct PipOptions {
         "#
     )]
     pub prefix: Option<PathBuf>,
+    /// Whether mutating `fyn pip` commands are allowed inside managed projects.
+    ///
+    /// When set to `warn` (the default), `fyn pip install`, `fyn pip sync`, `fyn pip upgrade`,
+    /// and `fyn pip uninstall` will emit a warning before modifying the active environment inside a
+    /// managed project. When set to `error`, those commands will fail instead. When set to
+    /// `allow`, they will proceed without an additional warning.
+    #[option(
+        default = "\"warn\"",
+        value_type = "str",
+        example = r#"
+            pip-in-project = "error"
+        "#
+    )]
+    pub pip_in_project: Option<PipInProjectPolicy>,
     #[serde(skip)]
     #[cfg_attr(feature = "schemars", schemars(skip))]
     pub index: Option<Vec<Index>>,

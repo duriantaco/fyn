@@ -38,6 +38,10 @@ Instead, fyn supports its own environment variables, like `UV_INDEX_URL`. fyn al
 persistent configuration in a `fyn.toml` file or a `[tool.fyn.pip]` section of `pyproject.toml`. For
 more information, see [Configuration files](../concepts/configuration-files.md).
 
+When run inside a managed project, mutating `fyn pip` commands operate directly on the active
+environment and do not update `pyproject.toml` or `fyn.lock`. This boundary can be configured via
+`pip-in-project = "warn" | "error" | "allow"` in `fyn.toml` or `[tool.fyn.pip]`.
+
 ## Pre-release compatibility
 
 By default, fyn will accept pre-release versions during dependency resolution in two cases:
