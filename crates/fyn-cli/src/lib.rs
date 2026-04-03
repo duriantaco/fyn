@@ -6904,6 +6904,41 @@ pub struct ToolListArgs {
     #[arg(long, overrides_with("outdated"), hide = true)]
     pub no_outdated: bool,
 
+    /// Limit candidate packages to those that were uploaded prior to the given date.
+    ///
+    /// Accepts RFC 3339 timestamps (e.g., `2006-12-02T02:07:43Z`), local dates in the same format
+    /// (e.g., `2006-12-02`) resolved based on your system's configured time zone, a "friendly"
+    /// duration (e.g., `24 hours`, `1 week`, `30 days`), or an ISO 8601 duration (e.g., `PT24H`,
+    /// `P7D`, `P30D`).
+    ///
+    /// Durations do not respect semantics of the local time zone and are always resolved to a fixed
+    /// number of seconds assuming that a day is 24 hours (e.g., DST transitions are ignored).
+    /// Calendar units such as months and years are not allowed.
+    #[arg(
+        long,
+        env = EnvVars::UV_EXCLUDE_NEWER,
+        help_heading = "Resolver options",
+        value_hint = ValueHint::Other,
+    )]
+    pub exclude_newer: Option<ExcludeNewerValue>,
+
+    /// Limit candidate packages for specific packages to those that were uploaded prior to the
+    /// given date.
+    ///
+    /// Accepts package-date pairs in the format `PACKAGE=DATE`, where `DATE` is an RFC 3339
+    /// timestamp (e.g., `2006-12-02T02:07:43Z`), a local date in the same format (e.g.,
+    /// `2006-12-02`) resolved based on your system's configured time zone, a "friendly" duration
+    /// (e.g., `24 hours`, `1 week`, `30 days`), or an ISO 8601 duration (e.g., `PT24H`, `P7D`,
+    /// `P30D`).
+    ///
+    /// Durations do not respect semantics of the local time zone and are always resolved to a fixed
+    /// number of seconds assuming that a day is 24 hours (e.g., DST transitions are ignored).
+    /// Calendar units such as months and years are not allowed.
+    ///
+    /// Can be provided multiple times for different packages.
+    #[arg(long, help_heading = "Resolver options", value_hint = ValueHint::Other)]
+    pub exclude_newer_package: Option<Vec<ExcludeNewerPackageEntry>>,
+
     // Hide unused global Python options.
     #[arg(long, hide = true)]
     pub python_preference: Option<PythonPreference>,

@@ -1098,12 +1098,12 @@ pub(crate) struct ToolListSettings {
     pub(crate) show_extras: bool,
     pub(crate) show_python: bool,
     pub(crate) outdated: bool,
+    pub(crate) exclude_newer: ExcludeNewer,
 }
 
 impl ToolListSettings {
     /// Resolve the [`ToolListSettings`] from the CLI and filesystem configuration.
-    #[expect(clippy::needless_pass_by_value)]
-    pub(crate) fn resolve(args: ToolListArgs, _filesystem: Option<FilesystemOptions>) -> Self {
+    pub(crate) fn resolve(args: ToolListArgs, filesystem: Option<FilesystemOptions>) -> Self {
         let ToolListArgs {
             show_paths,
             show_version_specifiers,
@@ -1112,9 +1112,22 @@ impl ToolListSettings {
             show_python,
             outdated,
             no_outdated,
+            exclude_newer,
+            exclude_newer_package,
             python_preference: _,
             no_python_downloads: _,
         } = args;
+
+        let resolver = ResolverSettings::combine(
+            ResolverOptions {
+                exclude_newer: ExcludeNewer::from_args(
+                    exclude_newer,
+                    exclude_newer_package.unwrap_or_default(),
+                ),
+                ..ResolverOptions::default()
+            },
+            filesystem,
+        );
 
         Self {
             show_paths,
@@ -1123,6 +1136,7 @@ impl ToolListSettings {
             show_extras,
             show_python,
             outdated: flag(outdated, no_outdated, "outdated").unwrap_or(false),
+            exclude_newer: resolver.exclude_newer,
         }
     }
 }
