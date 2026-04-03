@@ -70,6 +70,37 @@ fn empty_requirements_txt() -> Result<()> {
 }
 
 #[test]
+fn install_warns_inside_managed_project() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let requirements_txt = context.temp_dir.child("requirements.txt");
+    requirements_txt.touch()?;
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+    "#})?;
+
+    fyn_snapshot!(context.filters(), context.pip_install()
+        .arg("-r")
+        .arg("requirements.txt"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, prefer `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
+    warning: Requirements file `requirements.txt` does not contain any dependencies
+    Checked in [TIME]
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
 fn missing_pyproject_toml() {
     let context = fyn_test::test_context!("3.12");
 

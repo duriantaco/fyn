@@ -805,6 +805,15 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 .into_iter()
                 .map(RequirementsSource::from_constraints_txt)
                 .collect::<Result<Vec<_>, _>>()?;
+
+            warn_if_managed_project_pip_command(
+                ManagedPipCommand::Sync,
+                project_dir.as_ref(),
+                &args.settings,
+                &workspace_cache,
+            )
+            .await;
+
             let groups = GroupsSpecification {
                 root: project_dir.to_path_buf(),
                 groups: args.settings.groups,
@@ -900,10 +909,6 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 .into_iter()
                 .map(RequirementsSource::from_overrides_txt)
                 .collect::<Result<Vec<_>, _>>()?;
-            let groups = GroupsSpecification {
-                root: project_dir.to_path_buf(),
-                groups: args.settings.groups,
-            };
 
             // Special-case: any source trees specified on the command-line are automatically
             // reinstalled. This matches user expectations: `fyn pip install .` should always
@@ -958,6 +963,19 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                     .combine(Refresh::from(args.settings.reinstall.clone()))
                     .combine(Refresh::from(args.settings.upgrade.clone())),
             );
+
+            warn_if_managed_project_pip_command(
+                ManagedPipCommand::Install,
+                project_dir.as_ref(),
+                &args.settings,
+                &workspace_cache,
+            )
+            .await;
+
+            let groups = GroupsSpecification {
+                root: project_dir.to_path_buf(),
+                groups: args.settings.groups,
+            };
 
             Box::pin(commands::pip_install(
                 &requirements,
@@ -1250,6 +1268,14 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
 
             let cache = cache.init().await?.with_refresh(refresh);
 
+            warn_if_managed_project_pip_command(
+                ManagedPipCommand::Upgrade,
+                project_dir.as_ref(),
+                &args.settings,
+                &workspace_cache,
+            )
+            .await;
+
             Box::pin(commands::pip_upgrade(
                 args.settings,
                 globals.python_downloads,
@@ -1285,6 +1311,15 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                     .map(RequirementsSource::from_requirements_file)
                     .collect::<Result<Vec<_>, _>>()?,
             );
+
+            warn_if_managed_project_pip_command(
+                ManagedPipCommand::Uninstall,
+                project_dir.as_ref(),
+                &args.settings,
+                &workspace_cache,
+            )
+            .await;
+
             commands::pip_uninstall(
                 &sources,
                 args.settings.python,
@@ -2965,6 +3000,54 @@ async fn run_project(
             .await
         }
     }
+}
+
+#[derive(Copy, Clone)]
+enum ManagedPipCommand {
+    Install,
+    Sync,
+    Upgrade,
+    Uninstall,
+}
+
+impl ManagedPipCommand {
+    fn name(self) -> &'static str {
+        match self {
+            Self::Install => "install",
+            Self::Sync => "sync",
+            Self::Upgrade => "upgrade",
+            Self::Uninstall => "uninstall",
+        }
+    }
+}
+
+fn pip_targets_active_environment(settings: &settings::PipSettings) -> bool {
+    settings.python.is_none()
+        && !settings.system
+        && settings.target.is_none()
+        && settings.prefix.is_none()
+}
+
+async fn warn_if_managed_project_pip_command(
+    command: ManagedPipCommand,
+    project_dir: &Path,
+    settings: &settings::PipSettings,
+    workspace_cache: &WorkspaceCache,
+) {
+    if !pip_targets_active_environment(settings) {
+        return;
+    }
+
+    let Ok(_workspace) =
+        Workspace::discover(project_dir, &DiscoveryOptions::default(), workspace_cache).await
+    else {
+        return;
+    };
+
+    warn_user!(
+        "`fyn pip {}` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`. Because the current directory is inside a fyn-managed project, prefer `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.",
+        command.name()
+    );
 }
 
 /// The main entry point for a fyn invocation.

@@ -35,6 +35,30 @@ fn freeze_many() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn freeze_inside_managed_project_does_not_warn() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc::indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+    "#})?;
+
+    fyn_snapshot!(context.pip_freeze(), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    "
+    );
+
+    Ok(())
+}
+
 /// List a package with multiple installed distributions in a virtual environment.
 #[test]
 #[cfg(unix)]

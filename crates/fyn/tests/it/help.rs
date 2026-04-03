@@ -24,14 +24,16 @@ fn help() {
       version                    Read or update the project's version
       sync                       Update the project's environment
       lock                       Update the project's lockfile
+      upgrade                    Upgrade project dependencies
       export                     Export the project's lockfile to an alternate format
       tree                       Display the project's dependency tree
       format                     Format Python code in the project
       audit                      Audit the project's dependencies
       tool                       Run and install commands provided by Python packages
       python                     Manage Python versions and installations
-      pip                        Manage Python packages with a pip-compatible interface
+      pip                        Manage Python packages directly in an environment
       venv                       Create a virtual environment
+      shell                      Activate the virtual environment in a new shell
       build                      Build Python packages into source distributions and wheels
       publish                    Upload distributions to an index
       cache                      Manage fyn's cache
@@ -106,14 +108,16 @@ fn help_flag() {
       version  Read or update the project's version
       sync     Update the project's environment
       lock     Update the project's lockfile
+      upgrade  Upgrade project dependencies
       export   Export the project's lockfile to an alternate format
       tree     Display the project's dependency tree
       format   Format Python code in the project
       audit    Audit the project's dependencies
       tool     Run and install commands provided by Python packages
       python   Manage Python versions and installations
-      pip      Manage Python packages with a pip-compatible interface
+      pip      Manage Python packages directly in an environment
       venv     Create a virtual environment
+      shell    Activate the virtual environment in a new shell
       build    Build Python packages into source distributions and wheels
       publish  Upload distributions to an index
       cache    Manage fyn's cache
@@ -186,14 +190,16 @@ fn help_short_flag() {
       version  Read or update the project's version
       sync     Update the project's environment
       lock     Update the project's lockfile
+      upgrade  Upgrade project dependencies
       export   Export the project's lockfile to an alternate format
       tree     Display the project's dependency tree
       format   Format Python code in the project
       audit    Audit the project's dependencies
       tool     Run and install commands provided by Python packages
       python   Manage Python versions and installations
-      pip      Manage Python packages with a pip-compatible interface
+      pip      Manage Python packages directly in an environment
       venv     Create a virtual environment
+      shell    Activate the virtual environment in a new shell
       build    Build Python packages into source distributions and wheels
       publish  Upload distributions to an index
       cache    Manage fyn's cache
@@ -421,9 +427,9 @@ fn help_subcommand() {
           --project <PROJECT>
               Discover a project in the given directory.
               
-              All `pyproject.toml`, `fyn.toml`, and `.python-version` files will be discovered by walking
-              up the directory tree from the project root, as will the project's virtual environment
-              (`.venv`).
+              All `pyproject.toml`, `fyn.toml`, and `.python-version` files will be discovered by
+              walking up the directory tree from the project root, as will the project's virtual
+              environment (`.venv`).
               
               Other command-line arguments (such as relative paths) will be resolved relative to the
               current working directory.
@@ -557,9 +563,9 @@ fn help_subsubcommand() {
       -U, --upgrade
               Upgrade existing Python installations to the latest patch version.
               
-              By default, fyn will not upgrade already-installed Python versions to newer patch releases.
-              With `--upgrade`, fyn will upgrade to the latest available patch version for the specified
-              minor version(s).
+              By default, fyn will not upgrade already-installed Python versions to newer patch
+              releases. With `--upgrade`, fyn will upgrade to the latest available patch version for the
+              specified minor version(s).
               
               If the requested versions are not yet installed, fyn will install them.
               
@@ -707,9 +713,9 @@ fn help_subsubcommand() {
           --project <PROJECT>
               Discover a project in the given directory.
               
-              All `pyproject.toml`, `fyn.toml`, and `.python-version` files will be discovered by walking
-              up the directory tree from the project root, as will the project's virtual environment
-              (`.venv`).
+              All `pyproject.toml`, `fyn.toml`, and `.python-version` files will be discovered by
+              walking up the directory tree from the project root, as will the project's virtual
+              environment (`.venv`).
               
               Other command-line arguments (such as relative paths) will be resolved relative to the
               current working directory.
@@ -908,6 +914,7 @@ fn help_unknown_subcommand() {
         version
         sync
         lock
+        upgrade
         export
         tree
         format
@@ -916,6 +923,7 @@ fn help_unknown_subcommand() {
         python
         pip
         venv
+        shell
         build
         publish
         cache
@@ -938,6 +946,7 @@ fn help_unknown_subcommand() {
         version
         sync
         lock
+        upgrade
         export
         tree
         format
@@ -946,6 +955,7 @@ fn help_unknown_subcommand() {
         python
         pip
         venv
+        shell
         build
         publish
         cache
@@ -997,14 +1007,16 @@ fn help_with_global_option() {
       version                    Read or update the project's version
       sync                       Update the project's environment
       lock                       Update the project's lockfile
+      upgrade                    Upgrade project dependencies
       export                     Export the project's lockfile to an alternate format
       tree                       Display the project's dependency tree
       format                     Format Python code in the project
       audit                      Audit the project's dependencies
       tool                       Run and install commands provided by Python packages
       python                     Manage Python versions and installations
-      pip                        Manage Python packages with a pip-compatible interface
+      pip                        Manage Python packages directly in an environment
       venv                       Create a virtual environment
+      shell                      Activate the virtual environment in a new shell
       build                      Build Python packages into source distributions and wheels
       publish                    Upload distributions to an index
       cache                      Manage fyn's cache
@@ -1120,14 +1132,16 @@ fn help_with_no_pager() {
       version                    Read or update the project's version
       sync                       Update the project's environment
       lock                       Update the project's lockfile
+      upgrade                    Upgrade project dependencies
       export                     Export the project's lockfile to an alternate format
       tree                       Display the project's dependency tree
       format                     Format Python code in the project
       audit                      Audit the project's dependencies
       tool                       Run and install commands provided by Python packages
       python                     Manage Python versions and installations
-      pip                        Manage Python packages with a pip-compatible interface
+      pip                        Manage Python packages directly in an environment
       venv                       Create a virtual environment
+      shell                      Activate the virtual environment in a new shell
       build                      Build Python packages into source distributions and wheels
       publish                    Upload distributions to an index
       cache                      Manage fyn's cache
