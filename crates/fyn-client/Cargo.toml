@@ -79,3 +79,4 @@ tempfile = { workspace = true }
 tokio = { workspace = true }
 tokio-rustls = { workspace = true }
 wiremock = { workspace = true }
+zip = { workspace = true }
