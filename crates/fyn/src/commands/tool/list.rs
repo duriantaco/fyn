@@ -15,6 +15,7 @@ use fyn_distribution_types::{IndexCapabilities, RequiresPython};
 use fyn_fs::Simplified;
 use fyn_normalize::PackageName;
 use fyn_python::LenientImplementationName;
+use fyn_resolver::ExcludeNewer;
 use fyn_settings::ResolverInstallerOptions;
 use fyn_tool::InstalledTools;
 use fyn_warnings::warn_user;
@@ -34,6 +35,7 @@ pub(crate) async fn list(
     show_extras: bool,
     show_python: bool,
     outdated: bool,
+    exclude_newer: ExcludeNewer,
     client_builder: BaseClientBuilder<'_>,
     concurrency: Concurrency,
     cache: &Cache,
@@ -124,11 +126,14 @@ pub(crate) async fn list(
             .map(|(name, tool, tool_env, _version)| {
                 let client_builder = client_builder.clone();
                 let download_concurrency = download_concurrency.clone();
+                let exclude_newer = exclude_newer.clone();
                 async move {
                     let capabilities = IndexCapabilities::default();
                     let settings = ResolverInstallerSettings::from(ResolverInstallerOptions::from(
                         tool.options().clone(),
                     ));
+                    let effective_exclude_newer =
+                        combine_exclude_newer(&exclude_newer, &settings.resolver.exclude_newer);
                     let interpreter = tool_env.environment().interpreter();
 
                     let client = RegistryClientBuilder::new(
@@ -150,7 +155,7 @@ pub(crate) async fn list(
                         client: &client,
                         capabilities: &capabilities,
                         prerelease: settings.resolver.prerelease,
-                        exclude_newer: &settings.resolver.exclude_newer,
+                        exclude_newer: &effective_exclude_newer,
                         tags: None,
                         requires_python: Some(&requires_python),
                     };
@@ -291,4 +296,20 @@ pub(crate) async fn list(
     }
 
     Ok(ExitStatus::Success)
+}
+
+fn combine_exclude_newer(command: &ExcludeNewer, stored: &ExcludeNewer) -> ExcludeNewer {
+    if command.is_empty() {
+        return stored.clone();
+    }
+
+    let mut package = stored.package.clone();
+    for (name, setting) in &command.package {
+        package.insert(name.clone(), setting.clone());
+    }
+
+    ExcludeNewer::new(
+        command.global.clone().or_else(|| stored.global.clone()),
+        package,
+    )
 }

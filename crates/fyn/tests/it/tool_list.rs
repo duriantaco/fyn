@@ -197,6 +197,42 @@ fn tool_list_outdated_respects_exclude_newer() {
 }
 
 #[test]
+fn tool_list_outdated_cli_exclude_newer_overrides_stored_cutoff() {
+    let context = fyn_test::test_context!("3.12").with_filtered_exe_suffix();
+    let tool_dir = context.temp_dir.child("tools");
+    let bin_dir = context.temp_dir.child("bin");
+
+    // Install `black` with a persisted cutoff that keeps it pinned to the latest version available
+    // on 2024-03-25.
+    context
+        .tool_install()
+        .arg("black")
+        .arg("--exclude-newer")
+        .arg("2024-03-25T00:00:00Z")
+        .env(EnvVars::UV_TOOL_DIR, tool_dir.as_os_str())
+        .env(EnvVars::XDG_BIN_HOME, bin_dir.as_os_str())
+        .assert()
+        .success();
+
+    // A later CLI cutoff should override the stored cutoff and report the newer available version.
+    let result = context
+        .tool_list()
+        .arg("--outdated")
+        .arg("--exclude-newer")
+        .arg("2025-04-01T00:00:00Z")
+        .env(EnvVars::UV_TOOL_DIR, tool_dir.as_os_str())
+        .env(EnvVars::XDG_BIN_HOME, bin_dir.as_os_str())
+        .assert()
+        .success();
+
+    let stdout = String::from_utf8(result.get_output().stdout.clone()).unwrap();
+    assert!(
+        stdout.contains("black v") && stdout.contains("[latest:"),
+        "Expected CLI exclude-newer to override the stored cutoff, got: {stdout}"
+    );
+}
+
+#[test]
 fn tool_list_missing_receipt() {
     let context = fyn_test::test_context!("3.12").with_filtered_exe_suffix();
     let tool_dir = context.temp_dir.child("tools");
