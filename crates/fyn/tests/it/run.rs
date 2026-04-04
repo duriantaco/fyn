@@ -4782,7 +4782,7 @@ fn run_remote_pep723_script() {
     success: true
     exit_code: 0
     ----- stdout -----
-    Hello CI, from fyn!
+    Hello CI, from uv!
 
     ----- stderr -----
     Resolved 4 packages in [TIME]

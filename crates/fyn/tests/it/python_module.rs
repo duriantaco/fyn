@@ -24,10 +24,10 @@ fn user_scheme_bin_filter() -> (String, String) {
 // when testing against the system Python install. See #15368.
 const TEST_SCRIPT: &str = "
 import sys
-import uv
+import fyn
 
 sys.base_prefix = '/dev/null'
-print(uv.find_uv_bin())
+print(fyn.find_fyn_bin())
 ";
 
 #[test]
@@ -52,7 +52,7 @@ fn find_uv_bin_venv() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -95,7 +95,7 @@ fn find_uv_bin_target() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -141,7 +141,7 @@ fn find_uv_bin_prefix() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -193,7 +193,7 @@ fn find_uv_bin_base_prefix() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -202,7 +202,7 @@ fn find_uv_bin_base_prefix() {
     // Mutate `base_prefix` to simulate lookup in a system Python installation
     fyn_snapshot!(context.filters(), context.python_command()
         .arg("-c")
-        .arg(format!(r#"import sys, uv; sys.base_prefix = "{}"; print(uv.find_uv_bin())"#, base_venv.path().portable_display()))
+        .arg(format!(r#"import sys, fyn; sys.base_prefix = "{}"; print(fyn.find_fyn_bin())"#, base_venv.path().portable_display()))
         .env(EnvVars::PYTHONPATH, site_packages_path(base_venv.path(), "python3.12")), @"
     success: true
     exit_code: 0
@@ -254,7 +254,7 @@ fn find_uv_bin_in_ephemeral_environment() -> anyhow::Result<()> {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -305,7 +305,7 @@ fn find_uv_bin_in_parent_of_ephemeral_environment() -> anyhow::Result<()> {
     Resolved 2 packages in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     Resolved 3 packages in [TIME]
     Prepared 3 packages in [TIME]
     Installed 3 packages in [TIME]
@@ -340,7 +340,7 @@ fn find_uv_bin_user_bin() {
             .child("Scripts")
     };
     bin.create_dir_all().unwrap();
-    bin.child(format!("uv{}", std::env::consts::EXE_SUFFIX))
+    bin.child(format!("fyn{}", std::env::consts::EXE_SUFFIX))
         .touch()
         .unwrap();
 
@@ -355,7 +355,7 @@ fn find_uv_bin_user_bin() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -439,7 +439,7 @@ fn find_uv_bin_error_message() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -461,9 +461,9 @@ fn find_uv_bin_error_message() {
     ----- stderr -----
     Traceback (most recent call last):
       File "<string>", line 6, in <module>
-      File "[SITE_PACKAGES]/uv/_find_uv.py", line 50, in find_uv_bin
-        raise UvNotFound(
-    uv._find_uv.UvNotFound: Could not find the fyn binary in any of the following locations:
+      File "[SITE_PACKAGES]/fyn/_find_uv.py", line 50, in find_fyn_bin
+        raise fynNotFound(
+    fyn._find_uv.fynNotFound: Could not find the fyn binary in any of the following locations:
      - [VENV]/[BIN]
      - /dev/null/[BIN]
      - [SITE_PACKAGES]/[BIN]
@@ -495,7 +495,7 @@ fn find_uv_bin_py38() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -535,7 +535,7 @@ fn find_uv_bin_py39() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -575,7 +575,7 @@ fn find_uv_bin_py310() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -615,7 +615,7 @@ fn find_uv_bin_py311() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -655,7 +655,7 @@ fn find_uv_bin_py312() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -695,7 +695,7 @@ fn find_uv_bin_py313() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
@@ -735,7 +735,7 @@ fn find_uv_bin_py314() {
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
-     + uv==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
+     + fyn==0.1.0 (from file://[WORKSPACE]/test/packages/fake-uv)
     "
     );
 
