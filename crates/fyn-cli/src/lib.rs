@@ -608,6 +608,10 @@ pub struct HelpArgs {
 
 #[derive(Args, Debug, Clone)]
 pub struct StatusArgs {
+    /// Fail if obvious project status checks do not pass.
+    #[arg(long)]
+    pub check: bool,
+
     /// Display the status in JSON format.
     #[arg(long)]
     pub json: bool,
