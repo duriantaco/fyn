@@ -1513,9 +1513,10 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         Commands::Cache(CacheNamespace {
             command: CacheCommand::Size(args),
         }) => commands::cache_size(&cache, args.human, printer, globals.preview),
-        Commands::Status(StatusArgs) => {
+        Commands::Status(StatusArgs { json }) => {
             let cache = cache.init().await?;
             commands::status(
+                json,
                 &project_dir,
                 filesystem.as_ref(),
                 globals.python_preference,
