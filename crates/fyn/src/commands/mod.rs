@@ -64,6 +64,7 @@ pub(crate) use python::update_shell::update_shell as python_update_shell;
 #[cfg(feature = "self-update")]
 pub(crate) use self_update::self_update;
 pub(crate) use shell::shell;
+pub(crate) use status::status;
 pub(crate) use tool::dir::dir as tool_dir;
 pub(crate) use tool::install::install as tool_install;
 pub(crate) use tool::list::list as tool_list;
@@ -97,6 +98,7 @@ pub(crate) mod reporters;
 #[cfg(feature = "self-update")]
 mod self_update;
 mod shell;
+mod status;
 mod tool;
 mod venv;
 mod workspace;
