@@ -85,6 +85,41 @@ fn invalid_requirements_txt_requirement() -> Result<()> {
 }
 
 #[test]
+fn uninstall_warns_inside_managed_project() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc::indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+    "#})?;
+
+    fyn_snapshot!(context.filters(), context.pip_uninstall()
+        .arg("MarkupSafe"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    warning: `fyn pip uninstall` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+    
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+    
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
+    warning: Skipping markupsafe as it is not installed
+    warning: No packages to uninstall
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
 #[cfg(feature = "test-pypi")]
 fn uninstall() -> Result<()> {
     let context = fyn_test::test_context!("3.12");
