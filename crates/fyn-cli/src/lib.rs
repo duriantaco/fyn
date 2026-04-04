@@ -563,6 +563,12 @@ pub enum Commands {
         after_long_help = ""
     )]
     Cache(CacheNamespace),
+    /// Show the current project and environment status.
+    #[command(
+        after_help = "Use `fyn help status` for more details.",
+        after_long_help = ""
+    )]
+    Status(StatusArgs),
     /// Manage the fyn executable.
     #[command(name = "self")]
     Self_(SelfNamespace),
@@ -599,6 +605,9 @@ pub struct HelpArgs {
     #[arg(value_hint = ValueHint::Other)]
     pub command: Option<Vec<String>>,
 }
+
+#[derive(Args, Debug, Clone)]
+pub struct StatusArgs;
 
 #[derive(Args)]
 #[command(group = clap::ArgGroup::new("operation"))]

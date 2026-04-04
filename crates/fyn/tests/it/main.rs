@@ -127,6 +127,9 @@ mod self_update;
 #[cfg(all(feature = "test-python", feature = "test-pypi"))]
 mod show_settings;
 
+#[cfg(feature = "test-python")]
+mod status;
+
 #[cfg(all(feature = "test-python", feature = "test-pypi"))]
 mod sync;
 

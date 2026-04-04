@@ -37,6 +37,7 @@ fn help() {
       build                      Build Python packages into source distributions and wheels
       publish                    Upload distributions to an index
       cache                      Manage fyn's cache
+      status                     Show the current project and environment status
       self                       Manage the fyn executable
       generate-shell-completion  Generate shell completion
       help                       Display documentation for a command
@@ -121,6 +122,7 @@ fn help_flag() {
       build    Build Python packages into source distributions and wheels
       publish  Upload distributions to an index
       cache    Manage fyn's cache
+      status   Show the current project and environment status
       self     Manage the fyn executable
       help     Display documentation for a command
 
@@ -203,6 +205,7 @@ fn help_short_flag() {
       build    Build Python packages into source distributions and wheels
       publish  Upload distributions to an index
       cache    Manage fyn's cache
+      status   Show the current project and environment status
       self     Manage the fyn executable
       help     Display documentation for a command
 
@@ -927,6 +930,7 @@ fn help_unknown_subcommand() {
         build
         publish
         cache
+        status
         self
         generate-shell-completion
     ");
@@ -959,6 +963,7 @@ fn help_unknown_subcommand() {
         build
         publish
         cache
+        status
         self
         generate-shell-completion
     ");
@@ -1020,6 +1025,7 @@ fn help_with_global_option() {
       build                      Build Python packages into source distributions and wheels
       publish                    Upload distributions to an index
       cache                      Manage fyn's cache
+      status                     Show the current project and environment status
       self                       Manage the fyn executable
       generate-shell-completion  Generate shell completion
       help                       Display documentation for a command
@@ -1145,6 +1151,7 @@ fn help_with_no_pager() {
       build                      Build Python packages into source distributions and wheels
       publish                    Upload distributions to an index
       cache                      Manage fyn's cache
+      status                     Show the current project and environment status
       self                       Manage the fyn executable
       generate-shell-completion  Generate shell completion
       help                       Display documentation for a command

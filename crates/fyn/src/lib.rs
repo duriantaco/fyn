@@ -30,8 +30,8 @@ use fyn_cli::SelfUpdateArgs;
 use fyn_cli::{
     AuthCommand, AuthHelperCommand, AuthNamespace, BuildBackendCommand, CacheCommand,
     CacheNamespace, Cli, Commands, PipCommand, PipNamespace, ProjectCommand, PythonCommand,
-    PythonNamespace, SelfCommand, SelfNamespace, ToolCommand, ToolNamespace, TopLevelArgs,
-    WorkspaceCommand, WorkspaceNamespace, compat::CompatArgs,
+    PythonNamespace, SelfCommand, SelfNamespace, StatusArgs, ToolCommand, ToolNamespace,
+    TopLevelArgs, WorkspaceCommand, WorkspaceNamespace, compat::CompatArgs,
 };
 use fyn_client::BaseClientBuilder;
 use fyn_configuration::min_stack_size;
@@ -1513,6 +1513,19 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         Commands::Cache(CacheNamespace {
             command: CacheCommand::Size(args),
         }) => commands::cache_size(&cache, args.human, printer, globals.preview),
+        Commands::Status(StatusArgs) => {
+            let cache = cache.init().await?;
+            commands::status(
+                &project_dir,
+                filesystem.as_ref(),
+                globals.python_preference,
+                &cache,
+                &workspace_cache,
+                printer,
+                globals.preview,
+            )
+            .await
+        }
         Commands::Build(args) => {
             // Resolve the settings from the command-line arguments and workspace configuration.
             let args = settings::BuildSettings::resolve(args, filesystem, environment);
