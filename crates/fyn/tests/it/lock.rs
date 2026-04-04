@@ -34136,6 +34136,92 @@ fn lock_unsupported_wheel_url_required_platform() -> Result<()> {
 }
 
 #[test]
+fn lock_required_environment_cycle_reports_resolution_error() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(&formatdoc! {r#"
+            [tool.fyn]
+            required-environments = ["platform_machine == 'arm64'"]
+
+            [tool.fyn.sources]
+            pkg-a = {{ workspace = true }}
+            pkg-b = {{ workspace = true }}
+
+            [tool.fyn.workspace]
+            members = ["pkg-a", "pkg-b"]
+
+            [[tool.fyn.index]]
+            name = "packse"
+            url = "{}"
+            default = true
+            "#,
+            packse_index_url()
+        })?;
+
+    let pkg_a = context.temp_dir.child("pkg-a");
+    pkg_a.create_dir_all()?;
+    pkg_a.child("pyproject.toml").write_str(indoc! {r#"
+        [project]
+        name = "pkg-a"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = [
+            "no-sdist-no-wheels-with-matching-platform-a",
+            "pkg-b",
+        ]
+
+        [build-system]
+        requires = ["fyn_build>=0.10,<10000"]
+        build-backend = "fyn_build"
+        "#
+    })?;
+
+    let pkg_b = context.temp_dir.child("pkg-b");
+    pkg_b.create_dir_all()?;
+    pkg_b.child("pyproject.toml").write_str(indoc! {r#"
+        [project]
+        name = "pkg-b"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["pkg-a"]
+
+        [build-system]
+        requires = ["fyn_build>=0.10,<10000"]
+        build-backend = "fyn_build"
+        "#
+    })?;
+
+    let filters: Vec<_> = context
+        .filters()
+        .into_iter()
+        .chain([(
+            r"\n\n\s+hint: The resolution failed for an environment that is not the current one[^\n]*",
+            "",
+        )])
+        .collect();
+
+    fyn_snapshot!(
+        filters,
+        context.lock().env_remove(EnvVars::UV_EXCLUDE_NEWER),
+        @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+
+    ----- stderr -----
+      × No solution found when resolving dependencies for split (markers: platform_machine == 'arm64'):
+      ╰─▶ Because no-sdist-no-wheels-with-matching-platform-a==1.0.0 has no `platform_machine == 'arm64'`-compatible wheels and only no-sdist-no-wheels-with-matching-platform-a==1.0.0 is available, we can conclude that all versions of no-sdist-no-wheels-with-matching-platform-a cannot be used.
+          And because pkg-a depends on no-sdist-no-wheels-with-matching-platform-a and your workspace requires pkg-a, we can conclude that your workspace's requirements are unsatisfiable.
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
 fn lock_supported_environment_wheel_only_package_requires_compatible_wheels() -> Result<()> {
     let context = fyn_test::test_context!("3.12").with_exclude_newer("2025-01-30T00:00:00Z");
 
