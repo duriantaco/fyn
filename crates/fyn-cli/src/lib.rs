@@ -607,7 +607,11 @@ pub struct HelpArgs {
 }
 
 #[derive(Args, Debug, Clone)]
-pub struct StatusArgs;
+pub struct StatusArgs {
+    /// Display the status in JSON format.
+    #[arg(long)]
+    pub json: bool,
+}
 
 #[derive(Args)]
 #[command(group = clap::ArgGroup::new("operation"))]
