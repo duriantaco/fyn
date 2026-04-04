@@ -2297,7 +2297,9 @@ fn force_pep517() -> Result<()> {
       × Failed to build `[TEMP_DIR]/`
       ├─▶ Failed to resolve requirements from `build-system.requires`
       ├─▶ No solution found when resolving: `fyn-build>=0.5.15, <10000`
-      ╰─▶ Because fyn-build was not found in the package registry and you require fyn-build>=0.5.15,<10000, we can conclude that your requirements are unsatisfiable.
+      ╰─▶ Because there are no versions of fyn-build and you require fyn-build>=0.5.15,<10000, we can conclude that your requirements are unsatisfiable.
+
+          hint: `fyn-build` was filtered by `exclude-newer` to only include packages uploaded before 2025-05-27T00:00:00Z. Consider using `exclude-newer-package` to override the cutoff for this package.
     ");
 
     Ok(())

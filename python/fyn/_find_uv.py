@@ -20,12 +20,13 @@ def find_fyn_bin() -> str:
         sysconfig.get_path("scripts", vars={"base": sys.base_prefix}),
         # Above the package root, e.g., from `pip install --prefix` or `fyn run --with`
         (
-            # On Windows, with module path `<prefix>/Lib/site-packages/uv`
-            _join(_matching_parents(_module_path(), "Lib/site-packages/uv"), "Scripts")
+            # On Windows, with module path `<prefix>/Lib/site-packages/fyn`
+            _join(_matching_parents(_module_path(), "Lib/site-packages/fyn"), "Scripts")
             if sys.platform == "win32"
-            # On Unix,  with module path `<prefix>/lib/python3.13/site-packages/uv`
+            # On Unix,  with module path `<prefix>/lib/python3.13/site-packages/fyn`
             else _join(
-                _matching_parents(_module_path(), "lib/python*/site-packages/uv"), "bin"
+                _matching_parents(_module_path(), "lib/python*/site-packages/fyn"),
+                "bin",
             )
         ),
         # Adjacent to the package root, e.g., from `pip install --target`
