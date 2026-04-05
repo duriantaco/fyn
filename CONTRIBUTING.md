@@ -30,6 +30,17 @@ exploration of new features, we will almost always close these pull requests imm
 new feature to fyn creates a long-term maintenance burden and requires strong consensus from the fyn
 team before it is appropriate to begin work on an implementation.
 
+## AI-generated contributions
+
+fyn does not accept AI-generated code, issue reports, or pull requests.
+
+Limited AI use for supplemental research, copy editing, or translation is acceptable, but
+contributors are expected to write, review, and stand behind the submitted technical content
+themselves.
+
+If a contribution is primarily authored by an AI system, we will close it. If you used AI for
+non-substantive assistance, disclose that usage in the issue or pull request.
+
 ## Setup
 
 [Rust](https://rustup.rs/) (and a C compiler) are required to build fyn.
