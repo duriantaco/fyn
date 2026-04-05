@@ -8,6 +8,7 @@ use crate::commands::diagnostics;
 use crate::commands::pip::loggers::DefaultResolveLogger;
 use crate::commands::pip::resolution_markers;
 use crate::commands::project::default_dependency_groups;
+use crate::commands::project::install_target::InstallTarget;
 use crate::commands::project::lock::{LockMode, LockOperation};
 use crate::commands::project::lock_target::LockTarget;
 use crate::commands::project::{
@@ -177,6 +178,30 @@ pub(crate) async fn audit(
         Err(err) => return Err(err.into()),
     };
 
+    let target = match &target {
+        LockTarget::Workspace(workspace) => {
+            if workspace.is_non_project() {
+                InstallTarget::NonProjectWorkspace {
+                    workspace,
+                    lock: &lock,
+                }
+            } else {
+                InstallTarget::Workspace {
+                    workspace,
+                    lock: &lock,
+                }
+            }
+        }
+        LockTarget::Script(script) => InstallTarget::Script {
+            script,
+            lock: &lock,
+        },
+    };
+
+    // Validate that the set of requested extras and development groups are defined in the lockfile.
+    target.validate_extras(&extras)?;
+    target.validate_groups(&groups)?;
+
     // Determine the markers to use for resolution.
     let _markers = (!universal).then(|| {
         resolution_markers(
@@ -186,7 +211,6 @@ pub(crate) async fn audit(
         )
     });
 
-    // TODO: validate the sets of requested extras/groups against the lockfile?
     let auditable = lock.packages_for_audit(&extras, &groups);
 
     // Perform the audit.
