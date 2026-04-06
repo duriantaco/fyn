@@ -130,6 +130,9 @@ mod show_settings;
 #[cfg(feature = "test-python")]
 mod status;
 
+#[cfg(feature = "test-python")]
+mod torch;
+
 #[cfg(all(feature = "test-python", feature = "test-pypi"))]
 mod sync;
 

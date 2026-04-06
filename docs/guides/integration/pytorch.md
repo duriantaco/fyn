@@ -449,6 +449,38 @@ To use the same workflow with fyn, replace `pip3` with `fyn pip`:
 $ fyn pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 ```
 
+## Diagnosing the recommended backend
+
+If you switch between machines or GPU families, use `fyn torch doctor` to inspect the current
+machine and print the recommended `--torch-backend` value without modifying `pyproject.toml`:
+
+```shell
+$ fyn torch doctor
+PyTorch doctor
+environment: /workspace/.venv
+python: /workspace/.venv/bin/python3 (3.12.8)
+platform: manylinux_2_28_x86_64
+accelerator: CUDA 570.86.15
+recommended backend: cu130
+reason: Detected NVIDIA driver 570.86.15; selected the highest compatible CUDA backend for manylinux_2_28_x86_64.
+
+installed packages:
+torch: not installed
+torchvision: not installed
+torchaudio: not installed
+
+next command:
+  fyn pip install torch torchvision torchaudio --torch-backend=cu130
+
+notes:
+- `fyn torch doctor` only reports the recommended backend.
+- Recreate the environment when switching GPU or backend families.
+```
+
+If PyTorch is already installed, `fyn torch doctor` also reports the installed `torch`,
+`torchvision`, and `torchaudio` versions, including any backend suffixes such as `+cu128`. Use
+`--json` to consume the same report in scripts or editor tooling.
+
 ## Automatic backend selection
 
 fyn supports automatic selection of the appropriate PyTorch index via the `--torch-backend=auto`

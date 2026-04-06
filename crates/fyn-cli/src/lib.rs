@@ -484,6 +484,12 @@ pub enum Commands {
         after_long_help = ""
     )]
     Pip(PipNamespace),
+    /// Diagnose PyTorch backend selection for the current machine.
+    #[command(
+        after_help = "Use `fyn help torch` for more details.",
+        after_long_help = ""
+    )]
+    Torch(TorchNamespace),
     /// Create a virtual environment.
     ///
     /// By default, creates a virtual environment named `.venv` in the working
@@ -613,6 +619,13 @@ pub struct StatusArgs {
     pub check: bool,
 
     /// Display the status in JSON format.
+    #[arg(long)]
+    pub json: bool,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct TorchDoctorArgs {
+    /// Display the diagnosis in JSON format.
     #[arg(long)]
     pub json: bool,
 }
@@ -7289,6 +7302,24 @@ pub struct ToolUpgradeArgs {
 
     #[command(flatten)]
     pub build: BuildOptionsArgs,
+}
+
+#[derive(Args)]
+pub struct TorchNamespace {
+    #[command(subcommand)]
+    pub command: TorchCommand,
+}
+
+#[derive(Subcommand)]
+pub enum TorchCommand {
+    /// Inspect the current machine and recommend a PyTorch backend.
+    ///
+    /// Detects the current accelerator, recommends the corresponding `--torch-backend` value, and
+    /// prints the exact `fyn pip install` command to run next.
+    ///
+    /// This command only reports information. It never installs packages or modifies project
+    /// files.
+    Doctor(TorchDoctorArgs),
 }
 
 #[derive(Args)]
