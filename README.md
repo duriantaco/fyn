@@ -2,9 +2,10 @@
 
 An extremely fast Python package and project manager, written in Rust.
 
-**fyn** is an independent Python package manager built on [uv](https://github.com/astral-sh/uv)'s
-foundation, with reduced package-index request metadata, new features added, and long-standing bugs
-fixed. See [MANIFESTO.md](MANIFESTO.md) for the full story.
+**fyn** is an independent community fork of [uv](https://github.com/astral-sh/uv). It started on
+uv's foundation, but it now has its own commands, settings, defaults, and behavior, alongside
+reduced package-index request metadata, added features, and long-standing bug fixes. See
+[MANIFESTO.md](MANIFESTO.md) for the full story.
 
 ## Highlights
 
@@ -119,6 +120,10 @@ Type exit to deactivate.
 
 Works with bash, zsh, fish, nushell, powershell, and cmd.
 
+If you pass a path, `fyn shell` activates that environment directly. Otherwise it uses `VIRTUAL_ENV`
+when set, then the discovered project environment, then a local `.venv`. Use `--no-project` to
+skip project discovery and only check the current directory.
+
 ### Upgrade dependencies
 
 Upgrade all or specific dependencies in one command:
@@ -134,6 +139,44 @@ success: Dependencies upgraded successfully.
 ```
 
 Supports `--dry-run` and `--no-sync`.
+
+`fyn upgrade` is the convenience form of running `fyn lock --upgrade` and then `fyn sync`.
+
+### Project status
+
+Inspect the current project and environment state:
+
+```console
+$ fyn status
+current directory: /home/user/example
+project directory: /home/user/example
+managed project: yes
+workspace root: /home/user/example
+pyproject.toml: yes
+fyn.lock: yes
+pip-in-project: warn
+environment: /home/user/example/.venv
+python: /home/user/example/.venv/bin/python3 (3.12.0)
+```
+
+Use `--check` to fail when obvious project checks do not pass, or `--json` for scripting and editor
+integrations.
+
+### PyTorch backend diagnosis
+
+Inspect the current machine and environment before installing or reinstalling PyTorch:
+
+```console
+$ fyn torch doctor
+PyTorch doctor
+recommended backend: cu130
+
+next command:
+  fyn pip install torch torchvision torchaudio --torch-backend=cu130
+```
+
+Use `--json` for scripting. `fyn torch doctor` reports the recommendation and current package
+state, but does not modify `pyproject.toml`.
 
 ### Scripts
 
@@ -314,22 +357,28 @@ The same ones as uv: macOS, Linux, and Windows, across x86_64 and aarch64.
 
 #### Is fyn compatible with uv?
 
-Mostly at the workflow level, but not as a byte-for-byte drop-in replacement. Commands and many
-`UV_*` environment variables carry over, but projects need `[tool.uv]` renamed to `[tool.fyn]` and
-`uv.lock` renamed to `fyn.lock` unless you override the lockfile name.
+At the workflow level, often yes, but not as a drop-in replacement. Many commands and `UV_*`
+environment variables carry over, but fyn now has fork-specific commands, config, defaults, and
+behavior. Projects still need `[tool.uv]` renamed to `[tool.fyn]` and `uv.lock` renamed to
+`fyn.lock` unless you override the lockfile name.
 
 #### What's different from uv?
 
-See [MANIFESTO.md](MANIFESTO.md) for the full comparison, or the table below for a quick summary:
+See [MANIFESTO.md](MANIFESTO.md) for the fuller comparison, or the table below for some of the
+larger user-visible differences:
 
-| Feature                  | uv                                    | fyn                     |
-| ------------------------ | ------------------------------------- | ----------------------- |
-| Package index User-Agent | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>` |
-| Task runner              | Not available                         | `[tool.fyn.tasks]`      |
-| `shell` command          | Not available                         | `fyn shell`             |
-| `upgrade` command        | Must chain two commands               | `fyn upgrade`           |
-| Cache size limit         | No limit                              | `UV_CACHE_MAX_SIZE`     |
-| Custom lockfile name     | Not available                         | `UV_LOCKFILE`           |
+| Area                          | uv                                    | fyn                                 |
+| ----------------------------- | ------------------------------------- | ----------------------------------- |
+| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock`            |
+| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`             |
+| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                  |
+| `shell` command               | No `uv shell`                         | `fyn shell`                         |
+| `upgrade` command             | No `uv upgrade`                       | `fyn upgrade`                       |
+| `status` command              | No `uv status`                        | `fyn status`                        |
+| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`                  |
+| Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project = warn|error|allow` |
+| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                 |
+| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`                       |
 
 ## Acknowledgements
 
@@ -337,7 +386,8 @@ fyn's dependency resolver uses [PubGrub](https://github.com/pubgrub-rs/pubgrub) 
 We're grateful to the PubGrub maintainers, especially [Jacob Finkelman](https://github.com/Eh2406),
 for their support.
 
-fyn's core is derived from [uv](https://github.com/astral-sh/uv) by Astral.
+fyn started as a fork of [uv](https://github.com/astral-sh/uv) by Astral and still shares
+substantial ancestry with it.
 
 fyn's Git implementation is based on [Cargo](https://github.com/rust-lang/cargo).
 

@@ -1,11 +1,14 @@
-# fyn — A uv fork with a smaller package-index `User-Agent`
+# fyn — A community fork of uv with its own commands and config
 
 **fyn** is a Python package manager and project manager written in Rust. It's an independent fork of
-[uv](https://github.com/astral-sh/uv), which is the fastest Python package installer around, with a
-smaller package-index `User-Agent`, missing features added, and bugs fixed.
+[uv](https://github.com/astral-sh/uv), which is the fastest Python package installer around. It
+started as a relatively close fork, but fyn now ships fork-specific commands, config namespace,
+defaults, policies, and behavior, along with a smaller package-index `User-Agent`, added features,
+and bug fixes.
 
-If you've used uv, fyn should feel familiar. Most day-to-day commands carry over, migration is
-usually straightforward, and the main behavior differences are below.
+If you've used uv, fyn should still feel familiar. Many day-to-day commands carry over and
+migration is usually straightforward, but fyn is no longer just uv with a different binary name.
+The main concrete differences are below.
 
 ## Why fork uv?
 
@@ -19,8 +22,10 @@ So we forked it. We called it **fyn**. You can infer the first letter however yo
 
 ## What's actually different
 
-We're not trying to rewrite the thing. uv is really solid and we're keeping most of it. We're just
-fixing the stuff that bugged us and adding the things people kept asking for.
+We're not trying to rewrite the thing from scratch. uv is really solid and the shared ancestry still
+matters. But fyn has diverged enough that "uv with a smaller package-index `User-Agent`" is no
+longer a very good description. The project now has its own command surface, project conventions,
+policies, and bug fixes.
 
 ### Reduced package-index request metadata
 
@@ -35,27 +40,37 @@ This reduces what is exposed in the header, but it does not make package install
 indexes still see normal network and request information, including your IP address and the packages
 you ask for.
 
-### New features we added
+### Some of the larger user-visible differences
 
+- **Fork-specific project namespace** — fyn uses `[tool.fyn]` and `fyn.lock`, not `[tool.uv]` and
+  `uv.lock`.
+- **Task runner** — define project tasks in `[tool.fyn.tasks]` and list them with
+  `fyn run --list-tasks`.
 - **`fyn shell`**
 - **`fyn upgrade`**
+- **`fyn status`**
+- **Managed-project pip guardrails** — configure `pip-in-project = "warn" | "error" | "allow"` to
+  control direct `fyn pip` mutations inside managed projects.
 - **Cache size limits** — set `UV_CACHE_MAX_SIZE=2G` and the cache cleans itself. uv's cache just
   grew forever.
+- **Custom lockfile name** — set `UV_LOCKFILE` to use a non-default lockfile path.
 
 ## fyn vs uv — feature comparison
 
-| Feature                         | uv                                    | fyn                     |
-| ------------------------------- | ------------------------------------- | ----------------------- |
-| Speed (10-100x faster than pip) | Yes                                   | Yes                     |
-| Package index User-Agent        | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>` |
-| `shell` command                 | Not available                         | `fyn shell`             |
-| `upgrade` command               | Must chain two commands               | `fyn upgrade`           |
-| Cache size limit                | No limit                              | `UV_CACHE_MAX_SIZE`     |
-| Custom lockfile name            | Not available                         | `UV_LOCKFILE`           |
-| `remove --group` sync behavior  | Wipes other group packages            | Fixed                   |
-| Drop-in replacement for pip     | Yes                                   | Yes                     |
-| Python version management       | Yes                                   | Yes                     |
-| Lockfile support                | Yes (`uv.lock`)                       | Yes (`fyn.lock`)        |
+| Area                            | uv                                    | fyn                                 |
+| ------------------------------- | ------------------------------------- | ----------------------------------- |
+| Speed (10-100x faster than pip) | Yes                                   | Yes                                 |
+| Config namespace and lockfile   | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock`            |
+| Package index User-Agent        | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`             |
+| Task runner                     | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                  |
+| `shell` command                 | No `uv shell`                         | `fyn shell`                         |
+| `upgrade` command               | No `uv upgrade`                       | `fyn upgrade`                       |
+| `status` command                | No `uv status`                        | `fyn status`                        |
+| Managed-project `pip` policy    | No `pip-in-project` setting           | `pip-in-project = warn|error|allow` |
+| Cache size limit                | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                 |
+| Custom lockfile name            | No `UV_LOCKFILE`                      | `UV_LOCKFILE`                       |
+| Python version management       | Yes                                   | Yes                                 |
+| Lockfile support                | Yes (`uv.lock`)                       | Yes (`fyn.lock`)                    |
 
 ## Roadmap
 
