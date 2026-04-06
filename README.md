@@ -121,8 +121,8 @@ Type exit to deactivate.
 Works with bash, zsh, fish, nushell, powershell, and cmd.
 
 If you pass a path, `fyn shell` activates that environment directly. Otherwise it uses `VIRTUAL_ENV`
-when set, then the discovered project environment, then a local `.venv`. Use `--no-project` to
-skip project discovery and only check the current directory.
+when set, then the discovered project environment, then a local `.venv`. Use `--no-project` to skip
+project discovery and only check the current directory.
 
 ### Upgrade dependencies
 
@@ -175,8 +175,8 @@ next command:
   fyn pip install torch torchvision torchaudio --torch-backend=cu130
 ```
 
-Use `--json` for scripting. `fyn torch doctor` reports the recommendation and current package
-state, but does not modify `pyproject.toml`.
+Use `--json` for scripting. `fyn torch doctor` reports the recommendation and current package state,
+but does not modify `pyproject.toml`.
 
 ### Scripts
 
@@ -367,18 +367,18 @@ behavior. Projects still need `[tool.uv]` renamed to `[tool.fyn]` and `uv.lock` 
 See [MANIFESTO.md](MANIFESTO.md) for the fuller comparison, or the table below for some of the
 larger user-visible differences:
 
-| Area                          | uv                                    | fyn                                 |
-| ----------------------------- | ------------------------------------- | ----------------------------------- |
-| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock`            |
-| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`             |
-| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                  |
-| `shell` command               | No `uv shell`                         | `fyn shell`                         |
-| `upgrade` command             | No `uv upgrade`                       | `fyn upgrade`                       |
-| `status` command              | No `uv status`                        | `fyn status`                        |
-| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`                  |
-| Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project = warn|error|allow` |
-| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                 |
-| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`                       |
+| Area                          | uv                                    | fyn                      |
+| ----------------------------- | ------------------------------------- | ------------------------ | ----- | ------ |
+| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock` |
+| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`  |
+| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`       |
+| `shell` command               | No `uv shell`                         | `fyn shell`              |
+| `upgrade` command             | No `uv upgrade`                       | `fyn upgrade`            |
+| `status` command              | No `uv status`                        | `fyn status`             |
+| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`       |
+| Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project = warn   | error | allow` |
+| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`      |
+| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`            |
 
 ## Acknowledgements
 
