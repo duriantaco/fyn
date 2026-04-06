@@ -32,6 +32,7 @@ fn help() {
       tool                       Run and install commands provided by Python packages
       python                     Manage Python versions and installations
       pip                        Manage Python packages directly in an environment
+      torch                      Diagnose PyTorch backend selection for the current machine
       venv                       Create a virtual environment
       shell                      Activate the virtual environment in a new shell
       build                      Build Python packages into source distributions and wheels
@@ -117,6 +118,7 @@ fn help_flag() {
       tool     Run and install commands provided by Python packages
       python   Manage Python versions and installations
       pip      Manage Python packages directly in an environment
+      torch    Diagnose PyTorch backend selection for the current machine
       venv     Create a virtual environment
       shell    Activate the virtual environment in a new shell
       build    Build Python packages into source distributions and wheels
@@ -200,6 +202,7 @@ fn help_short_flag() {
       tool     Run and install commands provided by Python packages
       python   Manage Python versions and installations
       pip      Manage Python packages directly in an environment
+      torch    Diagnose PyTorch backend selection for the current machine
       venv     Create a virtual environment
       shell    Activate the virtual environment in a new shell
       build    Build Python packages into source distributions and wheels
@@ -899,6 +902,30 @@ fn help_flag_subsubcommand() {
 }
 
 #[test]
+fn help_torch_subcommand() {
+    let context = fyn_test::test_context_with_versions!(&[]);
+    let output = context.help().arg("torch").output().unwrap();
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("Diagnose PyTorch backend selection for the current machine"));
+    assert!(stdout.contains("Usage: fyn torch [OPTIONS] <COMMAND>"));
+    assert!(stdout.contains("doctor"));
+}
+
+#[test]
+fn help_torch_doctor_subcommand() {
+    let context = fyn_test::test_context_with_versions!(&[]);
+    let output = context.help().arg("torch").arg("doctor").output().unwrap();
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("Inspect the current machine and recommend a PyTorch backend."));
+    assert!(stdout.contains("Usage: fyn torch doctor [OPTIONS]"));
+    assert!(stdout.contains("--json"));
+}
+
+#[test]
 fn help_unknown_subcommand() {
     let context = fyn_test::test_context_with_versions!(&[]);
 
@@ -925,6 +952,7 @@ fn help_unknown_subcommand() {
         tool
         python
         pip
+        torch
         venv
         shell
         build
@@ -958,6 +986,7 @@ fn help_unknown_subcommand() {
         tool
         python
         pip
+        torch
         venv
         shell
         build
@@ -1020,6 +1049,7 @@ fn help_with_global_option() {
       tool                       Run and install commands provided by Python packages
       python                     Manage Python versions and installations
       pip                        Manage Python packages directly in an environment
+      torch                      Diagnose PyTorch backend selection for the current machine
       venv                       Create a virtual environment
       shell                      Activate the virtual environment in a new shell
       build                      Build Python packages into source distributions and wheels
@@ -1146,6 +1176,7 @@ fn help_with_no_pager() {
       tool                       Run and install commands provided by Python packages
       python                     Manage Python versions and installations
       pip                        Manage Python packages directly in an environment
+      torch                      Diagnose PyTorch backend selection for the current machine
       venv                       Create a virtual environment
       shell                      Activate the virtual environment in a new shell
       build                      Build Python packages into source distributions and wheels

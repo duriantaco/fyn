@@ -31,7 +31,8 @@ use fyn_cli::{
     AuthCommand, AuthHelperCommand, AuthNamespace, BuildBackendCommand, CacheCommand,
     CacheNamespace, Cli, Commands, PipCommand, PipNamespace, ProjectCommand, PythonCommand,
     PythonNamespace, SelfCommand, SelfNamespace, StatusArgs, ToolCommand, ToolNamespace,
-    TopLevelArgs, WorkspaceCommand, WorkspaceNamespace, compat::CompatArgs,
+    TopLevelArgs, TorchCommand, TorchDoctorArgs, TorchNamespace, WorkspaceCommand,
+    WorkspaceNamespace, compat::CompatArgs,
 };
 use fyn_client::BaseClientBuilder;
 use fyn_configuration::min_stack_size;
@@ -1525,6 +1526,19 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 &workspace_cache,
                 printer,
                 globals.preview,
+            )
+            .await
+        }
+        Commands::Torch(TorchNamespace {
+            command: TorchCommand::Doctor(TorchDoctorArgs { json }),
+        }) => {
+            let cache = cache.init().await?;
+            commands::torch_doctor(
+                json,
+                globals.python_preference,
+                &cache,
+                globals.preview,
+                printer,
             )
             .await
         }

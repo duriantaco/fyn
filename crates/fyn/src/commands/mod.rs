@@ -73,6 +73,7 @@ pub(crate) use tool::run::run as tool_run;
 pub(crate) use tool::uninstall::uninstall as tool_uninstall;
 pub(crate) use tool::update_shell::update_shell as tool_update_shell;
 pub(crate) use tool::upgrade::upgrade as tool_upgrade;
+pub(crate) use torch::doctor::doctor as torch_doctor;
 pub(crate) use venv::venv;
 pub(crate) use workspace::dir::dir;
 pub(crate) use workspace::list::list;
@@ -100,6 +101,7 @@ mod self_update;
 mod shell;
 mod status;
 mod tool;
+mod torch;
 mod venv;
 mod workspace;
 
