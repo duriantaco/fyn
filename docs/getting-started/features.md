@@ -36,7 +36,10 @@ Creating and working on Python projects, i.e., with a `pyproject.toml`.
 - `fyn remove`: Remove a dependency from the project.
 - `fyn sync`: Sync the project's dependencies with the environment.
 - `fyn lock`: Create a lockfile for the project's dependencies.
+- `fyn upgrade`: Upgrade all or selected project dependencies.
 - `fyn run`: Run a command in the project environment.
+- `fyn shell`: Open a shell with the project environment activated.
+- `fyn status`: Inspect the current project and environment state.
 - `fyn tree`: View the dependency tree for the project.
 - `fyn build`: Build the project into distribution archives.
 - `fyn publish`: Publish the project to a package index.
@@ -89,6 +92,15 @@ See the documentation on [locking environments](../pip/compile.md) for details.
 !!! important
 
     These commands do not exactly implement the interfaces and behavior of the tools they are based on. The further you stray from common workflows, the more likely you are to encounter differences. Consult the [pip-compatibility guide](../pip/compatibility.md) for details.
+
+## PyTorch
+
+Inspect the current machine and recommend the right backend for PyTorch installs:
+
+- `fyn torch doctor`: Recommend a `--torch-backend` value, show the next install command, and
+  report the currently installed PyTorch package variants.
+
+See the [PyTorch integration guide](../guides/integration/pytorch.md) for details.
 
 ## Utility
 

@@ -32,7 +32,8 @@ An extremely fast Python package and project manager, written in Rust.
 - Installable without Rust or Python via prebuilt distributions or `pip`.
 - Supports macOS, Linux, and Windows.
 
-fyn is an independent community fork of [uv](https://github.com/astral-sh/uv).
+fyn started as an independent community fork of [uv](https://github.com/astral-sh/uv) and now has
+its own commands and configuration surface.
 
 ## Installation
 
@@ -78,6 +79,48 @@ Resolved 2 packages in 0.33ms
 $ fyn sync
 Resolved 2 packages in 0.70ms
 Checked 1 package in 0.02ms
+```
+
+### Inspecting and entering the project environment
+
+Use `fyn status` to see whether fyn considers the current directory a managed project, whether
+`fyn.lock` is present, and which environment and Python interpreter it is using:
+
+```console
+$ fyn status
+current directory: /home/user/example
+project directory: /home/user/example
+managed project: yes
+workspace root: /home/user/example
+pyproject.toml: yes
+fyn.lock: yes
+pip-in-project: warn
+environment: /home/user/example/.venv
+python: /home/user/example/.venv/bin/python3 (3.12.0)
+```
+
+Use `fyn upgrade` to refresh all dependencies or only the packages you name:
+
+```console
+$ fyn upgrade
+$ fyn upgrade requests flask
+```
+
+Use `fyn shell` to open a new shell with the project environment activated:
+
+```console
+$ fyn shell
+success: Activated virtual environment at .venv
+Type exit to deactivate.
+```
+
+When you need to choose a PyTorch backend for the current machine without rewriting project
+metadata, use `fyn torch doctor`:
+
+```console
+$ fyn torch doctor
+PyTorch doctor
+recommended backend: cu130
 ```
 
 See the [project guide](./guides/projects.md) to get started.
