@@ -241,7 +241,7 @@ fn recommended_backend(strategy: &TorchStrategy) -> anyhow::Result<String> {
     let backend = index
         .url()
         .path_segments()
-        .and_then(|segments| segments.filter(|segment| !segment.is_empty()).next_back())
+        .and_then(|mut segments| segments.rfind(|segment| !segment.is_empty()))
         .context("Failed to extract the recommended PyTorch backend from the resolved index URL")?;
     Ok(backend.to_string())
 }
@@ -459,4 +459,30 @@ fn host_platform() -> Platform {
         },
     };
     Platform::new(os, arch)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::recommended_backend;
+    use fyn_torch::{TorchBackend, TorchSource, TorchStrategy};
+
+    #[test]
+    fn recommended_backend_extracts_trailing_segment() {
+        let strategy = TorchStrategy::Backend {
+            backend: TorchBackend::Cu130,
+            source: TorchSource::PyTorch,
+        };
+
+        assert_eq!(recommended_backend(&strategy).unwrap(), "cu130");
+    }
+
+    #[test]
+    fn recommended_backend_handles_rocm_backend_names() {
+        let strategy = TorchStrategy::Backend {
+            backend: TorchBackend::Rocm71,
+            source: TorchSource::PyTorch,
+        };
+
+        assert_eq!(recommended_backend(&strategy).unwrap(), "rocm7.1");
+    }
 }
