@@ -202,8 +202,7 @@ $ fyn status --check
 ```
 
 Today, `--check` reports failure if you are not inside a managed project. When you are inside a
-managed project, it also fails if `pyproject.toml` or `fyn.lock` is missing from the workspace
-root.
+managed project, it also fails if `pyproject.toml` or `fyn.lock` is missing from the workspace root.
 
 For editor integrations, scripts, or CI tooling, use JSON output:
 

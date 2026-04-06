@@ -97,8 +97,8 @@ See the documentation on [locking environments](../pip/compile.md) for details.
 
 Inspect the current machine and recommend the right backend for PyTorch installs:
 
-- `fyn torch doctor`: Recommend a `--torch-backend` value, show the next install command, and
-  report the currently installed PyTorch package variants.
+- `fyn torch doctor`: Recommend a `--torch-backend` value, show the next install command, and report
+  the currently installed PyTorch package variants.
 
 See the [PyTorch integration guide](../guides/integration/pytorch.md) for details.
 
