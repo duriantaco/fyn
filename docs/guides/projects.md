@@ -148,7 +148,22 @@ To remove a package, you can use `fyn remove`:
 $ fyn remove requests
 ```
 
-To upgrade a package, run `fyn lock` with the `--upgrade-package` flag:
+To upgrade a package, run `fyn upgrade` with the package name:
+
+```console
+$ fyn upgrade requests
+```
+
+`fyn upgrade` is a convenience command that re-locks with upgrade semantics and then syncs the
+environment. If you want to preview the change first, use `--dry-run`. If you want to update the
+lockfile without syncing the environment yet, use `--no-sync`.
+
+```console
+$ fyn upgrade --dry-run
+$ fyn upgrade --no-sync requests
+```
+
+If you want the lower-level equivalent, run `fyn lock` with the `--upgrade-package` flag:
 
 ```console
 $ fyn lock --upgrade-package requests
@@ -159,6 +174,66 @@ version, while keeping the rest of the lockfile intact.
 
 See the documentation on [managing dependencies](../concepts/projects/dependencies.md) for more
 details.
+
+## Checking project status
+
+Use `fyn status` to inspect what fyn sees in the current directory:
+
+```console
+$ fyn status
+current directory: /path/to/project
+project directory: /path/to/project
+managed project: yes
+workspace root: /path/to/project
+pyproject.toml: yes
+fyn.lock: yes
+pip-in-project: warn
+environment: /path/to/project/.venv
+python: /path/to/project/.venv/bin/python3 (3.12.0)
+```
+
+This is useful when you want to confirm whether you're inside a managed project, whether the
+lockfile is present, and which environment and Python interpreter fyn is currently using.
+
+For automation, use `--check` to fail when obvious project checks do not pass:
+
+```console
+$ fyn status --check
+```
+
+Today, `--check` reports failure if you are not inside a managed project. When you are inside a
+managed project, it also fails if `pyproject.toml` or `fyn.lock` is missing from the workspace root.
+
+For editor integrations, scripts, or CI tooling, use JSON output:
+
+```console
+$ fyn status --json
+```
+
+## Opening an activated shell
+
+If you want to work inside the project environment directly, use `fyn shell`:
+
+```console
+$ fyn shell
+success: Activated virtual environment at .venv
+Type exit to deactivate.
+```
+
+`fyn shell` spawns a new shell process with the environment activated. When selecting the
+environment, it prefers:
+
+1. An explicit path passed to `fyn shell`
+2. `VIRTUAL_ENV`, if it is set
+3. The discovered project or workspace environment
+4. A local `.venv` fallback
+
+Use `--no-project` if you want to skip project discovery and only check for `.venv` in the current
+directory:
+
+```console
+$ fyn shell --no-project
+```
 
 ## Viewing your version
 
@@ -227,8 +302,17 @@ print("hello world")
 $ fyn run example.py
 ```
 
-Alternatively, you can use `fyn sync` to manually update the environment then activate it before
-executing a command:
+Alternatively, you can use `fyn sync` to manually update the environment and then either activate it
+yourself or open an activated shell with `fyn shell` before executing commands directly:
+
+```console
+$ fyn sync
+$ fyn shell
+success: Activated virtual environment at .venv
+Type exit to deactivate.
+```
+
+If you prefer manual activation, the platform-specific commands are:
 
 === "macOS and Linux"
 
@@ -250,7 +334,7 @@ executing a command:
 
 !!! note
 
-    The virtual environment must be active to run scripts and commands in the project without `fyn run`. Virtual environment activation differs per shell and platform.
+    The virtual environment must be active to run scripts and commands in the project without `fyn run`. `fyn shell` is the simplest cross-shell way to do that. Manual activation still differs per shell and platform.
 
 See the documentation on [running commands and scripts](../concepts/projects/run.md) in projects for
 more details.
