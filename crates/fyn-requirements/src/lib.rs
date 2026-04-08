@@ -33,6 +33,9 @@ pub enum Error {
     DistributionTypes(#[from] fyn_distribution_types::Error),
 
     #[error(transparent)]
+    HashStrategy(#[from] fyn_types::HashStrategyError),
+
+    #[error(transparent)]
     WheelFilename(#[from] fyn_distribution_filename::WheelFilenameError),
 
     #[error(transparent)]

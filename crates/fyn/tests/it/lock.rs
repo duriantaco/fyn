@@ -18204,6 +18204,166 @@ fn lock_non_project_sources() -> Result<()> {
     Ok(())
 }
 
+/// Lock a non-project workspace root with conflicts declared between members.
+#[test]
+fn lock_non_project_member_conflicts() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(
+        r#"
+        [tool.fyn.workspace]
+        members = ["member-a", "member-b"]
+        "#,
+    )?;
+
+    let member_a = context.temp_dir.child("member-a");
+    member_a.create_dir_all()?;
+    member_a.child("pyproject.toml").write_str(
+        r#"
+        [project]
+        name = "member-a"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["sortedcontainers==2.3.0"]
+
+        [build-system]
+        requires = ["fyn-build>=0.7,<10000"]
+        build-backend = "fyn_build"
+        "#,
+    )?;
+
+    let member_b = context.temp_dir.child("member-b");
+    member_b.create_dir_all()?;
+    member_b.child("pyproject.toml").write_str(
+        r#"
+        [project]
+        name = "member-b"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["sortedcontainers==2.4.0"]
+
+        [build-system]
+        requires = ["fyn-build>=0.7,<10000"]
+        build-backend = "fyn_build"
+        "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context.lock(), @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+
+    ----- stderr -----
+      × No solution found when resolving dependencies:
+      ╰─▶ Because member-a depends on sortedcontainers==2.3.0 and member-b depends on sortedcontainers==2.4.0, we can conclude that member-a and member-b are incompatible.
+          And because your workspace requires member-a and member-b, we can conclude that your workspace's requirements are unsatisfiable.
+    ");
+
+    pyproject_toml.write_str(
+        r#"
+        [tool.fyn.workspace]
+        members = ["member-a", "member-b"]
+
+        [tool.fyn]
+        conflicts = [
+          [
+            { package = "member-a" },
+            { package = "member-b" },
+          ],
+        ]
+        "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context.lock(), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    warning: Declaring conflicts for packages (`package = ...`) is experimental and may change without warning. Pass `--preview-features package-conflicts` to disable this warning.
+    Resolved 4 packages in [TIME]
+    ");
+
+    let lock = context.read("fyn.lock");
+    assert!(lock.contains("conflicts = [["));
+    assert!(lock.contains("{ package = \"member-a\" }"));
+    assert!(lock.contains("{ package = \"member-b\" }"));
+    assert!(lock.contains("name = \"sortedcontainers\"\nversion = \"2.3.0\""));
+    assert!(lock.contains("name = \"sortedcontainers\"\nversion = \"2.4.0\""));
+
+    fyn_snapshot!(context.filters(), context.lock().arg("--locked"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    warning: Declaring conflicts for packages (`package = ...`) is experimental and may change without warning. Pass `--preview-features package-conflicts` to disable this warning.
+    Resolved 4 packages in [TIME]
+    ");
+
+    fyn_snapshot!(context.filters(), context.sync().arg("--frozen").arg("--all-packages"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: Package `member-a` and package `member-b` are incompatible with the declared conflicts: {member-a, member-b}
+    ");
+
+    Ok(())
+}
+
+/// Locking a non-project workspace root should reject conflicts that omit
+/// `package = ...`, since there is no root project name to infer.
+#[test]
+fn lock_non_project_member_conflicts_missing_package() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(
+        r#"
+        [tool.fyn.workspace]
+        members = ["member-a"]
+
+        [tool.fyn]
+        conflicts = [
+          [
+            { extra = "foo" },
+            { package = "member-a" },
+          ],
+        ]
+        "#,
+    )?;
+
+    let member_a = context.temp_dir.child("member-a");
+    member_a.create_dir_all()?;
+    member_a.child("pyproject.toml").write_str(
+        r#"
+        [project]
+        name = "member-a"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [build-system]
+        requires = ["fyn-build>=0.7,<10000"]
+        build-backend = "fyn_build"
+        "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context.lock(), @r#"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: Expected `package` field in conflicting entry: { extra = "foo" }
+    "#);
+
+    Ok(())
+}
+
 /// `coverage` defines a `toml` extra, but it doesn't enable any dependencies after Python 3.11.
 #[test]
 fn lock_dropped_dev_extra() -> Result<()> {

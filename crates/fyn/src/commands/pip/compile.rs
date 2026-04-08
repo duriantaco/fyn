@@ -595,7 +595,7 @@ pub(crate) async fn pip_compile(
     )
     .await
     {
-        Ok(resolution) => resolution,
+        Ok((resolution, _)) => resolution,
         Err(err) => {
             return diagnostics::OperationDiagnostic::native_tls(client_builder.is_native_tls())
                 .report(err)

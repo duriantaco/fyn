@@ -1,5 +1,6 @@
 ---
 source: crates/fyn-resolver/src/lock/mod.rs
+assertion_line: 6853
 expression: result
 ---
 Ok(
@@ -53,8 +54,13 @@ Ok(
                     version: Some(
                         "4.3.0",
                     ),
-                    source: Directory(
-                        "path/to/dir",
+                    source: Direct(
+                        UrlString(
+                            "https://burntsushi.net",
+                        ),
+                        DirectSource {
+                            subdirectory: None,
+                        },
                     ),
                 },
                 sdist: None,
@@ -78,8 +84,13 @@ Ok(
                 version: Some(
                     "4.3.0",
                 ),
-                source: Directory(
-                    "path/to/dir",
+                source: Direct(
+                    UrlString(
+                        "https://burntsushi.net",
+                    ),
+                    DirectSource {
+                        subdirectory: None,
+                    },
                 ),
             }: 0,
         },

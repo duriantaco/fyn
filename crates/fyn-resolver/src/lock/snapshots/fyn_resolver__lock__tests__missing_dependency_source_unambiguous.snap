@@ -1,5 +1,6 @@
 ---
 source: crates/fyn-resolver/src/lock/mod.rs
+assertion_line: 6614
 expression: result
 ---
 Ok(

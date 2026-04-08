@@ -438,7 +438,7 @@ pub(crate) async fn pip_wheel(
     )
     .await
     {
-        Ok(resolution) => Resolution::from(resolution),
+        Ok((resolution, _)) => Resolution::from(resolution),
         Err(err) => {
             return diagnostics::OperationDiagnostic::native_tls(client_builder.is_native_tls())
                 .report(err)

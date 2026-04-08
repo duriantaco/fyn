@@ -100,7 +100,7 @@ impl CompatArgs for PipCompileCompatArgs {
                 }
                 Resolver::Legacy => {
                     return Err(anyhow!(
-                        "pip-compile's `--resolver=legacy` is unsupported (uv always backtracks)"
+                        "pip-compile's `--resolver=legacy` is unsupported (fyn always backtracks)"
                     ));
                 }
             }
@@ -108,7 +108,7 @@ impl CompatArgs for PipCompileCompatArgs {
 
         if self.max_rounds.is_some() {
             return Err(anyhow!(
-                "pip-compile's `--max-rounds` is unsupported (uv always resolves until convergence)"
+                "pip-compile's `--max-rounds` is unsupported (fyn always resolves until convergence)"
             ));
         }
 
