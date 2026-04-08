@@ -197,6 +197,41 @@ fn tool_list_outdated_respects_exclude_newer() {
 }
 
 #[test]
+fn tool_list_outdated_recomputes_relative_exclude_newer() {
+    let context = fyn_test::test_context!("3.12").with_filtered_exe_suffix();
+    let tool_dir = context.temp_dir.child("tools");
+    let bin_dir = context.temp_dir.child("bin");
+
+    context
+        .tool_install()
+        .arg("black")
+        .arg("--exclude-newer")
+        .arg("3 weeks")
+        .env_remove(EnvVars::UV_EXCLUDE_NEWER)
+        .env(EnvVars::UV_TEST_CURRENT_TIMESTAMP, "2024-03-22T00:00:00Z")
+        .env(EnvVars::UV_TOOL_DIR, tool_dir.as_os_str())
+        .env(EnvVars::XDG_BIN_HOME, bin_dir.as_os_str())
+        .assert()
+        .success();
+
+    fyn_snapshot!(context.filters(), context.tool_list()
+    .arg("--outdated")
+    .env_remove(EnvVars::UV_EXCLUDE_NEWER)
+    .env(EnvVars::UV_TEST_CURRENT_TIMESTAMP, "2024-04-15T00:00:00Z")
+    .env(EnvVars::UV_TOOL_DIR, tool_dir.as_os_str())
+    .env(EnvVars::XDG_BIN_HOME, bin_dir.as_os_str()), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    black v24.2.0 [latest: 24.3.0]
+    - black
+    - blackd
+
+    ----- stderr -----
+    ");
+}
+
+#[test]
 fn tool_list_outdated_cli_exclude_newer_overrides_stored_cutoff() {
     let context = fyn_test::test_context!("3.12").with_filtered_exe_suffix();
     let tool_dir = context.temp_dir.child("tools");
