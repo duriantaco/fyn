@@ -129,9 +129,10 @@ pub(crate) async fn list(
                 let exclude_newer = exclude_newer.clone();
                 async move {
                     let capabilities = IndexCapabilities::default();
-                    let settings = ResolverInstallerSettings::from(ResolverInstallerOptions::from(
-                        tool.options().clone(),
-                    ));
+                    let settings = ResolverInstallerSettings::from(
+                        ResolverInstallerOptions::from(tool.options().clone())
+                            .recompute_exclude_newer(),
+                    );
                     let effective_exclude_newer =
                         combine_exclude_newer(&exclude_newer, &settings.resolver.exclude_newer);
                     let interpreter = tool_env.environment().interpreter();

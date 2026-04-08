@@ -9,6 +9,7 @@ use jiff::{Span, Timestamp, ToSpan, Unit, tz::TimeZone};
 use rustc_hash::FxHashMap;
 use serde::Deserialize;
 use serde::de::value::MapAccessDeserializer;
+use serde::ser::SerializeMap;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExcludeNewerValueChange {
@@ -218,6 +219,24 @@ impl serde::Serialize for ExcludeNewerValue {
     }
 }
 
+pub struct ExcludeNewerValueWithSpanRef<'a>(pub &'a ExcludeNewerValue);
+
+impl serde::Serialize for ExcludeNewerValueWithSpanRef<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if let Some(span) = self.0.span() {
+            let mut map = serializer.serialize_map(Some(2))?;
+            map.serialize_entry("timestamp", &self.0.timestamp())?;
+            map.serialize_entry("span", span)?;
+            map.end()
+        } else {
+            self.0.timestamp().serialize(serializer)
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for ExcludeNewerValue {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -264,6 +283,37 @@ impl ExcludeNewerValue {
     /// Create a new [`ExcludeNewerValue`].
     pub fn new(timestamp: Timestamp, span: Option<ExcludeNewerSpan>) -> Self {
         Self { timestamp, span }
+    }
+
+    /// If this value was derived from a relative span, recompute the timestamp relative to now.
+    ///
+    /// Returns `self` unchanged if there is no span.
+    #[must_use]
+    pub fn recompute(self) -> Self {
+        let Some(span) = self.span else {
+            return self;
+        };
+
+        let now = if let Ok(test_time) = std::env::var("UV_TEST_CURRENT_TIMESTAMP") {
+            test_time
+                .parse::<Timestamp>()
+                .expect("UV_TEST_CURRENT_TIMESTAMP must be a valid RFC 3339 timestamp")
+                .to_zoned(TimeZone::UTC)
+        } else {
+            Timestamp::now().to_zoned(TimeZone::UTC)
+        };
+
+        let Ok(cutoff) = now.checked_sub(span.0.abs()) else {
+            return Self {
+                timestamp: self.timestamp,
+                span: Some(span),
+            };
+        };
+
+        Self {
+            timestamp: cutoff.into(),
+            span: Some(span),
+        }
     }
 }
 
@@ -443,6 +493,17 @@ pub enum PackageExcludeNewer {
     Enabled(Box<ExcludeNewerValue>),
 }
 
+impl PackageExcludeNewer {
+    /// Recompute the relative span timestamp relative to the current time, if applicable.
+    #[must_use]
+    pub fn recompute(self) -> Self {
+        match self {
+            Self::Disabled => Self::Disabled,
+            Self::Enabled(value) => Self::Enabled(Box::new((*value).recompute())),
+        }
+    }
+}
+
 #[cfg(feature = "schemars")]
 impl schemars::JsonSchema for PackageExcludeNewer {
     fn schema_name() -> Cow<'static, str> {
@@ -578,6 +639,29 @@ impl serde::Serialize for PackageExcludeNewer {
     }
 }
 
+pub fn serialize_exclude_newer_package_with_spans<S>(
+    value: &Option<ExcludeNewerPackage>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let Some(value) = value else {
+        return serializer.serialize_none();
+    };
+
+    let mut map = serializer.serialize_map(Some(value.len()))?;
+    for (name, setting) in value {
+        match setting {
+            PackageExcludeNewer::Disabled => map.serialize_entry(name, &false)?,
+            PackageExcludeNewer::Enabled(value) => {
+                map.serialize_entry(name, &ExcludeNewerValueWithSpanRef(value.as_ref()))?;
+            }
+        }
+    }
+    map.end()
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PackageExcludeNewerChange {
     Disabled { was: ExcludeNewerValue },
@@ -663,6 +747,17 @@ impl ExcludeNewerPackage {
     /// Returns true if this map is empty (no package-specific settings).
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    /// Recompute all relative span timestamps relative to the current time.
+    #[must_use]
+    pub fn recompute(self) -> Self {
+        Self(
+            self.0
+                .into_iter()
+                .map(|(name, setting)| (name, setting.recompute()))
+                .collect(),
+        )
     }
 
     pub fn compare(&self, other: &Self) -> Option<ExcludeNewerPackageChange> {
@@ -772,6 +867,15 @@ impl ExcludeNewer {
     /// Returns true if this has any configuration (global or per-package).
     pub fn is_empty(&self) -> bool {
         self.global.is_none() && self.package.is_empty()
+    }
+
+    /// Recompute all relative span timestamps relative to the current time.
+    #[must_use]
+    pub fn recompute(self) -> Self {
+        Self {
+            global: self.global.map(ExcludeNewerValue::recompute),
+            package: self.package.recompute(),
+        }
     }
 
     pub fn compare(&self, other: &Self) -> Option<ExcludeNewerChange> {

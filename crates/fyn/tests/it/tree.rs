@@ -5,6 +5,7 @@ use indoc::{formatdoc, indoc};
 use insta::assert_snapshot;
 use url::Url;
 
+use fyn_static::EnvVars;
 use fyn_test::fyn_snapshot;
 
 #[test]
@@ -265,6 +266,57 @@ fn outdated() -> Result<()> {
 
     ----- stderr -----
     Resolved 4 packages in [TIME]
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn outdated_exclude_newer_relative() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(
+        r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["idna"]
+    "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context
+        .lock()
+        .env_remove(EnvVars::UV_EXCLUDE_NEWER)
+        .env(EnvVars::UV_TEST_CURRENT_TIMESTAMP, "2024-05-01T00:00:00Z")
+        .arg("--exclude-newer")
+        .arg("3 weeks"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    ");
+
+    fyn_snapshot!(context.filters(), context
+        .tree()
+        .arg("--outdated")
+        .arg("--universal")
+        .env_remove(EnvVars::UV_EXCLUDE_NEWER)
+        .env(EnvVars::UV_TEST_CURRENT_TIMESTAMP, "2024-06-01T00:00:00Z")
+        .arg("--exclude-newer")
+        .arg("3 weeks"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    project v0.1.0
+    └── idna v3.6 (latest: v3.7)
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
     "
     );
 
