@@ -1,5 +1,6 @@
 ---
 source: crates/fyn-resolver/src/lock/mod.rs
+assertion_line: 6898
 expression: result
 ---
 Ok(
@@ -53,44 +54,12 @@ Ok(
                     version: Some(
                         "4.3.0",
                     ),
-                    source: Registry(
-                        Url(
-                            UrlString(
-                                "https://pypi.org/simple",
-                            ),
-                        ),
+                    source: Editable(
+                        "path/to/dir",
                     ),
                 },
                 sdist: None,
-                wheels: [
-                    Wheel {
-                        url: Url {
-                            url: UrlString(
-                                "https://files.pythonhosted.org/packages/14/fd/2f20c40b45e4fb4324834aea24bd4afdf1143390242c0b33774da0e2e34f/anyio-4.3.0-py3-none-any.whl",
-                            ),
-                        },
-                        hash: None,
-                        size: None,
-                        upload_time: None,
-                        filename: WheelFilename {
-                            name: PackageName(
-                                "anyio",
-                            ),
-                            version: "4.3.0",
-                            tags: Small {
-                                small: WheelTagSmall {
-                                    python_tag: Python {
-                                        major: 3,
-                                        minor: None,
-                                    },
-                                    abi_tag: None,
-                                    platform_tag: Any,
-                                },
-                            },
-                        },
-                        zstd: None,
-                    },
-                ],
+                wheels: [],
                 fork_markers: [],
                 dependencies: [],
                 optional_dependencies: {},
@@ -110,12 +79,8 @@ Ok(
                 version: Some(
                     "4.3.0",
                 ),
-                source: Registry(
-                    Url(
-                        UrlString(
-                            "https://pypi.org/simple",
-                        ),
-                    ),
+                source: Editable(
+                    "path/to/dir",
                 ),
             }: 0,
         },

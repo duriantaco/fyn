@@ -1447,6 +1447,9 @@ fn sync_build_isolation() -> Result<()> {
         version = "0.1.0"
         requires-python = ">=3.12"
         dependencies = ["source-distribution @ https://files.pythonhosted.org/packages/10/1f/57aa4cce1b1abf6b433106676e15f9fa2c92ed2bd4cf77c3b50a9e9ac773/source_distribution-0.0.1.tar.gz"]
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 
@@ -1521,6 +1524,9 @@ fn sync_build_isolation_package() -> Result<()> {
 
         [tool.fyn]
         no-build-isolation-package = ["source-distribution"]
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 

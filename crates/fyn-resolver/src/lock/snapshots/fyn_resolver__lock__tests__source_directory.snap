@@ -1,5 +1,6 @@
 ---
 source: crates/fyn-resolver/src/lock/mod.rs
+assertion_line: 6883
 expression: result
 ---
 Ok(
@@ -53,47 +54,12 @@ Ok(
                     version: Some(
                         "4.3.0",
                     ),
-                    source: Path(
-                        "file:///foo/bar",
+                    source: Directory(
+                        "path/to/dir",
                     ),
                 },
                 sdist: None,
-                wheels: [
-                    Wheel {
-                        url: Url {
-                            url: UrlString(
-                                "file:///foo/bar/anyio-4.3.0-py3-none-any.whl",
-                            ),
-                        },
-                        hash: Some(
-                            Hash(
-                                HashDigest {
-                                    algorithm: Sha256,
-                                    digest: "048e05d0f6caeed70d731f3db756d35dcc1f35747c8c403364a8332c630441b8",
-                                },
-                            ),
-                        ),
-                        size: None,
-                        upload_time: None,
-                        filename: WheelFilename {
-                            name: PackageName(
-                                "anyio",
-                            ),
-                            version: "4.3.0",
-                            tags: Small {
-                                small: WheelTagSmall {
-                                    python_tag: Python {
-                                        major: 3,
-                                        minor: None,
-                                    },
-                                    abi_tag: None,
-                                    platform_tag: Any,
-                                },
-                            },
-                        },
-                        zstd: None,
-                    },
-                ],
+                wheels: [],
                 fork_markers: [],
                 dependencies: [],
                 optional_dependencies: {},
@@ -113,8 +79,8 @@ Ok(
                 version: Some(
                     "4.3.0",
                 ),
-                source: Path(
-                    "file:///foo/bar",
+                source: Directory(
+                    "path/to/dir",
                 ),
             }: 0,
         },

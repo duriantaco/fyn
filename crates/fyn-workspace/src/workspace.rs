@@ -15,7 +15,7 @@ use fyn_fs::{CWD, Simplified};
 use fyn_normalize::{DEV_DEPENDENCIES, GroupName, PackageName};
 use fyn_pep440::VersionSpecifiers;
 use fyn_pep508::{MarkerTree, VerbatimUrl};
-use fyn_pypi_types::{Conflicts, SupportedEnvironments, VerbatimParsedUrl};
+use fyn_pypi_types::{ConflictError, Conflicts, SupportedEnvironments, VerbatimParsedUrl};
 use fyn_static::EnvVars;
 use fyn_warnings::warn_user_once;
 
@@ -84,6 +84,8 @@ pub enum WorkspaceError {
     Io(#[from] std::io::Error),
     #[error("Failed to parse: `{}`", _0.user_display())]
     Toml(PathBuf, #[source] Box<PyprojectTomlError>),
+    #[error(transparent)]
+    Conflicts(#[from] ConflictError),
     #[error("Failed to normalize workspace member path")]
     Normalize(#[source] std::io::Error),
 }
@@ -535,12 +537,22 @@ impl Workspace {
     }
 
     /// Returns the set of conflicts for the workspace.
-    pub fn conflicts(&self) -> Conflicts {
+    pub fn conflicts(&self) -> Result<Conflicts, WorkspaceError> {
         let mut conflicting = Conflicts::empty();
+        if self.is_non_project() {
+            if let Some(root_conflicts) = self
+                .pyproject_toml
+                .tool_fyn()
+                .and_then(|fyn| fyn.conflicts.as_ref())
+            {
+                let mut root_conflicts = root_conflicts.to_conflicts()?;
+                conflicting.append(&mut root_conflicts);
+            }
+        }
         for member in self.packages.values() {
             conflicting.append(&mut member.pyproject_toml.conflicts());
         }
-        conflicting
+        Ok(conflicting)
     }
 
     /// Returns an iterator over the `requires-python` values for each member of the workspace.

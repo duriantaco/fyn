@@ -4237,8 +4237,8 @@ fn override_dependency_from_specific_uv_toml() -> Result<()> {
     )?;
 
     let _ = context.temp_dir.child("fyn").create_dir_all();
-    let uv_toml: assert_fs::fixture::ChildPath = context.temp_dir.child("uv").child("uv.toml");
-    uv_toml.write_str(
+    let fyn_toml: assert_fs::fixture::ChildPath = context.temp_dir.child("fyn").child("fyn.toml");
+    fyn_toml.write_str(
         r#"
         override-dependencies = [
           "werkzeug==2.3.0"
@@ -12710,7 +12710,7 @@ fn compile_index_url_first_match_base() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because there is no version of jinja2==3.1.0 and you require jinja2==3.1.0, we can conclude that your requirements are unsatisfiable.
 
-          hint: `jinja2` was found on https://astral-sh.github.io/pytorch-mirror/whl/cpu, but not at the requested version (jinja2==3.1.0). A compatible version may be available on a subsequent index (e.g., https://pypi.org/simple). By default, uv will only consider versions that are published on the first index that contains a given package, to avoid dependency confusion attacks. If all indexes are equally trusted, use `--index-strategy unsafe-best-match` to consider all versions from all indexes, regardless of the order in which they were defined.
+          hint: `jinja2` was found on https://astral-sh.github.io/pytorch-mirror/whl/cpu, but not at the requested version (jinja2==3.1.0). A compatible version may be available on a subsequent index (e.g., https://pypi.org/simple). By default, fyn will only consider versions that are published on the first index that contains a given package, to avoid dependency confusion attacks. If all indexes are equally trusted, use `--index-strategy unsafe-best-match` to consider all versions from all indexes, regardless of the order in which they were defined.
     "
     );
 
@@ -12744,7 +12744,7 @@ fn compile_index_url_first_match_marker() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because there is no version of jinja2{sys_platform == 'linux'}==3.1.0 and you require jinja2{sys_platform == 'linux'}==3.1.0, we can conclude that your requirements are unsatisfiable.
 
-          hint: `jinja2` was found on https://astral-sh.github.io/pytorch-mirror/whl/cpu, but not at the requested version (jinja2==3.1.0). A compatible version may be available on a subsequent index (e.g., https://pypi.org/simple). By default, uv will only consider versions that are published on the first index that contains a given package, to avoid dependency confusion attacks. If all indexes are equally trusted, use `--index-strategy unsafe-best-match` to consider all versions from all indexes, regardless of the order in which they were defined.
+          hint: `jinja2` was found on https://astral-sh.github.io/pytorch-mirror/whl/cpu, but not at the requested version (jinja2==3.1.0). A compatible version may be available on a subsequent index (e.g., https://pypi.org/simple). By default, fyn will only consider versions that are published on the first index that contains a given package, to avoid dependency confusion attacks. If all indexes are equally trusted, use `--index-strategy unsafe-best-match` to consider all versions from all indexes, regardless of the order in which they were defined.
     "
     );
 
@@ -16880,6 +16880,9 @@ fn pep_751_compile_directory() -> Result<()> {
 
         [tool.fyn.sources]
         foo = { path = "foo" }
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 

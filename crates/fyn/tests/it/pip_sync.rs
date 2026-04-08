@@ -4514,37 +4514,13 @@ fn require_hashes_repeated_hash() -> Result<()> {
     "
     );
 
-    // Use a different hash. The first hash is wrong, but that's fine, since we use the last hash.
+    // Use a different hash. The `sha512` is wrong, so validation should fail even though the
+    // `sha256` is still correct.
     let requirements_txt = context.temp_dir.child("requirements.txt");
     requirements_txt
         .write_str(indoc::indoc! { r"
-            anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=sha256:a7ed51751b2c2add651e5747c891b47e26d2a21be5d32d9311dfe9692f3e5d7a
-            anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=md5:420d85e19168705cdf0223621b18831a
-    " })?;
-
-    fyn_snapshot!(context.pip_sync()
-        .arg("requirements.txt")
-        .arg("--require-hashes")
-        .arg("--reinstall"), @"
-    success: true
-    exit_code: 0
-    ----- stdout -----
-
-    ----- stderr -----
-    Resolved 1 package in [TIME]
-    Prepared 1 package in [TIME]
-    Uninstalled 1 package in [TIME]
-    Installed 1 package in [TIME]
-     ~ anyio==4.0.0 (from https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl)
-    "
-    );
-
-    // Use a different hash. The second hash is wrong. This should fail, since we use the last hash.
-    let requirements_txt = context.temp_dir.child("requirements.txt");
-    requirements_txt
-        .write_str(indoc::indoc! { r"
-            anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=sha256:f7ed51751b2c2add651e5747c891b47e26d2a21be5d32d9311dfe9692f3e5d7a
-            anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=md5:520d85e19168705cdf0223621b18831a
+            anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=sha256:cfdb2b588b9fc25ede96d8db56ed50848b0b649dca3dd1df0b11f683bb9e0b5f
+            anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=sha512:e30761c1e8725b49c498273b90dba4b05c0fd157811994c806183062cb6647e773364ce45f0e1ff0b10e32fe6d0232ea5ad39476ccf37109d6b49603a09c11c2
     " })?;
 
     fyn_snapshot!(context.pip_sync()
@@ -4561,10 +4537,83 @@ fn require_hashes_repeated_hash() -> Result<()> {
       ╰─▶ Hash mismatch for `anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl`
 
           Expected:
-            md5:520d85e19168705cdf0223621b18831a
+            sha256:cfdb2b588b9fc25ede96d8db56ed50848b0b649dca3dd1df0b11f683bb9e0b5f
+            sha512:e30761c1e8725b49c498273b90dba4b05c0fd157811994c806183062cb6647e773364ce45f0e1ff0b10e32fe6d0232ea5ad39476ccf37109d6b49603a09c11c2
 
           Computed:
-            md5:420d85e19168705cdf0223621b18831a
+            sha256:cfdb2b588b9fc25ede96d8db56ed50848b0b649dca3dd1df0b11f683bb9e0b5f
+            sha512:f30761c1e8725b49c498273b90dba4b05c0fd157811994c806183062cb6647e773364ce45f0e1ff0b10e32fe6d0232ea5ad39476ccf37109d6b49603a09c11c2
+    "
+    );
+
+    // Use different hashes, but both are wrong. This should fail because none of the merged
+    // hashes match.
+    let requirements_txt = context.temp_dir.child("requirements.txt");
+    requirements_txt
+        .write_str(indoc::indoc! { r"
+            anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=sha256:f7ed51751b2c2add651e5747c891b47e26d2a21be5d32d9311dfe9692f3e5d7a
+            anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=sha512:e30761c1e8725b49c498273b90dba4b05c0fd157811994c806183062cb6647e773364ce45f0e1ff0b10e32fe6d0232ea5ad39476ccf37109d6b49603a09c11c2
+    " })?;
+
+    fyn_snapshot!(context.pip_sync()
+        .arg("requirements.txt")
+        .arg("--require-hashes")
+        .arg("--reinstall"), @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+      × Failed to download `anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl`
+      ╰─▶ Hash mismatch for `anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl`
+
+          Expected:
+            sha256:f7ed51751b2c2add651e5747c891b47e26d2a21be5d32d9311dfe9692f3e5d7a
+            sha512:e30761c1e8725b49c498273b90dba4b05c0fd157811994c806183062cb6647e773364ce45f0e1ff0b10e32fe6d0232ea5ad39476ccf37109d6b49603a09c11c2
+
+          Computed:
+            sha256:cfdb2b588b9fc25ede96d8db56ed50848b0b649dca3dd1df0b11f683bb9e0b5f
+            sha512:f30761c1e8725b49c498273b90dba4b05c0fd157811994c806183062cb6647e773364ce45f0e1ff0b10e32fe6d0232ea5ad39476ccf37109d6b49603a09c11c2
+    "
+    );
+
+    Ok(())
+}
+
+/// Repeated direct URL requirements merge hashes across nested requirements files.
+#[test]
+fn require_hashes_repeated_hash_multiple_files() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let requirements_a = context.temp_dir.child("requirements-a.txt");
+    requirements_a.write_str(indoc::indoc! { r"
+        anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=sha256:cfdb2b588b9fc25ede96d8db56ed50848b0b649dca3dd1df0b11f683bb9e0b5f
+    " })?;
+
+    let requirements_b = context.temp_dir.child("requirements-b.txt");
+    requirements_b.write_str(indoc::indoc! { r"
+        anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl --hash=sha512:f30761c1e8725b49c498273b90dba4b05c0fd157811994c806183062cb6647e773364ce45f0e1ff0b10e32fe6d0232ea5ad39476ccf37109d6b49603a09c11c2
+    " })?;
+
+    let requirements_txt = context.temp_dir.child("requirements.txt");
+    requirements_txt.write_str(indoc::indoc! { r"
+        -r requirements-a.txt
+        -r requirements-b.txt
+    " })?;
+
+    fyn_snapshot!(context.pip_sync()
+        .arg("requirements.txt")
+        .arg("--require-hashes"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + anyio==4.0.0 (from https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl)
     "
     );
 
@@ -5220,32 +5269,27 @@ fn require_hashes_url_invalid() -> Result<()> {
     Ok(())
 }
 
-/// Ignore the (valid) hash on the fragment if (invalid) hashes are provided directly.
+/// Merge the hash on the fragment with hashes provided directly.
 #[test]
-fn require_hashes_url_ignore() -> Result<()> {
+fn require_hashes_url_merge() -> Result<()> {
     let context = fyn_test::test_context!("3.12").with_exclude_newer("2025-01-29T00:00:00Z");
 
     let requirements_txt = context.temp_dir.child("requirements.txt");
     requirements_txt
-        .write_str("iniconfig @ https://files.pythonhosted.org/packages/ef/a6/62565a6e1cf69e10f5727360368e451d4b7f58beeac6173dc9db836a5b46/iniconfig-2.0.0-py3-none-any.whl#sha256=b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374 --hash sha256:c6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374")?;
+        .write_str("anyio @ https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl#sha256=cfdb2b588b9fc25ede96d8db56ed50848b0b649dca3dd1df0b11f683bb9e0b5f --hash sha512:f30761c1e8725b49c498273b90dba4b05c0fd157811994c806183062cb6647e773364ce45f0e1ff0b10e32fe6d0232ea5ad39476ccf37109d6b49603a09c11c2")?;
 
     fyn_snapshot!(context.pip_sync()
         .arg("requirements.txt")
         .arg("--require-hashes"), @"
-    success: false
-    exit_code: 1
+    success: true
+    exit_code: 0
     ----- stdout -----
 
     ----- stderr -----
     Resolved 1 package in [TIME]
-      × Failed to download `iniconfig @ https://files.pythonhosted.org/packages/ef/a6/62565a6e1cf69e10f5727360368e451d4b7f58beeac6173dc9db836a5b46/iniconfig-2.0.0-py3-none-any.whl#sha256=b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374`
-      ╰─▶ Hash mismatch for `iniconfig @ https://files.pythonhosted.org/packages/ef/a6/62565a6e1cf69e10f5727360368e451d4b7f58beeac6173dc9db836a5b46/iniconfig-2.0.0-py3-none-any.whl#sha256=b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374`
-
-          Expected:
-            sha256:c6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374
-
-          Computed:
-            sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + anyio==4.0.0 (from https://files.pythonhosted.org/packages/36/55/ad4de788d84a630656ece71059665e01ca793c04294c463fd84132f40fe6/anyio-4.0.0-py3-none-any.whl#sha256=cfdb2b588b9fc25ede96d8db56ed50848b0b649dca3dd1df0b11f683bb9e0b5f)
     "
     );
 
@@ -5854,6 +5898,9 @@ fn pep_751() -> Result<()> {
         version = "0.1.0"
         requires-python = ">=3.12"
         dependencies = ["anyio"]
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 
@@ -5900,6 +5947,9 @@ fn pep_751() -> Result<()> {
         version = "0.1.0"
         requires-python = ">=3.12"
         dependencies = ["iniconfig"]
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 
@@ -5947,6 +5997,9 @@ fn pep_751_wheel_only() -> Result<()> {
         version = "0.1.0"
         requires-python = ">=3.12.0"
         dependencies = ["torch"]
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 
@@ -6021,6 +6074,9 @@ fn pep_751_build_options() -> Result<()> {
         version = "0.1.0"
         requires-python = ">=3.12"
         dependencies = ["anyio"]
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 
@@ -6058,6 +6114,9 @@ fn pep_751_build_options() -> Result<()> {
         version = "0.1.0"
         requires-python = ">=3.12"
         dependencies = ["odrive"]
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 
@@ -6090,6 +6149,9 @@ fn pep_751_build_options() -> Result<()> {
         version = "0.1.0"
         requires-python = ">=3.12"
         dependencies = ["source-distribution"]
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 
@@ -6150,6 +6212,9 @@ fn pep_751_direct_url_tags() -> Result<()> {
         version = "0.1.0"
         requires-python = ">=3.12"
         dependencies = ["MarkupSafe @ https://files.pythonhosted.org/packages/6b/b0/18f76bba336fa5aecf79d45dcd6c806c280ec44538b3c13671d49099fdd0/MarkupSafe-3.0.2-cp312-cp312-macosx_11_0_arm64.whl"]
+
+        [tool.fyn.pip]
+        pip-in-project = "allow"
         "#,
     )?;
 

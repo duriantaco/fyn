@@ -1900,6 +1900,9 @@ fn requirements_txt_relative_path() -> Result<()> {
         [tool.fyn.sources]
         dependency = { path = "../dependency" }
 
+        [tool.fyn.pip]
+        pip-in-project = "allow"
+
         [build-system]
         requires = ["fyn-build>=0.7,<10000"]
         build-backend = "fyn_build"
@@ -3669,6 +3672,145 @@ fn requirements_txt_cyclic_dependencies() -> Result<()> {
     ----- stderr -----
     Resolved 11 packages in [TIME]
     ");
+
+    Ok(())
+}
+
+#[test]
+fn pylock_workspace_member_conflict_markers() -> Result<()> {
+    let context = fyn_test::test_context!("3.12").with_exclude_newer("2025-01-30T00:00:00Z");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(
+        r#"
+        [project]
+        name = "root"
+        version = "0.1.0"
+        requires-python = ">=3.12.0"
+        dependencies = ["member"]
+
+        [project.optional-dependencies]
+        cpu = ["member[cpu]"]
+        cu124 = ["member[cu124]"]
+
+        [tool.fyn.workspace]
+        members = ["packages/member"]
+
+        [tool.fyn.sources]
+        member = { workspace = true }
+        "#,
+    )?;
+
+    let member = context.temp_dir.child("packages/member");
+    member.create_dir_all()?;
+    member.child("pyproject.toml").write_str(
+        r#"
+        [project]
+        name = "member"
+        version = "0.1.0"
+        requires-python = ">=3.12.0"
+        dependencies = []
+
+        [project.optional-dependencies]
+        cpu = ["torch>=2.6.0"]
+        cu124 = ["torch>=2.6.0"]
+
+        [tool.fyn]
+        conflicts = [
+          [
+            { extra = "cpu" },
+            { extra = "cu124" },
+          ],
+        ]
+
+        [tool.fyn.sources]
+        torch = [
+          { index = "pytorch-cpu", extra = "cpu" },
+          { index = "pytorch-cu124", extra = "cu124" },
+        ]
+
+        [[tool.fyn.index]]
+        name = "pytorch-cpu"
+        url = "https://astral-sh.github.io/pytorch-mirror/whl/cpu"
+        explicit = true
+
+        [[tool.fyn.index]]
+        name = "pytorch-cu124"
+        url = "https://astral-sh.github.io/pytorch-mirror/whl/cu124"
+        explicit = true
+        "#,
+    )?;
+
+    context.lock().assert().success();
+
+    let output = context
+        .export()
+        .arg("--format")
+        .arg("pylock.toml")
+        .arg("--extra")
+        .arg("cpu")
+        .assert()
+        .success()
+        .get_output()
+        .clone();
+
+    let stdout = apply_filters(String::from_utf8(output.stdout).unwrap(), context.filters());
+    let stderr = apply_filters(String::from_utf8(output.stderr).unwrap(), context.filters());
+
+    assert_snapshot!(stderr, @"Resolved 28 packages in [TIME]
+");
+
+    assert!(
+        !stdout.contains("https://astral-sh.github.io/pytorch-mirror/whl/cu124"),
+        "{stdout}"
+    );
+
+    let torch_blocks = stdout
+        .split("[[packages]]")
+        .filter_map(|block| {
+            let block = block.trim();
+            if block.starts_with("name = \"member\"") || block.starts_with("name = \"torch\"") {
+                Some(block)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n\n[[packages]]\n");
+
+    assert_snapshot!(
+        torch_blocks,
+        @r#"
+    name = "member"
+    directory = { path = "packages/member", editable = true }
+
+    [[packages]]
+    name = "torch"
+    version = "2.6.0"
+    marker = "sys_platform == 'darwin'"
+    index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu"
+    wheels = [
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0-cp312-none-macosx_11_0_arm64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0-cp313-none-macosx_11_0_arm64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+    ]
+
+    [[packages]]
+    name = "torch"
+    version = "2.6.0+cpu"
+    marker = "sys_platform != 'darwin'"
+    index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu"
+    wheels = [
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp312-cp312-linux_x86_64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp312-cp312-manylinux_2_28_aarch64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp312-cp312-win_amd64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp313-cp313-linux_x86_64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp313-cp313-manylinux_2_28_aarch64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp313-cp313-win_amd64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp313-cp313t-linux_x86_64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+        { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp313-cp313t-manylinux_2_28_aarch64.whl", upload-time = 2025-01-29T22:50:59Z, hashes = {} },
+    ]
+    "#
+    );
 
     Ok(())
 }

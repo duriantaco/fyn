@@ -1,5 +1,6 @@
 ---
 source: crates/fyn-resolver/src/lock/mod.rs
+assertion_line: 6790
 expression: result
 ---
 Ok(
@@ -50,8 +51,30 @@ Ok(
                     name: PackageName(
                         "a",
                     ),
+                    version: None,
+                    source: Editable(
+                        "path/to/a",
+                    ),
+                },
+                sdist: None,
+                wheels: [],
+                fork_markers: [],
+                dependencies: [],
+                optional_dependencies: {},
+                dependency_groups: {},
+                metadata: PackageMetadata {
+                    requires_dist: {},
+                    provides_extra: [],
+                    dependency_groups: {},
+                },
+            },
+            Package {
+                id: PackageId {
+                    name: PackageName(
+                        "a",
+                    ),
                     version: Some(
-                        "0.1.0",
+                        "0.1.1",
                     ),
                     source: Registry(
                         Url(
@@ -138,15 +161,9 @@ Ok(
                             name: PackageName(
                                 "a",
                             ),
-                            version: Some(
-                                "0.1.0",
-                            ),
-                            source: Registry(
-                                Url(
-                                    UrlString(
-                                        "https://pypi.org/simple",
-                                    ),
-                                ),
+                            version: None,
+                            source: Editable(
+                                "path/to/a",
                             ),
                         },
                         extra: {},
@@ -170,8 +187,17 @@ Ok(
                 name: PackageName(
                     "a",
                 ),
+                version: None,
+                source: Editable(
+                    "path/to/a",
+                ),
+            }: 0,
+            PackageId {
+                name: PackageName(
+                    "a",
+                ),
                 version: Some(
-                    "0.1.0",
+                    "0.1.1",
                 ),
                 source: Registry(
                     Url(
@@ -180,7 +206,7 @@ Ok(
                         ),
                     ),
                 ),
-            }: 0,
+            }: 1,
             PackageId {
                 name: PackageName(
                     "b",
@@ -195,7 +221,7 @@ Ok(
                         ),
                     ),
                 ),
-            }: 1,
+            }: 2,
         },
         manifest: ResolverManifest {
             members: {},

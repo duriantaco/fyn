@@ -465,7 +465,7 @@ pub(crate) async fn pip_sync(
             .build_options(build_options.clone())
             .build();
 
-        let resolution = match operations::resolve(
+        let (resolution, hasher) = match operations::resolve(
             requirements,
             constraints,
             overrides,
@@ -496,7 +496,7 @@ pub(crate) async fn pip_sync(
         )
         .await
         {
-            Ok(resolution) => Resolution::from(resolution),
+            Ok((resolution, hasher)) => (Resolution::from(resolution), hasher),
             Err(err) => {
                 return diagnostics::OperationDiagnostic::native_tls(
                     client_builder.is_native_tls(),
