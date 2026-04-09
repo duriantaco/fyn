@@ -23,7 +23,9 @@ async fn test_user_agent_has_version() -> Result<()> {
 
     // Initialize fyn-client
     let cache = Cache::temp()?.init().await?;
-    let client = RegistryClientBuilder::new(BaseClientBuilder::default(), cache).build();
+    let client = RegistryClientBuilder::new(BaseClientBuilder::default(), cache)
+        .build()
+        .expect("failed to build registry client");
 
     // Send request to our dummy server
     let url = DisplaySafeUrl::from_str(&format!("http://{addr}"))?;

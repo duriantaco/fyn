@@ -87,6 +87,9 @@ pub enum Error {
     #[error(transparent)]
     Download(#[from] downloads::Error),
 
+    #[error(transparent)]
+    ClientBuild(#[from] Box<fyn_client::ClientBuildError>),
+
     // TODO(zanieb) We might want to ensure this is always wrapped in another type
     #[error(transparent)]
     KeyError(#[from] installation::PythonInstallationKeyError),
@@ -102,6 +105,12 @@ pub enum Error {
 
     #[error(transparent)]
     RetryParsing(#[from] fyn_client::RetryParsingError),
+}
+
+impl From<fyn_client::ClientBuildError> for Error {
+    fn from(value: fyn_client::ClientBuildError) -> Self {
+        Self::ClientBuild(Box::new(value))
+    }
 }
 
 impl Error {
@@ -1000,6 +1009,7 @@ mod tests {
     ) -> Result<PythonInstallation, crate::Error> {
         let client_builder = BaseClientBuilder::default();
         let download_list = ManagedPythonDownloadList::new_only_embedded()?;
+        let client = client_builder.clone().retries(0).build()?;
         tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
@@ -1010,7 +1020,7 @@ mod tests {
                 preference,
                 false,
                 &download_list,
-                &client_builder.clone().retries(0).build(),
+                &client,
                 &client_builder.retry_policy(),
                 cache,
                 None,

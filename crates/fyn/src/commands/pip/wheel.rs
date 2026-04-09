@@ -335,7 +335,7 @@ pub(crate) async fn pip_wheel(
         .torch_backend(torch_backend.clone())
         .markers(interpreter.markers())
         .platform(interpreter.platform())
-        .build();
+        .build()?;
 
     let build_options = build_options.combine(no_binary, no_build);
 

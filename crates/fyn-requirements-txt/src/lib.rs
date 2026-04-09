@@ -46,7 +46,7 @@ use unscanny::{Pattern, Scanner};
 use url::Url;
 
 #[cfg(feature = "http")]
-use fyn_client::BaseClient;
+use fyn_client::{BaseClient, ClientBuildError};
 use fyn_client::{BaseClientBuilder, Connectivity};
 use fyn_configuration::{NoBinary, NoBuild, PackageNameSpecifier};
 use fyn_distribution_types::{
@@ -289,7 +289,27 @@ impl RequirementsTxt {
                     });
                 }
 
-                let client = client_builder.build();
+                let path_utf8 =
+                    requirements_txt
+                        .to_str()
+                        .ok_or_else(|| RequirementsTxtFileError {
+                            file: requirements_txt.to_path_buf(),
+                            error: RequirementsTxtParserError::NonUnicodeUrl {
+                                url: requirements_txt.to_path_buf(),
+                            },
+                        })?;
+                let url = DisplaySafeUrl::from_str(path_utf8).map_err(|err| {
+                    RequirementsTxtFileError {
+                        file: requirements_txt.to_path_buf(),
+                        error: RequirementsTxtParserError::InvalidUrl(path_utf8.to_string(), err),
+                    }
+                })?;
+                let client = client_builder
+                    .build()
+                    .map_err(|err| RequirementsTxtFileError {
+                        file: requirements_txt.to_path_buf(),
+                        error: RequirementsTxtParserError::ClientBuild(url.clone(), Box::new(err)),
+                    })?;
                 let content = read_url_to_string(&requirements_txt, client)
                     .await
                     .map_err(|err| RequirementsTxtFileError {
@@ -1195,6 +1215,8 @@ pub enum RequirementsTxtParserError {
     #[cfg(feature = "http")]
     Reqwest(DisplaySafeUrl, reqwest_middleware::Error),
     #[cfg(feature = "http")]
+    ClientBuild(DisplaySafeUrl, Box<ClientBuildError>),
+    #[cfg(feature = "http")]
     InvalidUrl(String, DisplaySafeUrlError),
 }
 
@@ -1266,6 +1288,10 @@ impl Display for RequirementsTxtParserError {
                 write!(f, "Error while accessing remote requirements file: `{url}`")
             }
             #[cfg(feature = "http")]
+            Self::ClientBuild(url, _err) => {
+                write!(f, "Error while accessing remote requirements file: `{url}`")
+            }
+            #[cfg(feature = "http")]
             Self::InvalidUrl(url, err) => {
                 match err {
                     DisplaySafeUrlError::Url(err) => write!(f, "Not a valid URL, {err}: `{url}`"),
@@ -1303,6 +1329,8 @@ impl std::error::Error for RequirementsTxtParserError {
             Self::NonUnicodeUrl { .. } => None,
             #[cfg(feature = "http")]
             Self::Reqwest(_, err) => err.source(),
+            #[cfg(feature = "http")]
+            Self::ClientBuild(_, err) => Some(err.as_ref()),
             #[cfg(feature = "http")]
             Self::InvalidUrl(_, err) => err.source(),
         }
@@ -1431,6 +1459,10 @@ impl Display for RequirementsTxtFileError {
             }
             #[cfg(feature = "http")]
             RequirementsTxtParserError::Reqwest(url, _err) => {
+                write!(f, "Error while accessing remote requirements file: `{url}`")
+            }
+            #[cfg(feature = "http")]
+            RequirementsTxtParserError::ClientBuild(url, _err) => {
                 write!(f, "Error while accessing remote requirements file: `{url}`")
             }
             #[cfg(feature = "http")]

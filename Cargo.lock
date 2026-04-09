@@ -2243,6 +2243,9 @@ dependencies = [
  "rmp-serde",
  "rustc-hash",
  "rustls",
+ "rustls-native-certs",
+ "rustls-pki-types",
+ "rustls-webpki",
  "serde",
  "serde_json",
  "tempfile",
@@ -2253,6 +2256,7 @@ dependencies = [
  "tracing",
  "url",
  "wiremock",
+ "x509-parser",
  "zip",
 ]
 

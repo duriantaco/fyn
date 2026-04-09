@@ -40,6 +40,15 @@ pub enum Error {
 
     #[error(transparent)]
     Io(#[from] std::io::Error),
+
+    #[error(transparent)]
+    ClientBuild(#[from] Box<fyn_client::ClientBuildError>),
+}
+
+impl From<fyn_client::ClientBuildError> for Error {
+    fn from(value: fyn_client::ClientBuildError) -> Self {
+        Self::ClientBuild(Box::new(value))
+    }
 }
 
 impl Error {

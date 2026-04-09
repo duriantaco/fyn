@@ -61,6 +61,8 @@ enum Error {
     #[error(transparent)]
     FlatIndex(#[from] fyn_client::FlatIndexError),
     #[error(transparent)]
+    ClientBuild(#[from] Box<fyn_client::ClientBuildError>),
+    #[error(transparent)]
     BuildPlan(anyhow::Error),
     #[error(transparent)]
     Extract(#[from] fyn_extract::Error),
@@ -95,6 +97,12 @@ enum Error {
     InvalidBuiltWheelFilename(#[source] fyn_distribution_filename::WheelFilenameError),
     #[error("The source distribution declares version {0}, but the wheel declares version {1}")]
     VersionMismatch(Version, Version),
+}
+
+impl From<fyn_client::ClientBuildError> for Error {
+    fn from(value: fyn_client::ClientBuildError) -> Self {
+        Self::ClientBuild(Box::new(value))
+    }
 }
 
 /// Build source distributions and wheels.
@@ -587,7 +595,7 @@ async fn build_package(
         .keyring(keyring_provider)
         .markers(interpreter.markers())
         .platform(interpreter.platform())
-        .build();
+        .build()?;
 
     // Determine whether to enable build isolation.
     let environment;

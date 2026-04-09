@@ -1527,7 +1527,8 @@ mod tests {
             .redirect(RedirectPolicy::NoRedirect)
             .retries(0)
             .auth_integration(AuthIntegration::NoAuthMiddleware)
-            .build();
+            .build()
+            .expect("failed to build base client");
 
         let download_concurrency = Arc::new(Semaphore::new(1));
         let registry = DisplaySafeUrl::parse(&format!("{}/final", &mock_server.uri())).unwrap();
@@ -1899,7 +1900,9 @@ mod tests {
         project_urls: Source, https://github.com/unknown/tqdm
         ");
 
-        let client = BaseClientBuilder::default().build();
+        let client = BaseClientBuilder::default()
+            .build()
+            .expect("failed to build base client");
         let (request, _) = build_upload_request(
             &group,
             &DisplaySafeUrl::parse("https://example.org/upload").unwrap(),
@@ -2059,7 +2062,9 @@ mod tests {
         requires_dist: requests ; extra == 'telegram'
         "#);
 
-        let client = BaseClientBuilder::default().build();
+        let client = BaseClientBuilder::default()
+            .build()
+            .expect("failed to build base client");
         let (request, _) = build_upload_request(
             &group,
             &DisplaySafeUrl::parse("https://example.org/upload").unwrap(),

@@ -139,6 +139,9 @@ pub(crate) enum ProjectError {
     )]
     LockMismatch(Option<Box<Lock>>, Box<Lock>, LockCheckSource),
 
+    #[error(transparent)]
+    ClientBuild(#[from] Box<fyn_client::ClientBuildError>),
+
     #[error(
         "Unable to find lockfile at `fyn.lock`, but {0} was provided. To create a lockfile, run `fyn lock` or `fyn sync` without the flag."
     )]
@@ -344,6 +347,12 @@ pub(crate) enum ProjectError {
 
     #[error(transparent)]
     Anyhow(#[from] anyhow::Error),
+}
+
+impl From<fyn_client::ClientBuildError> for ProjectError {
+    fn from(value: fyn_client::ClientBuildError) -> Self {
+        Self::ClientBuild(Box::new(value))
+    }
 }
 
 #[derive(Debug)]
@@ -1879,7 +1888,7 @@ pub(crate) async fn resolve_names(
         .torch_backend(torch_backend.clone())
         .markers(interpreter.markers())
         .platform(interpreter.platform())
-        .build();
+        .build()?;
 
     // Determine whether to enable build isolation.
     let environment;
@@ -2077,7 +2086,7 @@ pub(crate) async fn resolve_environment(
         .torch_backend(torch_backend.clone())
         .markers(interpreter.markers())
         .platform(interpreter.platform())
-        .build();
+        .build()?;
 
     // Determine whether to enable build isolation.
     let environment;
@@ -2254,7 +2263,7 @@ pub(crate) async fn sync_environment(
         .index_strategy(index_strategy)
         .markers(interpreter.markers())
         .platform(interpreter.platform())
-        .build();
+        .build()?;
 
     // Determine whether to enable build isolation.
     let build_isolation = match build_isolation {
@@ -2502,7 +2511,7 @@ pub(crate) async fn update_environment(
         .torch_backend(torch_backend.clone())
         .markers(interpreter.markers())
         .platform(interpreter.platform())
-        .build();
+        .build()?;
 
     // Determine whether to enable build isolation.
     let build_isolation = match build_isolation {
