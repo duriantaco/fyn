@@ -31,6 +31,10 @@ struct TorchDoctorPackage {
     version: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     backend: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    import_ok: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    import_error: Option<String>,
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -38,6 +42,18 @@ struct TorchDoctorPackages {
     torch: TorchDoctorPackage,
     torchvision: TorchDoctorPackage,
     torchaudio: TorchDoctorPackage,
+}
+
+#[derive(Debug, Default, Serialize)]
+struct TorchDoctorRuntime {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cuda_version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    hip_version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cuda_available: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    xpu_available: Option<bool>,
 }
 
 #[derive(Debug, Serialize)]
@@ -58,15 +74,48 @@ struct TorchDoctorReport {
     recommended_backend: String,
     reason: String,
     installed_packages: TorchDoctorPackages,
+    torch_runtime: TorchDoctorRuntime,
     next_command: String,
     notes: Vec<String>,
 }
 
-#[derive(Debug, Deserialize)]
-struct PythonPackageVersions {
-    torch: Option<String>,
-    torchvision: Option<String>,
-    torchaudio: Option<String>,
+#[derive(Debug, Default)]
+struct TorchDoctorInspection {
+    installed_packages: TorchDoctorPackages,
+    torch_runtime: TorchDoctorRuntime,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct PythonDoctorPackage {
+    version: Option<String>,
+    #[serde(default)]
+    import_ok: Option<bool>,
+    #[serde(default)]
+    import_error: Option<String>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct PythonTorchDoctorRuntime {
+    #[serde(default)]
+    cuda_version: Option<String>,
+    #[serde(default)]
+    hip_version: Option<String>,
+    #[serde(default)]
+    cuda_available: Option<bool>,
+    #[serde(default)]
+    xpu_available: Option<bool>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct PythonDoctorInspection {
+    #[serde(default)]
+    torch: PythonDoctorPackage,
+    #[serde(default)]
+    torchvision: PythonDoctorPackage,
+    #[serde(default)]
+    torchaudio: PythonDoctorPackage,
+    #[serde(default)]
+    torch_runtime: PythonTorchDoctorRuntime,
 }
 
 pub(crate) async fn doctor(
@@ -112,25 +161,33 @@ pub(crate) async fn doctor(
             .push("Accelerator detection was overridden by `UV_AMD_GPU_ARCHITECTURE`.".to_string());
     }
 
-    let installed_packages = if let Some(environment) = environment.as_ref() {
-        match inspect_installed_packages(environment.python_executable()) {
-            Ok(packages) => {
-                add_backend_mismatch_notes(&packages, &recommended_backend, &mut notes);
-                packages
+    let inspection = if let Some(environment) = environment.as_ref() {
+        match inspect_environment(environment.python_executable()) {
+            Ok(inspection) => {
+                add_probe_notes(
+                    &inspection.installed_packages,
+                    &inspection.torch_runtime,
+                    &recommended_backend,
+                    &mut notes,
+                );
+                inspection
             }
             Err(err) => {
                 notes.push(format!(
                     "Could not inspect installed PyTorch packages: {}.",
                     err.to_string().trim()
                 ));
-                TorchDoctorPackages::default()
+                TorchDoctorInspection::default()
             }
         }
     } else {
-        TorchDoctorPackages::default()
+        TorchDoctorInspection::default()
     };
 
-    notes.push("`fyn torch doctor` only reports the recommended backend.".to_string());
+    notes.push(
+        "Import and runtime checks currently cover `torch`, `torchvision`, and `torchaudio` only."
+            .to_string(),
+    );
     notes.push("Recreate the environment when switching GPU or backend families.".to_string());
 
     let report = TorchDoctorReport {
@@ -148,7 +205,8 @@ pub(crate) async fn doctor(
         accelerator: accelerator_report(accelerator.as_ref()),
         recommended_backend: recommended_backend.clone(),
         reason,
-        installed_packages,
+        installed_packages: inspection.installed_packages,
+        torch_runtime: inspection.torch_runtime,
         next_command,
         notes,
     };
@@ -196,6 +254,30 @@ pub(crate) async fn doctor(
         &report.installed_packages.torchvision,
     )?;
     write_package_line(printer, "torchaudio", &report.installed_packages.torchaudio)?;
+    if !report.torch_runtime.is_empty() {
+        writeln!(printer.stdout())?;
+        writeln!(printer.stdout(), "torch runtime:")?;
+        write_runtime_value_line(
+            printer,
+            "torch.version.cuda",
+            report.torch_runtime.cuda_version.as_deref(),
+        )?;
+        write_runtime_value_line(
+            printer,
+            "torch.version.hip",
+            report.torch_runtime.hip_version.as_deref(),
+        )?;
+        write_runtime_flag_line(
+            printer,
+            "torch.cuda.is_available()",
+            report.torch_runtime.cuda_available,
+        )?;
+        write_runtime_flag_line(
+            printer,
+            "torch.xpu.is_available()",
+            report.torch_runtime.xpu_available,
+        )?;
+    }
     writeln!(printer.stdout())?;
     writeln!(printer.stdout(), "next command:")?;
     writeln!(printer.stdout(), "  {}", report.next_command.cyan())?;
@@ -307,19 +389,70 @@ fn accelerator_report(accelerator: Option<&Accelerator>) -> TorchDoctorAccelerat
     }
 }
 
-fn inspect_installed_packages(python: &Path) -> anyhow::Result<TorchDoctorPackages> {
+impl TorchDoctorRuntime {
+    fn is_empty(&self) -> bool {
+        self.cuda_version.is_none()
+            && self.hip_version.is_none()
+            && self.cuda_available.is_none()
+            && self.xpu_available.is_none()
+    }
+}
+
+fn inspect_environment(python: &Path) -> anyhow::Result<TorchDoctorInspection> {
     let script = r#"
 import importlib.metadata as metadata
+import importlib
 import json
 
-packages = {}
-for name in ("torch", "torchvision", "torchaudio"):
-    try:
-        packages[name] = metadata.version(name)
-    except metadata.PackageNotFoundError:
-        packages[name] = None
+def summarize_exception(exc):
+    message = " ".join(str(exc).strip().split())
+    if message:
+        return f"{type(exc).__name__}: {message}"[:240]
+    return type(exc).__name__
 
-print(json.dumps(packages))
+def package_probe(name):
+    try:
+        version = metadata.version(name)
+    except metadata.PackageNotFoundError:
+        return {"version": None, "import_ok": None, "import_error": None}
+
+    try:
+        importlib.import_module(name)
+    except Exception as exc:
+        return {
+            "version": version,
+            "import_ok": False,
+            "import_error": summarize_exception(exc),
+        }
+
+    return {"version": version, "import_ok": True, "import_error": None}
+
+packages = {name: package_probe(name) for name in ("torch", "torchvision", "torchaudio")}
+
+runtime = {}
+if packages["torch"]["import_ok"]:
+    import torch
+
+    runtime["cuda_version"] = getattr(getattr(torch, "version", None), "cuda", None)
+    runtime["hip_version"] = getattr(getattr(torch, "version", None), "hip", None)
+
+    if hasattr(torch, "cuda") and hasattr(torch.cuda, "is_available"):
+        try:
+            runtime["cuda_available"] = bool(torch.cuda.is_available())
+        except Exception:
+            runtime["cuda_available"] = None
+    else:
+        runtime["cuda_available"] = None
+
+    if hasattr(torch, "xpu") and hasattr(torch.xpu, "is_available"):
+        try:
+            runtime["xpu_available"] = bool(torch.xpu.is_available())
+        except Exception:
+            runtime["xpu_available"] = None
+    else:
+        runtime["xpu_available"] = None
+
+print(json.dumps({**packages, "torch_runtime": runtime}))
 "#;
 
     let output = Command::new(python)
@@ -339,23 +472,77 @@ print(json.dumps(packages))
     }
 
     let stdout = String::from_utf8(output.stdout)?;
-    let versions: PythonPackageVersions = serde_json::from_str(stdout.trim())?;
-    Ok(TorchDoctorPackages {
-        torch: package_from_version(versions.torch),
-        torchvision: package_from_version(versions.torchvision),
-        torchaudio: package_from_version(versions.torchaudio),
+    let inspection: PythonDoctorInspection = serde_json::from_str(stdout.trim())?;
+    Ok(TorchDoctorInspection {
+        installed_packages: TorchDoctorPackages {
+            torch: package_from_probe(inspection.torch),
+            torchvision: package_from_probe(inspection.torchvision),
+            torchaudio: package_from_probe(inspection.torchaudio),
+        },
+        torch_runtime: TorchDoctorRuntime {
+            cuda_version: inspection.torch_runtime.cuda_version,
+            hip_version: inspection.torch_runtime.hip_version,
+            cuda_available: inspection.torch_runtime.cuda_available,
+            xpu_available: inspection.torch_runtime.xpu_available,
+        },
     })
 }
 
-fn package_from_version(version: Option<String>) -> TorchDoctorPackage {
+fn package_from_probe(probe: PythonDoctorPackage) -> TorchDoctorPackage {
+    let PythonDoctorPackage {
+        version,
+        import_ok,
+        import_error,
+    } = probe;
     let backend = version.as_deref().and_then(version_backend);
-    TorchDoctorPackage { version, backend }
+    TorchDoctorPackage {
+        version,
+        backend,
+        import_ok,
+        import_error: import_error.as_deref().map(trim_diagnostic),
+    }
 }
 
 fn version_backend(version: &str) -> Option<String> {
     let (_, backend) = version.split_once('+')?;
     TorchBackend::from_str(backend).ok()?;
     Some(backend.to_string())
+}
+
+fn trim_diagnostic(message: &str) -> String {
+    let trimmed = message.trim().to_string();
+    if trimmed.len() <= 240 {
+        trimmed
+    } else {
+        format!("{}...", &trimmed[..237])
+    }
+}
+
+fn add_probe_notes(
+    packages: &TorchDoctorPackages,
+    runtime: &TorchDoctorRuntime,
+    recommended_backend: &str,
+    notes: &mut Vec<String>,
+) {
+    add_import_failure_notes(packages, notes);
+    add_backend_mismatch_notes(packages, recommended_backend, notes);
+    add_runtime_notes(packages, runtime, notes);
+}
+
+fn add_import_failure_notes(packages: &TorchDoctorPackages, notes: &mut Vec<String>) {
+    for (name, package) in [
+        ("torch", &packages.torch),
+        ("torchvision", &packages.torchvision),
+        ("torchaudio", &packages.torchaudio),
+    ] {
+        if package.import_ok == Some(false) {
+            if let Some(error) = package.import_error.as_deref() {
+                notes.push(format!("Importing {name} failed: {error}."));
+            } else {
+                notes.push(format!("Importing {name} failed."));
+            }
+        }
+    }
 }
 
 fn add_backend_mismatch_notes(
@@ -402,14 +589,119 @@ fn add_backend_mismatch_notes(
     }
 }
 
+fn add_runtime_notes(
+    packages: &TorchDoctorPackages,
+    runtime: &TorchDoctorRuntime,
+    notes: &mut Vec<String>,
+) {
+    let Some(backend) = packages.torch.backend.as_deref() else {
+        return;
+    };
+
+    match torch_backend_family(backend) {
+        TorchBackendFamily::Cuda => {
+            if runtime.cuda_version.is_none() {
+                notes.push(format!(
+                    "Installed torch reports CUDA backend `{backend}`, but `torch.version.cuda` is unavailable."
+                ));
+            }
+            if runtime.cuda_available == Some(false) {
+                notes.push(format!(
+                    "Installed torch reports CUDA backend `{backend}`, but `torch.cuda.is_available()` returned false. This may indicate a runtime visibility or compatibility problem."
+                ));
+            }
+        }
+        TorchBackendFamily::Rocm => {
+            if runtime.hip_version.is_none() {
+                notes.push(format!(
+                    "Installed torch reports ROCm backend `{backend}`, but `torch.version.hip` is unavailable."
+                ));
+            }
+        }
+        TorchBackendFamily::Xpu => {
+            if runtime.xpu_available == Some(false) {
+                notes.push(
+                    "Installed torch reports XPU backend `xpu`, but `torch.xpu.is_available()` returned false. This may indicate an Intel runtime visibility or compatibility problem."
+                        .to_string(),
+                );
+            }
+        }
+        TorchBackendFamily::Cpu | TorchBackendFamily::Unknown => {}
+    }
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+enum TorchBackendFamily {
+    Cpu,
+    Cuda,
+    Rocm,
+    Xpu,
+    Unknown,
+}
+
+fn torch_backend_family(backend: &str) -> TorchBackendFamily {
+    if backend == "cpu" {
+        TorchBackendFamily::Cpu
+    } else if backend == "xpu" {
+        TorchBackendFamily::Xpu
+    } else if backend.starts_with("cu") {
+        TorchBackendFamily::Cuda
+    } else if backend.starts_with("rocm") {
+        TorchBackendFamily::Rocm
+    } else {
+        TorchBackendFamily::Unknown
+    }
+}
+
 fn write_package_line(
     printer: Printer,
     name: &str,
     package: &TorchDoctorPackage,
 ) -> Result<(), std::fmt::Error> {
     match package.version.as_deref() {
-        Some(version) => writeln!(printer.stdout(), "{name}: {}", version.cyan()),
+        Some(version) => {
+            if package.import_ok == Some(true) {
+                writeln!(
+                    printer.stdout(),
+                    "{name}: {} {}",
+                    version.cyan(),
+                    "(import ok)".dimmed()
+                )
+            } else if package.import_ok == Some(false) {
+                writeln!(
+                    printer.stdout(),
+                    "{name}: {} {}",
+                    version.cyan(),
+                    "(import failed)".yellow()
+                )
+            } else {
+                writeln!(printer.stdout(), "{name}: {}", version.cyan())
+            }
+        }
         None => writeln!(printer.stdout(), "{name}: {}", "not installed".dimmed()),
+    }
+}
+
+fn write_runtime_value_line(
+    printer: Printer,
+    name: &str,
+    value: Option<&str>,
+) -> Result<(), std::fmt::Error> {
+    match value {
+        Some(value) => writeln!(printer.stdout(), "{name}: {}", value.cyan()),
+        None => writeln!(printer.stdout(), "{name}: {}", "unknown".dimmed()),
+    }
+}
+
+fn write_runtime_flag_line(
+    printer: Printer,
+    name: &str,
+    value: Option<bool>,
+) -> Result<(), std::fmt::Error> {
+    match value {
+        Some(true) => writeln!(printer.stdout(), "{name}: {}", "true".cyan()),
+        Some(false) => writeln!(printer.stdout(), "{name}: {}", "false".cyan()),
+        None => writeln!(printer.stdout(), "{name}: {}", "unknown".dimmed()),
     }
 }
 
@@ -463,7 +755,10 @@ fn host_platform() -> Platform {
 
 #[cfg(test)]
 mod tests {
-    use super::recommended_backend;
+    use super::{
+        TorchDoctorPackage, TorchDoctorPackages, TorchDoctorRuntime, add_probe_notes,
+        recommended_backend,
+    };
     use fyn_torch::{TorchBackend, TorchSource, TorchStrategy};
 
     #[test]
@@ -484,5 +779,83 @@ mod tests {
         };
 
         assert_eq!(recommended_backend(&strategy).unwrap(), "rocm7.1");
+    }
+
+    #[test]
+    fn probe_notes_report_import_failures() {
+        let packages = TorchDoctorPackages {
+            torch: TorchDoctorPackage {
+                version: Some("2.6.0+cpu".to_string()),
+                backend: Some("cpu".to_string()),
+                import_ok: Some(false),
+                import_error: Some("ImportError: broken torch".to_string()),
+            },
+            ..TorchDoctorPackages::default()
+        };
+
+        let mut notes = Vec::new();
+        add_probe_notes(&packages, &TorchDoctorRuntime::default(), "cpu", &mut notes);
+
+        assert!(
+            notes
+                .iter()
+                .any(|note| note.contains("Importing torch failed"))
+        );
+        assert!(notes.iter().any(|note| note.contains("broken torch")));
+    }
+
+    #[test]
+    fn probe_notes_report_cuda_runtime_symptoms() {
+        let packages = TorchDoctorPackages {
+            torch: TorchDoctorPackage {
+                version: Some("2.6.0+cu129".to_string()),
+                backend: Some("cu129".to_string()),
+                import_ok: Some(true),
+                import_error: None,
+            },
+            ..TorchDoctorPackages::default()
+        };
+        let runtime = TorchDoctorRuntime {
+            cuda_version: Some("12.9".to_string()),
+            hip_version: None,
+            cuda_available: Some(false),
+            xpu_available: None,
+        };
+
+        let mut notes = Vec::new();
+        add_probe_notes(&packages, &runtime, "cu129", &mut notes);
+
+        assert!(
+            notes
+                .iter()
+                .any(|note| note.contains("torch.cuda.is_available()") && note.contains("false"))
+        );
+    }
+
+    #[test]
+    fn probe_notes_report_rocm_runtime_symptoms() {
+        let packages = TorchDoctorPackages {
+            torch: TorchDoctorPackage {
+                version: Some("2.6.0+rocm7.1".to_string()),
+                backend: Some("rocm7.1".to_string()),
+                import_ok: Some(true),
+                import_error: None,
+            },
+            ..TorchDoctorPackages::default()
+        };
+
+        let mut notes = Vec::new();
+        add_probe_notes(
+            &packages,
+            &TorchDoctorRuntime::default(),
+            "rocm7.1",
+            &mut notes,
+        );
+
+        assert!(
+            notes
+                .iter()
+                .any(|note| note.contains("torch.version.hip") && note.contains("unavailable"))
+        );
     }
 }
