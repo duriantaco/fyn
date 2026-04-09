@@ -560,8 +560,7 @@ impl<'a> BaseClientBuilder<'a> {
             Security::Insecure => client_builder.danger_accept_invalid_certs(true),
         };
 
-        let (use_native_certs, use_webpki_certs) =
-            self.tls_root_sources(custom_certs.is_some());
+        let (use_native_certs, use_webpki_certs) = self.tls_root_sources(custom_certs.is_some());
 
         let client_builder = client_builder
             .tls_built_in_native_certs(use_native_certs)
@@ -1451,8 +1450,7 @@ mod tests {
     use anyhow::Result;
     use insta::assert_debug_snapshot;
     use rcgen::{
-        BasicConstraints, CertificateParams, CustomExtension, DnType, IsCa, KeyPair,
-        date_time_ymd,
+        BasicConstraints, CertificateParams, CustomExtension, DnType, IsCa, KeyPair, date_time_ymd,
     };
     use reqwest::{Client, Method};
     use wiremock::matchers::{method, path};
@@ -1736,7 +1734,10 @@ mod tests {
 
     #[test]
     fn test_tls_root_sources_respect_fyn_settings() {
-        assert_eq!(BaseClientBuilder::default().tls_root_sources(false), (false, true));
+        assert_eq!(
+            BaseClientBuilder::default().tls_root_sources(false),
+            (false, true)
+        );
         assert_eq!(
             BaseClientBuilder::default()
                 .native_tls(true)
@@ -1809,8 +1810,10 @@ mod tests {
             tls_error,
             TlsConfigurationError::UnsupportedCriticalExtension { .. }
         ));
-        assert!(tls_error
-            .to_string()
-            .contains("uses an unsupported critical extension"));
+        assert!(
+            tls_error
+                .to_string()
+                .contains("uses an unsupported critical extension")
+        );
     }
 }

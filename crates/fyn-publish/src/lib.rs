@@ -1527,7 +1527,8 @@ mod tests {
             .redirect(RedirectPolicy::NoRedirect)
             .retries(0)
             .auth_integration(AuthIntegration::NoAuthMiddleware)
-            .build();
+            .build()
+            .expect("failed to build base client");
 
         let download_concurrency = Arc::new(Semaphore::new(1));
         let registry = DisplaySafeUrl::parse(&format!("{}/final", &mock_server.uri())).unwrap();

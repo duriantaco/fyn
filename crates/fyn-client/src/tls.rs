@@ -182,9 +182,7 @@ impl Certificates {
         }
     }
 
-    fn from_ssl_cert_file(
-        ssl_cert_file: &OsStr,
-    ) -> Result<Option<Self>, TlsConfigurationError> {
+    fn from_ssl_cert_file(ssl_cert_file: &OsStr) -> Result<Option<Self>, TlsConfigurationError> {
         if ssl_cert_file.is_empty() {
             return Ok(None);
         }
@@ -234,9 +232,7 @@ impl Certificates {
         }
     }
 
-    fn from_ssl_cert_dir(
-        ssl_cert_dir: &OsStr,
-    ) -> Result<Option<Self>, TlsConfigurationError> {
+    fn from_ssl_cert_dir(ssl_cert_dir: &OsStr) -> Result<Option<Self>, TlsConfigurationError> {
         if ssl_cert_dir.is_empty() {
             return Ok(None);
         }
@@ -510,7 +506,10 @@ mod tests {
         .unwrap();
 
         let err = Certificates::from_ssl_cert_file(cert_path.as_os_str()).unwrap_err();
-        assert!(matches!(err, TlsConfigurationError::InvalidTrustAnchor { .. }));
+        assert!(matches!(
+            err,
+            TlsConfigurationError::InvalidTrustAnchor { .. }
+        ));
         assert!(err.to_string().contains("trust anchor"));
         assert!(err.source().is_some());
     }

@@ -289,17 +289,20 @@ impl RequirementsTxt {
                     });
                 }
 
-                let path_utf8 = requirements_txt
-                    .to_str()
-                    .ok_or_else(|| RequirementsTxtFileError {
+                let path_utf8 =
+                    requirements_txt
+                        .to_str()
+                        .ok_or_else(|| RequirementsTxtFileError {
+                            file: requirements_txt.to_path_buf(),
+                            error: RequirementsTxtParserError::NonUnicodeUrl {
+                                url: requirements_txt.to_path_buf(),
+                            },
+                        })?;
+                let url = DisplaySafeUrl::from_str(path_utf8).map_err(|err| {
+                    RequirementsTxtFileError {
                         file: requirements_txt.to_path_buf(),
-                        error: RequirementsTxtParserError::NonUnicodeUrl {
-                            url: requirements_txt.to_path_buf(),
-                        },
-                    })?;
-                let url = DisplaySafeUrl::from_str(path_utf8).map_err(|err| RequirementsTxtFileError {
-                    file: requirements_txt.to_path_buf(),
-                    error: RequirementsTxtParserError::InvalidUrl(path_utf8.to_string(), err),
+                        error: RequirementsTxtParserError::InvalidUrl(path_utf8.to_string(), err),
+                    }
                 })?;
                 let client = client_builder
                     .build()
