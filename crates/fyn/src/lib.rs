@@ -1535,8 +1535,10 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
             let cache = cache.init().await?;
             commands::torch_doctor(
                 json,
+                &project_dir,
                 globals.python_preference,
                 &cache,
+                &workspace_cache,
                 globals.preview,
                 printer,
             )

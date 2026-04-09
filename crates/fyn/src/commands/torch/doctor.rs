@@ -10,13 +10,17 @@ use fyn_platform::Libc;
 use fyn_platform_tags::{Arch, Os, Platform};
 use fyn_preview::Preview;
 use fyn_python::{EnvironmentPreference, PythonEnvironment, PythonPreference, PythonRequest};
+use fyn_resolver::Lock;
+use fyn_settings::{FilesystemOptions, ResolverOptions};
 use fyn_static::EnvVars;
-use fyn_torch::{Accelerator, TorchBackend, TorchSource, TorchStrategy};
+use fyn_torch::{Accelerator, TorchBackend, TorchMode, TorchSource, TorchStrategy};
+use fyn_workspace::{DiscoveryOptions, Workspace, WorkspaceCache};
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 
 use crate::commands::ExitStatus;
 use crate::printer::Printer;
+use crate::settings::ResolverSettings;
 
 #[derive(Debug, Serialize)]
 struct TorchDoctorEnvironment {
@@ -67,10 +71,26 @@ struct TorchDoctorAccelerator {
 }
 
 #[derive(Debug, Serialize)]
+struct TorchDoctorProject {
+    managed_project: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    workspace_root: Option<String>,
+    pyproject_toml: bool,
+    fyn_lock: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    configured_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    configured_backend: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
 struct TorchDoctorReport {
     environment: Option<TorchDoctorEnvironment>,
     platform: String,
+    project: TorchDoctorProject,
     accelerator: TorchDoctorAccelerator,
+    recommended_source: String,
+    recommended_index_url: String,
     recommended_backend: String,
     reason: String,
     installed_packages: TorchDoctorPackages,
@@ -120,8 +140,10 @@ struct PythonDoctorInspection {
 
 pub(crate) async fn doctor(
     json: bool,
+    project_dir: &Path,
     python_preference: PythonPreference,
     cache: &Cache,
+    workspace_cache: &WorkspaceCache,
     preview: Preview,
     printer: Printer,
 ) -> anyhow::Result<ExitStatus> {
@@ -139,12 +161,12 @@ pub(crate) async fn doctor(
         .map(|environment| environment.interpreter().platform().clone())
         .unwrap_or_else(host_platform);
     let accelerator = Accelerator::detect()?;
-    let strategy = strategy_from_accelerator(&platform.os().clone(), accelerator.clone());
+    let source = preferred_torch_source();
+    let strategy = strategy_from_accelerator(&platform.os().clone(), accelerator.clone(), source);
+    let recommended_source = torch_source_name(source).to_string();
+    let recommended_index_url = recommended_index_url(&strategy)?;
     let recommended_backend = recommended_backend(&strategy)?;
     let reason = recommendation_reason(&platform, accelerator.as_ref(), &recommended_backend);
-    let next_command = format!(
-        "fyn pip install torch torchvision torchaudio --torch-backend={recommended_backend}"
-    );
 
     let mut notes = Vec::new();
     if environment.is_none() {
@@ -160,6 +182,17 @@ pub(crate) async fn doctor(
         notes
             .push("Accelerator detection was overridden by `UV_AMD_GPU_ARCHITECTURE`.".to_string());
     }
+    let project = inspect_project(
+        project_dir,
+        &platform.os().clone(),
+        source,
+        &strategy,
+        workspace_cache,
+        &mut notes,
+    )
+    .await;
+    add_project_notes(&project, &recommended_backend, &mut notes);
+    let next_command = next_command(&project, &recommended_backend);
 
     let inspection = if let Some(environment) = environment.as_ref() {
         match inspect_environment(environment.python_executable()) {
@@ -202,7 +235,10 @@ pub(crate) async fn doctor(
                 version: environment.interpreter().python_full_version().to_string(),
             }),
         platform: platform.pretty(),
+        project,
         accelerator: accelerator_report(accelerator.as_ref()),
+        recommended_source,
+        recommended_index_url,
         recommended_backend: recommended_backend.clone(),
         reason,
         installed_packages: inspection.installed_packages,
@@ -244,7 +280,69 @@ pub(crate) async fn doctor(
         "recommended backend: {}",
         report.recommended_backend.cyan()
     )?;
+    writeln!(
+        printer.stdout(),
+        "recommended source: {}",
+        report.recommended_source.cyan()
+    )?;
+    writeln!(
+        printer.stdout(),
+        "recommended index: {}",
+        report.recommended_index_url.cyan()
+    )?;
     writeln!(printer.stdout(), "reason: {}", report.reason)?;
+    writeln!(printer.stdout())?;
+    writeln!(printer.stdout(), "project:")?;
+    writeln!(
+        printer.stdout(),
+        "managed project: {}",
+        yes_no(report.project.managed_project).cyan()
+    )?;
+    writeln!(
+        printer.stdout(),
+        "workspace root: {}",
+        if let Some(workspace_root) = report.project.workspace_root.as_ref() {
+            workspace_root.cyan().to_string()
+        } else {
+            "none".dimmed().to_string()
+        }
+    )?;
+    writeln!(
+        printer.stdout(),
+        "pyproject.toml: {}",
+        yes_no(report.project.pyproject_toml).cyan()
+    )?;
+    writeln!(
+        printer.stdout(),
+        "fyn.lock: {}",
+        yes_no(report.project.fyn_lock).cyan()
+    )?;
+    match (
+        report.project.configured_mode.as_deref(),
+        report.project.configured_backend.as_deref(),
+    ) {
+        (Some(mode), Some(backend)) if mode != backend => {
+            writeln!(
+                printer.stdout(),
+                "configured torch backend: {}",
+                format!("{mode} -> {backend}").cyan()
+            )?;
+        }
+        (Some(mode), _) => {
+            writeln!(
+                printer.stdout(),
+                "configured torch backend: {}",
+                mode.cyan()
+            )?;
+        }
+        (None, _) => {
+            writeln!(
+                printer.stdout(),
+                "configured torch backend: {}",
+                "none".dimmed()
+            )?;
+        }
+    }
     writeln!(printer.stdout())?;
     writeln!(printer.stdout(), "installed packages:")?;
     write_package_line(printer, "torch", &report.installed_packages.torch)?;
@@ -292,27 +390,59 @@ pub(crate) async fn doctor(
     Ok(ExitStatus::Success)
 }
 
-fn strategy_from_accelerator(os: &Os, accelerator: Option<Accelerator>) -> TorchStrategy {
+fn yes_no(value: bool) -> &'static str {
+    if value { "yes" } else { "no" }
+}
+
+fn preferred_torch_source() -> TorchSource {
+    if fyn_auth::PyxTokenStore::from_settings().is_ok_and(|store| store.has_credentials()) {
+        TorchSource::Pyx
+    } else {
+        TorchSource::default()
+    }
+}
+
+fn torch_source_name(source: TorchSource) -> &'static str {
+    match source {
+        TorchSource::PyTorch => "pytorch",
+        TorchSource::Pyx => "pyx",
+    }
+}
+
+fn strategy_from_accelerator(
+    os: &Os,
+    accelerator: Option<Accelerator>,
+    source: TorchSource,
+) -> TorchStrategy {
     match accelerator {
         Some(Accelerator::Cuda { driver_version }) => TorchStrategy::Cuda {
             os: os.clone(),
             driver_version,
-            source: TorchSource::PyTorch,
+            source,
         },
         Some(Accelerator::Amd { gpu_architecture }) => TorchStrategy::Amd {
             os: os.clone(),
             gpu_architecture,
-            source: TorchSource::PyTorch,
+            source,
         },
         Some(Accelerator::Xpu) => TorchStrategy::Xpu {
             os: os.clone(),
-            source: TorchSource::PyTorch,
+            source,
         },
         None => TorchStrategy::Backend {
             backend: TorchBackend::Cpu,
-            source: TorchSource::PyTorch,
+            source,
         },
     }
+}
+
+fn recommended_index_url(strategy: &TorchStrategy) -> anyhow::Result<String> {
+    Ok(strategy
+        .index_urls()
+        .next()
+        .context("No compatible PyTorch backend was found for this machine")?
+        .url()
+        .to_string())
 }
 
 fn recommended_backend(strategy: &TorchStrategy) -> anyhow::Result<String> {
@@ -357,6 +487,163 @@ fn recommendation_reason(
             platform.pretty()
         ),
         None => "No supported GPU accelerator was detected; using CPU wheels.".to_string(),
+    }
+}
+
+async fn inspect_project(
+    project_dir: &Path,
+    os: &Os,
+    source: TorchSource,
+    recommended_strategy: &TorchStrategy,
+    workspace_cache: &WorkspaceCache,
+    notes: &mut Vec<String>,
+) -> TorchDoctorProject {
+    let workspace = Workspace::discover(project_dir, &DiscoveryOptions::default(), workspace_cache)
+        .await
+        .ok();
+    let root = workspace
+        .as_ref()
+        .map(|workspace| workspace.install_path().as_path())
+        .unwrap_or(project_dir);
+    let managed_project = workspace.is_some();
+    let workspace_root = workspace
+        .as_ref()
+        .map(|workspace| workspace.install_path().simplified_display().to_string());
+    let pyproject_toml = root.join("pyproject.toml").is_file();
+    let fyn_lock_path = root.join("fyn.lock");
+    let fyn_lock = fyn_lock_path.is_file();
+
+    if managed_project && fyn_lock {
+        match fs_err::tokio::read_to_string(&fyn_lock_path).await {
+            Ok(encoded) => {
+                if let Err(err) = toml::from_str::<Lock>(&encoded) {
+                    notes.push(format!(
+                        "Could not parse `{}`: {}.",
+                        fyn_lock_path.simplified_display(),
+                        trim_diagnostic(&err.to_string())
+                    ));
+                }
+            }
+            Err(err) => {
+                notes.push(format!(
+                    "Could not read `{}`: {}.",
+                    fyn_lock_path.simplified_display(),
+                    trim_diagnostic(&err.to_string())
+                ));
+            }
+        }
+    }
+
+    let (configured_mode, configured_backend) = if managed_project {
+        match FilesystemOptions::from_directory(root) {
+            Ok(Some(filesystem)) => {
+                let settings =
+                    ResolverSettings::combine(ResolverOptions::default(), Some(filesystem));
+                if let Some(mode) = settings.torch_backend {
+                    let configured_mode = Some(torch_mode_name(mode));
+                    let configured_backend =
+                        match resolved_backend_for_mode(mode, os, source, recommended_strategy) {
+                            Ok(backend) => Some(backend),
+                            Err(err) => {
+                                notes.push(format!(
+                                    "Could not resolve configured `torch-backend`: {}.",
+                                    trim_diagnostic(&err.to_string())
+                                ));
+                                None
+                            }
+                        };
+                    (configured_mode, configured_backend)
+                } else {
+                    (None, None)
+                }
+            }
+            Ok(None) => (None, None),
+            Err(err) => {
+                notes.push(format!(
+                    "Could not read project configuration from `{}`: {}.",
+                    root.simplified_display(),
+                    trim_diagnostic(&err.to_string())
+                ));
+                (None, None)
+            }
+        }
+    } else {
+        (None, None)
+    };
+
+    TorchDoctorProject {
+        managed_project,
+        workspace_root,
+        pyproject_toml,
+        fyn_lock,
+        configured_mode,
+        configured_backend,
+    }
+}
+
+fn torch_mode_name(mode: TorchMode) -> String {
+    match serde_json::to_string(&mode) {
+        Ok(value) => value.trim_matches('"').to_string(),
+        Err(_) => format!("{mode:?}"),
+    }
+}
+
+fn resolved_backend_for_mode(
+    mode: TorchMode,
+    os: &Os,
+    source: TorchSource,
+    recommended_strategy: &TorchStrategy,
+) -> anyhow::Result<String> {
+    let strategy = if mode == TorchMode::Auto {
+        recommended_strategy.clone()
+    } else {
+        TorchStrategy::from_mode(mode, source, os)?
+    };
+    recommended_backend(&strategy)
+}
+
+fn add_project_notes(
+    project: &TorchDoctorProject,
+    recommended_backend: &str,
+    notes: &mut Vec<String>,
+) {
+    if !project.managed_project {
+        return;
+    }
+
+    match (
+        project.configured_mode.as_deref(),
+        project.configured_backend.as_deref(),
+    ) {
+        (Some(mode), Some(backend)) if backend != recommended_backend && mode != backend => {
+            notes.push(format!(
+                "Project configuration sets `torch-backend={mode}`, which resolves to `{backend}` on this machine, but this machine recommends `{recommended_backend}`."
+            ));
+        }
+        (Some(mode), Some(_)) if mode != recommended_backend => {
+            notes.push(format!(
+                "Project configuration sets `torch-backend={mode}`, but this machine recommends `{recommended_backend}`."
+            ));
+        }
+        (None, _) => notes.push(
+            "Managed project does not set `torch-backend`; next command uses an explicit backend override."
+                .to_string(),
+        ),
+        _ => {}
+    }
+}
+
+fn next_command(project: &TorchDoctorProject, recommended_backend: &str) -> String {
+    if !project.managed_project {
+        return format!(
+            "fyn pip install torch torchvision torchaudio --torch-backend={recommended_backend}"
+        );
+    }
+
+    if project.configured_backend.as_deref() == Some(recommended_backend) {
+        "fyn sync".to_string()
+    } else {
+        format!("fyn sync --torch-backend={recommended_backend}")
     }
 }
 
@@ -756,9 +1043,11 @@ fn host_platform() -> Platform {
 #[cfg(test)]
 mod tests {
     use super::{
-        TorchDoctorPackage, TorchDoctorPackages, TorchDoctorRuntime, add_probe_notes,
-        recommended_backend,
+        TorchDoctorPackage, TorchDoctorPackages, TorchDoctorProject, TorchDoctorRuntime,
+        add_probe_notes, add_project_notes, next_command, recommended_backend,
+        strategy_from_accelerator,
     };
+    use fyn_platform_tags::Os;
     use fyn_torch::{TorchBackend, TorchSource, TorchStrategy};
 
     #[test]
@@ -857,5 +1146,90 @@ mod tests {
                 .iter()
                 .any(|note| note.contains("torch.version.hip") && note.contains("unavailable"))
         );
+    }
+
+    #[test]
+    fn strategy_from_accelerator_respects_requested_source() {
+        let strategy = strategy_from_accelerator(&Os::Windows, None, TorchSource::Pyx);
+
+        assert!(matches!(
+            strategy,
+            TorchStrategy::Backend {
+                backend: TorchBackend::Cpu,
+                source: TorchSource::Pyx,
+            }
+        ));
+    }
+
+    #[test]
+    fn next_command_uses_pip_install_outside_managed_project() {
+        let project = TorchDoctorProject {
+            managed_project: false,
+            workspace_root: None,
+            pyproject_toml: false,
+            fyn_lock: false,
+            configured_mode: None,
+            configured_backend: None,
+        };
+
+        assert_eq!(
+            next_command(&project, "cu129"),
+            "fyn pip install torch torchvision torchaudio --torch-backend=cu129"
+        );
+    }
+
+    #[test]
+    fn next_command_uses_plain_sync_when_project_backend_matches() {
+        let project = TorchDoctorProject {
+            managed_project: true,
+            workspace_root: Some("/tmp/project".to_string()),
+            pyproject_toml: true,
+            fyn_lock: true,
+            configured_mode: Some("auto".to_string()),
+            configured_backend: Some("cu129".to_string()),
+        };
+
+        assert_eq!(next_command(&project, "cu129"), "fyn sync");
+    }
+
+    #[test]
+    fn project_notes_report_missing_project_backend() {
+        let project = TorchDoctorProject {
+            managed_project: true,
+            workspace_root: Some("/tmp/project".to_string()),
+            pyproject_toml: true,
+            fyn_lock: true,
+            configured_mode: None,
+            configured_backend: None,
+        };
+        let mut notes = Vec::new();
+
+        add_project_notes(&project, "cu129", &mut notes);
+
+        assert!(notes.iter().any(|note| {
+            note.contains("Managed project does not set `torch-backend`")
+                && note.contains("explicit backend override")
+        }));
+    }
+
+    #[test]
+    fn project_notes_report_configured_backend_mismatch() {
+        let project = TorchDoctorProject {
+            managed_project: true,
+            workspace_root: Some("/tmp/project".to_string()),
+            pyproject_toml: true,
+            fyn_lock: true,
+            configured_mode: Some("auto".to_string()),
+            configured_backend: Some("cpu".to_string()),
+        };
+        let mut notes = Vec::new();
+
+        add_project_notes(&project, "cu129", &mut notes);
+
+        assert!(notes.iter().any(|note| {
+            note.contains("torch-backend=auto")
+                && note.contains("resolves to `cpu`")
+                && note.contains("recommends `cu129`")
+        }));
     }
 }
