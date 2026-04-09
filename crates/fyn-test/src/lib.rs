@@ -2377,7 +2377,8 @@ pub async fn download_to_disk(url: &str, path: &Path) {
 
     let client = fyn_client::BaseClientBuilder::default()
         .allow_insecure_host(trusted_hosts)
-        .build();
+        .build()
+        .expect("failed to build base client");
     let url = url.parse().unwrap();
     let response = client
         .for_host(&url)

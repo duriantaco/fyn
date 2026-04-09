@@ -220,7 +220,7 @@ pub(crate) async fn audit(
         .iter()
         .map(|(name, version)| Dependency::new((*name).clone(), (*version).clone()))
         .collect();
-    let base_client = client_builder.build();
+    let base_client = client_builder.build()?;
     let all_findings = match service {
         VulnerabilityServiceFormat::Osv => {
             let osv_url = if let Some(service_url) = service_url.as_deref() {

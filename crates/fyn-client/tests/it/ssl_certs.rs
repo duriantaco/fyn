@@ -87,7 +87,8 @@ async fn ssl_env_vars() -> Result<()> {
     let cache = Cache::temp()?.init().await?;
     let client =
         RegistryClientBuilder::new(BaseClientBuilder::default().no_retry_delay(true), cache)
-            .build();
+            .build()
+            .expect("failed to build registry client");
     let res = client
         .cached_client()
         .uncached()
@@ -147,7 +148,8 @@ async fn ssl_env_vars() -> Result<()> {
     let cache = Cache::temp()?.init().await?;
     let client =
         RegistryClientBuilder::new(BaseClientBuilder::default().no_retry_delay(true), cache)
-            .build();
+            .build()
+            .expect("failed to build registry client");
     let res = client
         .cached_client()
         .uncached()
@@ -178,7 +180,8 @@ async fn ssl_env_vars() -> Result<()> {
     let cache = Cache::temp()?.init().await?;
     let client =
         RegistryClientBuilder::new(BaseClientBuilder::default().no_retry_delay(true), cache)
-            .build();
+            .build()
+            .expect("failed to build registry client");
     let res = client
         .cached_client()
         .uncached()
@@ -203,7 +206,8 @@ async fn ssl_env_vars() -> Result<()> {
     let cache = Cache::temp()?.init().await?;
     let client =
         RegistryClientBuilder::new(BaseClientBuilder::default().no_retry_delay(true), cache)
-            .build();
+            .build()
+            .expect("failed to build registry client");
     let res = client
         .cached_client()
         .uncached()
@@ -270,7 +274,8 @@ async fn ssl_env_vars() -> Result<()> {
     let cache = Cache::temp()?.init().await?;
     let client =
         RegistryClientBuilder::new(BaseClientBuilder::default().no_retry_delay(true), cache)
-            .build();
+            .build()
+            .expect("failed to build registry client");
     let res = client
         .cached_client()
         .uncached()
@@ -296,7 +301,8 @@ async fn ssl_env_vars() -> Result<()> {
     let cache = Cache::temp()?.init().await?;
     let client =
         RegistryClientBuilder::new(BaseClientBuilder::default().no_retry_delay(true), cache)
-            .build();
+            .build()
+            .expect("failed to build registry client");
     let res = client
         .cached_client()
         .uncached()

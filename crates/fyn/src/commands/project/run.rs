@@ -1698,7 +1698,7 @@ async fn resolve_gist_url(
     // Build the API URL.
     let api_url = format!("https://api.github.com/gists/{gist_id}");
 
-    let client = client_builder.build();
+    let client = client_builder.build()?;
 
     // Build the request with appropriate headers.
     let api_url_parsed = DisplaySafeUrl::parse(&api_url)?;
@@ -1781,7 +1781,7 @@ impl RunCommand {
             if !cfg!(unix) || matches!(target_path.try_exists(), Ok(false)) {
                 let mut url = DisplaySafeUrl::parse(&target.to_string_lossy())?;
 
-                let client = client_builder.build();
+                let client = client_builder.build()?;
                 let mut response = client
                     .for_host(&url)
                     .get(Url::from(url.clone()))

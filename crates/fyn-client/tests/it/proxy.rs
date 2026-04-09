@@ -26,7 +26,8 @@ async fn http_proxy() -> Result<()> {
     // Create a client with the proxy.
     let client = BaseClientBuilder::default()
         .http_proxy(Some(proxy_server.uri().parse::<ProxyUrl>()?))
-        .build();
+        .build()
+        .expect("failed to build base client");
 
     // Make a request to the target.
     let response = client
@@ -67,7 +68,8 @@ async fn no_proxy() -> Result<()> {
     let client = BaseClientBuilder::default()
         .http_proxy(Some(proxy_server.uri().parse::<ProxyUrl>()?))
         .no_proxy(Some(vec![target_host]))
-        .build();
+        .build()
+        .expect("failed to build base client");
 
     // Make a request to the target.
     let response = client

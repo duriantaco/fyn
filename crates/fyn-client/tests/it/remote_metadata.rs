@@ -36,7 +36,9 @@ fn build_test_wheel() -> Result<Vec<u8>> {
 #[tokio::test]
 async fn remote_metadata_with_and_without_cache() -> Result<()> {
     let cache = Cache::temp()?.init().await?;
-    let client = RegistryClientBuilder::new(BaseClientBuilder::default(), cache).build();
+    let client = RegistryClientBuilder::new(BaseClientBuilder::default(), cache)
+        .build()
+        .expect("failed to build registry client");
 
     // The first run is without cache (the tempdir is empty), the second has the cache from the
     // first run.
@@ -105,7 +107,9 @@ async fn remote_metadata_falls_back_when_range_response_is_short() -> Result<()>
         .await;
 
     let cache = Cache::temp()?.init().await?;
-    let client = RegistryClientBuilder::new(BaseClientBuilder::default(), cache).build();
+    let client = RegistryClientBuilder::new(BaseClientBuilder::default(), cache)
+        .build()
+        .expect("failed to build registry client");
 
     let url = format!("{}/{}", server.uri(), filename);
     let dist = BuiltDist::DirectUrl(DirectUrlBuiltDist {

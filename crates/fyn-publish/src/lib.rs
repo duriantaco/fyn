@@ -1899,7 +1899,9 @@ mod tests {
         project_urls: Source, https://github.com/unknown/tqdm
         ");
 
-        let client = BaseClientBuilder::default().build();
+        let client = BaseClientBuilder::default()
+            .build()
+            .expect("failed to build base client");
         let (request, _) = build_upload_request(
             &group,
             &DisplaySafeUrl::parse("https://example.org/upload").unwrap(),
@@ -2059,7 +2061,9 @@ mod tests {
         requires_dist: requests ; extra == 'telegram'
         "#);
 
-        let client = BaseClientBuilder::default().build();
+        let client = BaseClientBuilder::default()
+            .build()
+            .expect("failed to build base client");
         let (request, _) = build_upload_request(
             &group,
             &DisplaySafeUrl::parse("https://example.org/upload").unwrap(),

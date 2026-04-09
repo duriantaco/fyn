@@ -75,7 +75,7 @@ pub(crate) async fn pip_index_versions(
     .index_strategy(index_strategy)
     .markers(interpreter.markers())
     .platform(interpreter.platform())
-    .build();
+    .build()?;
 
     let lookup = if flat_only {
         fetch_flat_index_versions(

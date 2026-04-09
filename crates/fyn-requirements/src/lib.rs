@@ -40,6 +40,9 @@ pub enum Error {
 
     #[error(transparent)]
     Io(#[from] std::io::Error),
+
+    #[error(transparent)]
+    ClientBuild(#[from] fyn_client::ClientBuildError),
 }
 
 impl Error {

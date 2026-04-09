@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fmt::Debug;
 use std::num::ParseIntError;
-use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, SystemTimeError};
 use std::{env, io, iter};
@@ -15,7 +14,9 @@ use http::{
     },
 };
 use itertools::Itertools;
-use reqwest::{Client, ClientBuilder, IntoUrl, NoProxy, Proxy, Request, Response, multipart};
+use reqwest::{
+    Certificate, Client, ClientBuilder, IntoUrl, NoProxy, Proxy, Request, Response, multipart,
+};
 use reqwest_middleware::{ClientWithMiddleware, Middleware};
 use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_retry::{
@@ -32,7 +33,6 @@ use url::Url;
 use fyn_auth::{AuthMiddleware, Credentials, CredentialsCache, Indexes, PyxTokenStore};
 use fyn_configuration::ProxyUrlKind;
 use fyn_configuration::{KeyringProviderType, ProxyUrl, TrustedHost};
-use fyn_fs::Simplified;
 use fyn_pep508::MarkerEnvironment;
 use fyn_platform_tags::Platform;
 use fyn_preview::Preview;
@@ -43,7 +43,7 @@ use fyn_version::version;
 use fyn_warnings::warn_user_once;
 
 use crate::middleware::OfflineMiddleware;
-use crate::tls::read_identity;
+use crate::tls::{Certificates, TlsConfigurationError, read_identity};
 use crate::{Connectivity, WrappedReqwestError};
 
 pub const DEFAULT_RETRIES: u32 = 3;
@@ -66,6 +66,44 @@ pub const DEFAULT_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 /// reqwest does not support something like a read timeout for uploads, so we have to set a (large)
 /// timeout on the entire upload.
 pub const DEFAULT_READ_TIMEOUT_UPLOAD: Duration = Duration::from_mins(15);
+
+#[derive(Debug)]
+pub struct ClientBuildError(ClientBuildErrorKind);
+
+#[derive(Debug, Error)]
+enum ClientBuildErrorKind {
+    #[error(transparent)]
+    Reqwest(reqwest::Error),
+    #[error(transparent)]
+    TlsConfiguration(TlsConfigurationError),
+}
+
+impl std::fmt::Display for ClientBuildError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("failed to build HTTP client")
+    }
+}
+
+impl std::error::Error for ClientBuildError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match &self.0 {
+            ClientBuildErrorKind::Reqwest(error) => Some(error),
+            ClientBuildErrorKind::TlsConfiguration(error) => Some(error),
+        }
+    }
+}
+
+impl From<reqwest::Error> for ClientBuildError {
+    fn from(error: reqwest::Error) -> Self {
+        Self(ClientBuildErrorKind::Reqwest(error))
+    }
+}
+
+impl From<TlsConfigurationError> for ClientBuildError {
+    fn from(error: TlsConfigurationError) -> Self {
+        Self(ClientBuildErrorKind::TlsConfiguration(error))
+    }
+}
 
 /// Selectively skip parts or the entire auth middleware.
 #[derive(Debug, Clone, Copy, Default)]
@@ -383,7 +421,7 @@ impl<'a> BaseClientBuilder<'a> {
         retry_policy(self.retries, self.no_retry_delay)
     }
 
-    pub fn build(&self) -> BaseClient {
+    pub fn build(&self) -> Result<BaseClient, ClientBuildError> {
         if let Some(name) = self.client_name {
             debug!(
                 "Using request connect timeout of {}s and read timeout of {}s for {} client",
@@ -403,7 +441,7 @@ impl<'a> BaseClientBuilder<'a> {
         let (raw_client, raw_dangerous_client) = match &self.custom_client {
             Some(client) => (client.clone(), client.clone()),
             None => {
-                self.create_secure_and_insecure_clients(self.read_timeout, self.connect_timeout)
+                self.create_secure_and_insecure_clients(self.read_timeout, self.connect_timeout)?
             }
         };
 
@@ -419,7 +457,7 @@ impl<'a> BaseClientBuilder<'a> {
             cross_origin_credentials_policy: self.cross_origin_credential_policy,
         };
 
-        BaseClient {
+        Ok(BaseClient {
             connectivity: self.connectivity,
             allow_insecure_host: self.allow_insecure_host.clone(),
             retries: self.retries,
@@ -431,7 +469,7 @@ impl<'a> BaseClientBuilder<'a> {
             read_timeout: self.read_timeout,
             connect_timeout: self.connect_timeout,
             credentials_cache: self.credentials_cache.clone(),
-        }
+        })
     }
 
     /// Share the underlying client between two different middleware configurations.
@@ -467,113 +505,33 @@ impl<'a> BaseClientBuilder<'a> {
         &self,
         read_timeout: Duration,
         connect_timeout: Duration,
-    ) -> (Client, Client) {
+    ) -> Result<(Client, Client), ClientBuildError> {
         // Create user agent — minimal, no system profiling.
         let user_agent_string = format!("fyn/{}", version());
 
-        // Checks for the presence of `SSL_CERT_FILE`.
-        // Certificate loading support is delegated to `rustls-native-certs`.
-        // See https://github.com/rustls/rustls-native-certs/blob/813790a297ad4399efe70a8e5264ca1b420acbec/src/lib.rs#L118-L125
-        let ssl_cert_file_exists = env::var_os(EnvVars::SSL_CERT_FILE).is_some_and(|path| {
-            let path = Path::new(&path);
-            match path.metadata() {
-                Ok(metadata) if metadata.is_file() => true,
-                Ok(_) => {
-                    warn_user_once!(
-                        "Ignoring invalid `SSL_CERT_FILE`. Path is not a file: {}.",
-                        path.simplified_display().cyan()
-                    );
-                    false
-                }
-                Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
-                    warn_user_once!(
-                        "Ignoring invalid `SSL_CERT_FILE`. Path does not exist: {}.",
-                        path.simplified_display().cyan()
-                    );
-                    false
-                }
-                Err(err) => {
-                    warn_user_once!(
-                        "Ignoring invalid `SSL_CERT_FILE`. Path is not accessible: {} ({err}).",
-                        path.simplified_display().cyan()
-                    );
-                    false
-                }
-            }
-        });
-
-        // Checks for the presence of `SSL_CERT_DIR`.
-        // Certificate loading support is delegated to `rustls-native-certs`.
-        // See https://github.com/rustls/rustls-native-certs/blob/813790a297ad4399efe70a8e5264ca1b420acbec/src/lib.rs#L118-L125
-        let ssl_cert_dir_exists = env::var_os(EnvVars::SSL_CERT_DIR)
-            .filter(|v| !v.is_empty())
-            .is_some_and(|dirs| {
-                // Parse `SSL_CERT_DIR`, with support for multiple entries using
-                // a platform-specific delimiter (`:` on Unix, `;` on Windows)
-                let (existing, missing): (Vec<_>, Vec<_>) =
-                    env::split_paths(&dirs).partition(|p| p.exists());
-
-                if existing.is_empty() {
-                    let end_note = if missing.len() == 1 {
-                        "The directory does not exist."
-                    } else {
-                        "The entries do not exist."
-                    };
-                    warn_user_once!(
-                        "Ignoring invalid `SSL_CERT_DIR`. {end_note}: {}.",
-                        missing
-                            .iter()
-                            .map(Simplified::simplified_display)
-                            .join(", ")
-                            .cyan()
-                    );
-                    return false;
-                }
-
-                // Warn on any missing entries
-                if !missing.is_empty() {
-                    let end_note = if missing.len() == 1 {
-                        "The following directory does not exist:"
-                    } else {
-                        "The following entries do not exist:"
-                    };
-                    warn_user_once!(
-                        "Invalid entries in `SSL_CERT_DIR`. {end_note}: {}.",
-                        missing
-                            .iter()
-                            .map(Simplified::simplified_display)
-                            .join(", ")
-                            .cyan()
-                    );
-                }
-
-                // Proceed while ignoring missing entries
-                true
-            });
+        let custom_certs = Certificates::from_env()?.map(|certs| certs.to_reqwest_certs());
 
         // Create a secure client that validates certificates.
         let raw_client = self.create_client(
             &user_agent_string,
             read_timeout,
             connect_timeout,
-            ssl_cert_file_exists,
-            ssl_cert_dir_exists,
+            custom_certs.clone(),
             Security::Secure,
             self.redirect_policy,
-        );
+        )?;
 
         // Create an insecure client that accepts invalid certificates.
         let raw_dangerous_client = self.create_client(
             &user_agent_string,
             read_timeout,
             connect_timeout,
-            ssl_cert_file_exists,
-            ssl_cert_dir_exists,
+            custom_certs,
             Security::Insecure,
             self.redirect_policy,
-        );
+        )?;
 
-        (raw_client, raw_dangerous_client)
+        Ok((raw_client, raw_dangerous_client))
     }
 
     fn create_client(
@@ -581,11 +539,10 @@ impl<'a> BaseClientBuilder<'a> {
         user_agent: &str,
         read_timeout: Duration,
         connect_timeout: Duration,
-        ssl_cert_file_exists: bool,
-        ssl_cert_dir_exists: bool,
+        custom_certs: Option<Vec<Certificate>>,
         security: Security,
         redirect_policy: RedirectPolicy,
-    ) -> Client {
+    ) -> Result<Client, ClientBuildError> {
         // Configure the builder.
         let client_builder = ClientBuilder::new()
             .http1_title_case_headers()
@@ -603,10 +560,21 @@ impl<'a> BaseClientBuilder<'a> {
             Security::Insecure => client_builder.danger_accept_invalid_certs(true),
         };
 
-        let client_builder = if self.native_tls || ssl_cert_file_exists || ssl_cert_dir_exists {
-            client_builder.tls_built_in_native_certs(true)
+        let (use_native_certs, use_webpki_certs) =
+            self.tls_root_sources(custom_certs.is_some());
+
+        let client_builder = client_builder
+            .tls_built_in_native_certs(use_native_certs)
+            .tls_built_in_webpki_certs(use_webpki_certs);
+
+        let client_builder = if let Some(custom_certs) = custom_certs {
+            let mut client_builder = client_builder;
+            for cert in custom_certs {
+                client_builder = client_builder.add_root_certificate(cert);
+            }
+            client_builder
         } else {
-            client_builder.tls_built_in_webpki_certs(true)
+            client_builder
         };
 
         // Configure mTLS.
@@ -645,11 +613,18 @@ impl<'a> BaseClientBuilder<'a> {
             client_builder = client_builder.proxy(proxy);
         }
 
-        let client_builder = client_builder;
+        client_builder.build().map_err(Into::into)
+    }
 
-        client_builder
-            .build()
-            .expect("Failed to build HTTP client.")
+    fn tls_root_sources(&self, has_custom_certs: bool) -> (bool, bool) {
+        if has_custom_certs {
+            (false, self.built_in_root_certs)
+        } else {
+            (
+                self.native_tls || self.built_in_root_certs,
+                !self.native_tls || self.built_in_root_certs,
+            )
+        }
     }
 
     fn apply_middleware(&self, client: Client) -> ClientWithMiddleware {
@@ -1475,6 +1450,10 @@ mod tests {
 
     use anyhow::Result;
     use insta::assert_debug_snapshot;
+    use rcgen::{
+        BasicConstraints, CertificateParams, CustomExtension, DnType, IsCa, KeyPair,
+        date_time_ymd,
+    };
     use reqwest::{Client, Method};
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -1736,5 +1715,102 @@ mod tests {
         ");
 
         Ok(())
+    }
+
+    fn generate_ca_pem_with_extensions(custom_extensions: Vec<CustomExtension>) -> String {
+        let mut params = CertificateParams::default();
+        params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
+        params.not_before = date_time_ymd(1975, 1, 1);
+        params.not_after = date_time_ymd(4096, 1, 1);
+        params
+            .distinguished_name
+            .push(DnType::OrganizationName, "fyn contributors");
+        params
+            .distinguished_name
+            .push(DnType::CommonName, "fyn-test-ca");
+        params.custom_extensions = custom_extensions;
+
+        let key = KeyPair::generate().unwrap();
+        params.self_signed(&key).unwrap().pem()
+    }
+
+    #[test]
+    fn test_tls_root_sources_respect_fyn_settings() {
+        assert_eq!(BaseClientBuilder::default().tls_root_sources(false), (false, true));
+        assert_eq!(
+            BaseClientBuilder::default()
+                .native_tls(true)
+                .tls_root_sources(false),
+            (true, false)
+        );
+        assert_eq!(
+            BaseClientBuilder::default()
+                .built_in_root_certs(true)
+                .tls_root_sources(false),
+            (true, true)
+        );
+        assert_eq!(
+            BaseClientBuilder::default()
+                .native_tls(true)
+                .built_in_root_certs(true)
+                .tls_root_sources(false),
+            (true, true)
+        );
+        assert_eq!(
+            BaseClientBuilder::default().tls_root_sources(true),
+            (false, false)
+        );
+        assert_eq!(
+            BaseClientBuilder::default()
+                .built_in_root_certs(true)
+                .tls_root_sources(true),
+            (false, true)
+        );
+    }
+
+    #[test]
+    #[allow(unsafe_code)]
+    fn test_build_returns_tls_configuration_error_for_invalid_ssl_cert_file() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let cert_path = temp_dir.path().join("invalid-ca.pem");
+
+        let mut unsupported_extension = CustomExtension::from_oid_content(
+            &[1, 2, 3, 4],
+            [vec![0x0c, 0x0b], b"unsupported".to_vec()].concat(),
+        );
+        unsupported_extension.set_criticality(true);
+        fs_err::write(
+            &cert_path,
+            generate_ca_pem_with_extensions(vec![unsupported_extension]),
+        )
+        .unwrap();
+
+        unsafe {
+            env::remove_var(EnvVars::SSL_CERT_DIR);
+            env::remove_var(EnvVars::SSL_CLIENT_CERT);
+            env::set_var(EnvVars::SSL_CERT_FILE, &cert_path);
+        }
+
+        let err = BaseClientBuilder::default()
+            .build()
+            .expect_err("invalid trust anchors should fail client construction");
+
+        unsafe {
+            env::remove_var(EnvVars::SSL_CERT_FILE);
+        }
+
+        assert_eq!(err.to_string(), "failed to build HTTP client");
+
+        let tls_error = err
+            .source()
+            .and_then(|error| error.downcast_ref::<TlsConfigurationError>())
+            .expect("expected a TLS configuration error source");
+        assert!(matches!(
+            tls_error,
+            TlsConfigurationError::UnsupportedCriticalExtension { .. }
+        ));
+        assert!(tls_error
+            .to_string()
+            .contains("uses an unsupported critical extension"));
     }
 }

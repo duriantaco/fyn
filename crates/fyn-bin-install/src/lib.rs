@@ -837,7 +837,9 @@ mod tests {
         });
 
         let url = DisplaySafeUrl::parse(&format!("http://{addr}/ruff.tar.gz")).unwrap();
-        let client = BaseClientBuilder::default().build();
+        let client = BaseClientBuilder::default()
+            .build()
+            .expect("failed to build base client");
         let response = client
             .for_host(&url)
             .get(Url::from(url.clone()))

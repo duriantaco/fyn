@@ -61,6 +61,8 @@ enum Error {
     #[error(transparent)]
     FlatIndex(#[from] fyn_client::FlatIndexError),
     #[error(transparent)]
+    ClientBuild(#[from] fyn_client::ClientBuildError),
+    #[error(transparent)]
     BuildPlan(anyhow::Error),
     #[error(transparent)]
     Extract(#[from] fyn_extract::Error),
@@ -587,7 +589,7 @@ async fn build_package(
         .keyring(keyring_provider)
         .markers(interpreter.markers())
         .platform(interpreter.platform())
-        .build();
+        .build()?;
 
     // Determine whether to enable build isolation.
     let environment;
