@@ -489,12 +489,17 @@ print(json.dumps({**packages, "torch_runtime": runtime}))
 }
 
 fn package_from_probe(probe: PythonDoctorPackage) -> TorchDoctorPackage {
-    let backend = probe.version.as_deref().and_then(version_backend);
+    let PythonDoctorPackage {
+        version,
+        import_ok,
+        import_error,
+    } = probe;
+    let backend = version.as_deref().and_then(version_backend);
     TorchDoctorPackage {
-        version: probe.version,
+        version,
         backend,
-        import_ok: probe.import_ok,
-        import_error: probe.import_error.map(trim_diagnostic),
+        import_ok,
+        import_error: import_error.as_deref().map(trim_diagnostic),
     }
 }
 
@@ -504,7 +509,7 @@ fn version_backend(version: &str) -> Option<String> {
     Some(backend.to_string())
 }
 
-fn trim_diagnostic(message: String) -> String {
+fn trim_diagnostic(message: &str) -> String {
     let trimmed = message.trim().to_string();
     if trimmed.len() <= 240 {
         trimmed

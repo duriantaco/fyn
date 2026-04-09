@@ -1,5 +1,3 @@
-use std::fs;
-
 use anyhow::Result;
 use serde_json::Value;
 
@@ -12,14 +10,14 @@ fn write_fake_package(
     module_contents: &str,
 ) -> Result<()> {
     let package_dir = context.site_packages().join(name);
-    fs::create_dir_all(&package_dir)?;
-    fs::write(package_dir.join("__init__.py"), module_contents)?;
+    fs_err::create_dir_all(&package_dir)?;
+    fs_err::write(package_dir.join("__init__.py"), module_contents)?;
 
     let dist_info = context
         .site_packages()
         .join(format!("{name}-{version}.dist-info"));
-    fs::create_dir_all(&dist_info)?;
-    fs::write(
+    fs_err::create_dir_all(&dist_info)?;
+    fs_err::write(
         dist_info.join("METADATA"),
         format!("Metadata-Version: 2.1\nName: {name}\nVersion: {version}\n"),
     )?;
