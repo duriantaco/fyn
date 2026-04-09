@@ -88,7 +88,7 @@ pub enum Error {
     Download(#[from] downloads::Error),
 
     #[error(transparent)]
-    ClientBuild(#[from] fyn_client::ClientBuildError),
+    ClientBuild(#[from] Box<fyn_client::ClientBuildError>),
 
     // TODO(zanieb) We might want to ensure this is always wrapped in another type
     #[error(transparent)]
@@ -105,6 +105,12 @@ pub enum Error {
 
     #[error(transparent)]
     RetryParsing(#[from] fyn_client::RetryParsingError),
+}
+
+impl From<fyn_client::ClientBuildError> for Error {
+    fn from(value: fyn_client::ClientBuildError) -> Self {
+        Self::ClientBuild(Box::new(value))
+    }
 }
 
 impl Error {

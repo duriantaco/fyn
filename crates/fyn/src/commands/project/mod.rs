@@ -140,7 +140,7 @@ pub(crate) enum ProjectError {
     LockMismatch(Option<Box<Lock>>, Box<Lock>, LockCheckSource),
 
     #[error(transparent)]
-    ClientBuild(#[from] fyn_client::ClientBuildError),
+    ClientBuild(#[from] Box<fyn_client::ClientBuildError>),
 
     #[error(
         "Unable to find lockfile at `fyn.lock`, but {0} was provided. To create a lockfile, run `fyn lock` or `fyn sync` without the flag."
@@ -347,6 +347,12 @@ pub(crate) enum ProjectError {
 
     #[error(transparent)]
     Anyhow(#[from] anyhow::Error),
+}
+
+impl From<fyn_client::ClientBuildError> for ProjectError {
+    fn from(value: fyn_client::ClientBuildError) -> Self {
+        Self::ClientBuild(Box::new(value))
+    }
 }
 
 #[derive(Debug)]
