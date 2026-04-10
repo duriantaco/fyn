@@ -926,6 +926,19 @@ fn help_torch_doctor_subcommand() {
 }
 
 #[test]
+fn help_shell_subcommand() {
+    let context = fyn_test::test_context_with_versions!(&[]);
+    let output = context.help().arg("shell").output().unwrap();
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("Activate the virtual environment in a new shell."));
+    assert!(stdout.contains("Usage: fyn shell [OPTIONS] [PATH]"));
+    assert!(stdout.contains("--env-file"));
+    assert!(stdout.contains("--no-env-file"));
+}
+
+#[test]
 fn help_unknown_subcommand() {
     let context = fyn_test::test_context_with_versions!(&[]);
 

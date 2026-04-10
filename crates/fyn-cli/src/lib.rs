@@ -4370,6 +4370,21 @@ pub struct ShellArgs {
     #[arg(value_hint = ValueHint::DirPath)]
     pub path: Option<PathBuf>,
 
+    /// Load environment variables from a `.env` file.
+    ///
+    /// Can be provided multiple times, with subsequent files overriding values defined in previous
+    /// files.
+    #[arg(long, env = EnvVars::UV_ENV_FILE, value_hint = ValueHint::FilePath)]
+    pub env_file: Vec<String>,
+
+    /// Avoid reading environment variables from a `.env` file [env: UV_NO_ENV_FILE=]
+    #[arg(
+        long,
+        env = EnvVars::UV_NO_ENV_FILE,
+        value_parser = clap::builder::BoolishValueParser::new()
+    )]
+    pub no_env_file: bool,
+
     /// Avoid discovering a project or workspace.
     ///
     /// By default, fyn searches for projects in the current directory or any
