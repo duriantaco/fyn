@@ -400,7 +400,7 @@ fn dependency_guard_skips_empty_compile_only_plan() -> Result<()> {
 }
 
 #[test]
-fn dependency_guard_flags_appear_in_pip_install_help() -> Result<()> {
+fn dependency_guard_flags_appear_in_pip_install_help() {
     let context = fyn_test::test_context_with_versions!(&[]);
 
     context
@@ -418,12 +418,10 @@ fn dependency_guard_flags_appear_in_pip_install_help() -> Result<()> {
             "--dependency-guard-socket-min-score",
         ))
         .stdout(predicate::str::contains("--guard-socket-min-score"));
-
-    Ok(())
 }
 
 #[test]
-fn dependency_guard_flags_appear_in_sync_help() -> Result<()> {
+fn dependency_guard_flags_appear_in_sync_help() {
     let context = fyn_test::test_context_with_versions!(&[]);
 
     context
@@ -440,6 +438,4 @@ fn dependency_guard_flags_appear_in_sync_help() -> Result<()> {
             "--dependency-guard-socket-min-score",
         ))
         .stdout(predicate::str::contains("--guard-socket-min-score"));
-
-    Ok(())
 }
