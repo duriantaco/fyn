@@ -5,7 +5,7 @@ use std::time::Duration;
 use std::{fmt::Write, process::ExitCode};
 
 use anstream::AutoStream;
-use anyhow::Context;
+use anyhow::{Context, bail};
 use owo_colors::OwoColorize;
 use tracing::debug;
 
@@ -20,12 +20,13 @@ pub(crate) use cache_dir::cache_dir;
 pub(crate) use cache_prune::cache_prune;
 pub(crate) use cache_size::cache_size;
 use fyn_cache::Cache;
-use fyn_configuration::Concurrency;
+use fyn_configuration::{Concurrency, EnvFile};
 pub(crate) use fyn_console::human_readable_bytes;
 use fyn_fs::{CWD, Simplified};
 use fyn_installer::compile_tree;
 use fyn_python::PythonEnvironment;
 use fyn_scripts::Pep723Script;
+use fyn_warnings::warn_user;
 pub(crate) use help::help;
 pub(crate) use pip::check::pip_check;
 pub(crate) use pip::compile::pip_compile;
@@ -145,6 +146,91 @@ pub(super) fn elapsed(duration: Duration) -> String {
     } else {
         format!("0.{:02}ms", duration.subsec_nanos() / 10_000)
     }
+}
+
+/// Load environment variables from one or more explicit `.env` files.
+///
+/// Files are loaded in reverse order so later paths override earlier ones while still preserving
+/// values already present in the process environment.
+pub(super) fn load_explicit_env_files<'a>(
+    env_file_paths: impl DoubleEndedIterator<Item = &'a Path>,
+) -> anyhow::Result<()> {
+    for env_file_path in env_file_paths.rev() {
+        match dotenvy::from_path(env_file_path) {
+            Err(dotenvy::Error::Io(err)) if err.kind() == std::io::ErrorKind::NotFound => {
+                bail!(
+                    "No environment file found at: `{}`",
+                    env_file_path.simplified_display()
+                );
+            }
+            Err(dotenvy::Error::Io(err)) => {
+                bail!(
+                    "Failed to read environment file `{}`: {err}",
+                    env_file_path.simplified_display()
+                );
+            }
+            Err(dotenvy::Error::LineParse(content, position)) => {
+                warn_user!(
+                    "Failed to parse environment file `{}` at position {position}: {content}",
+                    env_file_path.simplified_display(),
+                );
+            }
+            Err(err) => {
+                warn_user!(
+                    "Failed to parse environment file `{}`: {err}",
+                    env_file_path.simplified_display(),
+                );
+            }
+            Ok(()) => {
+                debug!(
+                    "Read environment file at: `{}`",
+                    env_file_path.simplified_display()
+                );
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Load environment variables from the default `.env` file in the current directory.
+///
+/// Missing files are ignored to keep default loading a no-op when no `.env` file is present.
+pub(super) fn load_default_env_file(filename: &Path) -> anyhow::Result<()> {
+    match dotenvy::from_path(filename) {
+        Err(dotenvy::Error::Io(err)) if err.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(dotenvy::Error::Io(err)) => {
+            bail!(
+                "Failed to read environment file `{}`: {err}",
+                filename.simplified_display()
+            );
+        }
+        Err(dotenvy::Error::LineParse(content, position)) => {
+            warn_user!(
+                "Failed to parse environment file `{}` at position {position}: {content}",
+                filename.simplified_display(),
+            );
+            Ok(())
+        }
+        Err(err) => {
+            warn_user!(
+                "Failed to parse environment file `{}`: {err}",
+                filename.simplified_display(),
+            );
+            Ok(())
+        }
+        Ok(()) => {
+            debug!(
+                "Read default environment file at: `{}`",
+                filename.simplified_display()
+            );
+            Ok(())
+        }
+    }
+}
+
+pub(super) fn has_explicit_env_files(env_file: &EnvFile) -> bool {
+    env_file.iter().next().is_some()
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]

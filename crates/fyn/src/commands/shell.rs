@@ -1,5 +1,6 @@
 use std::env;
 use std::fmt::Write;
+use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -7,6 +8,7 @@ use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
 
 use fyn_cache::Cache;
+use fyn_configuration::EnvFile;
 use fyn_fs::Simplified;
 use fyn_python::PythonEnvironment;
 use fyn_shell::Shell;
@@ -20,6 +22,8 @@ use crate::printer::Printer;
 pub(crate) async fn shell(
     path: Option<PathBuf>,
     no_project: bool,
+    env_file: EnvFile,
+    no_env_file: bool,
     cache: &Cache,
     printer: Printer,
 ) -> Result<ExitStatus> {
@@ -87,6 +91,14 @@ pub(crate) async fn shell(
     let detected_shell = Shell::from_env().context(
         "Could not detect the current shell. Set the SHELL environment variable and try again.",
     )?;
+
+    if !no_env_file {
+        if crate::commands::has_explicit_env_files(&env_file) {
+            crate::commands::load_explicit_env_files(env_file.iter().map(PathBuf::as_path))?;
+        } else {
+            crate::commands::load_default_env_file(Path::new(".env"))?;
+        }
+    }
 
     // Get the scripts directory (bin on Unix, Scripts on Windows).
     let scripts = venv.scripts();

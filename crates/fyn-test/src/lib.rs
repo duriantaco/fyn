@@ -1321,6 +1321,22 @@ impl TestContext {
         command
     }
 
+    /// Create a `fyn shell` command with options shared across scenarios.
+    pub fn shell(&self) -> Command {
+        let mut command = self.new_command();
+        command.arg("shell");
+        self.add_shared_options(&mut command, false);
+        command
+            .env_remove(EnvVars::NU_VERSION)
+            .env_remove(EnvVars::FISH_VERSION)
+            .env_remove(EnvVars::BASH_VERSION)
+            .env_remove(EnvVars::ZSH_VERSION)
+            .env_remove(EnvVars::KSH_VERSION)
+            .env_remove(EnvVars::PS_MODULE_PATH)
+            .env_remove(EnvVars::PROMPT);
+        command
+    }
+
     /// Create a `pip install` command with options shared across scenarios.
     pub fn pip_install(&self) -> Command {
         let mut command = self.new_command();
