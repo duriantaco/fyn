@@ -32,7 +32,7 @@ use fyn_resolver::{
     AnnotationStyle, ExcludeNewerPackageEntry, ExcludeNewerValue, ForkStrategy, PrereleaseMode,
     ResolutionMode,
 };
-use fyn_settings::PythonInstallMirrors;
+use fyn_settings::{DependencyGuardProvider, PythonInstallMirrors};
 use fyn_static::EnvVars;
 use fyn_torch::TorchMode;
 use fyn_workspace::pyproject_mut::AddBoundsKind;
@@ -3392,6 +3392,50 @@ pub struct PipUpgradeArgs {
     )]
     pub link_mode: Option<fyn_install_wheel::LinkMode>,
 
+    /// Providers to run before performing host-side dependency installs.
+    ///
+    /// `socket` performs a package reputation lookup through the Socket CLI for registry
+    /// dependencies. `command` runs an external process and sends the planned install set as JSON
+    /// over stdin so another program can allow or block the operation.
+    #[arg(
+        long,
+        visible_alias = "guard-provider",
+        value_enum,
+        env = EnvVars::UV_DEPENDENCY_GUARD_PROVIDER,
+        help_heading = "Installer options",
+        value_delimiter = ' '
+    )]
+    pub dependency_guard_provider: Vec<DependencyGuardProvider>,
+
+    /// The external command to invoke when `command` is included in
+    /// `--dependency-guard-provider`.
+    ///
+    /// The command receives a JSON payload on stdin describing the packages that are about to be
+    /// prepared or installed. The top-level payload includes `schema_version`, `socket_min_score`,
+    /// `remote`, `cached`, `reinstalls`, and `extraneous`. Exit with code 0 to allow the install,
+    /// or any non-zero code to block it.
+    #[arg(
+        long,
+        visible_alias = "guard-command",
+        env = EnvVars::UV_DEPENDENCY_GUARD_COMMAND,
+        help_heading = "Installer options",
+        num_args = 1..,
+        value_delimiter = ' ',
+        value_hint = ValueHint::Other
+    )]
+    pub dependency_guard_command: Option<Vec<String>>,
+
+    /// The minimum Socket score required when `socket` is included in
+    /// `--dependency-guard-provider`.
+    #[arg(
+        long,
+        visible_alias = "guard-socket-min-score",
+        env = EnvVars::UV_DEPENDENCY_GUARD_SOCKET_MIN_SCORE,
+        help_heading = "Installer options",
+        value_parser = clap::value_parser!(u8).range(0..=100)
+    )]
+    pub dependency_guard_socket_min_score: Option<u8>,
+
     /// Compile Python files to bytecode after installation.
     ///
     /// By default, fyn does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);
@@ -4369,6 +4413,21 @@ pub struct ShellArgs {
     /// variable can also be used to specify the virtual environment.
     #[arg(value_hint = ValueHint::DirPath)]
     pub path: Option<PathBuf>,
+
+    /// Load environment variables from a `.env` file.
+    ///
+    /// Can be provided multiple times, with subsequent files overriding values defined in previous
+    /// files.
+    #[arg(long, env = EnvVars::UV_ENV_FILE, value_hint = ValueHint::FilePath)]
+    pub env_file: Vec<String>,
+
+    /// Avoid reading environment variables from a `.env` file [env: UV_NO_ENV_FILE=]
+    #[arg(
+        long,
+        env = EnvVars::UV_NO_ENV_FILE,
+        value_parser = clap::builder::BoolishValueParser::new()
+    )]
+    pub no_env_file: bool,
 
     /// Avoid discovering a project or workspace.
     ///
@@ -7256,6 +7315,50 @@ pub struct ToolUpgradeArgs {
     )]
     pub link_mode: Option<fyn_install_wheel::LinkMode>,
 
+    /// Providers to run before performing host-side dependency installs.
+    ///
+    /// `socket` performs a package reputation lookup through the Socket CLI for registry
+    /// dependencies. `command` runs an external process and sends the planned install set as JSON
+    /// over stdin so another program can allow or block the operation.
+    #[arg(
+        long,
+        visible_alias = "guard-provider",
+        value_enum,
+        env = EnvVars::UV_DEPENDENCY_GUARD_PROVIDER,
+        help_heading = "Installer options",
+        value_delimiter = ' '
+    )]
+    pub dependency_guard_provider: Vec<DependencyGuardProvider>,
+
+    /// The external command to invoke when `command` is included in
+    /// `--dependency-guard-provider`.
+    ///
+    /// The command receives a JSON payload on stdin describing the packages that are about to be
+    /// prepared or installed. The top-level payload includes `schema_version`, `socket_min_score`,
+    /// `remote`, `cached`, `reinstalls`, and `extraneous`. Exit with code 0 to allow the install,
+    /// or any non-zero code to block it.
+    #[arg(
+        long,
+        visible_alias = "guard-command",
+        env = EnvVars::UV_DEPENDENCY_GUARD_COMMAND,
+        help_heading = "Installer options",
+        num_args = 1..,
+        value_delimiter = ' ',
+        value_hint = ValueHint::Other
+    )]
+    pub dependency_guard_command: Option<Vec<String>>,
+
+    /// The minimum Socket score required when `socket` is included in
+    /// `--dependency-guard-provider`.
+    #[arg(
+        long,
+        visible_alias = "guard-socket-min-score",
+        env = EnvVars::UV_DEPENDENCY_GUARD_SOCKET_MIN_SCORE,
+        help_heading = "Installer options",
+        value_parser = clap::value_parser!(u8).range(0..=100)
+    )]
+    pub dependency_guard_socket_min_score: Option<u8>,
+
     /// Compile Python files to bytecode after installation.
     ///
     /// By default, fyn does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);
@@ -8339,6 +8442,50 @@ pub struct InstallerArgs {
     )]
     pub link_mode: Option<fyn_install_wheel::LinkMode>,
 
+    /// Providers to run before performing host-side dependency installs.
+    ///
+    /// `socket` performs a package reputation lookup through the Socket CLI for registry
+    /// dependencies. `command` runs an external process and sends the planned install set as JSON
+    /// over stdin so another program can allow or block the operation.
+    #[arg(
+        long,
+        visible_alias = "guard-provider",
+        value_enum,
+        env = EnvVars::UV_DEPENDENCY_GUARD_PROVIDER,
+        help_heading = "Installer options",
+        value_delimiter = ' '
+    )]
+    pub dependency_guard_provider: Vec<DependencyGuardProvider>,
+
+    /// The external command to invoke when `command` is included in
+    /// `--dependency-guard-provider`.
+    ///
+    /// The command receives a JSON payload on stdin describing the packages that are about to be
+    /// prepared or installed. The top-level payload includes `schema_version`, `socket_min_score`,
+    /// `remote`, `cached`, `reinstalls`, and `extraneous`. Exit with code 0 to allow the install,
+    /// or any non-zero code to block it.
+    #[arg(
+        long,
+        visible_alias = "guard-command",
+        env = EnvVars::UV_DEPENDENCY_GUARD_COMMAND,
+        help_heading = "Installer options",
+        num_args = 1..,
+        value_delimiter = ' ',
+        value_hint = ValueHint::Other
+    )]
+    pub dependency_guard_command: Option<Vec<String>>,
+
+    /// The minimum Socket score required when `socket` is included in
+    /// `--dependency-guard-provider`.
+    #[arg(
+        long,
+        visible_alias = "guard-socket-min-score",
+        env = EnvVars::UV_DEPENDENCY_GUARD_SOCKET_MIN_SCORE,
+        help_heading = "Installer options",
+        value_parser = clap::value_parser!(u8).range(0..=100)
+    )]
+    pub dependency_guard_socket_min_score: Option<u8>,
+
     /// Compile Python files to bytecode after installation.
     ///
     /// By default, fyn does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);
@@ -9000,6 +9147,50 @@ pub struct ResolverInstallerArgs {
         help_heading = "Installer options"
     )]
     pub link_mode: Option<fyn_install_wheel::LinkMode>,
+
+    /// Providers to run before performing host-side dependency installs.
+    ///
+    /// `socket` performs a package reputation lookup through the Socket CLI for registry
+    /// dependencies. `command` runs an external process and sends the planned install set as JSON
+    /// over stdin so another program can allow or block the operation.
+    #[arg(
+        long,
+        visible_alias = "guard-provider",
+        value_enum,
+        env = EnvVars::UV_DEPENDENCY_GUARD_PROVIDER,
+        help_heading = "Installer options",
+        value_delimiter = ' '
+    )]
+    pub dependency_guard_provider: Vec<DependencyGuardProvider>,
+
+    /// The external command to invoke when `command` is included in
+    /// `--dependency-guard-provider`.
+    ///
+    /// The command receives a JSON payload on stdin describing the packages that are about to be
+    /// prepared or installed. The top-level payload includes `schema_version`, `socket_min_score`,
+    /// `remote`, `cached`, `reinstalls`, and `extraneous`. Exit with code 0 to allow the install,
+    /// or any non-zero code to block it.
+    #[arg(
+        long,
+        visible_alias = "guard-command",
+        env = EnvVars::UV_DEPENDENCY_GUARD_COMMAND,
+        help_heading = "Installer options",
+        num_args = 1..,
+        value_delimiter = ' ',
+        value_hint = ValueHint::Other
+    )]
+    pub dependency_guard_command: Option<Vec<String>>,
+
+    /// The minimum Socket score required when `socket` is included in
+    /// `--dependency-guard-provider`.
+    #[arg(
+        long,
+        visible_alias = "guard-socket-min-score",
+        env = EnvVars::UV_DEPENDENCY_GUARD_SOCKET_MIN_SCORE,
+        help_heading = "Installer options",
+        value_parser = clap::value_parser!(u8).range(0..=100)
+    )]
+    pub dependency_guard_socket_min_score: Option<u8>,
 
     /// Compile Python files to bytecode after installation.
     ///

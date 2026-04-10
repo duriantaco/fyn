@@ -48,6 +48,7 @@ use crate::commands::pip::{operations, resolution_markers, resolution_tags};
 use crate::commands::reporters::PythonDownloadReporter;
 use crate::commands::{ExitStatus, diagnostics};
 use crate::printer::Printer;
+use crate::settings::DependencyGuardSettings;
 
 /// Install packages into the current environment.
 #[expect(clippy::fn_params_excessive_bools)]
@@ -75,6 +76,7 @@ pub(crate) async fn pip_install(
     client_builder: &BaseClientBuilder<'_>,
     reinstall: Reinstall,
     link_mode: LinkMode,
+    dependency_guard: DependencyGuardSettings,
     compile: bool,
     hash_checking: Option<HashCheckingMode>,
     installer_metadata: bool,
@@ -656,6 +658,7 @@ pub(crate) async fn pip_install(
         &reinstall,
         &build_options,
         link_mode,
+        &dependency_guard,
         compile,
         &hasher,
         &tags,

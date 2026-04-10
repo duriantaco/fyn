@@ -35,7 +35,7 @@ use fyn_cli::{
     WorkspaceNamespace, compat::CompatArgs,
 };
 use fyn_client::BaseClientBuilder;
-use fyn_configuration::min_stack_size;
+use fyn_configuration::{EnvFile, min_stack_size};
 use fyn_flags::EnvironmentFlags;
 use fyn_fs::{CWD, Simplified};
 #[cfg(feature = "self-update")]
@@ -64,6 +64,7 @@ use crate::settings::{
 
 pub(crate) mod child;
 pub(crate) mod commands;
+mod dependency_guard;
 #[cfg(not(feature = "self-update"))]
 mod install_source;
 pub(crate) mod logging;
@@ -832,6 +833,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 &groups,
                 args.settings.reinstall,
                 args.settings.link_mode,
+                args.settings.dependency_guard.clone(),
                 args.settings.compile_bytecode,
                 args.settings.hash_checking,
                 args.settings.index_locations,
@@ -1009,6 +1011,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 &client_builder.subcommand(vec!["pip".to_owned(), "install".to_owned()]),
                 args.settings.reinstall,
                 args.settings.link_mode,
+                args.settings.dependency_guard.clone(),
                 args.settings.compile_bytecode,
                 args.settings.hash_checking,
                 globals.installer_metadata,
@@ -1680,7 +1683,15 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         }
         Commands::Shell(args) => {
             let cache = cache.init().await?;
-            commands::shell(args.path, args.no_project, &cache, printer).await
+            commands::shell(
+                args.path,
+                args.no_project,
+                EnvFile::from_args(args.env_file, args.no_env_file),
+                args.no_env_file,
+                &cache,
+                printer,
+            )
+            .await
         }
         Commands::Project(project) => {
             Box::pin(run_project(

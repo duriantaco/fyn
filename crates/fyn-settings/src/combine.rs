@@ -123,6 +123,7 @@ impl_combine_or!(TargetTriple);
 impl_combine_or!(TorchMode);
 impl_combine_or!(TrustedPublishing);
 impl_combine_or!(Url);
+impl_combine_or!(u8);
 impl_combine_or!(bool);
 
 impl<T> Combine for Option<Vec<T>> {

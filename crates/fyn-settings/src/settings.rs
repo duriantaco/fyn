@@ -424,6 +424,15 @@ pub enum PipInProjectPolicy {
     Error,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, Serialize, clap::ValueEnum)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub enum DependencyGuardProvider {
+    #[default]
+    Socket,
+    Command,
+}
+
 /// Settings relevant to all installer operations.
 #[derive(Debug, Clone, Default, CombineOptions)]
 pub struct InstallerOptions {
@@ -437,6 +446,9 @@ pub struct InstallerOptions {
     pub config_settings: Option<ConfigSettings>,
     pub exclude_newer: Option<ExcludeNewerValue>,
     pub link_mode: Option<LinkMode>,
+    pub dependency_guard_provider: Option<Vec<DependencyGuardProvider>>,
+    pub dependency_guard_command: Option<Vec<String>>,
+    pub dependency_guard_socket_min_score: Option<u8>,
     pub compile_bytecode: Option<bool>,
     pub reinstall: Option<Reinstall>,
     pub build_isolation: Option<BuildIsolation>,
@@ -503,6 +515,9 @@ pub struct ResolverInstallerOptions {
     pub exclude_newer_package: Option<ExcludeNewerPackage>,
     pub link_mode: Option<LinkMode>,
     pub torch_backend: Option<TorchMode>,
+    pub dependency_guard_provider: Option<Vec<DependencyGuardProvider>>,
+    pub dependency_guard_command: Option<Vec<String>>,
+    pub dependency_guard_socket_min_score: Option<u8>,
     pub compile_bytecode: Option<bool>,
     pub no_sources: Option<bool>,
     pub no_sources_package: Option<Vec<PackageName>>,
@@ -557,6 +572,9 @@ impl From<ResolverInstallerSchema> for ResolverInstallerOptions {
             exclude_newer_package,
             link_mode,
             torch_backend,
+            dependency_guard_provider,
+            dependency_guard_command,
+            dependency_guard_socket_min_score,
             compile_bytecode,
             no_sources,
             no_sources_package,
@@ -593,6 +611,9 @@ impl From<ResolverInstallerSchema> for ResolverInstallerOptions {
             exclude_newer_package,
             link_mode,
             torch_backend,
+            dependency_guard_provider,
+            dependency_guard_command,
+            dependency_guard_socket_min_score,
             compile_bytecode,
             no_sources,
             no_sources_package,
@@ -978,6 +999,44 @@ pub struct ResolverInstallerSchema {
         possible_values = true
     )]
     pub link_mode: Option<LinkMode>,
+    /// Providers to run before performing host-side dependency installs.
+    ///
+    /// `socket` performs a package reputation lookup through the Socket CLI for registry
+    /// dependencies. `command` runs an external process and sends the planned install set as JSON
+    /// over stdin so another program can allow or block the operation.
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            dependency-guard-provider = ["socket", "command"]
+        "#
+    )]
+    pub dependency_guard_provider: Option<Vec<DependencyGuardProvider>>,
+    /// The external command to invoke when `command` is included in
+    /// [`dependency_guard_provider`](#dependency-guard-provider).
+    ///
+    /// The command receives a JSON payload on stdin describing the packages that are about to be
+    /// prepared or installed. The top-level payload includes `schema_version`, `socket_min_score`,
+    /// `remote`, `cached`, `reinstalls`, and `extraneous`. Exit with code 0 to allow the install,
+    /// or any non-zero code to block it.
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            dependency-guard-command = ["python", "scripts/install_guard.py"]
+        "#
+    )]
+    pub dependency_guard_command: Option<Vec<String>>,
+    /// The minimum Socket score required when `socket` is included in
+    /// [`dependency_guard_provider`](#dependency-guard-provider).
+    #[option(
+        default = "80",
+        value_type = "int",
+        example = r#"
+            dependency-guard-socket-min-score = 90
+        "#
+    )]
+    pub dependency_guard_socket_min_score: Option<u8>,
     /// Compile Python files to bytecode after installation.
     ///
     /// By default, fyn does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);
@@ -1859,6 +1918,44 @@ pub struct PipOptions {
         possible_values = true
     )]
     pub link_mode: Option<LinkMode>,
+    /// Providers to run before performing host-side dependency installs.
+    ///
+    /// `socket` performs a package reputation lookup through the Socket CLI for registry
+    /// dependencies. `command` runs an external process and sends the planned install set as JSON
+    /// over stdin so another program can allow or block the operation.
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            dependency-guard-provider = ["socket", "command"]
+        "#
+    )]
+    pub dependency_guard_provider: Option<Vec<DependencyGuardProvider>>,
+    /// The external command to invoke when `command` is included in
+    /// [`dependency_guard_provider`](#dependency-guard-provider).
+    ///
+    /// The command receives a JSON payload on stdin describing the packages that are about to be
+    /// prepared or installed. The top-level payload includes `schema_version`, `socket_min_score`,
+    /// `remote`, `cached`, `reinstalls`, and `extraneous`. Exit with code 0 to allow the install,
+    /// or any non-zero code to block it.
+    #[option(
+        default = "[]",
+        value_type = "list[str]",
+        example = r#"
+            dependency-guard-command = ["python", "scripts/install_guard.py"]
+        "#
+    )]
+    pub dependency_guard_command: Option<Vec<String>>,
+    /// The minimum Socket score required when `socket` is included in
+    /// [`dependency_guard_provider`](#dependency-guard-provider).
+    #[option(
+        default = "80",
+        value_type = "int",
+        example = r#"
+            dependency-guard-socket-min-score = 90
+        "#
+    )]
+    pub dependency_guard_socket_min_score: Option<u8>,
     /// Compile Python files to bytecode after installation.
     ///
     /// By default, fyn does not compile Python (`.py`) files to bytecode (`__pycache__/*.pyc`);
@@ -2108,6 +2205,9 @@ impl From<ResolverInstallerSchema> for InstallerOptions {
             )
             .global,
             link_mode: value.link_mode,
+            dependency_guard_provider: value.dependency_guard_provider,
+            dependency_guard_command: value.dependency_guard_command,
+            dependency_guard_socket_min_score: value.dependency_guard_socket_min_score,
             compile_bytecode: value.compile_bytecode,
             reinstall: Reinstall::from_args(
                 value.reinstall,
@@ -2156,6 +2256,9 @@ pub struct ToolOptions {
     pub exclude_newer: Option<ExcludeNewerValue>,
     pub exclude_newer_package: Option<ExcludeNewerPackage>,
     pub link_mode: Option<LinkMode>,
+    pub dependency_guard_provider: Option<Vec<DependencyGuardProvider>>,
+    pub dependency_guard_command: Option<Vec<String>>,
+    pub dependency_guard_socket_min_score: Option<u8>,
     pub compile_bytecode: Option<bool>,
     pub no_sources: Option<bool>,
     pub no_sources_package: Option<Vec<PackageName>>,
@@ -2191,6 +2294,9 @@ pub struct ToolOptionsWire {
     #[serde(serialize_with = "serialize_exclude_newer_package_with_spans")]
     pub exclude_newer_package: Option<ExcludeNewerPackage>,
     pub link_mode: Option<LinkMode>,
+    pub dependency_guard_provider: Option<Vec<DependencyGuardProvider>>,
+    pub dependency_guard_command: Option<Vec<String>>,
+    pub dependency_guard_socket_min_score: Option<u8>,
     pub compile_bytecode: Option<bool>,
     pub no_sources: Option<bool>,
     pub no_sources_package: Option<Vec<PackageName>>,
@@ -2228,6 +2334,9 @@ impl From<ResolverInstallerOptions> for ToolOptions {
             exclude_newer: value.exclude_newer,
             exclude_newer_package: value.exclude_newer_package,
             link_mode: value.link_mode,
+            dependency_guard_provider: value.dependency_guard_provider,
+            dependency_guard_command: value.dependency_guard_command,
+            dependency_guard_socket_min_score: value.dependency_guard_socket_min_score,
             compile_bytecode: value.compile_bytecode,
             no_sources: value.no_sources,
             no_sources_package: value.no_sources_package,
@@ -2270,6 +2379,9 @@ impl From<ToolOptionsWire> for ToolOptions {
             exclude_newer,
             exclude_newer_package: value.exclude_newer_package,
             link_mode: value.link_mode,
+            dependency_guard_provider: value.dependency_guard_provider,
+            dependency_guard_command: value.dependency_guard_command,
+            dependency_guard_socket_min_score: value.dependency_guard_socket_min_score,
             compile_bytecode: value.compile_bytecode,
             no_sources: value.no_sources,
             no_sources_package: value.no_sources_package,
@@ -2312,6 +2424,9 @@ impl From<ToolOptions> for ToolOptionsWire {
             exclude_newer_span,
             exclude_newer_package: value.exclude_newer_package,
             link_mode: value.link_mode,
+            dependency_guard_provider: value.dependency_guard_provider,
+            dependency_guard_command: value.dependency_guard_command,
+            dependency_guard_socket_min_score: value.dependency_guard_socket_min_score,
             compile_bytecode: value.compile_bytecode,
             no_sources: value.no_sources,
             no_sources_package: value.no_sources_package,
@@ -2346,6 +2461,9 @@ impl From<ToolOptions> for ResolverInstallerOptions {
             exclude_newer: value.exclude_newer,
             exclude_newer_package: value.exclude_newer_package,
             link_mode: value.link_mode,
+            dependency_guard_provider: value.dependency_guard_provider,
+            dependency_guard_command: value.dependency_guard_command,
+            dependency_guard_socket_min_score: value.dependency_guard_socket_min_score,
             compile_bytecode: value.compile_bytecode,
             no_sources: value.no_sources,
             no_sources_package: value.no_sources_package,
@@ -2406,6 +2524,9 @@ pub struct OptionsWire {
     exclude_newer: Option<ExcludeNewerValue>,
     exclude_newer_package: Option<ExcludeNewerPackage>,
     link_mode: Option<LinkMode>,
+    dependency_guard_provider: Option<Vec<DependencyGuardProvider>>,
+    dependency_guard_command: Option<Vec<String>>,
+    dependency_guard_socket_min_score: Option<u8>,
     compile_bytecode: Option<bool>,
     no_sources: Option<bool>,
     no_sources_package: Option<Vec<PackageName>>,
@@ -2507,6 +2628,9 @@ impl From<OptionsWire> for Options {
             exclude_newer,
             exclude_newer_package,
             link_mode,
+            dependency_guard_provider,
+            dependency_guard_command,
+            dependency_guard_socket_min_score,
             compile_bytecode,
             no_sources,
             no_sources_package,
@@ -2587,6 +2711,9 @@ impl From<OptionsWire> for Options {
                 exclude_newer,
                 exclude_newer_package,
                 link_mode,
+                dependency_guard_provider,
+                dependency_guard_command,
+                dependency_guard_socket_min_score,
                 compile_bytecode,
                 no_sources,
                 no_sources_package,

@@ -277,6 +277,11 @@ Installed 43 packages in 208ms
  ...
 ```
 
+Need an install gate before packages touch the host? `fyn pip install`, `fyn pip sync`,
+`fyn pip upgrade`, and `fyn sync` all support dependency guard providers, including Socket lookups
+and an external command hook for custom checks. See
+[guarding dependency installs](./pip/packages.md#guarding-dependency-installs).
+
 See the [pip interface documentation](./pip/index.md) to get started.
 
 ## Learn more

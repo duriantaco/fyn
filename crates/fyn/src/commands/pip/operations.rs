@@ -50,7 +50,9 @@ use fyn_warnings::warn_user;
 use crate::commands::compile_bytecode;
 use crate::commands::pip::loggers::{InstallLogger, ResolveLogger};
 use crate::commands::reporters::{InstallReporter, PrepareReporter, ResolverReporter};
+use crate::dependency_guard::run_dependency_guard;
 use crate::printer::Printer;
+use crate::settings::DependencyGuardSettings;
 
 /// Consolidate the requirements for an installation.
 pub(crate) async fn read_requirements(
@@ -566,6 +568,7 @@ pub(crate) async fn install(
     reinstall: &Reinstall,
     build_options: &BuildOptions,
     link_mode: LinkMode,
+    dependency_guard: &DependencyGuardSettings,
     compile: bool,
     hasher: &HashStrategy,
     tags: &Tags,
@@ -638,6 +641,8 @@ pub(crate) async fn install(
         logger.on_check(resolution.len(), start, printer, dry_run)?;
         return Ok(Changelog::default());
     }
+
+    run_dependency_guard(dependency_guard, &cached, &remote, &reinstalls, &extraneous).await?;
 
     // Partition into two sets: those that require build isolation, and those that disable it. This
     // is effectively a heuristic to make `--no-build-isolation` work "more often" by way of giving

@@ -161,6 +161,19 @@ impl EnvVars {
     #[attr_added_in("0.1.40")]
     pub const UV_LINK_MODE: &'static str = "UV_LINK_MODE";
 
+    /// Equivalent to the `--dependency-guard-provider` command-line argument.
+    #[attr_added_in("0.10.15")]
+    pub const UV_DEPENDENCY_GUARD_PROVIDER: &'static str = "UV_DEPENDENCY_GUARD_PROVIDER";
+
+    /// Equivalent to the `--dependency-guard-command` command-line argument.
+    #[attr_added_in("0.10.15")]
+    pub const UV_DEPENDENCY_GUARD_COMMAND: &'static str = "UV_DEPENDENCY_GUARD_COMMAND";
+
+    /// Equivalent to the `--dependency-guard-socket-min-score` command-line argument.
+    #[attr_added_in("0.10.15")]
+    pub const UV_DEPENDENCY_GUARD_SOCKET_MIN_SCORE: &'static str =
+        "UV_DEPENDENCY_GUARD_SOCKET_MIN_SCORE";
+
     /// Equivalent to the `--no-build-isolation` command-line argument. If set, fyn will
     /// skip isolation when building source distributions.
     #[attr_added_in("0.1.40")]

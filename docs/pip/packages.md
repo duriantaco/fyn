@@ -60,6 +60,77 @@ $ fyn pip install "git+https://github.com/astral-sh/ruff@main"
 See the [Git authentication](../concepts/authentication/git.md) documentation for installation from
 a private repository.
 
+## Guarding dependency installs
+
+Dependency guards are disabled by default. When enabled, fyn evaluates the planned install set
+before any host-side prepare or install work begins.
+
+The CLI examples below use the shorter `--guard-*` aliases. Configuration continues to use the full
+`dependency-guard-*` setting names.
+
+Use the built-in Socket provider to reject low-reputation registry packages:
+
+```console
+$ fyn pip install flask --guard-provider socket --guard-socket-min-score 90
+```
+
+Use the external command provider to delegate the decision to another program:
+
+```console
+$ fyn pip install flask --guard-provider command --guard-command install-guard
+```
+
+The command receives a JSON manifest on stdin describing the planned install. Exit with code `0` to
+allow the operation, or any non-zero code to block it.
+
+The top-level payload includes `schema_version`, `socket_min_score`, `remote`, `cached`,
+`reinstalls`, and `extraneous`. External commands should treat unknown schema versions as
+incompatible and block the install.
+
+You can combine both providers:
+
+```console
+$ fyn pip install flask \
+    --guard-provider socket \
+    --guard-provider command \
+    --guard-command install-guard \
+    --guard-socket-min-score 90
+```
+
+If the guard allows the install, fyn continues with its normal output. If it blocks, fyn exits
+before modifying the environment and reports the reason. For example:
+
+```console
+$ fyn pip install flask --guard-provider socket --guard-socket-min-score 90
+error: Socket dependency guard blocked `pkg:pypi/<name>@<version>` because the score 75 is below the minimum 90
+```
+
+```console
+$ fyn pip install flask --guard-provider command --guard-command install-guard
+error: Dependency guard command `install-guard` blocked installation: suspicious network activity
+```
+
+To enable guards by default for the pip interface, configure them in `pyproject.toml`:
+
+```toml title="pyproject.toml"
+[tool.fyn.pip]
+dependency-guard-provider = ["socket", "command"]
+dependency-guard-command = ["install-guard"]
+dependency-guard-socket-min-score = 90
+```
+
+Or in `fyn.toml`:
+
+```toml title="fyn.toml"
+[pip]
+dependency-guard-provider = ["socket", "command"]
+dependency-guard-command = ["install-guard"]
+dependency-guard-socket-min-score = 90
+```
+
+To apply the same settings to project-level commands such as `fyn sync`, set them under `[tool.fyn]`
+instead of `[tool.fyn.pip]`.
+
 ## Editable packages
 
 Editable packages do not need to be reinstalled for changes to their source code to be active.

@@ -47,6 +47,7 @@ use crate::commands::pip::{operations, resolution_markers, resolution_tags};
 use crate::commands::reporters::PythonDownloadReporter;
 use crate::commands::{ExitStatus, diagnostics};
 use crate::printer::Printer;
+use crate::settings::DependencyGuardSettings;
 
 /// Install a set of locked requirements into the current Python environment.
 #[expect(clippy::fn_params_excessive_bools)]
@@ -58,6 +59,7 @@ pub(crate) async fn pip_sync(
     groups: &GroupsSpecification,
     reinstall: Reinstall,
     link_mode: LinkMode,
+    dependency_guard: DependencyGuardSettings,
     compile: bool,
     hash_checking: Option<HashCheckingMode>,
     index_locations: IndexLocations,
@@ -547,6 +549,7 @@ pub(crate) async fn pip_sync(
         &reinstall,
         &build_options,
         link_mode,
+        &dependency_guard,
         compile,
         &hasher,
         &tags,

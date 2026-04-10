@@ -293,6 +293,33 @@ Installed 43 packages in 208ms
  ...
 ```
 
+Guard installs before they touch the host:
+
+```console
+$ fyn pip install flask --guard-provider socket
+```
+
+Dependency guards are disabled by default. When enabled, `socket` checks registry packages with the
+Socket CLI and `command` sends the planned install manifest to an external command over stdin. The
+external command can block the install by exiting non-zero. The same installer options are available
+on `fyn pip sync`, `fyn pip upgrade`, and `fyn sync`.
+
+The command provider receives a versioned JSON manifest with `schema_version`, `socket_min_score`,
+`remote`, `cached`, `reinstalls`, and `extraneous`, so external commands can validate the payload
+before acting on it.
+
+For a combined `socket` plus external-command example, see
+[the pip interface docs](docs/pip/packages.md#guarding-dependency-installs). The CLI also accepts
+the full `--dependency-guard-*` flag names; configuration continues to use `dependency-guard-*`
+keys.
+
+If every provider allows the plan, the install continues with its normal output. If a provider
+blocks, fyn exits before modifying the environment, for example:
+
+```text
+error: Socket dependency guard blocked `pkg:pypi/<name>@<version>` because the score 75 is below the minimum 90
+```
+
 ### Cache size limit
 
 Keep your cache from growing unbounded:

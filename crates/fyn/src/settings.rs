@@ -55,9 +55,9 @@ use fyn_resolver::{
     PrereleaseMode, ResolutionMode,
 };
 use fyn_settings::{
-    AuditOptions, Combine, EnvironmentOptions, FilesystemOptions, Options, PipOptions,
-    PublishOptions, PythonInstallMirrors, ResolverInstallerOptions, ResolverInstallerSchema,
-    ResolverOptions,
+    AuditOptions, Combine, DependencyGuardProvider, EnvironmentOptions, FilesystemOptions, Options,
+    PipOptions, PublishOptions, PythonInstallMirrors, ResolverInstallerOptions,
+    ResolverInstallerSchema, ResolverOptions,
 };
 use fyn_static::EnvVars;
 use fyn_torch::TorchMode;
@@ -1019,6 +1019,9 @@ impl ToolUpgradeSettings {
             build_isolation,
             exclude_newer,
             link_mode,
+            dependency_guard_provider,
+            dependency_guard_command,
+            dependency_guard_socket_min_score,
             compile_bytecode,
             no_compile_bytecode,
             no_sources,
@@ -1057,6 +1060,9 @@ impl ToolUpgradeSettings {
             exclude_newer,
             exclude_newer_package,
             link_mode,
+            dependency_guard_provider,
+            dependency_guard_command,
+            dependency_guard_socket_min_score,
             compile_bytecode,
             no_compile_bytecode,
             no_sources,
@@ -3464,6 +3470,9 @@ impl PipUpgradeSettings {
             exclude_newer,
             exclude_newer_package,
             link_mode,
+            dependency_guard_provider,
+            dependency_guard_command,
+            dependency_guard_socket_min_score,
             compile_bytecode,
             no_compile_bytecode,
             no_sources,
@@ -3499,6 +3508,9 @@ impl PipUpgradeSettings {
             exclude_newer,
             exclude_newer_package,
             link_mode,
+            dependency_guard_provider,
+            dependency_guard_command,
+            dependency_guard_socket_min_score,
             compile_bytecode,
             no_compile_bytecode,
             no_sources,
@@ -4068,6 +4080,40 @@ impl VenvSettings {
 ///
 /// Combines the `[tool.fyn]` persistent configuration with the command-line arguments
 /// ([`InstallerArgs`], represented as [`InstallerOptions`]).
+const DEFAULT_DEPENDENCY_GUARD_SOCKET_MIN_SCORE: u8 = 80;
+
+#[derive(Debug, Clone, Default)]
+pub(crate) struct DependencyGuardSettings {
+    pub(crate) providers: Vec<DependencyGuardProvider>,
+    pub(crate) command: Option<Vec<String>>,
+    pub(crate) socket_min_score: u8,
+}
+
+impl DependencyGuardSettings {
+    fn from_options(
+        providers: Option<Vec<DependencyGuardProvider>>,
+        command: Option<Vec<String>>,
+        socket_min_score: Option<u8>,
+    ) -> Self {
+        let mut providers = providers.unwrap_or_default();
+        providers.sort_unstable_by_key(|provider| match provider {
+            DependencyGuardProvider::Socket => 0_u8,
+            DependencyGuardProvider::Command => 1_u8,
+        });
+        providers.dedup();
+
+        Self {
+            providers,
+            command: command.filter(|command| !command.is_empty()),
+            socket_min_score: socket_min_score.unwrap_or(DEFAULT_DEPENDENCY_GUARD_SOCKET_MIN_SCORE),
+        }
+    }
+
+    pub(crate) fn enabled(&self) -> bool {
+        !self.providers.is_empty()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub(crate) struct InstallerSettingsRef<'a> {
     pub(crate) index_locations: &'a IndexLocations,
@@ -4081,6 +4127,7 @@ pub(crate) struct InstallerSettingsRef<'a> {
     pub(crate) extra_build_variables: &'a ExtraBuildVariables,
     pub(crate) exclude_newer: &'a ExcludeNewer,
     pub(crate) link_mode: LinkMode,
+    pub(crate) dependency_guard: &'a DependencyGuardSettings,
     pub(crate) compile_bytecode: bool,
     pub(crate) reinstall: &'a Reinstall,
     pub(crate) build_options: &'a BuildOptions,
@@ -4186,6 +4233,7 @@ impl From<ResolverOptions> for ResolverSettings {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct ResolverInstallerSettings {
     pub(crate) resolver: ResolverSettings,
+    pub(crate) dependency_guard: DependencyGuardSettings,
     pub(crate) compile_bytecode: bool,
     pub(crate) reinstall: Reinstall,
 }
@@ -4265,6 +4313,11 @@ impl From<ResolverInstallerOptions> for ResolverInstallerSettings {
                 torch_backend: value.torch_backend,
                 upgrade: value.upgrade.unwrap_or_default(),
             },
+            dependency_guard: DependencyGuardSettings::from_options(
+                value.dependency_guard_provider,
+                value.dependency_guard_command,
+                value.dependency_guard_socket_min_score,
+            ),
             compile_bytecode: value.compile_bytecode.unwrap_or_default(),
             reinstall: value.reinstall.unwrap_or_default(),
         }
@@ -4321,6 +4374,7 @@ pub(crate) struct PipSettings {
     pub(crate) emit_index_annotation: bool,
     pub(crate) annotation_style: AnnotationStyle,
     pub(crate) link_mode: LinkMode,
+    pub(crate) dependency_guard: DependencyGuardSettings,
     pub(crate) compile_bytecode: bool,
     pub(crate) sources: NoSources,
     pub(crate) hash_checking: Option<HashCheckingMode>,
@@ -4397,6 +4451,9 @@ impl PipSettings {
             emit_index_annotation,
             annotation_style,
             link_mode,
+            dependency_guard_provider,
+            dependency_guard_command,
+            dependency_guard_socket_min_score,
             compile_bytecode,
             require_hashes,
             verify_hashes,
@@ -4430,6 +4487,9 @@ impl PipSettings {
             extra_build_variables: top_level_extra_build_variables,
             exclude_newer: top_level_exclude_newer,
             link_mode: top_level_link_mode,
+            dependency_guard_provider: top_level_dependency_guard_provider,
+            dependency_guard_command: top_level_dependency_guard_command,
+            dependency_guard_socket_min_score: top_level_dependency_guard_socket_min_score,
             compile_bytecode: top_level_compile_bytecode,
             no_sources: top_level_no_sources,
             no_sources_package: top_level_no_sources_package,
@@ -4479,6 +4539,18 @@ impl PipSettings {
             .combine(top_level_exclude_newer_package)
             .unwrap_or_default();
         let link_mode = link_mode.combine(top_level_link_mode);
+        let dependency_guard_provider = args
+            .dependency_guard_provider
+            .combine(dependency_guard_provider)
+            .combine(top_level_dependency_guard_provider);
+        let dependency_guard_command = args
+            .dependency_guard_command
+            .combine(dependency_guard_command)
+            .combine(top_level_dependency_guard_command);
+        let dependency_guard_socket_min_score = args
+            .dependency_guard_socket_min_score
+            .combine(dependency_guard_socket_min_score)
+            .combine(top_level_dependency_guard_socket_min_score);
         let compile_bytecode = compile_bytecode.combine(top_level_compile_bytecode);
         let no_sources = no_sources.combine(top_level_no_sources);
         let no_sources_package = no_sources_package.combine(top_level_no_sources_package);
@@ -4624,6 +4696,11 @@ impl PipSettings {
                 .combine(emit_index_annotation)
                 .unwrap_or_default(),
             link_mode: args.link_mode.combine(link_mode).unwrap_or_default(),
+            dependency_guard: DependencyGuardSettings::from_options(
+                dependency_guard_provider,
+                dependency_guard_command,
+                dependency_guard_socket_min_score,
+            ),
             hash_checking: HashCheckingMode::from_args(
                 args.require_hashes.combine(require_hashes),
                 args.verify_hashes.combine(verify_hashes),
@@ -4709,6 +4786,7 @@ impl<'a> From<&'a ResolverInstallerSettings> for InstallerSettingsRef<'a> {
             extra_build_variables: &settings.resolver.extra_build_variables,
             exclude_newer: &settings.resolver.exclude_newer,
             link_mode: settings.resolver.link_mode,
+            dependency_guard: &settings.dependency_guard,
             compile_bytecode: settings.compile_bytecode,
             reinstall: &settings.reinstall,
             build_options: &settings.resolver.build_options,
