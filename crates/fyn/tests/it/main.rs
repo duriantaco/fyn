@@ -124,9 +124,6 @@ mod python_upgrade;
 #[cfg(all(feature = "test-python", feature = "test-pypi"))]
 mod run;
 
-#[cfg(feature = "test-python")]
-mod shell;
-
 #[cfg(feature = "self-update")]
 mod self_update;
 

@@ -35,7 +35,7 @@ use fyn_cli::{
     WorkspaceNamespace, compat::CompatArgs,
 };
 use fyn_client::BaseClientBuilder;
-use fyn_configuration::{EnvFile, min_stack_size};
+use fyn_configuration::min_stack_size;
 use fyn_flags::EnvironmentFlags;
 use fyn_fs::{CWD, Simplified};
 #[cfg(feature = "self-update")]
@@ -1683,15 +1683,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         }
         Commands::Shell(args) => {
             let cache = cache.init().await?;
-            commands::shell(
-                args.path,
-                args.no_project,
-                EnvFile::from_args(args.env_file, args.no_env_file),
-                args.no_env_file,
-                &cache,
-                printer,
-            )
-            .await
+            commands::shell(args.path, args.no_project, &cache, printer).await
         }
         Commands::Project(project) => {
             Box::pin(run_project(
