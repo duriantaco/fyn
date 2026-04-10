@@ -1274,6 +1274,7 @@ impl PythonTarget {
 
 /// Represents the destination where dependencies are added, either to a project or a script.
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 pub(super) enum AddTarget {
     /// A PEP 723 script, with inline metadata.
     Script(Pep723Script, Box<Interpreter>),
@@ -1373,6 +1374,7 @@ impl AddTarget {
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 enum AddTargetSnapshot {
     Script(Pep723Script, Option<Vec<u8>>),
     Project(VirtualProject, Option<Vec<u8>>),
