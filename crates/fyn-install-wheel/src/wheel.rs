@@ -880,7 +880,7 @@ pub fn validate_and_heal_record<'a>(
             dist,
             files
                 .keys()
-                .map(|path| path.simplified_display())
+                .map(Simplified::simplified_display)
                 .join("`, `")
         );
     }
