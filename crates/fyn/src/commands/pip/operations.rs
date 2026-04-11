@@ -805,9 +805,10 @@ async fn execute_plan(
     let uninstalls = extraneous.into_iter().chain(reinstalls).collect::<Vec<_>>();
     if !uninstalls.is_empty() {
         let start = std::time::Instant::now();
+        let layout = venv.interpreter().layout();
 
         for dist_info in &uninstalls {
-            match fyn_installer::uninstall(dist_info).await {
+            match fyn_installer::uninstall(dist_info, &layout).await {
                 Ok(summary) => {
                     debug!(
                         "Uninstalled {} ({} file{}, {} director{})",

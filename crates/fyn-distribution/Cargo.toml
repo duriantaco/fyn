@@ -28,6 +28,7 @@ fyn-flags = { workspace = true }
 fyn-fs = { workspace = true, features = ["tokio"] }
 fyn-git = { workspace = true }
 fyn-git-types = { workspace = true }
+fyn-install-wheel = { workspace = true }
 fyn-metadata = { workspace = true }
 fyn-normalize = { workspace = true }
 fyn-pep440 = { workspace = true }

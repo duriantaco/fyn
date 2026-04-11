@@ -2415,6 +2415,7 @@ dependencies = [
  "fyn-fs",
  "fyn-git",
  "fyn-git-types",
+ "fyn-install-wheel",
  "fyn-metadata",
  "fyn-normalize",
  "fyn-pep440",

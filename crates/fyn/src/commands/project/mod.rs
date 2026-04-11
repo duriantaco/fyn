@@ -24,7 +24,7 @@ use fyn_installer::{InstallationStrategy, SatisfiesResult, SitePackages};
 use fyn_normalize::{DEV_DEPENDENCIES, DefaultGroups, ExtraName, GroupName, PackageName};
 use fyn_pep440::{TildeVersionSpecifier, Version, VersionSpecifiers};
 use fyn_pep508::MarkerTreeContents;
-use fyn_preview::{Preview, PreviewFeature};
+use fyn_preview::Preview;
 use fyn_pypi_types::{ConflictItem, ConflictKind, ConflictSet, Conflicts};
 use fyn_python::{
     BrokenLink, EnvironmentPreference, Interpreter, InvalidEnvironmentKind, PythonDownloads,
@@ -1431,10 +1431,9 @@ impl ProjectEnvironment {
             })
             .ok();
 
-        let upgradeable = preview.is_enabled(PreviewFeature::PythonUpgrade)
-            && python
-                .as_ref()
-                .is_none_or(|request| !request.includes_patch());
+        let upgradeable = python
+            .as_ref()
+            .is_none_or(|request| !request.includes_patch());
 
         match ProjectInterpreter::discover(
             workspace,
