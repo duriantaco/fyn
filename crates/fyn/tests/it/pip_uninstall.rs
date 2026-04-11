@@ -153,6 +153,64 @@ fn uninstall() -> Result<()> {
 }
 
 #[test]
+fn uninstall_record_path_traversal() -> Result<()> {
+    let context = fyn_test::test_context!("3.12").with_filter((
+        r"(\.\./)+traversal_target\.txt",
+        "[..]/traversal_target.txt",
+    ));
+
+    context
+        .init()
+        .arg("--lib")
+        .arg("evilpkg")
+        .assert()
+        .success();
+    context.pip_install().arg("./evilpkg").assert().success();
+
+    let target_file = context.temp_dir.child("traversal_target.txt");
+    target_file.write_str("I should not be deleted")?;
+
+    let canonical_temp_dir = context.temp_dir.canonicalize()?;
+    let depth = context
+        .site_packages()
+        .strip_prefix(&canonical_temp_dir)?
+        .components()
+        .count();
+    let traversal_record = format!("{}traversal_target.txt", "../".repeat(depth));
+
+    let record_file = context
+        .site_packages()
+        .join("evilpkg-0.1.0.dist-info/RECORD");
+    let record = fs_err::read_to_string(&record_file)?;
+    fs_err::write(
+        &record_file,
+        format!("{}\n{},,0\n", record.trim(), traversal_record),
+    )?;
+
+    let init_py = context.site_packages().join("evilpkg/__init__.py");
+    assert!(context.site_packages().join(&traversal_record).exists());
+    assert!(init_py.exists());
+
+    fyn_snapshot!(context.filters(), context.pip_uninstall()
+        .arg("evilpkg"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    warning: Invalid RECORD entry in evilpkg==0.1.0 (from file://[TEMP_DIR]/evilpkg) that escapes the Python environment, skipping: [..]/traversal_target.txt
+    Uninstalled 1 package in [TIME]
+     - evilpkg==0.1.0 (from file://[TEMP_DIR]/evilpkg)
+    "
+    );
+
+    assert!(target_file.exists());
+    assert!(!init_py.exists());
+
+    Ok(())
+}
+
+#[test]
 #[cfg(feature = "test-pypi")]
 fn missing_record() -> Result<()> {
     let context = fyn_test::test_context!("3.12");

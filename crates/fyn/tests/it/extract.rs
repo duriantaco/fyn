@@ -23,7 +23,9 @@ async fn unzip(url: &str) -> anyhow::Result<(), fyn_extract::Error> {
         .into_async_read();
 
     let target = tempfile::TempDir::new().map_err(fyn_extract::Error::Io)?;
-    fyn_extract::stream::unzip(url, reader.compat(), target.path()).await
+    fyn_extract::stream::unzip(url, reader.compat(), target.path())
+        .await
+        .map(|_| ())
 }
 
 #[tokio::test]

@@ -12,6 +12,7 @@ use fyn_distribution_filename::{WheelFilename, WheelFilenameError};
 use fyn_distribution_types::{InstalledDist, InstalledDistError, IsBuildBackendError};
 use fyn_fs::Simplified;
 use fyn_git::GitError;
+use fyn_install_wheel::Error as InstallWheelError;
 use fyn_normalize::PackageName;
 use fyn_pep440::{Version, VersionSpecifiers};
 use fyn_platform_tags::Platform;
@@ -133,6 +134,8 @@ pub enum Error {
     MissingSubdirectory(DisplaySafeUrl, PathBuf),
     #[error("The source distribution `{0}` is missing Git LFS artifacts.")]
     MissingGitLfsArtifacts(DisplaySafeUrl, #[source] GitError),
+    #[error(transparent)]
+    InstallWheelError(#[from] InstallWheelError),
     #[error("Failed to extract static metadata from `PKG-INFO`")]
     PkgInfo(#[source] fyn_pypi_types::MetadataError),
     #[error("The source distribution is missing a `pyproject.toml` file")]

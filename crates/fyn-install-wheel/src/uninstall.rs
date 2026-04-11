@@ -1,15 +1,21 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
+use std::fmt::Display;
 use std::path::{Component, Path, PathBuf};
 
 use fyn_fs::write_atomic_sync;
-use std::sync::{LazyLock, Mutex};
+use fyn_warnings::warn_user;
+use std::sync::{LazyLock, Mutex, OnceLock};
 use tracing::trace;
 
-use crate::Error;
 use crate::wheel::read_record_file;
+use crate::{Error, Layout};
 
 /// Uninstall the wheel represented by the given `.dist-info` directory.
-pub fn uninstall_wheel(dist_info: &Path) -> Result<Uninstall, Error> {
+pub fn uninstall_wheel(
+    dist_info: &Path,
+    distribution: impl Display,
+    layout: &Layout,
+) -> Result<Uninstall, Error> {
     let Some(site_packages) = dist_info.parent() else {
         return Err(Error::BrokenVenv(
             "dist-info directory is not in a site-packages directory".to_string(),
@@ -39,6 +45,10 @@ pub fn uninstall_wheel(dist_info: &Path) -> Result<Uninstall, Error> {
     let mut visited = BTreeSet::new();
     for entry in &record {
         let path = site_packages.join(&entry.path);
+
+        if !is_path_in_scheme(&entry.path, site_packages, &distribution, layout) {
+            continue;
+        }
 
         // On Windows, deleting the current executable is a special case.
         #[cfg(windows)]
@@ -148,10 +158,49 @@ pub fn uninstall_wheel(dist_info: &Path) -> Result<Uninstall, Error> {
     })
 }
 
+static WARNED_FOR_PACKAGE: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+
+/// Warn and reject paths that are not part of the install scheme.
+fn is_path_in_scheme(
+    path: &str,
+    site_packages: &Path,
+    distribution: impl Display,
+    layout: &Layout,
+) -> bool {
+    let normalized = normalize_path(&site_packages.join(path));
+
+    if normalized.starts_with(&layout.scheme.data)
+        || normalized.starts_with(&layout.scheme.purelib)
+        || normalized.starts_with(&layout.scheme.platlib)
+        || normalized.starts_with(&layout.scheme.scripts)
+        || normalized.starts_with(&layout.scheme.include)
+    {
+        true
+    } else {
+        if WARNED_FOR_PACKAGE
+            .get_or_init(|| Mutex::new(HashSet::new()))
+            .lock()
+            .expect("the warning mutex should not be poisoned")
+            .insert(distribution.to_string())
+        {
+            warn_user!(
+                "Invalid RECORD entry in {} that escapes the Python environment, skipping: {}",
+                distribution,
+                path
+            );
+        }
+        false
+    }
+}
+
 /// Uninstall the egg represented by the `.egg-info` directory.
 ///
 /// See: <https://github.com/pypa/pip/blob/41587f5e0017bcd849f42b314dc8a34a7db75621/src/pip/_internal/req/req_uninstall.py#L483>
-pub fn uninstall_egg(egg_info: &Path) -> Result<Uninstall, Error> {
+pub fn uninstall_egg(
+    egg_info: &Path,
+    distribution: impl Display,
+    layout: &Layout,
+) -> Result<Uninstall, Error> {
     let mut file_count = 0usize;
     let mut dir_count = 0usize;
 
@@ -193,6 +242,10 @@ pub fn uninstall_egg(egg_info: &Path) -> Result<Uninstall, Error> {
     // Remove everything in `top_level.txt`.
     for entry in top_level {
         let path = dist_location.join(&entry);
+
+        if !is_path_in_scheme(&entry, dist_location, &distribution, layout) {
+            continue;
+        }
 
         // Remove as a directory.
         match fs_err::remove_dir_all(&path) {
@@ -346,4 +399,108 @@ fn normalize_path(path: &Path) -> PathBuf {
         }
     }
     ret
+}
+
+#[cfg(test)]
+mod tests {
+    use assert_fs::prelude::*;
+
+    use fyn_pypi_types::Scheme;
+
+    use crate::Layout;
+    use crate::uninstall::{uninstall_egg, uninstall_wheel};
+
+    #[test]
+    fn uninstall_record_path_traversal() {
+        let venv = assert_fs::TempDir::new().unwrap();
+        let site_packages = venv.child("lib/python3.12/site-packages");
+        let outside_dir = assert_fs::TempDir::new().unwrap();
+
+        let target_file = outside_dir.child("traversal_target.txt");
+        target_file.write_str("I should not be deleted").unwrap();
+
+        let dist_info = site_packages.child("evilpkg-0.1.0.dist-info");
+        dist_info.create_dir_all().unwrap();
+        let target_path = pathdiff::diff_paths(target_file.path(), site_packages.path()).unwrap();
+        assert!(site_packages.join(&target_path).exists());
+
+        dist_info
+            .child("RECORD")
+            .write_str(&format!(
+                "evilpkg/__init__.py,,0\n\
+                 evilpkg-0.1.0.dist-info/METADATA,,0\n\
+                 evilpkg-0.1.0.dist-info/RECORD,,\n\
+                 {},,0\n",
+                target_path.display()
+            ))
+            .unwrap();
+
+        let init_py = site_packages.child("evilpkg/__init__.py");
+        init_py.touch().unwrap();
+        let metadata = dist_info.child("METADATA");
+        metadata.touch().unwrap();
+
+        let layout = Layout {
+            sys_executable: venv.path().join("bin/python"),
+            python_version: (3, 13),
+            os_name: "posix".to_string(),
+            scheme: Scheme {
+                purelib: site_packages.to_path_buf(),
+                platlib: site_packages.to_path_buf(),
+                scripts: venv.path().join("bin"),
+                data: venv.path().to_path_buf(),
+                include: venv.path().join("include/python3.12"),
+            },
+        };
+
+        uninstall_wheel(dist_info.path(), "evilpkg 0.1.0", &layout).unwrap();
+
+        assert!(target_file.exists());
+        assert!(!metadata.exists());
+        assert!(!init_py.exists());
+    }
+
+    #[test]
+    fn uninstall_egg_info_path_traversal() {
+        let venv = assert_fs::TempDir::new().unwrap();
+        let site_packages = venv.child("lib/python3.12/site-packages");
+        let outside_dir = assert_fs::TempDir::new().unwrap();
+
+        let target_dir = outside_dir.child("traversal_target");
+        let target_file = target_dir.child("secret.txt");
+        target_file.write_str("I should not be deleted").unwrap();
+
+        let egg_info = site_packages.child("evilpkg-0.1.0.egg-info");
+        egg_info.create_dir_all().unwrap();
+        let target_path = pathdiff::diff_paths(target_dir.path(), site_packages.path()).unwrap();
+        assert!(site_packages.join(&target_path).exists());
+
+        egg_info
+            .child("top_level.txt")
+            .write_str(&format!("evilpkg\n{}\n", target_path.display()))
+            .unwrap();
+
+        let init_py = site_packages.child("evilpkg").child("__init__.py");
+        init_py.touch().unwrap();
+
+        let layout = Layout {
+            sys_executable: venv.path().join("bin/python"),
+            python_version: (3, 13),
+            os_name: "posix".to_string(),
+            scheme: Scheme {
+                purelib: site_packages.to_path_buf(),
+                platlib: site_packages.to_path_buf(),
+                scripts: venv.path().join("bin"),
+                data: venv.path().to_path_buf(),
+                include: venv.path().join("include/python3.12"),
+            },
+        };
+
+        uninstall_egg(egg_info.path(), "evilpkg 0.1.0", &layout).unwrap();
+
+        assert!(target_dir.exists());
+        assert!(target_file.exists());
+        assert!(!init_py.exists());
+        assert!(!egg_info.exists());
+    }
 }

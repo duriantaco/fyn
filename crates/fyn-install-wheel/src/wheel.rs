@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
+use std::fmt::Display;
 use std::io;
 use std::io::{BufReader, Read, Write};
 use std::path::{Path, PathBuf};
@@ -6,13 +7,14 @@ use std::path::{Path, PathBuf};
 use data_encoding::BASE64URL_NOPAD;
 use fs_err as fs;
 use fs_err::{DirEntry, File};
+use itertools::Itertools;
 use mailparse::parse_headers;
 use rustc_hash::FxHashMap;
 use sha2::{Digest, Sha256};
 use tracing::{debug, instrument, trace, warn};
 use walkdir::WalkDir;
 
-use fyn_fs::{Simplified, persist_with_retry_sync, relative_to};
+use fyn_fs::{PortablePath, Simplified, normalize_path, persist_with_retry_sync, relative_to};
 use fyn_normalize::PackageName;
 use fyn_pypi_types::DirectUrl;
 use fyn_shell::escape_posix_for_single_quotes;
@@ -808,6 +810,95 @@ pub fn read_record_file(record: &mut impl Read) -> Result<Vec<RecordEntry>, Erro
             })
         })
         .collect()
+}
+
+pub(crate) fn write_record(
+    site_packages: &Path,
+    dist_info_prefix: &str,
+    mut record: Vec<RecordEntry>,
+) -> Result<(), Error> {
+    let record_file = site_packages.join(format!("{dist_info_prefix}.dist-info/RECORD"));
+    let mut record_writer = csv::WriterBuilder::new()
+        .has_headers(false)
+        .escape(b'"')
+        .from_path(record_file)?;
+    record.sort();
+    for entry in record {
+        record_writer.serialize(entry)?;
+    }
+    Ok(())
+}
+
+/// Validate the wheel `RECORD` and heal it when it doesn't match the unpacked wheel.
+pub fn validate_and_heal_record<'a>(
+    wheel_dir: &Path,
+    unpacked_wheel: impl IntoIterator<Item = &'a (PathBuf, u64)>,
+    dist: impl Display,
+) -> Result<(), Error> {
+    let mut files: BTreeMap<&Path, u64> = unpacked_wheel
+        .into_iter()
+        .map(|(path, size)| (path.as_path(), *size))
+        .collect();
+
+    let dist_info_prefix = find_dist_info(wheel_dir)?;
+    let dist_info_dir = format!("{dist_info_prefix}.dist-info");
+    let record_path = wheel_dir.join(&dist_info_dir).join("RECORD");
+    let mut record_file = File::open(&record_path)?;
+    let mut record = read_record_file(&mut record_file)?;
+
+    let mut extra_record_entries = Vec::new();
+    record.retain(|entry| {
+        let path = Path::new(&entry.path);
+        if files.remove(path).is_some() {
+            return true;
+        }
+        if files.remove(normalize_path(path).as_ref()).is_some() {
+            return true;
+        }
+        extra_record_entries.push(path.to_path_buf());
+        false
+    });
+
+    if !files.is_empty() {
+        files.remove(Path::new(&dist_info_dir).join("RECORD.jws").as_path());
+        files.remove(Path::new(&dist_info_dir).join("RECORD.p7s").as_path());
+    }
+
+    if !extra_record_entries.is_empty() {
+        debug!(
+            "RECORD contains files not in wheel archive for {}: `{}`",
+            dist,
+            extra_record_entries
+                .iter()
+                .map(Simplified::simplified_display)
+                .join("`, `")
+        );
+    }
+    if !files.is_empty() {
+        debug!(
+            "Wheel archive contains files not in RECORD for {}: `{}`",
+            dist,
+            files
+                .keys()
+                .map(|path| path.simplified_display())
+                .join("`, `")
+        );
+    }
+
+    if !extra_record_entries.is_empty() || !files.is_empty() {
+        debug!("Rewriting RECORD to match actual wheel contents for {dist}");
+        for (path, size) in files {
+            record.push(RecordEntry {
+                path: PortablePath::from(path).to_string(),
+                hash: None,
+                size: Some(size),
+            });
+        }
+
+        write_record(wheel_dir, &dist_info_prefix, record)?;
+    }
+
+    Ok(())
 }
 
 /// Parse a file with email message format such as WHEEL and METADATA

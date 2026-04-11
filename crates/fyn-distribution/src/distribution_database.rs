@@ -6,7 +6,6 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use futures::{FutureExt, TryStreamExt};
-use tempfile::TempDir;
 use tokio::io::{AsyncRead, AsyncSeekExt, ReadBuf};
 use tokio::sync::Semaphore;
 use tokio_util::compat::FuturesAsyncReadCompatExt;
@@ -25,6 +24,7 @@ use fyn_distribution_types::{
 };
 use fyn_extract::hash::Hasher;
 use fyn_fs::write_atomic;
+use fyn_install_wheel::validate_and_heal_record;
 use fyn_platform_tags::Tags;
 use fyn_pypi_types::{HashDigest, HashDigests, PyProjectToml};
 use fyn_python::PythonVariant;
@@ -442,7 +442,7 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
 
         // Otherwise, unzip the wheel.
         let id = self
-            .unzip_wheel(&built_wheel.path, &built_wheel.target)
+            .unzip_wheel(&built_wheel.path, &built_wheel.target, dist)
             .await?;
 
         Ok(LocalWheel {
@@ -713,19 +713,19 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
                 let temp_dir = tempfile::tempdir_in(self.build_context.cache().root())
                     .map_err(Error::CacheWrite)?;
 
-                match progress {
+                let files = match progress {
                     Some((reporter, progress)) => {
                         let mut reader = ProgressReader::new(&mut hasher, progress, &**reporter);
                         match extension {
                             WheelExtension::Whl => {
                                 fyn_extract::stream::unzip(query_url, &mut reader, temp_dir.path())
                                     .await
-                                    .map_err(|err| Error::Extract(filename.to_string(), err))?;
+                                    .map_err(|err| Error::Extract(filename.to_string(), err))?
                             }
                             WheelExtension::WhlZst => {
                                 fyn_extract::stream::untar_zst(&mut reader, temp_dir.path())
                                     .await
-                                    .map_err(|err| Error::Extract(filename.to_string(), err))?;
+                                    .map_err(|err| Error::Extract(filename.to_string(), err))?
                             }
                         }
                     }
@@ -733,20 +733,23 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
                         WheelExtension::Whl => {
                             fyn_extract::stream::unzip(query_url, &mut hasher, temp_dir.path())
                                 .await
-                                .map_err(|err| Error::Extract(filename.to_string(), err))?;
+                                .map_err(|err| Error::Extract(filename.to_string(), err))?
                         }
                         WheelExtension::WhlZst => {
                             fyn_extract::stream::untar_zst(&mut hasher, temp_dir.path())
                                 .await
-                                .map_err(|err| Error::Extract(filename.to_string(), err))?;
+                                .map_err(|err| Error::Extract(filename.to_string(), err))?
                         }
                     },
-                }
+                };
 
                 // If necessary, exhaust the reader to compute the hash.
                 if !hashes.is_none() {
                     hasher.finish().await.map_err(Error::HashExhaustion)?;
                 }
+
+                validate_and_heal_record(temp_dir.path(), files.iter(), dist)
+                    .map_err(Error::InstallWheelError)?;
 
                 // Persist the temporary directory to the directory store.
                 let id = self
@@ -913,51 +916,49 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
                     .map_err(Error::CacheWrite)?;
 
                 // If no hashes are required, parallelize the unzip operation.
-                let hashes = if hashes.is_none() {
+                let (files, hashes) = if hashes.is_none() {
                     let file = file.into_std().await;
-                    tokio::task::spawn_blocking({
-                        let target = temp_dir.path().to_owned();
-                        move || -> Result<(), fyn_extract::Error> {
-                            // Unzip the wheel into a temporary directory.
+                    let target = temp_dir.path().to_owned();
+                    let files =
+                        tokio::task::spawn_blocking(move || -> Result<_, fyn_extract::Error> {
                             match extension {
-                                WheelExtension::Whl => {
-                                    fyn_extract::unzip(file, &target)?;
-                                }
+                                WheelExtension::Whl => fyn_extract::unzip(file, &target),
                                 WheelExtension::WhlZst => {
-                                    fyn_extract::stream::untar_zst_file(file, &target)?;
+                                    fyn_extract::stream::untar_zst_file(file, &target)
                                 }
                             }
-                            Ok(())
-                        }
-                    })
-                    .await?
-                    .map_err(|err| Error::Extract(filename.to_string(), err))?;
+                        })
+                        .await?
+                        .map_err(|err| Error::Extract(filename.to_string(), err))?;
 
-                    HashDigests::empty()
+                    (files, HashDigests::empty())
                 } else {
                     // Create a hasher for each hash algorithm.
                     let algorithms = hashes.algorithms();
                     let mut hashers = algorithms.into_iter().map(Hasher::from).collect::<Vec<_>>();
                     let mut hasher = fyn_extract::hash::HashReader::new(file, &mut hashers);
 
-                    match extension {
+                    let files = match extension {
                         WheelExtension::Whl => {
                             fyn_extract::stream::unzip(query_url, &mut hasher, temp_dir.path())
                                 .await
-                                .map_err(|err| Error::Extract(filename.to_string(), err))?;
+                                .map_err(|err| Error::Extract(filename.to_string(), err))?
                         }
                         WheelExtension::WhlZst => {
                             fyn_extract::stream::untar_zst(&mut hasher, temp_dir.path())
                                 .await
-                                .map_err(|err| Error::Extract(filename.to_string(), err))?;
+                                .map_err(|err| Error::Extract(filename.to_string(), err))?
                         }
-                    }
+                    };
 
                     // If necessary, exhaust the reader to compute the hash.
                     hasher.finish().await.map_err(Error::HashExhaustion)?;
 
-                    hashers.into_iter().map(HashDigest::from).collect()
+                    (files, hashers.into_iter().map(HashDigest::from).collect())
                 };
+
+                validate_and_heal_record(temp_dir.path(), files.iter(), dist)
+                    .map_err(Error::InstallWheelError)?;
 
                 // Persist the temporary directory to the directory store.
                 let id = self
@@ -1092,7 +1093,7 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
         } else if hashes.is_none() {
             // Otherwise, unzip the wheel.
             let archive = Archive::new(
-                self.unzip_wheel(path, wheel_entry.path()).await?,
+                self.unzip_wheel(path, wheel_entry.path(), dist).await?,
                 HashDigests::empty(),
                 filename.clone(),
             );
@@ -1130,23 +1131,26 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
             let mut hasher = fyn_extract::hash::HashReader::new(file, &mut hashers);
 
             // Unzip the wheel to a temporary directory.
-            match extension {
+            let files = match extension {
                 WheelExtension::Whl => {
                     fyn_extract::stream::unzip(path.display(), &mut hasher, temp_dir.path())
                         .await
-                        .map_err(|err| Error::Extract(filename.to_string(), err))?;
+                        .map_err(|err| Error::Extract(filename.to_string(), err))?
                 }
                 WheelExtension::WhlZst => {
                     fyn_extract::stream::untar_zst(&mut hasher, temp_dir.path())
                         .await
-                        .map_err(|err| Error::Extract(filename.to_string(), err))?;
+                        .map_err(|err| Error::Extract(filename.to_string(), err))?
                 }
-            }
+            };
 
             // Exhaust the reader to compute the hash.
             hasher.finish().await.map_err(Error::HashExhaustion)?;
 
             let hashes = hashers.into_iter().map(HashDigest::from).collect();
+
+            validate_and_heal_record(temp_dir.path(), files.iter(), dist)
+                .map_err(Error::InstallWheelError)?;
 
             // Persist the temporary directory to the directory store.
             let id = self
@@ -1182,20 +1186,28 @@ impl<'a, Context: BuildContext> DistributionDatabase<'a, Context> {
     }
 
     /// Unzip a wheel into the cache, returning the path to the unzipped directory.
-    async fn unzip_wheel(&self, path: &Path, target: &Path) -> Result<ArchiveId, Error> {
-        let temp_dir = tokio::task::spawn_blocking({
+    async fn unzip_wheel(
+        &self,
+        path: &Path,
+        target: &Path,
+        dist: impl std::fmt::Display,
+    ) -> Result<ArchiveId, Error> {
+        let (temp_dir, files) = tokio::task::spawn_blocking({
             let path = path.to_owned();
             let root = self.build_context.cache().root().to_path_buf();
-            move || -> Result<TempDir, Error> {
+            move || -> Result<_, Error> {
                 // Unzip the wheel into a temporary directory.
                 let temp_dir = tempfile::tempdir_in(root).map_err(Error::CacheWrite)?;
                 let reader = fs_err::File::open(&path).map_err(Error::CacheWrite)?;
-                fyn_extract::unzip(reader, temp_dir.path())
+                let files = fyn_extract::unzip(reader, temp_dir.path())
                     .map_err(|err| Error::Extract(path.to_string_lossy().into_owned(), err))?;
-                Ok(temp_dir)
+                Ok((temp_dir, files))
             }
         })
         .await??;
+
+        validate_and_heal_record(temp_dir.path(), files.iter(), dist)
+            .map_err(Error::InstallWheelError)?;
 
         // Persist the temporary directory to the directory store.
         let id = self
