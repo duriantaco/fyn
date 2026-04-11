@@ -4641,6 +4641,104 @@ fn lock_upgrade_dry_run_multi_version() -> Result<()> {
     Ok(())
 }
 
+/// `--check --refresh` should not report changes when the lockfile is already
+/// canonical for workspace conflicts.
+///
+/// Regression test for: <https://github.com/astral-sh/uv/issues/18553>
+#[test]
+fn lock_check_refresh_workspace_conflicts() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(
+        r#"
+        [project]
+        name = "workspace-demo"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["package-a"]
+
+        [project.optional-dependencies]
+        prod = ["package-a[prod]"]
+        non-prod = ["package-a[non-prod]"]
+
+        [tool.fyn.workspace]
+        members = ["packages/package-a"]
+
+        [tool.fyn.sources]
+        package-a = { workspace = true }
+
+        [tool.fyn]
+        conflicts = [
+            [
+                { extra = "prod" },
+                { extra = "non-prod" },
+            ],
+        ]
+        "#,
+    )?;
+
+    let package_dir = context.temp_dir.child("packages").child("package-a");
+    package_dir.create_dir_all()?;
+    package_dir.child("pyproject.toml").write_str(
+        r#"
+        [project]
+        name = "package-a"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+
+        [project.optional-dependencies]
+        prod = ["sortedcontainers==2.3.0"]
+        non-prod = ["sortedcontainers==2.4.0"]
+
+        [tool.fyn]
+        conflicts = [
+            [
+                { extra = "prod" },
+                { extra = "non-prod" },
+            ],
+        ]
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+        "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context.lock(), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 4 packages in [TIME]
+    ");
+
+    let lock = context.read("fyn.lock");
+
+    fyn_snapshot!(context.filters(), context.lock().arg("--refresh"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 4 packages in [TIME]
+    ");
+
+    assert_eq!(lock, context.read("fyn.lock"));
+
+    fyn_snapshot!(context.filters(), context.lock().arg("--check").arg("--refresh"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 4 packages in [TIME]
+    ");
+
+    Ok(())
+}
+
 /// Respect the locked version in an existing lockfile.
 #[test]
 fn lock_preference() -> Result<()> {
