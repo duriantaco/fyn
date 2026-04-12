@@ -97,7 +97,7 @@ pub(crate) async fn pip_tree(
             client_builder,
             cache.clone().with_refresh(Refresh::All(Timestamp::now())),
         )
-        .index_locations(index_locations)
+        .index_locations(index_locations.clone())
         .index_strategy(index_strategy)
         .markers(environment.interpreter().markers())
         .platform(environment.interpreter().platform())
@@ -116,6 +116,7 @@ pub(crate) async fn pip_tree(
             capabilities: &capabilities,
             prerelease,
             exclude_newer: &exclude_newer,
+            index_locations: &index_locations,
             tags: Some(tags),
             requires_python: Some(&requires_python),
         };

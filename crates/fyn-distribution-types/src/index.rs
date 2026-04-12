@@ -9,6 +9,7 @@ use fyn_auth::{AuthPolicy, Credentials};
 use fyn_redacted::DisplaySafeUrl;
 use fyn_small_str::SmallString;
 
+use crate::exclude_newer::ExcludeNewerOverride;
 use crate::index_name::{IndexName, IndexNameError};
 use crate::origin::Origin;
 use crate::{IndexStatusCodeStrategy, IndexUrl, IndexUrlError, SerializableStatusCode};
@@ -51,7 +52,7 @@ impl IndexCacheControl {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Clone, Serialize)]
 #[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[serde(rename_all = "kebab-case")]
 pub struct Index {
@@ -157,6 +158,50 @@ pub struct Index {
     /// ```
     #[serde(default)]
     pub cache_control: Option<IndexCacheControl>,
+    /// An index-specific `exclude-newer` cutoff.
+    ///
+    /// Accepts the same date, timestamp, and duration values as the global `exclude-newer`
+    /// setting. Set this to `false` to disable `exclude-newer` for this index entirely.
+    ///
+    /// When set to a value, packages resolved from this index will use that cutoff instead of the
+    /// globally-specified value, unless a package-specific `exclude-newer-package` override is
+    /// present.
+    ///
+    /// This option is in preview and may change in any future release.
+    ///
+    /// ```toml
+    /// [tool.fyn]
+    /// exclude-newer = "2025-01-01T00:00:00Z"
+    ///
+    /// [[tool.fyn.index]]
+    /// name = "internal"
+    /// url = "https://internal.example.com/simple"
+    /// exclude-newer = "7 days"
+    /// ```
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "schemars", schemars(with = "ExcludeNewerOverride"))]
+    pub exclude_newer: Option<ExcludeNewerOverride>,
+}
+
+impl std::fmt::Debug for Index {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("Index");
+        debug
+            .field("name", &self.name)
+            .field("url", &self.url)
+            .field("explicit", &self.explicit)
+            .field("default", &self.default)
+            .field("origin", &self.origin)
+            .field("format", &self.format)
+            .field("publish_url", &self.publish_url)
+            .field("authenticate", &self.authenticate)
+            .field("ignore_error_codes", &self.ignore_error_codes)
+            .field("cache_control", &self.cache_control);
+        if self.exclude_newer.is_some() {
+            debug.field("exclude_newer", &self.exclude_newer);
+        }
+        debug.finish()
+    }
 }
 
 impl PartialEq for Index {
@@ -172,6 +217,7 @@ impl PartialEq for Index {
             authenticate,
             ignore_error_codes,
             cache_control,
+            exclude_newer,
         } = self;
         *url == other.url
             && *name == other.name
@@ -182,6 +228,7 @@ impl PartialEq for Index {
             && *authenticate == other.authenticate
             && *ignore_error_codes == other.ignore_error_codes
             && *cache_control == other.cache_control
+            && *exclude_newer == other.exclude_newer
     }
 }
 
@@ -206,6 +253,7 @@ impl Ord for Index {
             authenticate,
             ignore_error_codes,
             cache_control,
+            exclude_newer,
         } = self;
         url.cmp(&other.url)
             .then_with(|| name.cmp(&other.name))
@@ -216,6 +264,7 @@ impl Ord for Index {
             .then_with(|| authenticate.cmp(&other.authenticate))
             .then_with(|| ignore_error_codes.cmp(&other.ignore_error_codes))
             .then_with(|| cache_control.cmp(&other.cache_control))
+            .then_with(|| exclude_newer.cmp(&other.exclude_newer))
     }
 }
 
@@ -232,6 +281,7 @@ impl std::hash::Hash for Index {
             authenticate,
             ignore_error_codes,
             cache_control,
+            exclude_newer,
         } = self;
         url.hash(state);
         name.hash(state);
@@ -242,6 +292,7 @@ impl std::hash::Hash for Index {
         authenticate.hash(state);
         ignore_error_codes.hash(state);
         cache_control.hash(state);
+        exclude_newer.hash(state);
     }
 }
 
@@ -282,6 +333,7 @@ impl Index {
             authenticate: AuthPolicy::default(),
             ignore_error_codes: None,
             cache_control: None,
+            exclude_newer: None,
         }
     }
 
@@ -298,6 +350,7 @@ impl Index {
             authenticate: AuthPolicy::default(),
             ignore_error_codes: None,
             cache_control: None,
+            exclude_newer: None,
         }
     }
 
@@ -314,6 +367,7 @@ impl Index {
             authenticate: AuthPolicy::default(),
             ignore_error_codes: None,
             cache_control: None,
+            exclude_newer: None,
         }
     }
 
@@ -431,6 +485,7 @@ impl From<IndexUrl> for Index {
             authenticate: AuthPolicy::default(),
             ignore_error_codes: None,
             cache_control: None,
+            exclude_newer: None,
         }
     }
 }
@@ -455,6 +510,7 @@ impl FromStr for Index {
                     authenticate: AuthPolicy::default(),
                     ignore_error_codes: None,
                     cache_control: None,
+                    exclude_newer: None,
                 });
             }
         }
@@ -472,6 +528,7 @@ impl FromStr for Index {
             authenticate: AuthPolicy::default(),
             ignore_error_codes: None,
             cache_control: None,
+            exclude_newer: None,
         })
     }
 }
@@ -576,6 +633,8 @@ struct IndexWire {
     ignore_error_codes: Option<Vec<SerializableStatusCode>>,
     #[serde(default)]
     cache_control: Option<IndexCacheControl>,
+    #[serde(default)]
+    exclude_newer: Option<ExcludeNewerOverride>,
 }
 
 impl<'de> Deserialize<'de> for Index {
@@ -603,6 +662,7 @@ impl<'de> Deserialize<'de> for Index {
             authenticate: wire.authenticate,
             ignore_error_codes: wire.ignore_error_codes,
             cache_control: wire.cache_control,
+            exclude_newer: wire.exclude_newer,
         })
     }
 }
@@ -667,5 +727,35 @@ mod tests {
         let cache_control = index.cache_control.as_ref().unwrap();
         assert_eq!(cache_control.api.as_deref(), Some("max-age=300"));
         assert_eq!(cache_control.files, None);
+    }
+
+    #[test]
+    fn test_index_exclude_newer_disabled() {
+        let toml_str = r#"
+            name = "test-index"
+            url = "https://test.example.com/simple"
+            exclude-newer = false
+        "#;
+
+        let index: Index = toml::from_str(toml_str).unwrap();
+        assert!(matches!(
+            index.exclude_newer,
+            Some(ExcludeNewerOverride::Disabled)
+        ));
+    }
+
+    #[test]
+    fn test_index_exclude_newer_relative() {
+        let toml_str = r#"
+            name = "test-index"
+            url = "https://test.example.com/simple"
+            exclude-newer = "7 days"
+        "#;
+
+        let index: Index = toml::from_str(toml_str).unwrap();
+        assert!(matches!(
+            index.exclude_newer,
+            Some(ExcludeNewerOverride::Enabled(_))
+        ));
     }
 }
