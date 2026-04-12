@@ -13,8 +13,8 @@ use hyper::{Request, Response};
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use hyper_util::server::conn::auto::Builder;
 use rcgen::{
-    BasicConstraints, Certificate, CertificateParams, DnType, ExtendedKeyUsagePurpose, IsCa,
-    Issuer, KeyPair, KeyUsagePurpose, SanType, date_time_ymd,
+    BasicConstraints, Certificate, CertificateParams, CustomExtension, DnType,
+    ExtendedKeyUsagePurpose, IsCa, Issuer, KeyPair, KeyUsagePurpose, SanType, date_time_ymd,
 };
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
 use rustls::server::WebPkiClientVerifier;
@@ -88,6 +88,14 @@ pub(crate) fn generate_self_signed_certs() -> Result<SelfSigned> {
 ///
 /// Use sparingly as generation of these certs is a very slow operation.
 pub(crate) fn generate_self_signed_certs_with_ca() -> Result<(SelfSigned, SelfSigned, SelfSigned)> {
+    generate_self_signed_certs_with_ca_extensions(vec![])
+}
+
+/// Generates a self-signed root CA with custom extensions, plus a server and client certificate
+/// issued by this CA.
+pub(crate) fn generate_self_signed_certs_with_ca_extensions(
+    custom_extensions: Vec<CustomExtension>,
+) -> Result<(SelfSigned, SelfSigned, SelfSigned)> {
     // Generate the CA
     let mut ca_params = CertificateParams::default();
     ca_params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained); // root cert
@@ -105,6 +113,7 @@ pub(crate) fn generate_self_signed_certs_with_ca() -> Result<(SelfSigned, SelfSi
     ca_params
         .subject_alt_names
         .push(SanType::DnsName("uv-test-ca".try_into()?));
+    ca_params.custom_extensions = custom_extensions;
     let ca_private_key = KeyPair::generate()?;
     let ca_public_cert = ca_params.self_signed(&ca_private_key)?;
     let ca_cert_issuer = Issuer::new(ca_params, &ca_private_key);
