@@ -15,7 +15,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use thiserror::Error;
 use url::{ParseError, Url};
 
-use crate::{Index, IndexStatusCodeStrategy, Verbatim};
+use crate::{ExcludeNewerOverride, Index, IndexStatusCodeStrategy, Verbatim};
 
 static PYPI_URL: LazyLock<DisplaySafeUrl> =
     LazyLock::new(|| DisplaySafeUrl::parse("https://pypi.org/simple").unwrap());
@@ -463,6 +463,16 @@ impl<'a> IndexLocations {
         }
         None
     }
+
+    /// Return the index-specific `exclude-newer` setting for an [`IndexUrl`], if configured.
+    pub fn exclude_newer_for(&self, url: &IndexUrl) -> Option<&ExcludeNewerOverride> {
+        for index in &self.indexes {
+            if is_same_index(index.url(), url) {
+                return index.exclude_newer.as_ref();
+            }
+        }
+        None
+    }
 }
 
 impl From<&IndexLocations> for fyn_auth::Indexes {
@@ -616,6 +626,16 @@ impl<'a> IndexUrls {
         }
         None
     }
+
+    /// Return the index-specific `exclude-newer` setting for an [`IndexUrl`], if configured.
+    pub fn exclude_newer_for(&self, url: &IndexUrl) -> Option<&ExcludeNewerOverride> {
+        for index in &self.indexes {
+            if is_same_index(index.url(), url) {
+                return index.exclude_newer.as_ref();
+            }
+        }
+        None
+    }
 }
 
 bitflags::bitflags! {
@@ -761,6 +781,7 @@ mod tests {
                 publish_url: None,
                 authenticate: fyn_auth::AuthPolicy::default(),
                 ignore_error_codes: None,
+                exclude_newer: None,
             },
             Index {
                 name: Some(IndexName::from_str("index2").unwrap()),
@@ -773,6 +794,7 @@ mod tests {
                 publish_url: None,
                 authenticate: fyn_auth::AuthPolicy::default(),
                 ignore_error_codes: None,
+                exclude_newer: None,
             },
         ];
 
@@ -811,6 +833,7 @@ mod tests {
             publish_url: None,
             authenticate: fyn_auth::AuthPolicy::default(),
             ignore_error_codes: None,
+            exclude_newer: None,
         }];
 
         let index_urls = IndexUrls::from_indexes(indexes.clone());
@@ -853,6 +876,7 @@ mod tests {
             publish_url: None,
             authenticate: fyn_auth::AuthPolicy::default(),
             ignore_error_codes: None,
+            exclude_newer: None,
         }];
 
         let index_urls = IndexUrls::from_indexes(indexes.clone());
@@ -895,6 +919,7 @@ mod tests {
             publish_url: None,
             authenticate: fyn_auth::AuthPolicy::default(),
             ignore_error_codes: None,
+            exclude_newer: None,
         }];
 
         let index_urls = IndexUrls::from_indexes(indexes.clone());

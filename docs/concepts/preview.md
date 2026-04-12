@@ -61,6 +61,7 @@ The following preview features are available:
 - `package-conflicts`: Allows defining workspace conflicts at the package level.
 - `pylock`: Allows installing from `pylock.toml` files.
 - `format`: Allows using `fyn format`.
+- `index-exclude-newer`: Allows using `exclude-newer` on `[[tool.fyn.index]]`.
 - `native-auth`: Enables storage of credentials in a
   [system-native location](../concepts/authentication/http.md#the-fyn-credentials-store).
 - `workspace-metadata`: Allows using `fyn workspace metadata`.

@@ -727,6 +727,27 @@ restriction, e.g., to allow resolving packages from an index that does not publi
 
 Package-specific values will take precedence over global values.
 
+Indexes can also define their own `exclude-newer` value:
+
+```pyproject.toml
+[[tool.fyn.index]]
+name = "internal"
+url = "https://internal.example.com/simple"
+exclude-newer = false
+```
+
+Or:
+
+```pyproject.toml
+[[tool.fyn.index]]
+name = "internal"
+url = "https://internal.example.com/simple"
+exclude-newer = "7 days"
+```
+
+Index-specific values are preview-only, take precedence over the global `exclude-newer` setting,
+and are themselves overridden by `exclude-newer-package`.
+
 ## Dependency cooldowns
 
 fyn also supports dependency "cooldowns" in which resolution will ignore packages newer than a

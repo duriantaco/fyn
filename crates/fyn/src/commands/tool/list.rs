@@ -157,6 +157,7 @@ pub(crate) async fn list(
                         capabilities: &capabilities,
                         prerelease: settings.resolver.prerelease,
                         exclude_newer: &effective_exclude_newer,
+                        index_locations: &settings.resolver.index_locations,
                         tags: None,
                         requires_python: Some(&requires_python),
                     };
