@@ -1,6 +1,8 @@
+use std::net::SocketAddr;
 use std::str::FromStr;
 
 use anyhow::Result;
+use rcgen::CustomExtension;
 use rustls::AlertDescription;
 use url::Url;
 
@@ -12,8 +14,61 @@ use fyn_static::EnvVars;
 
 use crate::http_util::{
     generate_self_signed_certs, generate_self_signed_certs_with_ca,
-    start_https_mtls_user_agent_server, start_https_user_agent_server, test_cert_dir,
+    generate_self_signed_certs_with_ca_extensions, start_https_mtls_user_agent_server,
+    start_https_user_agent_server, test_cert_dir,
 };
+
+async fn send_request(
+    addr: SocketAddr,
+) -> Result<Result<reqwest::Response, reqwest_middleware::Error>> {
+    let url = DisplaySafeUrl::from_str(&format!("https://{addr}"))?;
+    let cache = Cache::temp()?.init().await?;
+    let client =
+        RegistryClientBuilder::new(BaseClientBuilder::default().no_retry_delay(true), cache)
+            .build()
+            .expect("failed to build registry client");
+
+    Ok(client
+        .cached_client()
+        .uncached()
+        .for_host(&url)
+        .get(Url::from(url))
+        .send()
+        .await)
+}
+
+fn assert_connect_error(error: reqwest_middleware::Error) {
+    let reqwest_middleware::Error::Middleware(middleware_error) = error else {
+        panic!("expected middleware error");
+    };
+
+    let reqwest_error = middleware_error
+        .chain()
+        .find_map(|err| {
+            err.downcast_ref::<reqwest_middleware::Error>().map(|err| {
+                if let reqwest_middleware::Error::Reqwest(inner) = err {
+                    inner
+                } else {
+                    panic!("expected reqwest error")
+                }
+            })
+        })
+        .expect("expected reqwest error");
+    assert!(reqwest_error.is_connect());
+}
+
+fn duplicate_basic_constraints_extension() -> CustomExtension {
+    CustomExtension::from_oid_content(&[2, 5, 29, 19], vec![0x30, 0x00])
+}
+
+fn unsupported_critical_extension() -> CustomExtension {
+    let mut extension = CustomExtension::from_oid_content(
+        &[1, 2, 3, 4],
+        [vec![0x0c, 0x0b], b"unsupported".to_vec()].concat(),
+    );
+    extension.set_criticality(true);
+    extension
+}
 
 // SAFETY: This test is meant to run with single thread configuration
 #[tokio::test]
@@ -34,28 +89,24 @@ async fn ssl_env_vars() -> Result<()> {
         tempfile::TempDir::new_in(cert_dir).expect("Failed to create test cert directory");
     let does_not_exist_cert_dir = cert_dir.path().join("does_not_exist");
 
-    // Generate self-signed standalone cert
-    let standalone_server_cert = generate_self_signed_certs()?;
-    let standalone_public_pem_path = cert_dir.path().join("standalone_public.pem");
-    let standalone_private_pem_path = cert_dir.path().join("standalone_private.pem");
-
     // Generate self-signed CA, server, and client certs
     let (ca_cert, server_cert, client_cert) = generate_self_signed_certs_with_ca()?;
+    let (invalid_ca_cert, invalid_server_cert, _) =
+        generate_self_signed_certs_with_ca_extensions(vec![
+            duplicate_basic_constraints_extension(),
+        ])?;
+    let (unsupported_ca_cert, unsupported_server_cert, _) =
+        generate_self_signed_certs_with_ca_extensions(vec![unsupported_critical_extension()])?;
     let ca_public_pem_path = cert_dir.path().join("ca_public.pem");
     let ca_private_pem_path = cert_dir.path().join("ca_private.pem");
     let server_public_pem_path = cert_dir.path().join("server_public.pem");
     let server_private_pem_path = cert_dir.path().join("server_private.pem");
     let client_combined_pem_path = cert_dir.path().join("client_combined.pem");
+    let invalid_ca_public_pem_path = cert_dir.path().join("invalid_ca_public.pem");
+    let unsupported_ca_public_pem_path = cert_dir.path().join("unsupported_ca_public.pem");
+    let bundle_ca_pem_path = cert_dir.path().join("bundle_ca.pem");
 
     // Persist the certs in PKCS8 format as the env vars expect a path on disk
-    fs_err::write(
-        standalone_public_pem_path.as_path(),
-        standalone_server_cert.public.pem(),
-    )?;
-    fs_err::write(
-        standalone_private_pem_path.as_path(),
-        standalone_server_cert.private.serialize_pem(),
-    )?;
     fs_err::write(ca_public_pem_path.as_path(), ca_cert.public.pem())?;
     fs_err::write(
         ca_private_pem_path.as_path(),
@@ -75,6 +126,18 @@ async fn ssl_env_vars() -> Result<()> {
             client_cert.private.serialize_pem()
         ),
     )?;
+    fs_err::write(
+        invalid_ca_public_pem_path.as_path(),
+        invalid_ca_cert.public.pem(),
+    )?;
+    fs_err::write(
+        unsupported_ca_public_pem_path.as_path(),
+        unsupported_ca_cert.public.pem(),
+    )?;
+    fs_err::write(
+        bundle_ca_pem_path.as_path(),
+        format!("{}\n{}", invalid_ca_cert.public.pem(), ca_cert.public.pem()),
+    )?;
 
     // ** Set SSL_CERT_FILE to non-existent location
     // ** Then verify our request fails to establish a connection
@@ -82,6 +145,7 @@ async fn ssl_env_vars() -> Result<()> {
     unsafe {
         std::env::set_var(EnvVars::SSL_CERT_FILE, does_not_exist_cert_dir.as_os_str());
     }
+    let standalone_server_cert = generate_self_signed_certs()?;
     let (server_task, addr) = start_https_user_agent_server(&standalone_server_cert).await?;
     let url = DisplaySafeUrl::from_str(&format!("https://{addr}"))?;
     let cache = Cache::temp()?.init().await?;
@@ -134,16 +198,13 @@ async fn ssl_env_vars() -> Result<()> {
     };
     assert!(expected_err);
 
-    // ** Set SSL_CERT_FILE to our public certificate
+    // ** Set SSL_CERT_FILE to our CA certificate
     // ** Then verify our request successfully establishes a connection
 
     unsafe {
-        std::env::set_var(
-            EnvVars::SSL_CERT_FILE,
-            standalone_public_pem_path.as_os_str(),
-        );
+        std::env::set_var(EnvVars::SSL_CERT_FILE, ca_public_pem_path.as_os_str());
     }
-    let (server_task, addr) = start_https_user_agent_server(&standalone_server_cert).await?;
+    let (server_task, addr) = start_https_user_agent_server(&server_cert).await?;
     let url = DisplaySafeUrl::from_str(&format!("https://{addr}"))?;
     let cache = Cache::temp()?.init().await?;
     let client =
@@ -163,6 +224,56 @@ async fn ssl_env_vars() -> Result<()> {
         std::env::remove_var(EnvVars::SSL_CERT_FILE);
     }
 
+    // ** Set SSL_CERT_FILE to a bundle containing both invalid and valid roots
+    // ** Then verify the valid certificate remains trusted
+
+    unsafe {
+        std::env::set_var(EnvVars::SSL_CERT_FILE, bundle_ca_pem_path.as_os_str());
+    }
+    let (server_task, addr) = start_https_user_agent_server(&server_cert).await?;
+    let response = send_request(addr).await?;
+    assert!(response.is_ok());
+    let _ = server_task.await?;
+    unsafe {
+        std::env::remove_var(EnvVars::SSL_CERT_FILE);
+    }
+
+    // ** Set SSL_CERT_FILE to an invalid trust anchor
+    // ** Then verify the client falls back to webpki roots
+
+    unsafe {
+        std::env::set_var(
+            EnvVars::SSL_CERT_FILE,
+            invalid_ca_public_pem_path.as_os_str(),
+        );
+    }
+    let (server_task, addr) = start_https_user_agent_server(&invalid_server_cert).await?;
+    let response = send_request(addr).await?;
+    let error = response.expect_err("request should fail after falling back to webpki roots");
+    assert_connect_error(error);
+    let _ = server_task.await;
+    unsafe {
+        std::env::remove_var(EnvVars::SSL_CERT_FILE);
+    }
+
+    // ** Set SSL_CERT_FILE to a certificate with an unsupported critical extension
+    // ** Then verify the client falls back to webpki roots
+
+    unsafe {
+        std::env::set_var(
+            EnvVars::SSL_CERT_FILE,
+            unsupported_ca_public_pem_path.as_os_str(),
+        );
+    }
+    let (server_task, addr) = start_https_user_agent_server(&unsupported_server_cert).await?;
+    let response = send_request(addr).await?;
+    let error = response.expect_err("request should fail after falling back to webpki roots");
+    assert_connect_error(error);
+    let _ = server_task.await;
+    unsafe {
+        std::env::remove_var(EnvVars::SSL_CERT_FILE);
+    }
+
     // ** Set SSL_CERT_DIR to our cert dir as well as some other dir that does not exist
     // ** Then verify our request still successfully establishes a connection
 
@@ -175,7 +286,7 @@ async fn ssl_env_vars() -> Result<()> {
             ])?,
         );
     }
-    let (server_task, addr) = start_https_user_agent_server(&standalone_server_cert).await?;
+    let (server_task, addr) = start_https_user_agent_server(&server_cert).await?;
     let url = DisplaySafeUrl::from_str(&format!("https://{addr}"))?;
     let cache = Cache::temp()?.init().await?;
     let client =
@@ -201,6 +312,7 @@ async fn ssl_env_vars() -> Result<()> {
     unsafe {
         std::env::set_var(EnvVars::SSL_CERT_DIR, does_not_exist_cert_dir.as_os_str());
     }
+    let standalone_server_cert = generate_self_signed_certs()?;
     let (server_task, addr) = start_https_user_agent_server(&standalone_server_cert).await?;
     let url = DisplaySafeUrl::from_str(&format!("https://{addr}"))?;
     let cache = Cache::temp()?.init().await?;

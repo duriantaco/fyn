@@ -43,7 +43,7 @@ use fyn_version::version;
 use fyn_warnings::warn_user_once;
 
 use crate::middleware::OfflineMiddleware;
-use crate::tls::{Certificates, TlsConfigurationError, read_identity};
+use crate::tls::{Certificates, read_identity};
 use crate::{Connectivity, WrappedReqwestError};
 
 pub const DEFAULT_RETRIES: u32 = 3;
@@ -67,41 +67,13 @@ pub const DEFAULT_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 /// timeout on the entire upload.
 pub const DEFAULT_READ_TIMEOUT_UPLOAD: Duration = Duration::from_mins(15);
 
-#[derive(Debug)]
-pub struct ClientBuildError(ClientBuildErrorKind);
-
 #[derive(Debug, Error)]
-enum ClientBuildErrorKind {
-    #[error(transparent)]
-    Reqwest(reqwest::Error),
-    #[error(transparent)]
-    TlsConfiguration(TlsConfigurationError),
-}
-
-impl std::fmt::Display for ClientBuildError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("failed to build HTTP client")
-    }
-}
-
-impl std::error::Error for ClientBuildError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match &self.0 {
-            ClientBuildErrorKind::Reqwest(error) => Some(error),
-            ClientBuildErrorKind::TlsConfiguration(error) => Some(error),
-        }
-    }
-}
+#[error("failed to build HTTP client")]
+pub struct ClientBuildError(#[source] reqwest::Error);
 
 impl From<reqwest::Error> for ClientBuildError {
     fn from(error: reqwest::Error) -> Self {
-        Self(ClientBuildErrorKind::Reqwest(error))
-    }
-}
-
-impl From<TlsConfigurationError> for ClientBuildError {
-    fn from(error: TlsConfigurationError) -> Self {
-        Self(ClientBuildErrorKind::TlsConfiguration(error))
+        Self(error)
     }
 }
 
@@ -509,7 +481,7 @@ impl<'a> BaseClientBuilder<'a> {
         // Create user agent — minimal, no system profiling.
         let user_agent_string = format!("fyn/{}", version());
 
-        let custom_certs = Certificates::from_env()?.map(|certs| certs.to_reqwest_certs());
+        let custom_certs = Certificates::from_env().map(|certs| certs.to_reqwest_certs());
 
         // Create a secure client that validates certificates.
         let raw_client = self.create_client(
@@ -1449,9 +1421,6 @@ mod tests {
 
     use anyhow::Result;
     use insta::assert_debug_snapshot;
-    use rcgen::{
-        BasicConstraints, CertificateParams, CustomExtension, DnType, IsCa, KeyPair, date_time_ymd,
-    };
     use reqwest::{Client, Method};
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -1715,23 +1684,6 @@ mod tests {
         Ok(())
     }
 
-    fn generate_ca_pem_with_extensions(custom_extensions: Vec<CustomExtension>) -> String {
-        let mut params = CertificateParams::default();
-        params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
-        params.not_before = date_time_ymd(1975, 1, 1);
-        params.not_after = date_time_ymd(4096, 1, 1);
-        params
-            .distinguished_name
-            .push(DnType::OrganizationName, "fyn contributors");
-        params
-            .distinguished_name
-            .push(DnType::CommonName, "fyn-test-ca");
-        params.custom_extensions = custom_extensions;
-
-        let key = KeyPair::generate().unwrap();
-        params.self_signed(&key).unwrap().pem()
-    }
-
     #[test]
     fn test_tls_root_sources_respect_fyn_settings() {
         assert_eq!(
@@ -1766,54 +1718,6 @@ mod tests {
                 .built_in_root_certs(true)
                 .tls_root_sources(true),
             (false, true)
-        );
-    }
-
-    #[test]
-    #[allow(unsafe_code)]
-    fn test_build_returns_tls_configuration_error_for_invalid_ssl_cert_file() {
-        let temp_dir = tempfile::tempdir().unwrap();
-        let cert_path = temp_dir.path().join("invalid-ca.pem");
-
-        let mut unsupported_extension = CustomExtension::from_oid_content(
-            &[1, 2, 3, 4],
-            [vec![0x0c, 0x0b], b"unsupported".to_vec()].concat(),
-        );
-        unsupported_extension.set_criticality(true);
-        fs_err::write(
-            &cert_path,
-            generate_ca_pem_with_extensions(vec![unsupported_extension]),
-        )
-        .unwrap();
-
-        unsafe {
-            env::remove_var(EnvVars::SSL_CERT_DIR);
-            env::remove_var(EnvVars::SSL_CLIENT_CERT);
-            env::set_var(EnvVars::SSL_CERT_FILE, &cert_path);
-        }
-
-        let err = BaseClientBuilder::default()
-            .build()
-            .expect_err("invalid trust anchors should fail client construction");
-
-        unsafe {
-            env::remove_var(EnvVars::SSL_CERT_FILE);
-        }
-
-        assert_eq!(err.to_string(), "failed to build HTTP client");
-
-        let tls_error = err
-            .source()
-            .and_then(|error| error.downcast_ref::<TlsConfigurationError>())
-            .expect("expected a TLS configuration error source");
-        assert!(matches!(
-            tls_error,
-            TlsConfigurationError::UnsupportedCriticalExtension { .. }
-        ));
-        assert!(
-            tls_error
-                .to_string()
-                .contains("uses an unsupported critical extension")
         );
     }
 }
