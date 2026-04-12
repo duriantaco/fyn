@@ -745,8 +745,8 @@ url = "https://internal.example.com/simple"
 exclude-newer = "7 days"
 ```
 
-Index-specific values are preview-only, take precedence over the global `exclude-newer` setting,
-and are themselves overridden by `exclude-newer-package`.
+Index-specific values are preview-only, take precedence over the global `exclude-newer` setting, and
+are themselves overridden by `exclude-newer-package`.
 
 ## Dependency cooldowns
 
