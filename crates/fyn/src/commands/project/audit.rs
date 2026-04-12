@@ -32,6 +32,7 @@ use fyn_scripts::Pep723Script;
 use fyn_settings::PythonInstallMirrors;
 use fyn_warnings::warn_user;
 use fyn_workspace::{DiscoveryOptions, Workspace, WorkspaceCache};
+use rustc_hash::FxHashSet;
 use tracing::trace;
 
 pub(crate) async fn audit(
@@ -239,25 +240,38 @@ pub(crate) async fn audit(
 
     reporter.on_audit_complete();
 
+    let mut matched_ignores: FxHashSet<&VulnerabilityID> = FxHashSet::default();
     let all_findings: Vec<_> = all_findings
         .into_iter()
         .filter(|finding| match finding {
             Finding::Vulnerability(vulnerability) => {
-                if ignore.iter().any(|id| vulnerability.matches(id)) {
+                if let Some(id) = ignore.iter().find(|id| vulnerability.matches(id)) {
+                    matched_ignores.insert(id);
                     return false;
                 }
-                if vulnerability.fix_versions.is_empty()
-                    && ignore_until_fixed
-                        .iter()
-                        .any(|id| vulnerability.matches(id))
+                if let Some(id) = ignore_until_fixed
+                    .iter()
+                    .find(|id| vulnerability.matches(id))
                 {
-                    return false;
+                    matched_ignores.insert(id);
+                    if vulnerability.fix_versions.is_empty() {
+                        return false;
+                    }
                 }
                 true
             }
             Finding::ProjectStatus(_) => true,
         })
         .collect();
+
+    for id in ignore.iter().chain(ignore_until_fixed.iter()) {
+        if !matched_ignores.contains(id) {
+            warn_user!(
+                "Ignored vulnerability `{}` does not match any vulnerability in the project",
+                id.as_str()
+            );
+        }
+    }
 
     let display = AuditResults {
         printer,
@@ -283,7 +297,7 @@ impl AuditResults {
 
         let vuln_banner = if !vulns.is_empty() {
             let s = if vulns.len() == 1 { "y" } else { "ies" };
-            format!("{} known vulnerabilit{}", vulns.len(), s)
+            format!("{} known vulnerabilit{s}", vulns.len())
                 .yellow()
                 .to_string()
         } else {
