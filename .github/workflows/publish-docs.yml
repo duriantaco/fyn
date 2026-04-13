@@ -1,33 +1,33 @@
-# Publish the fyn documentation.
+# Publish the fyn documentation to the `gh-pages` branch.
 #
-# Assumed to run as a subworkflow of .github/workflows/release.yml; specifically, as a post-announce
-# job within `cargo-dist`.
-name: mkdocs
+# This repo's documentation source of truth lives in `docs/` and is built with MkDocs. We publish
+# the generated site to a dedicated branch so it can be served by GitHub Pages.
+name: publish-docs
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      ref:
-        description: "The commit SHA, tag, or branch to publish. Uses the default branch if not specified."
-        default: ""
-        type: string
   workflow_call:
     inputs:
       plan:
-        required: true
+        required: false
         type: string
 
-permissions: {}
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-docs
+  cancel-in-progress: true
 
 jobs:
   mkdocs:
     runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ (inputs.plan != '' && fromJson(inputs.plan).announcement_tag) || inputs.ref }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ inputs.ref }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -43,33 +43,6 @@ jobs:
           cargo dev generate-cli-reference
           cargo dev generate-env-vars-reference
 
-      - name: "Set docs display name"
-        run: |
-          version="${VERSION}"
-          # if version is missing, use 'latest'
-          if [ -z "$version" ]; then
-            echo "Using 'latest' as version"
-            version="latest"
-          fi
-
-          # Use version as display name for now
-          display_name="$version"
-
-          echo "DISPLAY_NAME=$display_name" >> $GITHUB_ENV
-
-      - name: "Set branch name"
-        run: |
-          version="${VERSION}"
-          display_name="${DISPLAY_NAME}"
-          timestamp="$(date +%s)"
-
-          # create branch_display_name from display_name by replacing all
-          # characters disallowed in git branch names with hyphens
-          branch_display_name="$(echo "$display_name" | tr -c '[:alnum:]._' '-' | tr -s '-')"
-
-          echo "BRANCH_NAME=update-docs-$branch_display_name-$timestamp" >> $GITHUB_ENV
-          echo "TIMESTAMP=$timestamp" >> $GITHUB_ENV
-
       - name: "Install fyn"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
@@ -78,64 +51,23 @@ jobs:
       - name: "Build docs"
         run: cargo run --bin fyn -- run --isolated --only-group docs mkdocs build --strict -f mkdocs.yml
 
-      - name: "Clone docs repo"
-        run: |
-          version="${VERSION}"
-          git clone https://${ASTRAL_DOCS_PAT}@github.com/astral-sh/docs.git astral-docs
+      - name: "Publish docs"
         env:
-          ASTRAL_DOCS_PAT: ${{ secrets.ASTRAL_DOCS_PAT }}
-
-      - name: "Copy docs"
-        run: rm -rf astral-docs/site/fyn && mkdir -p astral-docs/site && cp -r site/fyn astral-docs/site/
-
-      - name: "Commit docs"
-        working-directory: astral-docs
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          branch_name="${BRANCH_NAME}"
+          remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
-          git config user.name "astral-docs-bot"
-          git config user.email "176161322+astral-docs-bot@users.noreply.github.com"
+          rm -rf deploy
+          mkdir -p deploy
+          cp -R site/. deploy/
+          touch deploy/.nojekyll
 
-          git checkout -b $branch_name
-          git add site/fyn
-          git commit -m "Update fyn documentation for $version"
-
-      - name: "Create Pull Request"
-        working-directory: astral-docs
-        env:
-          GITHUB_TOKEN: ${{ secrets.ASTRAL_DOCS_PAT }}
-        run: |
-          version="${VERSION}"
-          display_name="${DISPLAY_NAME}"
-          branch_name="${BRANCH_NAME}"
-
-          # set the PR title
-          pull_request_title="Update fyn documentation for $display_name"
-
-          # Delete any existing pull requests that are open for this version
-          # by checking against pull_request_title because the new PR will
-          # supersede the old one.
-          gh pr list --state open --json title --jq '.[] | select(.title == "$pull_request_title") | .number' | \
-            xargs -I {} gh pr close {}
-
-          # push the branch to GitHub
-          git push origin $branch_name
-
-          # create the PR
-          gh pr create --base main --head $branch_name \
-            --title "$pull_request_title" \
-            --body "Automated documentation update for $display_name" \
-            --label "documentation"
-
-      - name: "Merge Pull Request"
-        if: ${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
-        working-directory: astral-docs
-        env:
-          GITHUB_TOKEN: ${{ secrets.ASTRAL_DOCS_PAT }}
-        run: |
-          branch_name="${BRANCH_NAME}"
-
-          # auto-merge the PR if the build was triggered by a release. Manual builds should be reviewed by a human.
-          # give the PR a few seconds to be created before trying to auto-merge it
-          sleep 10
-          gh pr merge --squash $branch_name
+          cd deploy
+          git init
+          git checkout --orphan gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          git commit -m "Publish docs for ${GITHUB_SHA}"
+          git remote add origin "${remote}"
+          git push --force origin gh-pages

@@ -2,6 +2,18 @@
 
 An extremely fast Python package and project manager, written in Rust.
 
+## Start here
+
+Pick the path that matches how you use fyn:
+
+- New to fyn: [installation](./getting-started/installation.md),
+  [first steps](./getting-started/first-steps.md), and [getting help](./getting-started/help.md)
+- Working on a project: [projects guide](./guides/projects.md)
+- Running scripts: [scripts guide](./guides/scripts.md)
+- Using developer tools: [tools guide](./guides/tools.md)
+- Looking for flags or config details: [CLI reference](./reference/cli.md),
+  [settings](./reference/settings.md), and [environment variables](./reference/environment.md)
+
 <p align="center">
   <img alt="Shows a bar chart with benchmark results." src="https://github.com/astral-sh/uv/assets/1309177/629e59c0-9c6e-4013-9ad4-adb2bcf5080d#only-light">
 </p>

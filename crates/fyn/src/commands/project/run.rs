@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::collections::BTreeMap;
 use std::env::VarError;
 use std::ffi::OsString;
 use std::fmt::Write;
@@ -1249,9 +1250,6 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
         return Ok(ExitStatus::Error);
     };
 
-    debug!("Running `{command}`");
-    let mut process = command.as_command(interpreter);
-
     // Construct the `PATH` environment variable.
     let new_path = std::env::join_paths(
         ephemeral_env
@@ -1282,18 +1280,13 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
                     .flat_map(std::env::split_paths),
             ),
     )?;
-    process.env(EnvVars::PATH, new_path);
-
-    // Increment recursion depth counter.
-    process.env(
-        EnvVars::UV_RUN_RECURSION_DEPTH,
-        (recursion_depth + 1).to_string(),
-    );
-
-    // Ensure `VIRTUAL_ENV` is set.
-    if interpreter.is_virtualenv() {
-        process.env(EnvVars::VIRTUAL_ENV, interpreter.sys_prefix().as_os_str());
+    if let RunCommand::Task(plan) = &command {
+        return execute_task_plan(plan, interpreter, &new_path, recursion_depth, printer).await;
     }
+
+    debug!("Running `{command}`");
+    let mut process = command.as_command(interpreter);
+    configure_run_process(&mut process, interpreter, &new_path, recursion_depth);
 
     // Spawn and wait for completion
     // Standard input, output, and error streams are all inherited
@@ -1303,6 +1296,54 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
         .with_context(|| format!("Failed to spawn: `{}`", command.display_executable()))?;
 
     run_to_completion(handle).await
+}
+
+fn configure_run_process(
+    process: &mut Command,
+    interpreter: &Interpreter,
+    new_path: &OsString,
+    recursion_depth: u32,
+) {
+    process.env(EnvVars::PATH, new_path);
+    process.env(
+        EnvVars::UV_RUN_RECURSION_DEPTH,
+        (recursion_depth + 1).to_string(),
+    );
+    if interpreter.is_virtualenv() {
+        process.env(EnvVars::VIRTUAL_ENV, interpreter.sys_prefix().as_os_str());
+    }
+}
+
+async fn execute_task_plan(
+    plan: &TaskPlan,
+    interpreter: &Interpreter,
+    new_path: &OsString,
+    recursion_depth: u32,
+    printer: Printer,
+) -> anyhow::Result<ExitStatus> {
+    let show_step_names = plan.steps.len() > 1;
+    for step in &plan.steps {
+        if show_step_names {
+            writeln!(printer.stderr(), "Running task `{}`", step.name.cyan())?;
+        }
+
+        debug!("Running task step `{}` for task `{}`", step.name, plan.name);
+
+        let mut process = step.command.as_command(interpreter);
+        configure_run_process(&mut process, interpreter, new_path, recursion_depth);
+        process.envs(step.env.iter());
+
+        let handle = process
+            .spawn()
+            .with_context(|| format!("Failed to spawn: `{}`", step.command.display_executable()))?;
+
+        let status = run_to_completion(handle).await?;
+        if !matches!(status, ExitStatus::Success | ExitStatus::External(0)) {
+            return Ok(status);
+        }
+    }
+
+    Ok(ExitStatus::Success)
 }
 
 /// Returns `true` if we can skip creating an additional ephemeral environment in `fyn run`.
@@ -1382,6 +1423,41 @@ fn can_skip_ephemeral(
 }
 
 #[derive(Debug)]
+pub(crate) struct TaskPlan {
+    name: String,
+    steps: Vec<TaskStep>,
+}
+
+#[derive(Debug)]
+struct TaskStep {
+    name: String,
+    command: TaskCommand,
+    env: BTreeMap<String, String>,
+}
+
+#[derive(Debug)]
+struct TaskCommand {
+    executable: OsString,
+    args: Vec<OsString>,
+}
+
+impl TaskCommand {
+    fn display_executable(&self) -> Cow<'_, str> {
+        self.executable.to_string_lossy()
+    }
+
+    fn as_command(&self, interpreter: &Interpreter) -> Command {
+        let mut process = if cfg!(windows) {
+            WindowsRunnable::from_script_path(interpreter.scripts(), &self.executable).into()
+        } else {
+            Command::new(&self.executable)
+        };
+        process.args(&self.args);
+        process
+    }
+}
+
+#[derive(Debug)]
 pub(crate) enum RunCommand {
     /// Execute `python`.
     Python(Vec<OsString>),
@@ -1404,6 +1480,8 @@ pub(crate) enum RunCommand {
     PythonGuiStdin(Vec<u8>, Vec<OsString>),
     /// Execute a Python script provided via a remote URL.
     PythonRemote(DisplaySafeUrl, tempfile::NamedTempFile, Vec<OsString>),
+    /// Execute a resolved task plan.
+    Task(TaskPlan),
     /// Execute an external command.
     External(OsString, Vec<OsString>),
     /// Execute an empty command (in practice, `python` with no arguments).
@@ -1438,6 +1516,7 @@ impl RunCommand {
                     Cow::Borrowed("python -c")
                 }
             }
+            Self::Task(plan) => Cow::Borrowed(plan.name.as_str()),
             Self::External(executable, _) => executable.to_string_lossy(),
         }
     }
@@ -1556,6 +1635,7 @@ impl RunCommand {
 
                 process
             }
+            Self::Task(..) => unreachable!("task plans are executed separately"),
             Self::External(executable, args) => {
                 let mut process = if cfg!(windows) {
                     WindowsRunnable::from_script_path(interpreter.scripts(), executable).into()
@@ -1581,6 +1661,7 @@ impl RunCommand {
             | Self::PythonStdin(..)
             | Self::PythonGuiStdin(..)
             | Self::PythonRemote(..)
+            | Self::Task(..)
             | Self::External(..)
             | Self::Empty => None,
         };
@@ -1636,6 +1717,7 @@ impl std::fmt::Display for RunCommand {
                 write!(f, "pythonw -c")?;
                 Ok(())
             }
+            Self::Task(plan) => write!(f, "task {}", plan.name),
             Self::External(executable, args) => {
                 write!(f, "{}", executable.to_string_lossy())?;
                 for arg in args {
@@ -1805,8 +1887,10 @@ impl RunCommand {
             && !target_str.contains('/')
             && !target_str.contains('.')
         {
-            if let Some(task) = lookup_task(&target_str, project_dir) {
-                return task_to_command(&task, args);
+            if let Some(tasks) = lookup_tasks(project_dir) {
+                if tasks.get(&target_str).is_some() {
+                    return Ok(Self::Task(resolve_task_plan(&target_str, &tasks, args)?));
+                }
             }
         }
 
@@ -1845,11 +1929,11 @@ impl RunCommand {
     }
 }
 
-/// Look up a task by name from the nearest `pyproject.toml`.
+/// Look up the task table from the nearest `pyproject.toml`.
 ///
 /// Walks up from `project_dir` looking for a `pyproject.toml` with a
-/// `[tool.fyn.tasks]` section that contains the given name.
-fn lookup_task(name: &str, project_dir: &Path) -> Option<fyn_workspace::pyproject::TaskDefinition> {
+/// `[tool.fyn.tasks]` section.
+fn lookup_tasks(project_dir: &Path) -> Option<fyn_workspace::pyproject::ToolfynTasks> {
     let mut dir = project_dir.to_path_buf();
     loop {
         let pyproject_path = dir.join("pyproject.toml");
@@ -1860,14 +1944,14 @@ fn lookup_task(name: &str, project_dir: &Path) -> Option<fyn_workspace::pyprojec
                 {
                     if let Some(tool_fyn) = pyproject.tool.and_then(|t| t.fyn) {
                         if let Some(tasks) = tool_fyn.tasks {
-                            if let Some(task) = tasks.get(name) {
-                                return Some(task.clone());
+                            if !tasks.is_empty() {
+                                return Some(tasks);
                             }
                         }
                     }
                 }
             }
-            // Found a pyproject.toml but no matching task — stop searching.
+            // Found a pyproject.toml but no tasks — stop searching.
             return None;
         }
         if !dir.pop() {
@@ -1876,41 +1960,111 @@ fn lookup_task(name: &str, project_dir: &Path) -> Option<fyn_workspace::pyprojec
     }
 }
 
-/// Convert a [`TaskDefinition`] into a [`RunCommand`].
-fn task_to_command(
-    task: &fyn_workspace::pyproject::TaskDefinition,
+fn resolve_task_plan(
+    name: &str,
+    tasks: &fyn_workspace::pyproject::ToolfynTasks,
     extra_args: &[OsString],
-) -> anyhow::Result<RunCommand> {
+) -> anyhow::Result<TaskPlan> {
+    let mut stack = Vec::new();
+    let mut steps = Vec::new();
+    resolve_task_steps(
+        name,
+        tasks,
+        &BTreeMap::new(),
+        extra_args,
+        &mut stack,
+        &mut steps,
+    )?;
+    Ok(TaskPlan {
+        name: name.to_string(),
+        steps,
+    })
+}
+
+fn resolve_task_steps(
+    name: &str,
+    tasks: &fyn_workspace::pyproject::ToolfynTasks,
+    inherited_env: &BTreeMap<String, String>,
+    extra_args: &[OsString],
+    stack: &mut Vec<String>,
+    steps: &mut Vec<TaskStep>,
+) -> anyhow::Result<()> {
     use fyn_workspace::pyproject::TaskDefinition;
 
-    let cmd_str = match task {
-        TaskDefinition::Cmd(cmd) => cmd.clone(),
+    if let Some(position) = stack.iter().position(|task_name| task_name == name) {
+        let mut cycle = stack[position..].to_vec();
+        cycle.push(name.to_string());
+        bail!("Task cycle detected: {}", cycle.join(" -> "));
+    }
+
+    let task = tasks
+        .get(name)
+        .ok_or_else(|| anyhow!("Task `{name}` was referenced but is not defined"))?;
+
+    stack.push(name.to_string());
+
+    match task {
+        TaskDefinition::Cmd(cmd) => {
+            steps.push(TaskStep {
+                name: name.to_string(),
+                command: parse_task_command(cmd, extra_args)?,
+                env: inherited_env.clone(),
+            });
+        }
         TaskDefinition::Detailed(detailed) => {
-            if let Some(ref cmd) = detailed.cmd {
-                cmd.clone()
-            } else if detailed.chain.is_some() {
-                // Chain tasks are handled at a higher level; for now, just run
-                // the first task's command. Full chain support is in step 3.
-                anyhow::bail!("Chain tasks are not yet fully supported; use individual task names");
-            } else {
-                anyhow::bail!("Task has no `cmd` or `chain` defined");
+            let mut merged_env = inherited_env.clone();
+            if let Some(env) = &detailed.env {
+                merged_env.extend(env.clone());
+            }
+
+            match (&detailed.cmd, &detailed.chain) {
+                (Some(_), Some(_)) => {
+                    bail!("Task `{name}` cannot define both `cmd` and `chain`");
+                }
+                (Some(cmd), None) => {
+                    steps.push(TaskStep {
+                        name: name.to_string(),
+                        command: parse_task_command(cmd, extra_args)?,
+                        env: merged_env,
+                    });
+                }
+                (None, Some(chain)) => {
+                    if !extra_args.is_empty() {
+                        bail!(
+                            "Cannot pass additional arguments to chain task `{name}`; run the child task directly instead"
+                        );
+                    }
+                    if chain.is_empty() {
+                        bail!("Task `{name}` defines an empty `chain`");
+                    }
+                    for child in chain {
+                        resolve_task_steps(child, tasks, &merged_env, &[], stack, steps)?;
+                    }
+                }
+                (None, None) => {
+                    bail!("Task `{name}` has no `cmd` or `chain` defined");
+                }
             }
         }
-    };
+    }
 
-    // Split the command string into program + args, respecting single and
-    // double quotes so that e.g. `echo "hello world"` doesn't get split into
-    // three tokens.
-    let parts = shell_split(&cmd_str);
+    stack.pop();
+    Ok(())
+}
 
+fn parse_task_command(cmd_str: &str, extra_args: &[OsString]) -> anyhow::Result<TaskCommand> {
+    let parts = shell_split(cmd_str);
     let Some((program, cmd_args)) = parts.split_first() else {
-        anyhow::bail!("Task command is empty");
+        bail!("Task command is empty");
     };
 
     let mut all_args: Vec<OsString> = cmd_args.iter().map(OsString::from).collect();
     all_args.extend_from_slice(extra_args);
 
-    Ok(RunCommand::External(OsString::from(program), all_args))
+    Ok(TaskCommand {
+        executable: OsString::from(program),
+        args: all_args,
+    })
 }
 
 /// Split a command string into tokens, respecting single and double quotes.

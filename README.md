@@ -5,7 +5,7 @@ An extremely fast Python package and project manager, written in Rust.
 **fyn** is an independent community fork of [uv](https://github.com/astral-sh/uv). It started on
 uv's foundation, but it now has its own commands, settings, defaults, and behavior, alongside
 reduced package-index request metadata, added features, and long-standing bug fixes. See
-[MANIFESTO.md](MANIFESTO.md) for the full story.
+[MANIFESTO.md](https://github.com/oha/fyn/blob/main/MANIFESTO.md) for the full story.
 
 ## Highlights
 
@@ -49,7 +49,22 @@ Or build from source:
 cargo install --path crates/fyn
 ```
 
-See the command line reference documentation with `fyn help`.
+See the command line reference with `fyn help`.
+
+## Documentation
+
+The docs source of truth lives in [`docs/`](https://github.com/oha/fyn/tree/main/docs). If a hosted
+docs site is not available yet, you can read the same material directly on GitHub.
+
+Start here:
+
+- [Documentation home](https://github.com/oha/fyn/blob/main/docs/README.md)
+- [Getting started](https://github.com/oha/fyn/blob/main/docs/getting-started/first-steps.md)
+- [Working on projects](https://github.com/oha/fyn/blob/main/docs/guides/projects.md)
+- [Running scripts](https://github.com/oha/fyn/blob/main/docs/guides/scripts.md)
+- [Command reference](https://github.com/oha/fyn/blob/main/docs/reference/cli.md)
+
+For CLI-specific help, use `fyn help` or `fyn help <command>`.
 
 ## Features
 
@@ -87,7 +102,7 @@ Define tasks in your `pyproject.toml` and run them with `fyn run`:
 
 ```toml
 [tool.fyn.tasks]
-test = "pytest -xvs"
+test = { cmd = "pytest -xvs", env = { PYTHONWARNINGS = "error" } }
 lint = "ruff check ."
 format = { cmd = "ruff format .", description = "Format code" }
 check = { chain = ["lint", "test"], description = "Lint then test" }
@@ -96,6 +111,9 @@ check = { chain = ["lint", "test"], description = "Lint then test" }
 ```console
 $ fyn run test
 # runs pytest -xvs
+
+$ fyn run check
+# runs lint, then test
 
 $ fyn run test -- -k mytest
 # extra args are passed through
@@ -107,6 +125,10 @@ Available tasks:
   lint     ruff check .
   test     pytest -xvs
 ```
+
+Task `env` values are applied to the spawned command. For chained tasks, parent `env` values are
+inherited by child tasks, and child task values take precedence. Extra arguments are supported for
+`cmd` tasks, but not for chained tasks.
 
 ### Shell activation
 
@@ -347,7 +369,8 @@ fynx ruff check .
 ## Contributing
 
 We are passionate about supporting contributors of all levels of experience and would love to see
-you get involved in the project. See the [contributing guide](CONTRIBUTING.md) to get started.
+you get involved in the project. See the
+[contributing guide](https://github.com/oha/fyn/blob/main/CONTRIBUTING.md) to get started.
 
 ## FAQ
 
@@ -364,21 +387,21 @@ behavior. Projects still need `[tool.uv]` renamed to `[tool.fyn]` and `uv.lock` 
 
 #### What's different from uv?
 
-See [MANIFESTO.md](MANIFESTO.md) for the fuller comparison, or the table below for some of the
-larger user-visible differences:
+See [MANIFESTO.md](https://github.com/oha/fyn/blob/main/MANIFESTO.md) for the fuller comparison, or
+the table below for some of the larger user-visible differences:
 
-| Area                          | uv                                    | fyn                      |
-| ----------------------------- | ------------------------------------- | ------------------------ | ----- | ------ |
-| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock` |
-| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`  |
-| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`       |
-| `shell` command               | No `uv shell`                         | `fyn shell`              |
-| `upgrade` command             | No `uv upgrade`                       | `fyn upgrade`            |
-| `status` command              | No `uv status`                        | `fyn status`             |
-| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`       |
-| Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project = warn   | error | allow` |
-| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`      |
-| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`            |
+| Area                          | uv                                    | fyn                                           |
+| ----------------------------- | ------------------------------------- | --------------------------------------------- |
+| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock`                      |
+| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`                       |
+| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                            |
+| `shell` command               | No `uv shell`                         | `fyn shell`                                   |
+| `upgrade` command             | No `uv upgrade`                       | `fyn upgrade`                                 |
+| `status` command              | No `uv status`                        | `fyn status`                                  |
+| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`                            |
+| Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project`: `warn`, `error`, or `allow` |
+| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                           |
+| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`                                 |
 
 ## Acknowledgements
 
@@ -388,6 +411,9 @@ for their support.
 
 fyn started as a fork of [uv](https://github.com/astral-sh/uv) by Astral and still shares
 substantial ancestry with it.
+
+Some of fyn's workflow UX, especially around task-running and future workflow ergonomics, has also
+been informed by [Hatch](https://github.com/pypa/hatch).
 
 fyn's Git implementation is based on [Cargo](https://github.com/rust-lang/cargo).
 
