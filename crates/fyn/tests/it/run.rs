@@ -6854,6 +6854,126 @@ fn run_task_detailed() -> Result<()> {
     Ok(())
 }
 
+/// Run a chained task and apply inherited and per-task environment variables.
+#[test]
+fn run_task_chain_with_env() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        first = { cmd = "python first.py", env = { OVERRIDE = "first", FIRST_ONLY = "yes" } }
+        second = { cmd = "python second.py" }
+        check = { chain = ["first", "second"], env = { CHAIN_VALUE = "chain", OVERRIDE = "root" } }
+        "#
+    })?;
+    context.temp_dir.child("first.py").write_str(indoc! { r#"
+        import os
+
+        print(f"first|{os.getenv('CHAIN_VALUE')}|{os.getenv('OVERRIDE')}|{os.getenv('FIRST_ONLY')}")
+        "#
+    })?;
+    context.temp_dir.child("second.py").write_str(indoc! { r#"
+        import os
+
+        print(f"second|{os.getenv('CHAIN_VALUE')}|{os.getenv('OVERRIDE')}|{os.getenv('FIRST_ONLY')}")
+        "#
+    })?;
+
+    fyn_snapshot!(context.filters(), context.run().arg("check"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    first|chain|first|yes
+    second|chain|root|None
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Checked in [TIME]
+    Running task `first`
+    Running task `second`
+    ");
+
+    Ok(())
+}
+
+/// Passing extra arguments to a chain task is rejected.
+#[test]
+fn run_task_chain_rejects_extra_args() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        first = "python -V"
+        check = { chain = ["first"] }
+        "#
+    })?;
+
+    fyn_snapshot!(context.filters(), context.run().arg("check").arg("--").arg("extra"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: Cannot pass additional arguments to chain task `check`; run the child task directly instead
+    ");
+
+    Ok(())
+}
+
+/// Task cycles are rejected with a clear error.
+#[test]
+fn run_task_cycle_detected() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        a = { chain = ["b"] }
+        b = { chain = ["a"] }
+        "#
+    })?;
+
+    fyn_snapshot!(context.filters(), context.run().arg("a"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: Task cycle detected: a -> b -> a
+    ");
+
+    Ok(())
+}
+
 /// Unknown name falls back to PATH lookup (existing behavior).
 #[test]
 fn run_task_fallback_to_path() -> Result<()> {

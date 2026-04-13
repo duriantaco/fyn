@@ -5,7 +5,7 @@ command:
 
 ```console
 $ fyn
-An extremely fast Python package manager.
+An extremely fast Python package and project manager.
 
 Usage: fyn [OPTIONS] <COMMAND>
 

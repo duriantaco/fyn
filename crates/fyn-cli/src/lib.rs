@@ -98,7 +98,7 @@ const STYLES: Styles = Styles::styled()
 
 #[derive(Parser)]
 #[command(name = "fyn", author, long_version = crate::version::uv_self_version())]
-#[command(about = "An extremely fast Python package manager.")]
+#[command(about = "An extremely fast Python package and project manager.")]
 #[command(
     after_help = "Use `fyn help` for more details.",
     after_long_help = "",

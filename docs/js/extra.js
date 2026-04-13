@@ -108,15 +108,38 @@ document$.subscribe(function () {
       "concepts/authentication/third-party/#hugging-face-support",
   };
 
-  // The prefix for the site, see `site_dir` in `mkdocs.yml`
-  let site_dir = "uv";
+  const docRoots = new Set([
+    "concepts",
+    "getting-started",
+    "guides",
+    "pip",
+    "reference",
+    "rfcs",
+  ]);
+
+  function get_site_prefix(pathname) {
+    const segments = pathname.split("/").filter(Boolean);
+    const first = segments[0];
+
+    if (!first || docRoots.has(first) || first.endsWith(".html")) {
+      return "";
+    }
+
+    return first;
+  }
+
+  function prefix_path(path, prefix) {
+    return prefix ? "/" + prefix + "/" + path : "/" + path;
+  }
+
+  const site_prefix = get_site_prefix(window.location.pathname);
 
   function get_path() {
     var path = window.location.pathname;
 
     // Trim the site prefix
-    if (path.startsWith("/" + site_dir + "/")) {
-      path = path.slice(site_dir.length + 2);
+    if (site_prefix && path.startsWith("/" + site_prefix + "/")) {
+      path = path.slice(site_prefix.length + 2);
     }
 
     // Always include a trailing `/`
@@ -135,6 +158,6 @@ document$.subscribe(function () {
 
   let path = get_path();
   if (path && redirect_maps.hasOwnProperty(path)) {
-    window.location.replace("/" + site_dir + "/" + redirect_maps[path]);
+    window.location.replace(prefix_path(redirect_maps[path], site_prefix));
   }
 })();

@@ -235,6 +235,42 @@ directory:
 $ fyn shell --no-project
 ```
 
+## Defining project tasks
+
+Use `[tool.fyn.tasks]` to define repeatable project commands in `pyproject.toml`:
+
+```toml title="pyproject.toml"
+[tool.fyn.tasks]
+test = { cmd = "pytest -q", env = { PYTHONWARNINGS = "error" } }
+lint = "ruff check ."
+check = { chain = ["lint", "test"], description = "Run lint and tests" }
+```
+
+Then run them with `fyn run`:
+
+```console
+$ fyn run test
+$ fyn run check
+$ fyn run --list-tasks
+```
+
+String tasks run a single command. Table tasks can define:
+
+- `cmd`: a command to execute
+- `chain`: a list of other task names to run in order
+- `description`: text shown by `fyn run --list-tasks`
+- `env`: environment variables applied to that task
+
+If a chained task defines `env`, those variables are inherited by child tasks, and child values
+override the parent values. Extra arguments are supported for `cmd` tasks:
+
+```console
+$ fyn run test -- -k my_test
+```
+
+Extra arguments are not supported for chained tasks; run the child task directly when you need to
+pass additional flags.
+
 ## Viewing your version
 
 The `fyn version` command can be used to read your package's version.

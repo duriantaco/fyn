@@ -37,6 +37,7 @@ readme = "README.md"
 
 [project.urls]
 Repository = "https://github.com/oha/fyn"
+Documentation = "https://github.com/oha/fyn/blob/main/docs/README.md"
 Changelog = "https://github.com/oha/fyn/blob/main/CHANGELOG.md"
 Releases = "https://github.com/oha/fyn/releases"
 

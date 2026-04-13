@@ -22,6 +22,42 @@ $ # Running a `bash` script that requires the project to be available
 $ fyn run bash scripts/foo.sh
 ```
 
+## Running project tasks
+
+Projects can define named tasks in `pyproject.toml` under `[tool.fyn.tasks]` and invoke them with
+`fyn run <name>`:
+
+```toml title="pyproject.toml"
+[tool.fyn.tasks]
+test = { cmd = "pytest -q", env = { PYTHONWARNINGS = "error" } }
+lint = "ruff check ."
+check = { chain = ["lint", "test"], description = "Run lint and tests" }
+```
+
+```console
+$ fyn run test
+$ fyn run check
+$ fyn run --list-tasks
+```
+
+Tasks support two forms:
+
+- a command string, such as `test = "pytest -q"`
+- a table with `cmd`, `chain`, `description`, and `env`
+
+Chained tasks run their child tasks in sequence and stop on the first failure. Task `env` values
+are applied to the spawned command. If a chained task defines `env`, those values are inherited by
+its child tasks, and any child task values override the parent values.
+
+Additional CLI arguments are supported for `cmd` tasks:
+
+```console
+$ fyn run test -- -k my_test
+```
+
+Additional CLI arguments are not supported for chained tasks; run the child task directly when you
+need to pass extra arguments.
+
 ## Requesting additional dependencies
 
 Additional dependencies or different versions of dependencies can be requested per invocation.
