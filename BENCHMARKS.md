@@ -1,6 +1,6 @@
 # Benchmarks
 
-fyn uses the same Rust engine as uv and achieves the same performance — 10-100x faster than pip.
+On the workloads in this document, fyn is typically 10-100x faster than pip.
 
 All benchmarks were computed on macOS using Python 3.12.4 and come with a few important caveats:
 

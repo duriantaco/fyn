@@ -11,8 +11,8 @@ description:
 
 !!! tip
 
-    Check out the [`uv-docker-example`](https://github.com/astral-sh/uv-docker-example) project for
-    an example of best practices when using fyn to build an application in Docker.
+    Check out the upstream [`uv-docker-example`](https://github.com/astral-sh/uv-docker-example)
+    project for an example of best practices when using fyn to build an application in Docker.
 
 fyn provides both _distroless_ Docker images, which are useful for
 [copying fyn binaries](#installing-fyn) into your own image builds, and images derived from popular
@@ -23,7 +23,7 @@ pre-installed.
 As an example, to run fyn in a container using a Debian-based image:
 
 ```console
-$ docker run --rm -it ghcr.io/oha/fyn:debian uv --help
+$ docker run --rm -it ghcr.io/oha/fyn:debian fyn --help
 ```
 
 ### Available images
@@ -96,8 +96,7 @@ As with the distroless image, each derived image is published with fyn version t
 In addition, starting with `0.8` each derived image also sets `UV_TOOL_BIN_DIR` to `/usr/local/bin`
 to allow `fyn tool install` to work as expected with the default user.
 
-For more details, see the [GitHub Container](https://github.com/astral-sh/uv/pkgs/container/uv)
-page.
+For more details, see the published container package for this repository.
 
 ### Installing fyn
 
@@ -503,7 +502,7 @@ CMD ["/app/.venv/bin/hello"]
 If fyn isn't needed in the final image, the binary can be mounted in each invocation:
 
 ```dockerfile title="Dockerfile"
-RUN --mount=from=ghcr.io/oha/fyn,source=/uv,target=/bin/uv \
+RUN --mount=from=ghcr.io/oha/fyn,source=/fyn,target=/bin/fyn \
     fyn sync
 ```
 
@@ -571,21 +570,21 @@ For example, you can verify the attestations with the
 [GitHub CLI tool `gh`](https://cli.github.com/):
 
 ```console
-$ gh attestation verify --owner astral-sh oci://ghcr.io/oha/fyn:latest
+$ gh attestation verify --owner <repo-owner> oci://ghcr.io/oha/fyn:latest
 Loaded digest sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx for oci://ghcr.io/oha/fyn:latest
 Loaded 1 attestation from GitHub API
 
 The following policy criteria will be enforced:
 - OIDC Issuer must match:................... https://token.actions.githubusercontent.com
-- Source Repository Owner URI must match:... https://github.com/astral-sh
+- Source Repository Owner URI must match:... https://github.com/<repo-owner>
 - Predicate type must match:................ https://slsa.dev/provenance/v1
-- Subject Alternative Name must match regex: (?i)^https://github.com/astral-sh/
+- Subject Alternative Name must match regex: (?i)^https://github.com/<repo-owner>/
 
 ✓ Verification succeeded!
 
 sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx was attested by:
 REPO          PREDICATE_TYPE                  WORKFLOW
-astral-sh/uv  https://slsa.dev/provenance/v1  .github/workflows/build-docker.yml@refs/heads/main
+<repo-owner>/fyn  https://slsa.dev/provenance/v1  .github/workflows/build-docker.yml@refs/heads/main
 ```
 
 This tells you that the specific Docker image was built by the official fyn GitHub release workflow
@@ -596,13 +595,13 @@ you can also use the [`cosign` command](https://github.com/sigstore/cosign) to v
 attestation blob against the (multi-platform) manifest for `fyn`:
 
 ```console
-$ REPO=astral-sh/uv
-$ gh attestation download --repo $REPO oci://ghcr.io/${REPO}:latest
+$ REPO=<repo-owner>/fyn
+$ gh attestation download --repo $REPO oci://ghcr.io/oha/fyn:latest
 Wrote attestations to file sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jsonl.
 Any previous content has been overwritten
 
 The trusted metadata is now available at sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jsonl
-$ docker buildx imagetools inspect ghcr.io/${REPO}:latest --format "{{json .Manifest}}" > manifest.json
+$ docker buildx imagetools inspect ghcr.io/oha/fyn:latest --format "{{json .Manifest}}" > manifest.json
 $ cosign verify-blob-attestation \
     --new-bundle-format \
     --bundle "$(jq -r .digest manifest.json).jsonl"  \

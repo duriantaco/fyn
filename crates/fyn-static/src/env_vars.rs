@@ -289,7 +289,7 @@ impl EnvVars {
     #[attr_added_in("0.4.16")]
     pub const UV_PUBLISH_URL: &'static str = "UV_PUBLISH_URL";
 
-    /// Equivalent to the `--token` command-line argument in `fyn publish`. If set, uv
+    /// Equivalent to the `--token` command-line argument in `fyn publish`. If set, fyn
     /// will use this token (with the username `__token__`) for publishing.
     #[attr_added_in("0.4.16")]
     pub const UV_PUBLISH_TOKEN: &'static str = "UV_PUBLISH_TOKEN";
@@ -357,7 +357,7 @@ impl EnvVars {
     /// Disable ZIP validation for streamed wheels and ZIP-based source distributions.
     ///
     /// WARNING: Disabling ZIP validation can expose your system to security risks by bypassing
-    /// integrity checks and allowing fyn to install potentially malicious ZIP files. If uv rejects
+    /// integrity checks and allowing fyn to install potentially malicious ZIP files. If fyn rejects
     /// a ZIP file due to failing validation, it is likely that the file is malformed; consider
     /// filing an issue with the package maintainer.
     #[attr_added_in("0.8.6")]
@@ -621,7 +621,7 @@ impl EnvVars {
     pub const UV_INTERNAL__TEST_LFS_DISABLED: &'static str = "UV_INTERNAL__TEST_LFS_DISABLED";
 
     /// Marker variable to track whether `PYTHONHOME` was set by fyn.
-    /// Used by the Windows trampoline to distinguish uv-set values from user-set values.
+    /// Used by the Windows trampoline to distinguish fyn-set values from user-set values.
     #[attr_hidden]
     #[attr_added_in("0.9.29")]
     pub const UV_INTERNAL__PYTHONHOME: &'static str = "UV_INTERNAL__PYTHONHOME";
@@ -1018,7 +1018,7 @@ impl EnvVars {
     ///
     /// For example:
     ///
-    /// * `RUST_LOG=uv=debug` is the equivalent of adding `--verbose` to the command line
+    /// * `RUST_LOG=fyn=debug` is the equivalent of adding `--verbose` to the command line
     /// * `RUST_LOG=trace` will enable trace-level logging.
     ///
     /// See the [tracing documentation](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html#example-syntax)
@@ -1047,7 +1047,7 @@ impl EnvVars {
 
     /// Use to set the stack size used by fyn.
     ///
-    /// The value is in bytes, and if both `UV_STACK_SIZE` are `RUST_MIN_STACK` unset, uv uses a 4MB
+    /// The value is in bytes, and if both `UV_STACK_SIZE` and `RUST_MIN_STACK` are unset, fyn uses a 4MB
     /// (4194304) stack. `UV_STACK_SIZE` takes precedence over `RUST_MIN_STACK`.
     ///
     /// Unlike the normal `RUST_MIN_STACK` semantics, this can affect main thread
@@ -1059,7 +1059,7 @@ impl EnvVars {
 
     /// Use to set the stack size used by fyn.
     ///
-    /// The value is in bytes, and if both `UV_STACK_SIZE` are `RUST_MIN_STACK` unset, uv uses a 4MB
+    /// The value is in bytes, and if both `UV_STACK_SIZE` and `RUST_MIN_STACK` are unset, fyn uses a 4MB
     /// (4194304) stack. `UV_STACK_SIZE` takes precedence over `RUST_MIN_STACK`.
     ///
     /// Prefer setting `UV_STACK_SIZE`, since `RUST_MIN_STACK` also affects subprocesses, such as
@@ -1182,7 +1182,7 @@ impl EnvVars {
     #[attr_added_in("0.5.0")]
     pub const UV_INSTALLER_GHE_BASE_URL: &'static str = "UV_INSTALLER_GHE_BASE_URL";
 
-    /// The directory in which to install uv using the standalone installer and `self update` feature.
+    /// The directory in which to install fyn using the standalone installer and `self update` feature.
     /// Defaults to `~/.local/bin`.
     #[attr_added_in("0.5.0")]
     pub const UV_INSTALL_DIR: &'static str = "UV_INSTALL_DIR";
@@ -1193,7 +1193,7 @@ impl EnvVars {
     pub const UV_UNMANAGED_INSTALL: &'static str = "UV_UNMANAGED_INSTALL";
 
     /// The URL from which to download fyn using the standalone installer. By default, installs from
-    /// uv's GitHub Releases. `INSTALLER_DOWNLOAD_URL` is also supported as an alias, for backwards
+    /// fyn's GitHub Releases. `INSTALLER_DOWNLOAD_URL` is also supported as an alias, for backwards
     /// compatibility.
     #[attr_added_in("0.8.4")]
     pub const UV_DOWNLOAD_URL: &'static str = "UV_DOWNLOAD_URL";
@@ -1357,7 +1357,7 @@ impl EnvVars {
     #[attr_added_in("0.9.15")]
     pub const UV_HIDE_BUILD_OUTPUT: &'static str = "UV_HIDE_BUILD_OUTPUT";
 
-    /// The time in seconds uv waits for a file lock to become available.
+    /// The time in seconds fyn waits for a file lock to become available.
     ///
     /// Defaults to 300s (5 min).
     #[attr_added_in("0.9.4")]

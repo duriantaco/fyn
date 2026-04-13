@@ -97,7 +97,7 @@ const STYLES: Styles = Styles::styled()
     .placeholder(AnsiColor::Cyan.on_default());
 
 #[derive(Parser)]
-#[command(name = "fyn", author, long_version = crate::version::uv_self_version())]
+#[command(name = "fyn", author, long_version = crate::version::fyn_self_version())]
 #[command(about = "An extremely fast Python package and project manager.")]
 #[command(
     after_help = "Use `fyn help` for more details.",
@@ -883,9 +883,9 @@ pub struct SelfNamespace {
 
 #[derive(Subcommand)]
 pub enum SelfCommand {
-    /// Update uv.
+    /// Update fyn.
     Update(SelfUpdateArgs),
-    /// Display uv's version
+    /// Display fyn's version
     Version {
         /// Only print the version
         #[arg(long)]
@@ -926,8 +926,8 @@ pub enum CacheCommand {
     Prune(PruneArgs),
     /// Show the cache directory.
     ///
-    /// By default, the cache is stored in `$XDG_CACHE_HOME/uv` or `$HOME/.cache/fyn` on Unix and
-    /// `%LOCALAPPDATA%\uv\cache` on Windows.
+    /// By default, the cache is stored in `$XDG_CACHE_HOME/fyn` or `$HOME/.cache/fyn` on Unix and
+    /// `%LOCALAPPDATA%\fyn\cache` on Windows.
     ///
     /// When `--no-cache` is used, the cache is stored in a temporary directory and discarded when
     /// the process exits.
@@ -4213,8 +4213,8 @@ pub struct VenvArgs {
     /// Give the virtual environment access to the system site packages directory.
     ///
     /// Unlike `pip`, when a virtual environment is created with `--system-site-packages`, fyn will
-    /// _not_ take system site packages into account when running commands like `fyn pip list` or `uv
-    /// pip install`. The `--system-site-packages` flag will provide the virtual environment with
+    /// _not_ take system site packages into account when running commands like `fyn pip list` or
+    /// `fyn pip install`. The `--system-site-packages` flag will provide the virtual environment with
     /// access to the system site packages directory at runtime, but will not affect the behavior of
     /// fyn commands.
     #[arg(long)]
@@ -4534,7 +4534,7 @@ pub struct InitArgs {
 
     /// Avoid discovering a workspace and create a standalone project.
     ///
-    /// By default, uv searches for workspaces in the current directory or any parent directory.
+    /// By default, fyn searches for workspaces in the current directory or any parent directory.
     #[arg(long, alias = "no-project")]
     pub no_workspace: bool,
 
@@ -4671,8 +4671,8 @@ pub struct RunArgs {
 
     /// Perform an exact sync, removing extraneous packages.
     ///
-    /// When enabled, fyn will remove any extraneous packages from the environment. By default, `uv
-    /// run` will make the minimum necessary changes to satisfy the requirements.
+    /// When enabled, fyn will remove any extraneous packages from the environment. By default,
+    /// `fyn run` will make the minimum necessary changes to satisfy the requirements.
     #[arg(long, overrides_with("inexact"))]
     pub exact: bool,
 
@@ -4847,7 +4847,7 @@ pub struct RunArgs {
     /// The current recursion depth is tracked by environment variable. If environment variables are
     /// cleared, fyn will fail to detect the recursion depth.
     ///
-    /// If uv reaches the maximum recursion depth, it will exit with an error.
+    /// If fyn reaches the maximum recursion depth, it will exit with an error.
     #[arg(long, hide = true, env = EnvVars::UV_RUN_MAX_RECURSION_DEPTH)]
     pub max_recursion_depth: Option<u32>,
 
@@ -6434,7 +6434,7 @@ pub enum AuthCommand {
     ///
     /// By default, credentials are stored in the fyn data directory at
     /// `$XDG_DATA_HOME/fyn/credentials` or `$HOME/.local/share/fyn/credentials` on Unix and
-    /// `%APPDATA%\uv\data\credentials` on Windows.
+    /// `%APPDATA%\fyn\data\credentials` on Windows.
     ///
     /// The credentials directory may be overridden with `$UV_CREDENTIALS_DIR`.
     ///
@@ -6492,7 +6492,7 @@ pub enum ToolCommand {
         after_help = "Use `fyn help tool run` for more details.",
         after_long_help = "",
         display_name = "fynx",
-        long_version = crate::version::uv_self_version()
+        long_version = crate::version::fyn_self_version()
     )]
     Fynx(FynxArgs),
     /// Install commands provided by a Python package.
@@ -6535,7 +6535,7 @@ pub enum ToolCommand {
     /// The tools directory is used to store environments and metadata for installed tools.
     ///
     /// By default, tools are stored in the fyn data directory at `$XDG_DATA_HOME/fyn/tools` or
-    /// `$HOME/.local/share/fyn/tools` on Unix and `%APPDATA%\uv\data\tools` on Windows.
+    /// `$HOME/.local/share/fyn/tools` on Unix and `%APPDATA%\fyn\data\tools` on Windows.
     ///
     /// The tool installation directory may be overridden with `$UV_TOOL_DIR`.
     ///
@@ -7422,7 +7422,7 @@ pub enum PythonCommand {
     ///
     /// By default, Python installations are stored in the fyn data directory at
     /// `$XDG_DATA_HOME/fyn/python` or `$HOME/.local/share/fyn/python` on Unix and
-    /// `%APPDATA%\uv\data\python` on Windows.
+    /// `%APPDATA%\fyn\data\python` on Windows.
     ///
     /// The Python installation directory may be overridden with `$UV_PYTHON_INSTALL_DIR`.
     ///
@@ -7867,7 +7867,7 @@ pub struct PythonPinArgs {
     /// Update the global Python version pin.
     ///
     /// Writes the pinned Python version to a `.python-version` file in the fyn user configuration
-    /// directory: `XDG_CONFIG_HOME/uv` on Linux/macOS and `%APPDATA%/uv` on Windows.
+    /// directory: `XDG_CONFIG_HOME/fyn` on Linux/macOS and `%APPDATA%/fyn` on Windows.
     ///
     /// When a local Python version pin is not found in the working directory or an ancestor
     /// directory, this version will be used instead.
@@ -9222,7 +9222,7 @@ pub struct PublishArgs {
     /// By default, fyn checks for trusted publishing when running in a supported environment, but
     /// ignores it if it isn't configured.
     ///
-    /// uv's supported environments for trusted publishing include GitHub Actions and GitLab CI/CD.
+    /// fyn's supported environments for trusted publishing include GitHub Actions and GitLab CI/CD.
     #[arg(long)]
     pub trusted_publishing: Option<TrustedPublishing>,
 

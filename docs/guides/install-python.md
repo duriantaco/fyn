@@ -22,7 +22,7 @@ $ fyn python install
 
 !!! note
 
-    Python does not publish official distributable binaries. As such, uv uses distributions from the Astral [`python-build-standalone`](https://github.com/astral-sh/python-build-standalone) project. See the [Python distributions](../concepts/python-versions.md#managed-python-distributions) documentation for more details.
+    Python does not publish official distributable binaries. As such, fyn uses distributions from the Astral [`python-build-standalone`](https://github.com/astral-sh/python-build-standalone) project. See the [Python distributions](../concepts/python-versions.md#managed-python-distributions) documentation for more details.
 
 Once Python is installed, it will be used by `fyn` commands automatically. fyn also adds the
 installed version to your `PATH`:

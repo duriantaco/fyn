@@ -1,6 +1,6 @@
 # Build and publish Docker images.
 #
-# Uses Depot for multi-platform builds. Includes both a `uv` base image, which
+# Uses Depot for multi-platform builds. Includes a minimal `fyn` base image, which
 # is just the binary in a scratch image, and a set of extra, common images with
 # the fyn binary installed.
 #

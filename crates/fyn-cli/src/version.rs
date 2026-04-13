@@ -1,4 +1,4 @@
-//! Code for representing uv's release version number.
+//! Code for representing fyn's release version number.
 // See also <https://github.com/astral-sh/ruff/blob/8118d29419055b779719cc96cdf3dacb29ac47c9/crates/ruff/src/version.rs>
 use std::fmt;
 
@@ -19,7 +19,7 @@ pub(crate) struct CommitInfo {
 
 /// Version information for fyn itself (e.g., in `fyn self version`).
 #[derive(Serialize)]
-pub struct SelfynersionInfo {
+pub struct SelfVersionInfo {
     /// Name of the package (always "fyn").
     package_name: String,
     /// Version, such as "0.5.1".
@@ -56,7 +56,7 @@ impl ProjectVersionInfo {
     }
 }
 
-impl fmt::Display for SelfynersionInfo {
+impl fmt::Display for SelfVersionInfo {
     /// Formatted version information: "<version>[+<commits>] ([<commit> <date> ]<target>)"
     ///
     /// This is intended for consumption by `clap` to provide `fyn --version`,
@@ -95,14 +95,14 @@ impl fmt::Display for CommitInfo {
     }
 }
 
-impl From<SelfynersionInfo> for clap::builder::Str {
-    fn from(val: SelfynersionInfo) -> Self {
+impl From<SelfVersionInfo> for clap::builder::Str {
+    fn from(val: SelfVersionInfo) -> Self {
         val.to_string().into()
     }
 }
 
 /// Returns information about fyn's version.
-pub fn uv_self_version() -> SelfynersionInfo {
+pub fn fyn_self_version() -> SelfVersionInfo {
     // Environment variables are only read at compile-time
     macro_rules! option_env_str {
         ($name:expr) => {
@@ -124,10 +124,10 @@ pub fn uv_self_version() -> SelfynersionInfo {
             .map_or(0, |value| value.parse::<u32>().unwrap_or(0)),
     });
 
-    // Set by `uv-cli/build.rs`
+    // Set by `fyn-cli/build.rs`
     let target_triple = env!("RUST_HOST_TARGET").to_string();
 
-    SelfynersionInfo {
+    SelfVersionInfo {
         package_name: "fyn".to_owned(),
         version,
         commit_info,
@@ -139,11 +139,11 @@ pub fn uv_self_version() -> SelfynersionInfo {
 mod tests {
     use insta::{assert_json_snapshot, assert_snapshot};
 
-    use super::{CommitInfo, SelfynersionInfo};
+    use super::{CommitInfo, SelfVersionInfo};
 
     #[test]
     fn version_formatting() {
-        let version = SelfynersionInfo {
+        let version = SelfVersionInfo {
             package_name: "fyn".to_string(),
             version: "0.0.0".to_string(),
             commit_info: None,
@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn version_formatting_with_commit_info() {
-        let version = SelfynersionInfo {
+        let version = SelfVersionInfo {
             package_name: "fyn".to_string(),
             version: "0.0.0".to_string(),
             commit_info: Some(CommitInfo {
@@ -171,7 +171,7 @@ mod tests {
 
     #[test]
     fn version_formatting_with_commits_since_last_tag() {
-        let version = SelfynersionInfo {
+        let version = SelfVersionInfo {
             package_name: "fyn".to_string(),
             version: "0.0.0".to_string(),
             commit_info: Some(CommitInfo {
@@ -188,7 +188,7 @@ mod tests {
 
     #[test]
     fn version_serializable() {
-        let version = SelfynersionInfo {
+        let version = SelfVersionInfo {
             package_name: "fyn".to_string(),
             version: "0.0.0".to_string(),
             commit_info: Some(CommitInfo {

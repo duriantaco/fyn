@@ -14,17 +14,8 @@ Pick the path that matches how you use fyn:
 - Looking for flags or config details: [CLI reference](./reference/cli.md),
   [settings](./reference/settings.md), and [environment variables](./reference/environment.md)
 
-<p align="center">
-  <img alt="Shows a bar chart with benchmark results." src="https://github.com/astral-sh/uv/assets/1309177/629e59c0-9c6e-4013-9ad4-adb2bcf5080d#only-light">
-</p>
-
-<p align="center">
-  <img alt="Shows a bar chart with benchmark results." src="https://github.com/astral-sh/uv/assets/1309177/03aa9163-1c79-4a87-a31d-7a9311ed9310#only-dark">
-</p>
-
-<p align="center">
-  <i>Installing <a href="https://trio.readthedocs.io/">Trio</a>'s dependencies with a warm cache.</i>
-</p>
+Performance depends on the workload, platform, filesystem, and cache state. See the
+[benchmarks reference](./reference/benchmarks.md) for the current methodology and caveats.
 
 ## Highlights
 

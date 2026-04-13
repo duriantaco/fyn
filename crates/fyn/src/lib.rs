@@ -431,7 +431,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         environment.log_context.unwrap_or_default(),
     )?;
 
-    debug!("fyn {}", fyn_cli::version::uv_self_version());
+    debug!("fyn {}", fyn_cli::version::fyn_self_version());
     if let Some(config_file) = cli.top_level.config_file.as_ref() {
         debug!("Using configuration file: {}", config_file.user_display());
     }

@@ -38,7 +38,7 @@ theme:
 repo_url: https://github.com/oha/fyn
 repo_name: fyn
 site_author: fyn contributors
-site_url: https://oha.github.io/fyn/
+site_url: https://duriantaco.github.io/fyn/
 site_dir: site
 site_description: fyn is an extremely fast Python package and project manager, written in Rust.
 markdown_extensions:

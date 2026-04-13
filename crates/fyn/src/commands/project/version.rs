@@ -46,7 +46,7 @@ pub(crate) fn self_version(
     output_format: VersionFormat,
     printer: Printer,
 ) -> Result<ExitStatus> {
-    let version_info = fyn_cli::version::uv_self_version();
+    let version_info = fyn_cli::version::fyn_self_version();
     match output_format {
         VersionFormat::Text => {
             if short {
@@ -370,7 +370,7 @@ pub(crate) async fn project_version(
 
 /// Add hint to use `fyn self version` when workspace discovery fails due to missing pyproject.toml
 /// and --project was not explicitly passed
-fn hint_uv_self_version(err: WorkspaceError, explicit_project: bool) -> anyhow::Error {
+fn hint_fyn_self_version(err: WorkspaceError, explicit_project: bool) -> anyhow::Error {
     if matches!(err, WorkspaceError::MissingPyprojectToml) && !explicit_project {
         anyhow!(
             "{}\n\n{}{} If you meant to view fyn's version, use `{}` instead",
@@ -406,7 +406,7 @@ async fn find_target(
             package.clone(),
         )
         .await
-        .map_err(|err| hint_uv_self_version(err, explicit_project))?
+        .map_err(|err| hint_fyn_self_version(err, explicit_project))?
     } else {
         VirtualProject::discover(
             project_dir,
@@ -417,7 +417,7 @@ async fn find_target(
             workspace_cache,
         )
         .await
-        .map_err(|err| hint_uv_self_version(err, explicit_project))?
+        .map_err(|err| hint_fyn_self_version(err, explicit_project))?
     };
     Ok(project)
 }

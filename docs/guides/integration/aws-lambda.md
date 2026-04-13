@@ -15,8 +15,9 @@ and deploy your Lambda functions.
 
 !!! tip
 
-    Check out the [`uv-aws-lambda-example`](https://github.com/astral-sh/uv-aws-lambda-example) project for
-    an example of best practices when using fyn to deploy an application to AWS Lambda.
+    Check out the upstream
+    [`uv-aws-lambda-example`](https://github.com/astral-sh/uv-aws-lambda-example) project for an
+    example of best practices when using fyn to deploy an application to AWS Lambda.
 
 ## Getting started
 
@@ -159,7 +160,7 @@ layers, resulting in millisecond builds:
  => [internal] load metadata for ghcr.io/oha/fyn:latest                                                         0.3s
  => [internal] load .dockerignore                                                                                    0.0s
  => => transferring context: 106B                                                                                    0.0s
- => [uv 1/1] FROM ghcr.io/oha/fyn:latest@sha256:ea61e006cfec0e8d81fae901ad703e09d2c6cf1aa58abcb6507d124b50286f  0.0s
+ => [fyn 1/1] FROM ghcr.io/oha/fyn:latest@sha256:ea61e006cfec0e8d81fae901ad703e09d2c6cf1aa58abcb6507d124b50286f  0.0s
  => [builder 1/2] FROM public.ecr.aws/lambda/python:3.13@sha256:f5b51b377b80bd303fe8055084e2763336ea8920d12955b23ef  0.0s
  => [internal] load build context                                                                                    0.0s
  => => transferring context: 185B                                                                                    0.0s
