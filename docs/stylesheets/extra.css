@@ -22,7 +22,7 @@
   --crater: #f0dfdf;
 }
 
-[data-md-color-scheme="astral-light"] {
+[data-md-color-scheme="skylos-light"] {
   --md-default-bg-color--dark: var(--black);
   --md-default-fg-color--lightest: rgba(0, 0, 0, 0.14);
   --md-primary-fg-color: var(--galaxy);
@@ -30,7 +30,7 @@
   --md-accent-fg-color: var(--cosmic);
 }
 
-[data-md-color-scheme="astral-dark"] {
+[data-md-color-scheme="skylos-dark"] {
   --md-default-bg-color: var(--galaxy);
   --md-default-fg-color: var(--white);
   --md-default-fg-color--light: var(--white);
@@ -67,23 +67,23 @@
   --md-typeset-table-color--light: hsla(0, 0%, 100%, 0.035);
 }
 
-[data-md-color-scheme="astral-light"] img[src$="#only-dark"],
-[data-md-color-scheme="astral-light"] img[src$="#gh-dark-mode-only"] {
+[data-md-color-scheme="skylos-light"] img[src$="#only-dark"],
+[data-md-color-scheme="skylos-light"] img[src$="#gh-dark-mode-only"] {
   display: none; /* Hide dark images in light mode */
 }
 
-[data-md-color-scheme="astral-light"] img[src$="#only-light"],
-[data-md-color-scheme="astral-light"] img[src$="#gh-light-mode-only"] {
+[data-md-color-scheme="skylos-light"] img[src$="#only-light"],
+[data-md-color-scheme="skylos-light"] img[src$="#gh-light-mode-only"] {
   display: inline; /* Show light images in light mode */
 }
 
-[data-md-color-scheme="astral-dark"] img[src$="#only-light"],
-[data-md-color-scheme="astral-dark"] img[src$="#gh-light-mode-only"] {
+[data-md-color-scheme="skylos-dark"] img[src$="#only-light"],
+[data-md-color-scheme="skylos-dark"] img[src$="#gh-light-mode-only"] {
   display: none; /* Hide light images in dark mode */
 }
 
-[data-md-color-scheme="astral-dark"] img[src$="#only-dark"],
-[data-md-color-scheme="astral-dark"] img[src$="#gh-dark-mode-only"] {
+[data-md-color-scheme="skylos-dark"] img[src$="#only-dark"],
+[data-md-color-scheme="skylos-dark"] img[src$="#gh-dark-mode-only"] {
   display: inline; /* Show dark images in dark mode */
 }
 
@@ -96,14 +96,20 @@
 }
 
 /* See: https://github.com/astral-sh/ruff/issues/8519 */
-[data-md-color-scheme="astral-dark"] details summary a {
+[data-md-color-scheme="skylos-dark"] details summary a {
   color: var(--flare);
 }
 
 /* See: https://github.com/astral-sh/ruff/issues/9046 */
-[data-md-color-scheme="astral-dark"] div.admonition {
+[data-md-color-scheme="skylos-dark"] div.admonition {
   color: var(--md-code-fg-color);
   background-color: var(--md-code-bg-color);
+}
+
+/* The Skylos mark asset is black on transparent, so invert it on dark surfaces. */
+[data-md-color-scheme="skylos-dark"] .md-header__button.md-logo img,
+[data-md-color-scheme="skylos-dark"] .md-nav__button.md-logo img {
+  filter: invert(1);
 }
 
 /* Prevent the shadow from the nav title from blurring the top link.

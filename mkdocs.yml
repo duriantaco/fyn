@@ -1,8 +1,8 @@
 site_name: fyn
 theme:
   name: material
-  logo: assets/logo-letter.svg
-  favicon: assets/favicon.ico
+  logo: assets/skylos-logo.png
+  favicon: assets/favicon.png
   features:
     - navigation.path
     - navigation.instant
@@ -25,17 +25,17 @@ theme:
         icon: material/brightness-auto
         name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
-      scheme: astral-light
+      scheme: skylos-light
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
-      scheme: astral-dark
+      scheme: skylos-dark
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
   custom_dir: docs/.overrides
-repo_url: https://github.com/oha/fyn
+repo_url: https://github.com/duriantaco/fyn
 repo_name: fyn
 site_author: fyn contributors
 site_url: https://duriantaco.github.io/fyn/
@@ -166,9 +166,9 @@ extra_javascript:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/oha/fyn
+      link: https://github.com/duriantaco/fyn
     - icon: fontawesome/brands/discord
-      link: https://github.com/oha/fyn/discussions
+      link: https://github.com/duriantaco/fyn/discussions
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/fyn/
 nav:
