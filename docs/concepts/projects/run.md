@@ -45,9 +45,9 @@ Tasks support two forms:
 - a command string, such as `test = "pytest -q"`
 - a table with `cmd`, `chain`, `description`, and `env`
 
-Chained tasks run their child tasks in sequence and stop on the first failure. Task `env` values
-are applied to the spawned command. If a chained task defines `env`, those values are inherited by
-its child tasks, and any child task values override the parent values.
+Chained tasks run their child tasks in sequence and stop on the first failure. Task `env` values are
+applied to the spawned command. If a chained task defines `env`, those values are inherited by its
+child tasks, and any child task values override the parent values.
 
 Additional CLI arguments are supported for `cmd` tasks:
 

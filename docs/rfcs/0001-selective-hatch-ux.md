@@ -213,8 +213,8 @@ templating framework.
 
 ### Why this is useful
 
-This makes `fyn init` generate something closer to what people actually keep after the first
-commit. It reduces the current pattern of:
+This makes `fyn init` generate something closer to what people actually keep after the first commit.
+It reduces the current pattern of:
 
 1. `fyn init`
 2. hand-edit `pyproject.toml`
@@ -248,8 +248,8 @@ Tasks and workflows should serve different jobs:
 
 ### Design principle
 
-This should be a small workflow layer on top of `fyn`'s existing resolver and environment
-machinery, not a new environment framework.
+This should be a small workflow layer on top of `fyn`'s existing resolver and environment machinery,
+not a new environment framework.
 
 This RFC intentionally does not use the name `envs` for the new feature, because `fyn` already uses
 `tool.fyn.environments` for resolver marker scoping.
@@ -327,9 +327,8 @@ $ fyn run --workflow docs -- mkdocs serve
 - It uses the same index/auth/config machinery as the rest of `fyn`.
 - Target parsing prefers workflow syntax only when the prefix matches a declared workflow name.
   Otherwise, existing `fyn run` target resolution rules continue to apply.
-- The workflow cache key must include at least:
-  project root, workflow name, Python request, normalized dependency list, and a hash of the
-  workflow config table.
+- The workflow cache key must include at least: project root, workflow name, Python request,
+  normalized dependency list, and a hash of the workflow config table.
 
 ### Why this is useful
 
@@ -493,8 +492,8 @@ Only begin this phase if:
 ## Open Questions
 
 1. Should `fyn init --tests` add a `test` dependency group, `dev` group, or plain dependencies?
-2. Should workflow environments be stored in the cache, under project-local metadata, or behind an internal
-   abstraction with no user-visible promise yet?
+2. Should workflow environments be stored in the cache, under project-local metadata, or behind an
+   internal abstraction with no user-visible promise yet?
 3. Should `--list-tasks` eventually gain awareness of `<workflow>:<script>` targets, or remain
    task-only?
 

@@ -53,9 +53,8 @@ See the command line reference with `fyn help`.
 
 ## Documentation
 
-The docs source of truth lives in
-[`docs/`](https://github.com/oha/fyn/tree/main/docs). If a hosted docs site is not available yet,
-you can read the same material directly on GitHub.
+The docs source of truth lives in [`docs/`](https://github.com/oha/fyn/tree/main/docs). If a hosted
+docs site is not available yet, you can read the same material directly on GitHub.
 
 Start here:
 
@@ -393,16 +392,16 @@ the table below for some of the larger user-visible differences:
 
 | Area                          | uv                                    | fyn                                           |
 | ----------------------------- | ------------------------------------- | --------------------------------------------- |
-| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock` |
-| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`  |
-| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`       |
-| `shell` command               | No `uv shell`                         | `fyn shell`              |
-| `upgrade` command             | No `uv upgrade`                       | `fyn upgrade`            |
-| `status` command              | No `uv status`                        | `fyn status`             |
-| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`       |
+| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock`                      |
+| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`                       |
+| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                            |
+| `shell` command               | No `uv shell`                         | `fyn shell`                                   |
+| `upgrade` command             | No `uv upgrade`                       | `fyn upgrade`                                 |
+| `status` command              | No `uv status`                        | `fyn status`                                  |
+| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`                            |
 | Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project`: `warn`, `error`, or `allow` |
-| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`      |
-| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`            |
+| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                           |
+| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`                                 |
 
 ## Acknowledgements
 
@@ -412,6 +411,9 @@ for their support.
 
 fyn started as a fork of [uv](https://github.com/astral-sh/uv) by Astral and still shares
 substantial ancestry with it.
+
+Some of fyn's workflow UX, especially around task-running and future workflow ergonomics, has also
+been informed by [Hatch](https://github.com/pypa/hatch).
 
 fyn's Git implementation is based on [Cargo](https://github.com/rust-lang/cargo).
 
