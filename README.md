@@ -5,7 +5,7 @@ An extremely fast Python package and project manager, written in Rust.
 **fyn** is an independent community fork of [uv](https://github.com/astral-sh/uv). It started on
 uv's foundation, but it now has its own commands, settings, defaults, and behavior, alongside
 reduced package-index request metadata, added features, and long-standing bug fixes. See
-[MANIFESTO.md](https://github.com/oha/fyn/blob/main/MANIFESTO.md) for the full story.
+[MANIFESTO.md](https://github.com/duriantaco/fyn/blob/main/MANIFESTO.md) for the full story.
 
 ## Highlights
 
@@ -53,16 +53,16 @@ See the command line reference with `fyn help`.
 
 ## Documentation
 
-The docs source of truth lives in [`docs/`](https://github.com/oha/fyn/tree/main/docs). If a hosted
-docs site is not available yet, you can read the same material directly on GitHub.
+The live docs site is [duriantaco.github.io/fyn](https://duriantaco.github.io/fyn/). The source of
+truth still lives in [`docs/`](https://github.com/duriantaco/fyn/tree/main/docs) in the repository.
 
 Start here:
 
-- [Documentation home](https://github.com/oha/fyn/blob/main/docs/README.md)
-- [Getting started](https://github.com/oha/fyn/blob/main/docs/getting-started/first-steps.md)
-- [Working on projects](https://github.com/oha/fyn/blob/main/docs/guides/projects.md)
-- [Running scripts](https://github.com/oha/fyn/blob/main/docs/guides/scripts.md)
-- [Command reference](https://github.com/oha/fyn/blob/main/docs/reference/cli.md)
+- [Documentation home](https://duriantaco.github.io/fyn/)
+- [Getting started](https://duriantaco.github.io/fyn/getting-started/first-steps/)
+- [Working on projects](https://duriantaco.github.io/fyn/guides/projects/)
+- [Running scripts](https://duriantaco.github.io/fyn/guides/scripts/)
+- [Command reference](https://duriantaco.github.io/fyn/reference/cli/)
 
 For CLI-specific help, use `fyn help` or `fyn help <command>`.
 
@@ -370,7 +370,7 @@ fynx ruff check .
 
 We are passionate about supporting contributors of all levels of experience and would love to see
 you get involved in the project. See the
-[contributing guide](https://github.com/oha/fyn/blob/main/CONTRIBUTING.md) to get started.
+[contributing guide](https://github.com/duriantaco/fyn/blob/main/CONTRIBUTING.md) to get started.
 
 ## FAQ
 
@@ -387,8 +387,8 @@ behavior. Projects still need `[tool.uv]` renamed to `[tool.fyn]` and `uv.lock` 
 
 #### What's different from uv?
 
-See [MANIFESTO.md](https://github.com/oha/fyn/blob/main/MANIFESTO.md) for the fuller comparison, or
-the table below for some of the larger user-visible differences:
+See [MANIFESTO.md](https://github.com/duriantaco/fyn/blob/main/MANIFESTO.md) for the fuller
+comparison, or the table below for some of the larger user-visible differences:
 
 | Area                          | uv                                    | fyn                                           |
 | ----------------------------- | ------------------------------------- | --------------------------------------------- |

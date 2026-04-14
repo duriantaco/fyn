@@ -76,6 +76,6 @@ The reference documentation contains a
 
 ## Open an issue on GitHub
 
-The [issue tracker](https://github.com/oha/fyn/issues) on GitHub is a good place to report bugs and
-request features. Make sure to search for similar issues first, as it is common for someone else to
-encounter the same problem.
+The [issue tracker](https://github.com/duriantaco/fyn/issues) on GitHub is a good place to report
+bugs and request features. Make sure to search for similar issues first, as it is common for someone
+else to encounter the same problem.

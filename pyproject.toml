@@ -36,10 +36,10 @@ classifiers = [
 readme = "README.md"
 
 [project.urls]
-Repository = "https://github.com/oha/fyn"
-Documentation = "https://github.com/oha/fyn/blob/main/docs/README.md"
-Changelog = "https://github.com/oha/fyn/blob/main/CHANGELOG.md"
-Releases = "https://github.com/oha/fyn/releases"
+Repository = "https://github.com/duriantaco/fyn"
+Documentation = "https://duriantaco.github.io/fyn/"
+Changelog = "https://github.com/duriantaco/fyn/blob/main/CHANGELOG.md"
+Releases = "https://github.com/duriantaco/fyn/releases"
 
 [tool.maturin]
 bindings = "bin"

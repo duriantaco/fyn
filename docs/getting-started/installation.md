@@ -7,7 +7,7 @@ Install fyn with PyPI, GitHub release assets, or your package manager of choice.
 ### Standalone installer
 
 When a release includes standalone installer scripts, download the matching script from the
-[GitHub release page](https://github.com/oha/fyn/releases) and run it locally:
+[GitHub release page](https://github.com/duriantaco/fyn/releases) and run it locally:
 
 === "macOS and Linux"
 
@@ -66,7 +66,7 @@ $ pip install fyn
 
     fyn ships with prebuilt distributions (wheels) for many platforms; if a wheel is not available for a given
     platform, fyn will be built from source, which requires a Rust toolchain. See the
-    [contributing setup guide](https://github.com/oha/fyn/blob/main/CONTRIBUTING.md#setup)
+    [contributing setup guide](https://github.com/duriantaco/fyn/blob/main/CONTRIBUTING.md#setup)
     for details on building fyn from source.
 
 ### Homebrew
@@ -110,7 +110,7 @@ See our guide on [using fyn in Docker](../guides/integration/docker.md) for more
 ### GitHub Releases
 
 fyn release artifacts can be downloaded directly from
-[GitHub Releases](https://github.com/oha/fyn/releases).
+[GitHub Releases](https://github.com/duriantaco/fyn/releases).
 
 Each release page includes binaries for supported platforms, and may also include standalone
 installer scripts.

@@ -10,7 +10,7 @@ The care we take in backwards-incompatible changes is proportional to the expect
 impact, not a function of arbitrary version numbering policies. We value the ability to iterate on
 new features quickly and gather changes that _could_ be breaking into clearly marked releases.
 
-fyn's changelog can be [viewed on GitHub](https://github.com/oha/fyn/blob/main/CHANGELOG.md).
+fyn's changelog can be [viewed on GitHub](https://github.com/duriantaco/fyn/blob/main/CHANGELOG.md).
 
 ## Crate versioning
 

@@ -21,7 +21,7 @@ Performance depends on the workload, platform, filesystem, and cache state. See 
 
 - A single tool to replace `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`, `twine`, `virtualenv`, and
   more.
-- [10-100x faster](https://github.com/oha/fyn/blob/main/BENCHMARKS.md) than `pip`.
+- [10-100x faster](./reference/benchmarks.md) than `pip`.
 - Provides [comprehensive project management](#projects), with a
   [universal lockfile](./concepts/projects/layout.md#the-lockfile).
 - [Runs scripts](#scripts), with support for
