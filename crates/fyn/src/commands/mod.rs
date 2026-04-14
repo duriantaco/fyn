@@ -60,6 +60,8 @@ pub(crate) use python::install::install as python_install;
 pub(crate) use python::install::{PythonUpgrade, PythonUpgradeSource};
 pub(crate) use python::list::list as python_list;
 pub(crate) use python::pin::pin as python_pin;
+pub(crate) use python::shim::install_shim as python_install_shim;
+pub(crate) use python::shim::shim as python_shim;
 pub(crate) use python::uninstall::uninstall as python_uninstall;
 pub(crate) use python::update_shell::update_shell as python_update_shell;
 #[cfg(feature = "self-update")]

@@ -626,6 +626,11 @@ impl EnvVars {
     #[attr_added_in("0.9.29")]
     pub const UV_INTERNAL__PYTHONHOME: &'static str = "UV_INTERNAL__PYTHONHOME";
 
+    /// Internal marker used by the `python` shim to exclude its own directory from discovery.
+    #[attr_hidden]
+    #[attr_added_in("0.10.14")]
+    pub const UV_INTERNAL__PYTHON_SHIM_DIR: &'static str = "UV_INTERNAL__PYTHON_SHIM_DIR";
+
     /// Path to system-level configuration directory on Unix systems.
     #[attr_added_in("0.4.26")]
     pub const XDG_CONFIG_DIRS: &'static str = "XDG_CONFIG_DIRS";

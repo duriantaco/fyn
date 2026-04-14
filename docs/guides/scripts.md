@@ -31,7 +31,8 @@ $ fyn run example.py
 Hello world
 ```
 
-<!-- TODO(zanieb): Once we have a `python` shim, note you can execute it with `python` here -->
+If you want a plain `python` command that follows fyn's interpreter resolution rules, install the
+shim with `fyn python install-shim`.
 
 Similarly, if your script depends on a module in the standard library, there's nothing more to do:
 

@@ -317,6 +317,7 @@ fn help_subcommand() {
       pin           Pin to a specific Python version
       dir           Show the fyn Python installation directory
       uninstall     Uninstall Python versions
+      install-shim  Install a `python` shim into the Python executable directory
       update-shell  Ensure that the Python executable directory is on the `PATH`
 
     Cache options:
@@ -775,6 +776,7 @@ fn help_flag_subcommand() {
       pin           Pin to a specific Python version
       dir           Show the fyn Python installation directory
       uninstall     Uninstall Python versions
+      install-shim  Install a `python` shim into the Python executable directory
       update-shell  Ensure that the Python executable directory is on the `PATH`
 
     Cache options:

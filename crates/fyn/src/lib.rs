@@ -2185,6 +2185,12 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
             commands::python_uninstall(args.install_dir, args.targets, args.all, printer).await
         }
         Commands::Python(PythonNamespace {
+            command: PythonCommand::InstallShim(args),
+        }) => {
+            commands::python_install_shim(args.force, printer)?;
+            Ok(ExitStatus::Success)
+        }
+        Commands::Python(PythonNamespace {
             command: PythonCommand::Find(args),
         }) => {
             // Resolve the settings from the command-line arguments and workspace configuration.
@@ -2271,6 +2277,30 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         }) => {
             commands::python_update_shell(printer).await?;
             Ok(ExitStatus::Success)
+        }
+        Commands::Python(PythonNamespace {
+            command: PythonCommand::Shim(args),
+        }) => {
+            let shim_settings = settings::PythonShimSettings::resolve(filesystem, environment);
+            show_settings!(shim_settings);
+
+            // Initialize the cache.
+            let cache = cache.init().await?;
+
+            commands::python_shim(
+                &project_dir,
+                args.args,
+                cli.top_level.no_config,
+                &shim_settings.install_mirrors,
+                &client_builder.subcommand(vec!["python".to_owned(), "shim".to_owned()]),
+                globals.python_preference,
+                globals.python_downloads,
+                &cache,
+                &workspace_cache,
+                printer,
+                globals.preview,
+            )
+            .await
         }
         Commands::Publish(args) => {
             show_settings!(args);
