@@ -220,23 +220,26 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 "The `--config-file` argument expects to receive a `fyn.toml` file, not a `pyproject.toml`. If you're trying to run a command from another project, use the `--project` argument instead."
             );
         }
-        Some(FilesystemOptions::from_file(config_file)?)
+        Some(FilesystemOptions::from_file(config_file).map_err(map_settings_error)?)
     } else if deprecated_isolated || cli.top_level.no_config {
         None
     } else if matches!(&*cli.command, Commands::Tool(_) | Commands::Self_(_)) {
         // For commands that operate at the user-level, ignore local configuration.
-        FilesystemOptions::user()?.combine(FilesystemOptions::system()?)
+        FilesystemOptions::user()
+            .map_err(map_settings_error)?
+            .combine(FilesystemOptions::system().map_err(map_settings_error)?)
     } else if let Ok(workspace) =
         Workspace::discover(&project_dir, &DiscoveryOptions::default(), &workspace_cache).await
     {
-        let project = FilesystemOptions::find(workspace.install_path())?;
-        let system = FilesystemOptions::system()?;
-        let user = FilesystemOptions::user()?;
+        let project =
+            FilesystemOptions::find(workspace.install_path()).map_err(map_settings_error)?;
+        let system = FilesystemOptions::system().map_err(map_settings_error)?;
+        let user = FilesystemOptions::user().map_err(map_settings_error)?;
         project.combine(user).combine(system)
     } else {
-        let project = FilesystemOptions::find(&project_dir)?;
-        let system = FilesystemOptions::system()?;
-        let user = FilesystemOptions::user()?;
+        let project = FilesystemOptions::find(&project_dir).map_err(map_settings_error)?;
+        let system = FilesystemOptions::system().map_err(map_settings_error)?;
+        let user = FilesystemOptions::user().map_err(map_settings_error)?;
         project.combine(user).combine(system)
     };
 
@@ -340,6 +343,10 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 ..
             })
             | ProjectCommand::Export(fyn_cli::ExportArgs {
+                script: Some(script),
+                ..
+            })
+            | ProjectCommand::Audit(fyn_cli::AuditArgs {
                 script: Some(script),
                 ..
             }) => match Pep723Script::read(&script).await {
@@ -2363,6 +2370,51 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         .await
         .expect("tokio threadpool exited unexpectedly"),
     }
+}
+
+fn map_settings_error(err: fyn_settings::Error) -> anyhow::Error {
+    match err {
+        fyn_settings::Error::RequiredVersion {
+            required_version,
+            package_version,
+        } => required_version_error(&required_version, &package_version),
+        err => err.into(),
+    }
+}
+
+fn required_version_error(
+    required_version: &fyn_configuration::RequiredVersion,
+    package_version: &fyn_pep440::Version,
+) -> anyhow::Error {
+    #[cfg(feature = "self-update")]
+    let hint = {
+        let ranges = release_specifiers_to_ranges(required_version.specifiers().clone());
+
+        if let Some(singleton) = ranges.as_singleton() {
+            format!(
+                ". Update `fyn` by running `{}`.",
+                format!("fyn self update {singleton}").green()
+            )
+        } else if ranges
+            .bounding_range()
+            .iter()
+            .any(|(lowest, _highest)| match lowest {
+                Bound::Included(version) => **version > *package_version,
+                Bound::Excluded(version) => **version > *package_version,
+                Bound::Unbounded => false,
+            })
+        {
+            format!(". Update `fyn` by running `{}`.", "fyn self update".cyan())
+        } else {
+            String::new()
+        }
+    };
+    #[cfg(not(feature = "self-update"))]
+    let hint = "";
+
+    anyhow!(
+        "Required fyn version `{required_version}` does not match the running version `{package_version}`{hint}",
+    )
 }
 
 /// Run a [`ProjectCommand`].
