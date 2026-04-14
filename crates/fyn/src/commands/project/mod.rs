@@ -143,9 +143,13 @@ pub(crate) enum ProjectError {
     ClientBuild(#[from] Box<fyn_client::ClientBuildError>),
 
     #[error(
-        "Unable to find lockfile at `fyn.lock`, but {0} was provided. To create a lockfile, run `fyn lock` or `fyn sync` without the flag."
+        "Unable to find lockfile at `{}`, but {missing_source} was provided. To create a lockfile, run `fyn lock` or `fyn sync` without the flag.",
+        lockfile.user_display()
     )]
-    MissingLockfile(MissingLockfileSource),
+    MissingLockfile {
+        missing_source: MissingLockfileSource,
+        lockfile: PathBuf,
+    },
 
     #[error(
         "The lockfile at `fyn.lock` needs to be updated, but `--frozen` was provided: Missing workspace member `{0}`. To update the lockfile, run `fyn lock`."

@@ -358,6 +358,81 @@ fn invalid_pyproject_toml_option_unknown_field() -> Result<()> {
 }
 
 #[test]
+fn pyproject_required_version_preempts_settings_discovery_warning() -> Result<()> {
+    let context =
+        fyn_test::test_context!("3.12").with_filter((fyn_version::version(), "[FYN_VERSION]"));
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! {r#"
+        [tool.fyn]
+        required-version = ">=9999"
+        unknown = "field"
+    "#})?;
+
+    fyn_snapshot!(context.filters(), context.pip_install()
+        .arg("iniconfig"), @r#"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: Required fyn version `>=9999` does not match the running version `[FYN_VERSION]`
+    "#
+    );
+
+    Ok(())
+}
+
+#[test]
+fn fyn_toml_required_version_preempts_parse_error() -> Result<()> {
+    let context =
+        fyn_test::test_context!("3.12").with_filter((fyn_version::version(), "[FYN_VERSION]"));
+    let fyn_toml = context.temp_dir.child("fyn.toml");
+    fyn_toml.write_str(indoc! {r#"
+        required-version = ">=9999"
+        unknown = "field"
+    "#})?;
+
+    fyn_snapshot!(context.filters(), context.pip_install()
+        .arg("iniconfig"), @r#"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: Required fyn version `>=9999` does not match the running version `[FYN_VERSION]`
+    "#
+    );
+
+    Ok(())
+}
+
+#[test]
+fn fyn_toml_required_version_preempts_pyproject_only_field() -> Result<()> {
+    let context =
+        fyn_test::test_context!("3.12").with_filter((fyn_version::version(), "[FYN_VERSION]"));
+    let fyn_toml = context.temp_dir.child("fyn.toml");
+    fyn_toml.write_str(indoc! {r#"
+        required-version = ">=9999"
+
+        [sources]
+        iniconfig = { git = "https://example.com/iniconfig" }
+    "#})?;
+
+    fyn_snapshot!(context.filters(), context.pip_install()
+        .arg("iniconfig"), @r#"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: Required fyn version `>=9999` does not match the running version `[FYN_VERSION]`
+    "#
+    );
+
+    Ok(())
+}
+
+#[test]
 fn invalid_toml_filename() -> Result<()> {
     let context = fyn_test::test_context!("3.12");
     let test_toml = context.temp_dir.child("test.toml");

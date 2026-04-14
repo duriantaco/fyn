@@ -1,13 +1,16 @@
 use fyn_client::{DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, DEFAULT_READ_TIMEOUT_UPLOAD};
+use fyn_configuration::RequiredVersion;
 use fyn_dirs::{system_config_file, user_config_dir};
 use fyn_distribution_types::Origin;
 use fyn_flags::EnvironmentFlags;
 use fyn_fs::Simplified;
+use fyn_pep440::Version;
 use fyn_static::{EnvVars, InvalidEnvironmentVariable, parse_boolish_environment_variable};
 use fyn_warnings::warn_user;
 use std::num::NonZeroUsize;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::time::Duration;
 use tracing::info_span;
 
@@ -123,7 +126,13 @@ impl FilesystemOptions {
                 let options =
                     info_span!("toml::from_str filesystem options fyn.toml", path = %path.display())
                         .in_scope(|| toml::from_str::<Options>(&content))
-                        .map_err(|err| Error::UvToml(path.clone(), Box::new(err)))?
+                        .map_err(|err| {
+                            check_fyn_toml_required_version(
+                                &path,
+                                &content,
+                                Error::UvToml(path.clone(), Box::new(err)),
+                            )
+                        })?
                         .relative_to(&std::path::absolute(dir)?)?;
 
                 // If the directory also contains a supported tool table in `pyproject.toml`,
@@ -153,7 +162,7 @@ impl FilesystemOptions {
                 let pyproject =
                     info_span!("toml::from_str filesystem options pyproject.toml", path = %path.display())
                         .in_scope(|| toml::from_str::<PyProjectToml>(&content))
-                        .map_err(|err| Error::PyprojectToml(path.clone(), Box::new(err)))?;
+                        .map_err(|err| check_pyproject_required_version(&path, &content, err))?;
                 let Some(tool) = pyproject.tool else {
                     tracing::debug!(
                         "Skipping `pyproject.toml` in `{}` (no `[tool]` section)",
@@ -203,7 +212,13 @@ fn read_file(path: &Path) -> Result<Options, Error> {
     let content = fs_err::read_to_string(path)?;
     let options = info_span!("toml::from_str filesystem options fyn.toml", path = %path.display())
         .in_scope(|| toml::from_str::<Options>(&content))
-        .map_err(|err| Error::UvToml(path.to_path_buf(), Box::new(err)))?;
+        .map_err(|err| {
+            check_fyn_toml_required_version(
+                path,
+                &content,
+                Error::UvToml(path.to_path_buf(), Box::new(err)),
+            )
+        })?;
     let options = if let Some(parent) = std::path::absolute(path)?.parent() {
         options.relative_to(parent)?
     } else {
@@ -212,8 +227,54 @@ fn read_file(path: &Path) -> Result<Options, Error> {
     Ok(options)
 }
 
+fn required_version_mismatch(required_version: Option<RequiredVersion>) -> Option<Error> {
+    let required_version = required_version?;
+    let package_version = Version::from_str(fyn_version::version())
+        .expect("fyn crate version to be a valid PEP 440 version");
+    if required_version.contains(&package_version) {
+        None
+    } else {
+        Some(Error::RequiredVersion {
+            required_version,
+            package_version,
+        })
+    }
+}
+
+fn check_pyproject_required_version(path: &Path, content: &str, source: toml::de::Error) -> Error {
+    let fallback = || Error::PyprojectToml(path.to_path_buf(), Box::new(source));
+    let Ok(pyproject) = info_span!(
+        "toml::from_str filesystem required-version pyproject.toml",
+        path = %path.display()
+    )
+    .in_scope(|| toml::from_str::<PyProjectRequiredVersionToml>(content)) else {
+        return fallback();
+    };
+
+    let required_version = pyproject
+        .tool
+        .and_then(RequiredVersionTools::into_required_version);
+    required_version_mismatch(required_version).unwrap_or_else(fallback)
+}
+
+fn check_fyn_toml_required_version(path: &Path, content: &str, source: Error) -> Error {
+    let Ok(fyn_toml) = info_span!(
+        "toml::from_str filesystem required-version fyn.toml",
+        path = %path.display()
+    )
+    .in_scope(|| toml::from_str::<FynRequiredVersionToml>(content)) else {
+        return source;
+    };
+
+    required_version_mismatch(fyn_toml.required_version).unwrap_or(source)
+}
+
 /// Validate that an [`Options`] schema is compatible with `fyn.toml`.
 fn validate_uv_toml(path: &Path, options: &Options) -> Result<(), Error> {
+    if let Some(err) = required_version_mismatch(options.globals.required_version.clone()) {
+        return Err(err);
+    }
+
     let Options {
         globals: _,
         top_level: _,
@@ -600,6 +661,14 @@ pub enum Error {
     #[error("Failed to parse: `{}`. The `{}` field is not allowed in a `fyn.toml` file. `{}` is only applicable in the context of a project, and should be placed in a `pyproject.toml` file instead.", _0.user_display(), _1, _1
     )]
     PyprojectOnlyField(PathBuf, &'static str),
+
+    #[error(
+        "Required fyn version `{required_version}` does not match the running version `{package_version}`"
+    )]
+    RequiredVersion {
+        required_version: RequiredVersion,
+        package_version: Version,
+    },
 
     #[error(transparent)]
     InvalidEnvironmentVariable(#[from] InvalidEnvironmentVariable),

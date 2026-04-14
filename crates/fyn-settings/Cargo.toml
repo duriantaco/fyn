@@ -27,6 +27,7 @@ fyn-install-wheel = { workspace = true, features = ["schemars", "clap"] }
 fyn-macros = { workspace = true }
 fyn-normalize = { workspace = true, features = ["schemars"] }
 fyn-options-metadata = { workspace = true }
+fyn-pep440 = { workspace = true }
 fyn-pep508 = { workspace = true }
 fyn-pypi-types = { workspace = true }
 fyn-python = { workspace = true, features = ["schemars", "clap"] }
@@ -34,6 +35,7 @@ fyn-redacted = { workspace = true }
 fyn-resolver = { workspace = true, features = ["schemars", "clap"] }
 fyn-static = { workspace = true }
 fyn-torch = { workspace = true, features = ["schemars", "clap"] }
+fyn-version = { workspace = true }
 fyn-warnings = { workspace = true }
 fyn-workspace = { workspace = true, features = ["schemars", "clap"] }
 

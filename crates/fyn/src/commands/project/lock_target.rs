@@ -266,6 +266,15 @@ impl<'lock> LockTarget<'lock> {
         }
     }
 
+    /// Return the filename of the lockfile, for use in user-facing messages.
+    pub(crate) fn lock_filename(self) -> PathBuf {
+        PathBuf::from(
+            self.lock_path()
+                .file_name()
+                .expect("lock path should have a file name"),
+        )
+    }
+
     /// Return the path to the lockfile.
     ///
     /// Respects the `UV_LOCKFILE` environment variable if set, otherwise

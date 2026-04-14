@@ -209,28 +209,48 @@ pub fn normalize_absolute_path(path: &Path) -> Result<PathBuf, std::io::Error> {
 
 /// Normalize a [`Path`], removing things like `.` and `..`.
 pub fn normalize_path(path: &Path) -> Cow<'_, Path> {
-    // Fast path: if the path is already normalized, return it as-is.
-    if path.components().all(|component| match component {
-        Component::Prefix(_) | Component::RootDir | Component::Normal(_) => true,
-        Component::ParentDir | Component::CurDir => false,
-    }) {
-        Cow::Borrowed(path)
-    } else {
-        Cow::Owned(normalized(path))
+    if path
+        .components()
+        .any(|component| matches!(component, Component::ParentDir | Component::CurDir))
+    {
+        return Cow::Owned(normalized(path));
     }
+
+    if !path_equals_components(path) {
+        return Cow::Owned(normalized(path));
+    }
+
+    Cow::Borrowed(path)
 }
 
 /// Normalize a [`PathBuf`], removing things like `.` and `..`.
 pub fn normalize_path_buf(path: PathBuf) -> PathBuf {
-    // Fast path: if the path is already normalized, return it as-is.
-    if path.components().all(|component| match component {
-        Component::Prefix(_) | Component::RootDir | Component::Normal(_) => true,
-        Component::ParentDir | Component::CurDir => false,
-    }) {
-        path
-    } else {
-        normalized(&path)
+    if path
+        .components()
+        .any(|component| matches!(component, Component::ParentDir | Component::CurDir))
+    {
+        return normalized(&path);
     }
+
+    if !path_equals_components(&path) {
+        return normalized(&path);
+    }
+
+    path
+}
+
+fn path_equals_components(path: &Path) -> bool {
+    let mut expected_len = 0;
+    let mut next_needs_separator = false;
+    for component in path.components() {
+        let bytes = component.as_os_str().as_encoded_bytes();
+        if next_needs_separator && !matches!(component, Component::RootDir) {
+            expected_len += Path::new("/").as_os_str().as_encoded_bytes().len();
+        }
+        expected_len += bytes.len();
+        next_needs_separator = !matches!(component, Component::RootDir | Component::Prefix(_));
+    }
+    expected_len == path.as_os_str().as_encoded_bytes().len()
 }
 
 /// Normalize a [`Path`].
@@ -657,6 +677,10 @@ mod tests {
             ),
             ("./a/../../b", "../b"),
             ("/usr/../../foo", "/../foo"),
+            ("foo//bar", "foo/bar"),
+            ("foo/./bar", "foo/bar"),
+            ("foo/bar/", "foo/bar"),
+            ("./", ""),
         ];
         for (input, expected) in cases {
             assert_eq!(normalize_path(Path::new(input)), Path::new(expected));

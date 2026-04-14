@@ -53,6 +53,42 @@ impl Tools {
     }
 }
 
+/// A `pyproject.toml` with optional `[tool.fyn]` and `[tool.uv]` required-version sections.
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct PyProjectRequiredVersionToml {
+    pub(crate) tool: Option<RequiredVersionTools>,
+}
+
+/// A `[tool]` section containing only the fields required for `required-version` discovery.
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct RequiredVersionTools {
+    pub(crate) fyn: Option<RequiredVersionOptions>,
+    pub(crate) uv: Option<RequiredVersionOptions>,
+}
+
+impl RequiredVersionTools {
+    pub(crate) fn into_required_version(self) -> Option<RequiredVersion> {
+        self.fyn
+            .and_then(|options| options.required_version)
+            .or_else(|| self.uv.and_then(|options| options.required_version))
+    }
+}
+
+/// The minimal `[tool.fyn]` or `[tool.uv]` subset required to enforce `required-version`
+/// before full parsing.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub(crate) struct RequiredVersionOptions {
+    pub(crate) required_version: Option<RequiredVersion>,
+}
+
+/// A `fyn.toml` containing only the fields required for `required-version` discovery.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub(crate) struct FynRequiredVersionToml {
+    pub(crate) required_version: Option<RequiredVersion>,
+}
+
 /// A `[tool.fyn]` or `[tool.uv]` section.
 #[allow(dead_code)]
 #[derive(Debug, Clone, Default, Deserialize, CombineOptions, OptionsMetadata)]
