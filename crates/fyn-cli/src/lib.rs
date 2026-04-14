@@ -7434,6 +7434,14 @@ pub enum PythonCommand {
     /// Uninstall Python versions.
     Uninstall(PythonUninstallArgs),
 
+    /// Install a `python` shim into the Python executable directory.
+    ///
+    /// The shim resolves the appropriate interpreter for the current directory before executing
+    /// it, which makes a plain `python` command available on your shell `PATH` without pinning it
+    /// to a single managed installation.
+    #[command(name = "install-shim")]
+    InstallShim(PythonInstallShimArgs),
+
     /// Ensure that the Python executable directory is on the `PATH`.
     ///
     /// If the Python executable directory is not present on the `PATH`, fyn will attempt to add it to
@@ -7446,6 +7454,9 @@ pub enum PythonCommand {
     /// retrieved with `fyn python dir --bin`.
     #[command(alias = "ensurepath")]
     UpdateShell,
+
+    #[command(hide = true)]
+    Shim(PythonShimArgs),
 }
 
 #[derive(Args)]
@@ -7515,6 +7526,23 @@ pub struct PythonDirArgs {
     /// - `$HOME/.local/bin`
     #[arg(long, verbatim_doc_comment)]
     pub bin: bool,
+}
+
+#[derive(Args)]
+pub struct PythonInstallShimArgs {
+    /// Replace an existing shim target.
+    ///
+    /// By default, fyn refuses to replace an existing `python` executable unless it already
+    /// matches the expected shim contents.
+    #[arg(long, short)]
+    pub force: bool,
+}
+
+#[derive(Args)]
+pub struct PythonShimArgs {
+    /// Additional arguments to pass through to Python.
+    #[arg(last = true, allow_hyphen_values = true, value_hint = ValueHint::Other)]
+    pub args: Vec<OsString>,
 }
 
 #[derive(Args)]

@@ -2199,6 +2199,140 @@ fn read_link(path: &Path) -> String {
 }
 
 #[test]
+fn python_install_shim_executes_managed_python() {
+    let context = fyn_test::test_context_with_versions!(&[])
+        .with_managed_python_dirs()
+        .with_empty_python_install_mirror()
+        .with_python_download_cache();
+
+    context.python_install().arg("3.12.8").assert().success();
+
+    context
+        .command()
+        .arg("python")
+        .arg("install-shim")
+        .assert()
+        .success();
+
+    let shim = context.bin_dir.child(python_shim_name());
+    shim.assert(predicate::path::exists());
+
+    fyn_snapshot!(context.filters(), python_shim_command(&context)
+        .arg("-c")
+        .arg("import sys; print(sys.version.split()[0])"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    3.12.8
+
+    ----- stderr -----
+    ");
+}
+
+#[test]
+fn python_install_shim_respects_dot_python_version() {
+    let context = fyn_test::test_context_with_versions!(&[])
+        .with_managed_python_dirs()
+        .with_empty_python_install_mirror()
+        .with_python_download_cache();
+
+    context
+        .python_install()
+        .arg("3.12.8")
+        .arg("3.11")
+        .assert()
+        .success();
+
+    context
+        .temp_dir
+        .child(".python-version")
+        .write_str("3.11\n")
+        .unwrap();
+
+    context
+        .command()
+        .arg("python")
+        .arg("install-shim")
+        .assert()
+        .success();
+
+    fyn_snapshot!(context.filters(), python_shim_command(&context)
+        .arg("-c")
+        .arg("import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    3.11
+
+    ----- stderr -----
+    ");
+}
+
+#[test]
+fn python_install_shim_force_required() -> anyhow::Result<()> {
+    let context = fyn_test::test_context_with_versions!(&[])
+        .with_managed_python_dirs()
+        .with_empty_python_install_mirror()
+        .with_python_download_cache();
+
+    context.python_install().arg("3.12.8").assert().success();
+
+    context
+        .bin_dir
+        .child(python_shim_name())
+        .write_str("not a shim")?;
+
+    context
+        .command()
+        .arg("python")
+        .arg("install-shim")
+        .assert()
+        .failure()
+        .stdout(predicate::str::is_empty())
+        .stderr(predicate::str::contains("use `--force` to replace it"));
+
+    context
+        .command()
+        .arg("python")
+        .arg("install-shim")
+        .arg("--force")
+        .assert()
+        .success();
+
+    fyn_snapshot!(context.filters(), python_shim_command(&context)
+        .arg("-c")
+        .arg("import sys; print(sys.version.split()[0])"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    3.12.8
+
+    ----- stderr -----
+    ");
+
+    Ok(())
+}
+
+fn python_shim_command(context: &fyn_test::TestContext) -> Command {
+    let shim = context.bin_dir.child(python_shim_name());
+    let mut command = Command::new(shim.as_os_str());
+    context.add_shared_env(&mut command, false);
+    command.env(EnvVars::UV_CACHE_DIR, context.cache_dir.as_os_str());
+    command.current_dir(context.temp_dir.path());
+    command
+}
+
+#[cfg(unix)]
+fn python_shim_name() -> &'static str {
+    "python"
+}
+
+#[cfg(windows)]
+fn python_shim_name() -> &'static str {
+    "python.cmd"
+}
+
+#[test]
 fn python_install_unknown() {
     let context = fyn_test::test_context_with_versions!(&[])
         .with_managed_python_dirs()

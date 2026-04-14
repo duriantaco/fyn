@@ -1534,6 +1534,30 @@ impl PythonFindSettings {
     }
 }
 
+/// The resolved settings to use for a `python shim` invocation.
+#[derive(Debug, Clone)]
+pub(crate) struct PythonShimSettings {
+    pub(crate) install_mirrors: PythonInstallMirrors,
+}
+
+impl PythonShimSettings {
+    /// Resolve the [`PythonShimSettings`] from the environment and workspace configuration.
+    pub(crate) fn resolve(
+        filesystem: Option<FilesystemOptions>,
+        environment: EnvironmentOptions,
+    ) -> Self {
+        let filesystem_install_mirrors = filesystem
+            .map(|fs| fs.install_mirrors.clone())
+            .unwrap_or_default();
+
+        Self {
+            install_mirrors: environment
+                .install_mirrors
+                .combine(filesystem_install_mirrors),
+        }
+    }
+}
+
 /// The resolved settings to use for a `python pin` invocation.
 #[derive(Debug, Clone)]
 pub(crate) struct PythonPinSettings {

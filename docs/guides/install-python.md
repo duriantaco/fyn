@@ -111,9 +111,8 @@ $ fyn venv
 
     Automatic Python downloads can be [easily disabled](../concepts/python-versions.md#disabling-automatic-python-downloads) if you want more control over when Python is downloaded.
 
-<!-- TODO(zanieb): Restore when Python shim management is added
-Note that when an automatic Python installation occurs, the `python` command will not be added to the shell. Use `fyn python install-shim` to ensure the `python` shim is installed.
--->
+Note that when an automatic Python installation occurs, the `python` command will not be added to
+the shell. Use `fyn python install-shim` to ensure the `python` shim is installed.
 
 ## Using existing Python versions
 

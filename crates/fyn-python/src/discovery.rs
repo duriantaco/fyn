@@ -602,7 +602,10 @@ fn python_executables_from_search_path<'a>(
     // Split and iterate over the paths instead of using `which_all` so we can
     // check multiple names per directory while respecting the search path order and python names
     // precedence.
-    let search_dirs: Vec<_> = env::split_paths(&search_path).collect();
+    let shim_dir = env::var_os(EnvVars::UV_INTERNAL__PYTHON_SHIM_DIR).map(PathBuf::from);
+    let search_dirs: Vec<_> = env::split_paths(&search_path)
+        .filter(|dir| shim_dir.as_ref().is_none_or(|shim_dir| dir != shim_dir))
+        .collect();
     let mut seen_dirs = FxHashSet::with_capacity_and_hasher(search_dirs.len(), FxBuildHasher);
     search_dirs
         .into_iter()
