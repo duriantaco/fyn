@@ -57,20 +57,20 @@ you ask for.
 
 ## fyn vs uv — feature comparison
 
-| Area                            | uv                                    | fyn                      |
-| ------------------------------- | ------------------------------------- | ------------------------ | ----- | ------ |
-| Speed (10-100x faster than pip) | Yes                                   | Yes                      |
-| Config namespace and lockfile   | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock` |
-| Package index User-Agent        | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`  |
-| Task runner                     | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`       |
-| `shell` command                 | No `uv shell`                         | `fyn shell`              |
-| `upgrade` command               | No `uv upgrade`                       | `fyn upgrade`            |
-| `status` command                | No `uv status`                        | `fyn status`             |
-| Managed-project `pip` policy    | No `pip-in-project` setting           | `pip-in-project = warn   | error | allow` |
-| Cache size limit                | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`      |
-| Custom lockfile name            | No `UV_LOCKFILE`                      | `UV_LOCKFILE`            |
-| Python version management       | Yes                                   | Yes                      |
-| Lockfile support                | Yes (`uv.lock`)                       | Yes (`fyn.lock`)         |
+| Area                            | uv                                    | fyn                                       |
+| ------------------------------- | ------------------------------------- | ----------------------------------------- |
+| Speed (10-100x faster than pip) | Yes                                   | Yes                                       |
+| Config namespace and lockfile   | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock`                  |
+| Package index User-Agent        | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`                   |
+| Task runner                     | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                        |
+| `shell` command                 | No `uv shell`                         | `fyn shell`                               |
+| `upgrade` command               | No `uv upgrade`                       | `fyn upgrade`                             |
+| `status` command                | No `uv status`                        | `fyn status`                              |
+| Managed-project `pip` policy    | No `pip-in-project` setting           | `pip-in-project = warn \| error \| allow` |
+| Cache size limit                | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                       |
+| Custom lockfile name            | No `UV_LOCKFILE`                      | `UV_LOCKFILE`                             |
+| Python version management       | Yes                                   | Yes                                       |
+| Lockfile support                | Yes (`uv.lock`)                       | Yes (`fyn.lock`)                          |
 
 ## Roadmap
 
