@@ -525,6 +525,10 @@ class PyodideFinder(Finder):
 
         results = {}
         for release in releases:
+            # Skip prereleases so syncs don't track ahead of stable Pyodide builds.
+            if release.get("prerelease"):
+                continue
+
             pyodide_version = release["tag_name"]
             meta = metadata.get(pyodide_version, None)
             if meta is None:
