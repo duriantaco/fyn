@@ -6854,6 +6854,109 @@ fn run_task_detailed() -> Result<()> {
     Ok(())
 }
 
+/// Extra arguments passed to `cmd` tasks should not forward the task separator itself.
+#[test]
+fn run_task_cmd_strips_passthrough_separator() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        show = "python show_argv.py"
+        "#
+    })?;
+    context
+        .temp_dir
+        .child("show_argv.py")
+        .write_str(indoc! { r"
+        import json
+        import sys
+
+        print(json.dumps(sys.argv))
+        "
+        })?;
+
+    fyn_snapshot!(
+        context.filters(),
+        context.run().arg("show").arg("--").arg("alpha").arg("beta"),
+        @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    [\"show_argv.py\", \"alpha\", \"beta\"]
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Checked in [TIME]
+    "
+    );
+
+    Ok(())
+}
+
+/// Option-like arguments should be forwarded to `cmd` tasks without a leading literal `--`.
+#[test]
+fn run_task_cmd_forwards_option_like_args() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        show = "python show_argv.py"
+        "#
+    })?;
+    context
+        .temp_dir
+        .child("show_argv.py")
+        .write_str(indoc! { r"
+        import json
+        import sys
+
+        print(json.dumps(sys.argv))
+        "
+        })?;
+
+    fyn_snapshot!(
+        context.filters(),
+        context
+            .run()
+            .arg("show")
+            .arg("--")
+            .arg("--tb=no")
+            .arg("-q"),
+        @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    [\"show_argv.py\", \"--tb=no\", \"-q\"]
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Checked in [TIME]
+    "
+    );
+
+    Ok(())
+}
+
 /// Run a chained task and apply inherited and per-task environment variables.
 #[test]
 fn run_task_chain_with_env() -> Result<()> {

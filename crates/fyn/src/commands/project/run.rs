@@ -1965,6 +1965,7 @@ fn resolve_task_plan(
     tasks: &fyn_workspace::pyproject::ToolfynTasks,
     extra_args: &[OsString],
 ) -> anyhow::Result<TaskPlan> {
+    let extra_args = strip_task_passthrough_sentinel(extra_args);
     let mut stack = Vec::new();
     let mut steps = Vec::new();
     resolve_task_steps(
@@ -1979,6 +1980,13 @@ fn resolve_task_plan(
         name: name.to_string(),
         steps,
     })
+}
+
+fn strip_task_passthrough_sentinel(extra_args: &[OsString]) -> &[OsString] {
+    match extra_args {
+        [first, rest @ ..] if first == "--" => rest,
+        _ => extra_args,
+    }
 }
 
 fn resolve_task_steps(
