@@ -34,6 +34,7 @@ use crate::commands::{ExitStatus, OutputWriter, diagnostics};
 use crate::printer::Printer;
 use crate::settings::{FrozenSource, LockCheck, ResolverSettings};
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 enum ExportTarget {
     /// A PEP 723 script, with inline metadata.

@@ -77,13 +77,11 @@ you ask for.
 In no particular order:
 
 1. **Centralized venv storage** — keep .venvs out of your project dirs
-2. **Glob-pattern source declarations** — `mycompany-*` all goes to your private index, borrowed
-   from how PDM does it
-3. **`pip.conf` support** — read your existing pip config
-4. **`pip wheel`**
-5. **Plugin system** eventually — custom indexes, auth providers, etc.
-6. **`fyn bundle`** — make standalone executables, like PyInstaller but built-in
-7. **Conda support** maybe — if we can do it without making a mess
+2. **`pip.conf` support** — read your existing pip config
+3. **`pip wheel`**
+4. **Plugin system** eventually — custom indexes, auth providers, etc.
+5. **`fyn bundle`** — make standalone executables, like PyInstaller but built-in
+6. **Conda support** maybe — if we can do it without making a mess
 
 ## Installation
 

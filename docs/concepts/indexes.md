@@ -87,6 +87,31 @@ name = "pytorch-cu124"
 url = "https://download.pytorch.org/whl/cu124"
 ```
 
+## Routing package patterns to an index
+
+If you want a whole package namespace to prefer a specific index, add `include-packages` or
+`exclude-packages` to `[[tool.fyn.index]]`:
+
+```toml
+[[tool.fyn.index]]
+name = "internal"
+url = "https://packages.example.com/simple"
+include-packages = ["mycompany-*"]
+
+[[tool.fyn.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+default = true
+```
+
+When a package matches `include-packages`, fyn only considers the matching indexes for that package.
+Indexes with `include-packages` are skipped for packages that don't match, and `exclude-packages`
+removes a package from an index without affecting the others.
+
+Exact `[tool.fyn.sources]` pins still take precedence over these routing rules. Routing patterns
+cannot be combined with `explicit = true`; if you want an index to be used only for specific named
+packages, keep using `[tool.fyn.sources]`.
+
 An index can be marked as `explicit = true` to prevent packages from being installed from that index
 unless explicitly pinned to it. For example, to ensure that `torch` is installed from the `pytorch`
 index, but all other packages are installed from PyPI, add the following to your `pyproject.toml`:
