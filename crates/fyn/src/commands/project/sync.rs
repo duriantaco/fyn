@@ -569,6 +569,7 @@ fn identify_installation_target<'a>(
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 enum SyncTarget {
     /// Sync a project environment.
