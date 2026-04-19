@@ -7,6 +7,7 @@ use std::sync::{Arc, LazyLock, RwLock};
 
 use fyn_auth::RealmRef;
 use fyn_cache_key::CanonicalUrl;
+use fyn_normalize::PackageName;
 use fyn_pep508::{Scheme, VerbatimUrl, VerbatimUrlError, split_scheme};
 use fyn_redacted::DisplaySafeUrl;
 use fyn_warnings::warn_user;
@@ -561,6 +562,27 @@ impl<'a> IndexUrls {
             .filter(move |index| seen.insert(index.raw_url())) // Filter out redundant raw URLs
     }
 
+    /// Return the candidate indexes for a specific package after applying package-routing rules.
+    pub fn indexes_for_package(&'a self, package_name: &PackageName) -> Vec<&'a Index> {
+        let indexes = self.indexes().collect::<Vec<_>>();
+
+        let included = indexes
+            .iter()
+            .copied()
+            .filter(|index| index.includes_package(package_name))
+            .collect::<Vec<_>>();
+
+        if !included.is_empty() {
+            return included;
+        }
+
+        indexes
+            .into_iter()
+            .filter(|index| index.include_packages.is_empty())
+            .filter(|index| !index.excludes_package(package_name))
+            .collect()
+    }
+
     /// Return an iterator over all user-defined [`Index`] entries in order.
     ///
     /// Prioritizes the `[tool.fyn.index]` definitions over the `--extra-index-url` definitions
@@ -782,6 +804,8 @@ mod tests {
                 authenticate: fyn_auth::AuthPolicy::default(),
                 ignore_error_codes: None,
                 exclude_newer: None,
+                include_packages: Vec::new(),
+                exclude_packages: Vec::new(),
             },
             Index {
                 name: Some(IndexName::from_str("index2").unwrap()),
@@ -795,6 +819,8 @@ mod tests {
                 authenticate: fyn_auth::AuthPolicy::default(),
                 ignore_error_codes: None,
                 exclude_newer: None,
+                include_packages: Vec::new(),
+                exclude_packages: Vec::new(),
             },
         ];
 
@@ -820,6 +846,99 @@ mod tests {
     }
 
     #[test]
+    fn test_indexes_for_package_applies_package_routing() {
+        use std::str::FromStr;
+
+        use fyn_normalize::PackageName;
+
+        let indexes = vec![
+            Index {
+                name: Some(IndexName::from_str("primary").unwrap()),
+                url: IndexUrl::from_str("https://primary.example.com/simple").unwrap(),
+                cache_control: None,
+                explicit: false,
+                default: false,
+                origin: None,
+                format: IndexFormat::Simple,
+                publish_url: None,
+                authenticate: fyn_auth::AuthPolicy::default(),
+                ignore_error_codes: None,
+                exclude_newer: None,
+                include_packages: Vec::new(),
+                exclude_packages: Vec::new(),
+            },
+            Index {
+                name: Some(IndexName::from_str("routed").unwrap()),
+                url: IndexUrl::from_str("https://routed.example.com/simple").unwrap(),
+                cache_control: None,
+                explicit: false,
+                default: false,
+                origin: None,
+                format: IndexFormat::Simple,
+                publish_url: None,
+                authenticate: fyn_auth::AuthPolicy::default(),
+                ignore_error_codes: None,
+                exclude_newer: None,
+                include_packages: vec![serde_json::from_str("\"ok\"").unwrap()],
+                exclude_packages: Vec::new(),
+            },
+            Index {
+                name: Some(IndexName::from_str("excluded").unwrap()),
+                url: IndexUrl::from_str("https://excluded.example.com/simple").unwrap(),
+                cache_control: None,
+                explicit: false,
+                default: false,
+                origin: None,
+                format: IndexFormat::Simple,
+                publish_url: None,
+                authenticate: fyn_auth::AuthPolicy::default(),
+                ignore_error_codes: None,
+                exclude_newer: None,
+                include_packages: Vec::new(),
+                exclude_packages: vec![serde_json::from_str("\"blocked\"").unwrap()],
+            },
+            Index {
+                name: Some(IndexName::from_str("fallback").unwrap()),
+                url: IndexUrl::from_str("https://fallback.example.com/simple").unwrap(),
+                cache_control: None,
+                explicit: false,
+                default: true,
+                origin: None,
+                format: IndexFormat::Simple,
+                publish_url: None,
+                authenticate: fyn_auth::AuthPolicy::default(),
+                ignore_error_codes: None,
+                exclude_newer: None,
+                include_packages: Vec::new(),
+                exclude_packages: Vec::new(),
+            },
+        ];
+
+        let index_urls = IndexUrls::from_indexes(indexes);
+
+        let routed = index_urls
+            .indexes_for_package(&PackageName::from_str("ok").unwrap())
+            .into_iter()
+            .map(|index| index.name.as_ref().unwrap().to_string())
+            .collect::<Vec<_>>();
+        assert_eq!(routed, vec!["routed"]);
+
+        let blocked = index_urls
+            .indexes_for_package(&PackageName::from_str("blocked").unwrap())
+            .into_iter()
+            .map(|index| index.name.as_ref().unwrap().to_string())
+            .collect::<Vec<_>>();
+        assert_eq!(blocked, vec!["primary", "fallback"]);
+
+        let other = index_urls
+            .indexes_for_package(&PackageName::from_str("other").unwrap())
+            .into_iter()
+            .map(|index| index.name.as_ref().unwrap().to_string())
+            .collect::<Vec<_>>();
+        assert_eq!(other, vec!["primary", "excluded", "fallback"]);
+    }
+
+    #[test]
     fn test_pytorch_default_cache_control() {
         // Test that PyTorch indexes get default cache control from the getter methods
         let indexes = vec![Index {
@@ -834,6 +953,8 @@ mod tests {
             authenticate: fyn_auth::AuthPolicy::default(),
             ignore_error_codes: None,
             exclude_newer: None,
+            include_packages: Vec::new(),
+            exclude_packages: Vec::new(),
         }];
 
         let index_urls = IndexUrls::from_indexes(indexes.clone());
@@ -877,6 +998,8 @@ mod tests {
             authenticate: fyn_auth::AuthPolicy::default(),
             ignore_error_codes: None,
             exclude_newer: None,
+            include_packages: Vec::new(),
+            exclude_packages: Vec::new(),
         }];
 
         let index_urls = IndexUrls::from_indexes(indexes.clone());
@@ -920,6 +1043,8 @@ mod tests {
             authenticate: fyn_auth::AuthPolicy::default(),
             ignore_error_codes: None,
             exclude_newer: None,
+            include_packages: Vec::new(),
+            exclude_packages: Vec::new(),
         }];
 
         let index_urls = IndexUrls::from_indexes(indexes.clone());

@@ -1,11 +1,13 @@
 use std::path::Path;
 use std::str::FromStr;
 
+use glob::Pattern;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use url::Url;
 
 use fyn_auth::{AuthPolicy, Credentials};
+use fyn_normalize::PackageName;
 use fyn_redacted::DisplaySafeUrl;
 use fyn_small_str::SmallString;
 
@@ -23,6 +25,79 @@ pub struct IndexCacheControl {
     pub api: Option<SmallString>,
     /// Cache control header for file downloads.
     pub files: Option<SmallString>,
+}
+
+/// A glob pattern matched against normalized package names.
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct PackageNamePattern(Pattern);
+
+impl PackageNamePattern {
+    pub fn matches(&self, package_name: &PackageName) -> bool {
+        self.0.matches(package_name.as_str())
+    }
+}
+
+impl std::fmt::Debug for PackageNamePattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.as_str().fmt(f)
+    }
+}
+
+impl Serialize for PackageNamePattern {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.0.as_str().serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for PackageNamePattern {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl serde::de::Visitor<'_> for Visitor {
+            type Value = PackageNamePattern;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a glob pattern string")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Pattern::new(&v.to_ascii_lowercase())
+                    .map(PackageNamePattern)
+                    .map_err(serde::de::Error::custom)
+            }
+
+            fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Pattern::new(&v.to_ascii_lowercase())
+                    .map(PackageNamePattern)
+                    .map_err(serde::de::Error::custom)
+            }
+        }
+
+        deserializer.deserialize_string(Visitor)
+    }
+}
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for PackageNamePattern {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed("PackageNamePattern")
+    }
+
+    fn json_schema(generator: &mut schemars::generate::SchemaGenerator) -> schemars::Schema {
+        <String as schemars::JsonSchema>::json_schema(generator)
+    }
 }
 
 impl IndexCacheControl {
@@ -90,6 +165,20 @@ pub struct Index {
     /// ```
     #[serde(default)]
     pub explicit: bool,
+    /// Route matching packages exclusively to this index.
+    ///
+    /// Accepts glob patterns matched against normalized package names. If any pattern matches a
+    /// package, only indexes whose `include-packages` also match will be searched for that package,
+    /// unless it has an explicit `[tool.fyn.sources]` index pin.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub include_packages: Vec<PackageNamePattern>,
+    /// Exclude matching packages from this index.
+    ///
+    /// Accepts glob patterns matched against normalized package names. If no `include-packages`
+    /// patterns match a package, and an `exclude-packages` pattern matches, this index will be
+    /// skipped for that package unless it has an explicit `[tool.fyn.sources]` index pin.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub exclude_packages: Vec<PackageNamePattern>,
     /// Mark the index as the default index.
     ///
     /// By default, fyn uses PyPI as the default index, such that even if additional indexes are
@@ -190,6 +279,8 @@ impl std::fmt::Debug for Index {
             .field("name", &self.name)
             .field("url", &self.url)
             .field("explicit", &self.explicit)
+            .field("include_packages", &self.include_packages)
+            .field("exclude_packages", &self.exclude_packages)
             .field("default", &self.default)
             .field("origin", &self.origin)
             .field("format", &self.format)
@@ -210,6 +301,8 @@ impl PartialEq for Index {
             name,
             url,
             explicit,
+            include_packages,
+            exclude_packages,
             default,
             origin: _,
             format,
@@ -222,6 +315,8 @@ impl PartialEq for Index {
         *url == other.url
             && *name == other.name
             && *explicit == other.explicit
+            && *include_packages == other.include_packages
+            && *exclude_packages == other.exclude_packages
             && *default == other.default
             && *format == other.format
             && *publish_url == other.publish_url
@@ -246,6 +341,8 @@ impl Ord for Index {
             name,
             url,
             explicit,
+            include_packages,
+            exclude_packages,
             default,
             origin: _,
             format,
@@ -258,6 +355,8 @@ impl Ord for Index {
         url.cmp(&other.url)
             .then_with(|| name.cmp(&other.name))
             .then_with(|| explicit.cmp(&other.explicit))
+            .then_with(|| include_packages.cmp(&other.include_packages))
+            .then_with(|| exclude_packages.cmp(&other.exclude_packages))
             .then_with(|| default.cmp(&other.default))
             .then_with(|| format.cmp(&other.format))
             .then_with(|| publish_url.cmp(&other.publish_url))
@@ -274,6 +373,8 @@ impl std::hash::Hash for Index {
             name,
             url,
             explicit,
+            include_packages,
+            exclude_packages,
             default,
             origin: _,
             format,
@@ -286,6 +387,8 @@ impl std::hash::Hash for Index {
         url.hash(state);
         name.hash(state);
         explicit.hash(state);
+        include_packages.hash(state);
+        exclude_packages.hash(state);
         default.hash(state);
         format.hash(state);
         publish_url.hash(state);
@@ -326,6 +429,8 @@ impl Index {
             url,
             name: None,
             explicit: false,
+            include_packages: Vec::new(),
+            exclude_packages: Vec::new(),
             default: true,
             origin: None,
             format: IndexFormat::Simple,
@@ -343,6 +448,8 @@ impl Index {
             url,
             name: None,
             explicit: false,
+            include_packages: Vec::new(),
+            exclude_packages: Vec::new(),
             default: false,
             origin: None,
             format: IndexFormat::Simple,
@@ -360,6 +467,8 @@ impl Index {
             url,
             name: None,
             explicit: false,
+            include_packages: Vec::new(),
+            exclude_packages: Vec::new(),
             default: false,
             origin: None,
             format: IndexFormat::Flat,
@@ -470,6 +579,22 @@ impl Index {
             IndexCacheControl::simple_api_cache_control(self.url.url())
         }
     }
+
+    /// Returns `true` if this index explicitly includes the given package.
+    pub fn includes_package(&self, package_name: &PackageName) -> bool {
+        self.include_packages
+            .iter()
+            .any(|pattern| pattern.matches(package_name))
+    }
+
+    /// Returns `true` if this index excludes the given package.
+    pub fn excludes_package(&self, package_name: &PackageName) -> bool {
+        !self.includes_package(package_name)
+            && self
+                .exclude_packages
+                .iter()
+                .any(|pattern| pattern.matches(package_name))
+    }
 }
 
 impl From<IndexUrl> for Index {
@@ -478,6 +603,8 @@ impl From<IndexUrl> for Index {
             name: None,
             url: value,
             explicit: false,
+            include_packages: Vec::new(),
+            exclude_packages: Vec::new(),
             default: false,
             origin: None,
             format: IndexFormat::Simple,
@@ -503,6 +630,8 @@ impl FromStr for Index {
                     name: Some(name),
                     url,
                     explicit: false,
+                    include_packages: Vec::new(),
+                    exclude_packages: Vec::new(),
                     default: false,
                     origin: None,
                     format: IndexFormat::Simple,
@@ -521,6 +650,8 @@ impl FromStr for Index {
             name: None,
             url,
             explicit: false,
+            include_packages: Vec::new(),
+            exclude_packages: Vec::new(),
             default: false,
             origin: None,
             format: IndexFormat::Simple,
@@ -623,6 +754,10 @@ struct IndexWire {
     #[serde(default)]
     explicit: bool,
     #[serde(default)]
+    include_packages: Vec<PackageNamePattern>,
+    #[serde(default)]
+    exclude_packages: Vec<PackageNamePattern>,
+    #[serde(default)]
     default: bool,
     #[serde(default)]
     format: IndexFormat,
@@ -651,10 +786,19 @@ impl<'de> Deserialize<'de> for Index {
             )));
         }
 
+        if wire.explicit && (!wire.include_packages.is_empty() || !wire.exclude_packages.is_empty())
+        {
+            return Err(serde::de::Error::custom(
+                "An index with `explicit = true` cannot specify `include-packages` or `exclude-packages`",
+            ));
+        }
+
         Ok(Self {
             name: wire.name,
             url: wire.url,
             explicit: wire.explicit,
+            include_packages: wire.include_packages,
+            exclude_packages: wire.exclude_packages,
             default: wire.default,
             origin: None,
             format: wire.format,
@@ -710,6 +854,38 @@ mod tests {
         let index: Index = toml::from_str(toml_str).unwrap();
         assert_eq!(index.name.as_ref().unwrap().as_ref(), "test-index");
         assert_eq!(index.cache_control, None);
+    }
+
+    #[test]
+    fn test_index_package_routing_patterns() {
+        let toml_str = r#"
+            name = "test-index"
+            url = "https://test.example.com/simple"
+            include-packages = ["foo-*", "bar"]
+            exclude-packages = ["baz-*"]
+        "#;
+
+        let index: Index = toml::from_str(toml_str).unwrap();
+        assert!(index.includes_package(&PackageName::from_str("foo-core").unwrap()));
+        assert!(index.includes_package(&PackageName::from_str("bar").unwrap()));
+        assert!(index.excludes_package(&PackageName::from_str("baz-util").unwrap()));
+        assert!(!index.excludes_package(&PackageName::from_str("foo-core").unwrap()));
+    }
+
+    #[test]
+    fn test_explicit_index_cannot_use_package_routing_patterns() {
+        let toml_str = r#"
+            name = "test-index"
+            url = "https://test.example.com/simple"
+            explicit = true
+            include-packages = ["foo-*"]
+        "#;
+
+        let err = toml::from_str::<Index>(toml_str).unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("cannot specify `include-packages` or `exclude-packages`")
+        );
     }
 
     #[test]

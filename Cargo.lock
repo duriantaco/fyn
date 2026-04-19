@@ -2486,6 +2486,7 @@ dependencies = [
  "fyn-redacted",
  "fyn-small-str",
  "fyn-warnings",
+ "glob",
  "http",
  "itertools 0.14.0",
  "jiff",

@@ -310,7 +310,14 @@ impl RegistryClient {
                     .map(|indexes| indexes.map(IndexMetadataRef::from))
             })
             .map(Either::Left)
-            .unwrap_or_else(|| Either::Right(self.index_urls.indexes().map(IndexMetadataRef::from)))
+            .unwrap_or_else(|| {
+                Either::Right(
+                    self.index_urls
+                        .indexes_for_package(package_name)
+                        .into_iter()
+                        .map(IndexMetadataRef::from),
+                )
+            })
     }
 
     /// Return the appropriate [`IndexStrategy`] for the given [`PackageName`].

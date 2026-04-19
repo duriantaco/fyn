@@ -36,6 +36,7 @@ arcstr = { workspace = true }
 bitflags = { workspace = true }
 fs-err = { workspace = true }
 http = { workspace = true }
+glob = { workspace = true }
 itertools = { workspace = true }
 jiff = { workspace = true }
 owo-colors = { workspace = true }

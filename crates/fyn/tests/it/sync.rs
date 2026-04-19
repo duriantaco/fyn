@@ -15397,6 +15397,318 @@ async fn sync_zstd_wheel() -> Result<()> {
     Ok(())
 }
 
+#[tokio::test]
+async fn sync_index_include_packages_routes_package() -> Result<()> {
+    use serde_json::json;
+    use sha2::{Digest, Sha256};
+    use wiremock::{
+        Mock, MockServer, ResponseTemplate,
+        matchers::{method, path},
+    };
+
+    async fn mount_simple_wheel(
+        server: &MockServer,
+        package_name: &str,
+        filename: &str,
+        wheel_bytes: Vec<u8>,
+    ) {
+        let wheel_url = format!("{}/files/{filename}", server.uri());
+        let sha256 = format!("{:x}", Sha256::digest(&wheel_bytes));
+        let simple_index = json!({
+            "meta": {
+                "api-version": "1.1"
+            },
+            "name": package_name,
+            "files": [{
+                "filename": filename,
+                "url": wheel_url,
+                "hashes": {
+                    "sha256": sha256
+                },
+                "size": wheel_bytes.len()
+            }]
+        });
+
+        Mock::given(method("GET"))
+            .and(path(format!("/files/{filename}")))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(wheel_bytes))
+            .mount(server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path(format!("/simple/{package_name}/")))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(
+                simple_index.to_string().into_bytes(),
+                "application/vnd.pyx.simple.v1+json",
+            ))
+            .mount(server)
+            .await;
+    }
+
+    let context = fyn_test::test_context!("3.13");
+    let primary = MockServer::start().await;
+    let routed = MockServer::start().await;
+
+    let primary_wheel = fs_err::read(
+        context
+            .workspace_root
+            .join("test/links/ok-2.0.0-py3-none-any.whl"),
+    )?;
+    let routed_wheel = fs_err::read(
+        context
+            .workspace_root
+            .join("test/links/ok-1.0.0-py3-none-any.whl"),
+    )?;
+
+    mount_simple_wheel(&primary, "ok", "ok-2.0.0-py3-none-any.whl", primary_wheel).await;
+    mount_simple_wheel(&routed, "ok", "ok-1.0.0-py3-none-any.whl", routed_wheel).await;
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(&formatdoc! { r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.13"
+        dependencies = ["ok"]
+
+        [[tool.fyn.index]]
+        name = "primary"
+        url = "{}/simple"
+
+        [[tool.fyn.index]]
+        name = "routed"
+        url = "{}/simple"
+        default = true
+        include-packages = ["ok"]
+        "#,
+        primary.uri(),
+        routed.uri()
+    })?;
+
+    fyn_snapshot!(context.filters(), context.sync().env_remove(EnvVars::UV_EXCLUDE_NEWER), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + ok==1.0.0
+    ");
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn sync_index_exclude_packages_skips_package() -> Result<()> {
+    use serde_json::json;
+    use sha2::{Digest, Sha256};
+    use wiremock::{
+        Mock, MockServer, ResponseTemplate,
+        matchers::{method, path},
+    };
+
+    async fn mount_simple_wheel(
+        server: &MockServer,
+        package_name: &str,
+        filename: &str,
+        wheel_bytes: Vec<u8>,
+    ) {
+        let wheel_url = format!("{}/files/{filename}", server.uri());
+        let sha256 = format!("{:x}", Sha256::digest(&wheel_bytes));
+        let simple_index = json!({
+            "meta": {
+                "api-version": "1.1"
+            },
+            "name": package_name,
+            "files": [{
+                "filename": filename,
+                "url": wheel_url,
+                "hashes": {
+                    "sha256": sha256
+                },
+                "size": wheel_bytes.len()
+            }]
+        });
+
+        Mock::given(method("GET"))
+            .and(path(format!("/files/{filename}")))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(wheel_bytes))
+            .mount(server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path(format!("/simple/{package_name}/")))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(
+                simple_index.to_string().into_bytes(),
+                "application/vnd.pyx.simple.v1+json",
+            ))
+            .mount(server)
+            .await;
+    }
+
+    let context = fyn_test::test_context!("3.13");
+    let excluded = MockServer::start().await;
+    let fallback = MockServer::start().await;
+
+    let excluded_wheel = fs_err::read(
+        context
+            .workspace_root
+            .join("test/links/ok-1.0.0-py3-none-any.whl"),
+    )?;
+    let fallback_wheel = fs_err::read(
+        context
+            .workspace_root
+            .join("test/links/ok-2.0.0-py3-none-any.whl"),
+    )?;
+
+    mount_simple_wheel(&excluded, "ok", "ok-1.0.0-py3-none-any.whl", excluded_wheel).await;
+    mount_simple_wheel(&fallback, "ok", "ok-2.0.0-py3-none-any.whl", fallback_wheel).await;
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(&formatdoc! { r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.13"
+        dependencies = ["ok"]
+
+        [[tool.fyn.index]]
+        name = "excluded"
+        url = "{}/simple"
+        exclude-packages = ["ok"]
+
+        [[tool.fyn.index]]
+        name = "fallback"
+        url = "{}/simple"
+        default = true
+        "#,
+        excluded.uri(),
+        fallback.uri()
+    })?;
+
+    fyn_snapshot!(context.filters(), context.sync().env_remove(EnvVars::UV_EXCLUDE_NEWER), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + ok==2.0.0
+    ");
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn sync_index_package_routing_respects_explicit_source_pin() -> Result<()> {
+    use serde_json::json;
+    use sha2::{Digest, Sha256};
+    use wiremock::{
+        Mock, MockServer, ResponseTemplate,
+        matchers::{method, path},
+    };
+
+    async fn mount_simple_wheel(
+        server: &MockServer,
+        package_name: &str,
+        filename: &str,
+        wheel_bytes: Vec<u8>,
+    ) {
+        let wheel_url = format!("{}/files/{filename}", server.uri());
+        let sha256 = format!("{:x}", Sha256::digest(&wheel_bytes));
+        let simple_index = json!({
+            "meta": {
+                "api-version": "1.1"
+            },
+            "name": package_name,
+            "files": [{
+                "filename": filename,
+                "url": wheel_url,
+                "hashes": {
+                    "sha256": sha256
+                },
+                "size": wheel_bytes.len()
+            }]
+        });
+
+        Mock::given(method("GET"))
+            .and(path(format!("/files/{filename}")))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(wheel_bytes))
+            .mount(server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path(format!("/simple/{package_name}/")))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(
+                simple_index.to_string().into_bytes(),
+                "application/vnd.pyx.simple.v1+json",
+            ))
+            .mount(server)
+            .await;
+    }
+
+    let context = fyn_test::test_context!("3.13");
+    let routed = MockServer::start().await;
+    let pinned = MockServer::start().await;
+
+    let routed_wheel = fs_err::read(
+        context
+            .workspace_root
+            .join("test/links/ok-2.0.0-py3-none-any.whl"),
+    )?;
+    let pinned_wheel = fs_err::read(
+        context
+            .workspace_root
+            .join("test/links/ok-1.0.0-py3-none-any.whl"),
+    )?;
+
+    mount_simple_wheel(&routed, "ok", "ok-2.0.0-py3-none-any.whl", routed_wheel).await;
+    mount_simple_wheel(&pinned, "ok", "ok-1.0.0-py3-none-any.whl", pinned_wheel).await;
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(&formatdoc! { r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.13"
+        dependencies = ["ok"]
+
+        [tool.fyn.sources]
+        ok = {{ index = "pinned" }}
+
+        [[tool.fyn.index]]
+        name = "routed"
+        url = "{}/simple"
+        include-packages = ["ok"]
+
+        [[tool.fyn.index]]
+        name = "pinned"
+        url = "{}/simple"
+        default = true
+        "#,
+        routed.uri(),
+        pinned.uri()
+    })?;
+
+    fyn_snapshot!(context.filters(), context.sync().env_remove(EnvVars::UV_EXCLUDE_NEWER), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + ok==1.0.0
+    ");
+
+    Ok(())
+}
+
 #[test]
 #[cfg(not(windows))]
 fn toggle_workspace_editable() -> Result<()> {
