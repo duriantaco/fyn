@@ -47,7 +47,7 @@ pub(crate) use project::format::format;
 pub(crate) use project::init::{InitKind, InitProjectKind, init};
 pub(crate) use project::lock::lock;
 pub(crate) use project::remove::remove;
-pub(crate) use project::run::{RunCommand, run};
+pub(crate) use project::run::{RunCommand, find_nearest_pyproject_path, run};
 pub(crate) use project::sync::sync;
 pub(crate) use project::tree::tree;
 pub(crate) use project::upgrade::upgrade;
