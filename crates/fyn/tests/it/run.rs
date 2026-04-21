@@ -6854,6 +6854,81 @@ fn run_task_detailed() -> Result<()> {
     Ok(())
 }
 
+/// Dotted task names should resolve like any other task name.
+#[test]
+fn run_task_dotted_name() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        "test.unit" = "echo dotted task"
+        "#
+    })?;
+
+    fyn_snapshot!(context.filters(), context.run().arg("test.unit"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    dotted task
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Checked in [TIME]
+    ");
+
+    Ok(())
+}
+
+/// Existing local files should still take precedence over same-named dotted tasks.
+#[test]
+fn run_task_dotted_name_does_not_override_local_script() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        "main.py" = "echo task wins"
+        "#
+    })?;
+
+    context.temp_dir.child("main.py").write_str(indoc! { r#"
+        print("script wins")
+        "#
+    })?;
+
+    fyn_snapshot!(context.filters(), context.run().arg("main.py"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    script wins
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Checked in [TIME]
+    ");
+
+    Ok(())
+}
+
 /// Extra arguments passed to `cmd` tasks should not forward the task separator itself.
 #[test]
 fn run_task_cmd_strips_passthrough_separator() -> Result<()> {
@@ -6953,6 +7028,41 @@ fn run_task_cmd_forwards_option_like_args() -> Result<()> {
     Checked in [TIME]
     "
     );
+
+    Ok(())
+}
+
+/// Escaped quotes inside task commands should survive argument splitting.
+#[test]
+fn run_task_cmd_supports_escaped_quotes() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        show = "python -c \"print(\\\"ok\\\")\""
+        "#
+    })?;
+
+    fyn_snapshot!(context.filters(), context.run().arg("show"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    ok
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Checked in [TIME]
+    ");
 
     Ok(())
 }
@@ -7113,6 +7223,36 @@ fn run_task_fallback_to_path() -> Result<()> {
     Ok(())
 }
 
+/// `--no-project` should suppress task lookup and run the external command instead.
+#[test]
+fn run_task_ignored_with_no_project() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        python = "echo task python"
+        "#
+    })?;
+
+    let mut cmd = context.run();
+    cmd.arg("--no-project").arg("python").arg("--version");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Python 3.12."));
+
+    Ok(())
+}
+
 /// --list-tasks shows available tasks.
 #[test]
 fn run_list_tasks() -> Result<()> {
@@ -7146,6 +7286,47 @@ fn run_list_tasks() -> Result<()> {
     ----- stderr -----
     Available tasks:
       fmt              Format code
+      lint             ruff check .
+      test             pytest -xvs
+    ");
+
+    Ok(())
+}
+
+/// --list-tasks should search parent directories the same way task execution does.
+#[test]
+fn run_list_tasks_from_subdirectory() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        test = "pytest -xvs"
+        lint = "ruff check ."
+        "#
+    })?;
+
+    let subdir = context.temp_dir.child("nested").child("child");
+    subdir.create_dir_all()?;
+
+    let mut cmd = context.run();
+    cmd.current_dir(subdir.path()).arg("--list-tasks");
+    fyn_snapshot!(context.filters(), cmd, @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Available tasks:
       lint             ruff check .
       test             pytest -xvs
     ");

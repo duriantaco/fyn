@@ -53,7 +53,9 @@ use fyn_static::EnvVars;
 use fyn_warnings::{warn_user, warn_user_once};
 use fyn_workspace::{DiscoveryOptions, Workspace, WorkspaceCache};
 
-use crate::commands::{ExitStatus, RunCommand, ScriptPath, ToolRunCommand};
+use crate::commands::{
+    ExitStatus, RunCommand, ScriptPath, ToolRunCommand, find_nearest_pyproject_path,
+};
 use crate::printer::Printer;
 use crate::settings::{
     CacheSettings, GlobalSettings, PipCheckSettings, PipCompileSettings, PipDownloadSettings,
@@ -250,6 +252,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
             module,
             script,
             gui_script,
+            no_project,
             ..
         }) = &mut **command
         {
@@ -278,6 +281,7 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                     *script,
                     *gui_script,
                     &project_dir,
+                    *no_project,
                 )
                 .await?,
             )
@@ -2539,8 +2543,8 @@ async fn run_project(
             // Handle --list-tasks early, before full settings resolution.
             if args.list_tasks {
                 use fyn_workspace::pyproject::PyProjectToml;
-                let pyproject_path = project_dir.join("pyproject.toml");
-                if let Ok(content) = fs_err::read_to_string(&pyproject_path) {
+                if let Some(pyproject_path) = find_nearest_pyproject_path(project_dir) {
+                    let content = fs_err::read_to_string(&pyproject_path)?;
                     if let Ok(pyproject) = toml::from_str::<PyProjectToml>(&content) {
                         if let Some(tasks) =
                             pyproject.tool.and_then(|t| t.fyn).and_then(|u| u.tasks)

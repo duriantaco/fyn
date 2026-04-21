@@ -1793,6 +1793,7 @@ impl RunCommand {
     ///
     /// If the target matches a task defined in `[tool.fyn.tasks]`, run that
     /// task instead of searching PATH.
+    #[expect(clippy::fn_params_excessive_bools)]
     pub(crate) async fn from_args(
         command: &ExternalCommand,
         client_builder: BaseClientBuilder<'_>,
@@ -1800,6 +1801,7 @@ impl RunCommand {
         script: bool,
         gui_script: bool,
         project_dir: &std::path::Path,
+        no_project: bool,
     ) -> anyhow::Result<Self> {
         let (target, args) = command.split();
         let Some(target) = target else {
@@ -1880,12 +1882,18 @@ impl RunCommand {
             return Ok(Self::PythonScript(target.clone().into(), args.to_vec()));
         }
 
+        let metadata = target_path.metadata();
+        let is_file = metadata.as_ref().is_ok_and(std::fs::Metadata::is_file);
+        let is_dir = metadata.as_ref().is_ok_and(std::fs::Metadata::is_dir);
+
         // Check if the target matches a task in [tool.fyn.tasks] before
         // falling back to PATH lookup. Skip if the target looks like a file path.
         let target_str = target.to_string_lossy();
-        if !target_str.contains(std::path::MAIN_SEPARATOR)
+        if !no_project
+            && !target_str.contains(std::path::MAIN_SEPARATOR)
             && !target_str.contains('/')
-            && !target_str.contains('.')
+            && !is_file
+            && !is_dir
         {
             if let Some(tasks) = lookup_tasks(project_dir) {
                 if tasks.get(&target_str).is_some() {
@@ -1893,10 +1901,6 @@ impl RunCommand {
                 }
             }
         }
-
-        let metadata = target_path.metadata();
-        let is_file = metadata.as_ref().is_ok_and(std::fs::Metadata::is_file);
-        let is_dir = metadata.as_ref().is_ok_and(std::fs::Metadata::is_dir);
 
         if target.eq_ignore_ascii_case("python") {
             Ok(Self::Python(args.to_vec()))
@@ -1933,31 +1937,33 @@ impl RunCommand {
 ///
 /// Walks up from `project_dir` looking for a `pyproject.toml` with a
 /// `[tool.fyn.tasks]` section.
-fn lookup_tasks(project_dir: &Path) -> Option<fyn_workspace::pyproject::ToolfynTasks> {
+pub(crate) fn find_nearest_pyproject_path(project_dir: &Path) -> Option<PathBuf> {
     let mut dir = project_dir.to_path_buf();
     loop {
         let pyproject_path = dir.join("pyproject.toml");
         if pyproject_path.is_file() {
-            if let Ok(content) = fs_err::read_to_string(&pyproject_path) {
-                if let Ok(pyproject) =
-                    toml::from_str::<fyn_workspace::pyproject::PyProjectToml>(&content)
-                {
-                    if let Some(tool_fyn) = pyproject.tool.and_then(|t| t.fyn) {
-                        if let Some(tasks) = tool_fyn.tasks {
-                            if !tasks.is_empty() {
-                                return Some(tasks);
-                            }
-                        }
-                    }
-                }
-            }
-            // Found a pyproject.toml but no tasks — stop searching.
-            return None;
+            return Some(pyproject_path);
         }
         if !dir.pop() {
             return None;
         }
     }
+}
+
+fn lookup_tasks(project_dir: &Path) -> Option<fyn_workspace::pyproject::ToolfynTasks> {
+    let pyproject_path = find_nearest_pyproject_path(project_dir)?;
+    if let Ok(content) = fs_err::read_to_string(&pyproject_path) {
+        if let Ok(pyproject) = toml::from_str::<fyn_workspace::pyproject::PyProjectToml>(&content) {
+            if let Some(tool_fyn) = pyproject.tool.and_then(|t| t.fyn) {
+                if let Some(tasks) = tool_fyn.tasks {
+                    if !tasks.is_empty() {
+                        return Some(tasks);
+                    }
+                }
+            }
+        }
+    }
+    None
 }
 
 fn resolve_task_plan(
@@ -2061,7 +2067,7 @@ fn resolve_task_steps(
 }
 
 fn parse_task_command(cmd_str: &str, extra_args: &[OsString]) -> anyhow::Result<TaskCommand> {
-    let parts = shell_split(cmd_str);
+    let parts = shell_split(cmd_str)?;
     let Some((program, cmd_args)) = parts.split_first() else {
         bail!("Task command is empty");
     };
@@ -2077,31 +2083,90 @@ fn parse_task_command(cmd_str: &str, extra_args: &[OsString]) -> anyhow::Result<
 
 /// Split a command string into tokens, respecting single and double quotes.
 ///
-/// This is intentionally simple — it doesn't handle escape characters or
-/// nested quotes, but covers the common cases like `pytest -xvs`,
-/// `echo "hello world"`, and `ruff check --select 'E501'`.
-fn shell_split(s: &str) -> Vec<String> {
+/// This is intentionally shell-like rather than shell-complete: it supports
+/// quotes and backslash escapes, which covers common task forms like
+/// `pytest -xvs`, `echo "hello world"`, and `python -c "print(\"ok\")"`.
+fn shell_split(s: &str) -> anyhow::Result<Vec<String>> {
     let mut tokens = Vec::new();
     let mut current = String::new();
     let mut in_single = false;
     let mut in_double = false;
+    let mut escaped = false;
+    let mut token_started = false;
 
     for c in s.chars() {
+        if escaped {
+            current.push(c);
+            escaped = false;
+            token_started = true;
+            continue;
+        }
+
         match c {
-            '\'' if !in_double => in_single = !in_single,
-            '"' if !in_single => in_double = !in_double,
+            '\\' if !in_single => {
+                escaped = true;
+                token_started = true;
+            }
+            '\'' if !in_double => {
+                in_single = !in_single;
+                token_started = true;
+            }
+            '"' if !in_single => {
+                in_double = !in_double;
+                token_started = true;
+            }
             c if c.is_whitespace() && !in_single && !in_double => {
-                if !current.is_empty() {
+                if token_started {
                     tokens.push(std::mem::take(&mut current));
+                    token_started = false;
                 }
             }
-            c => current.push(c),
+            c => {
+                current.push(c);
+                token_started = true;
+            }
         }
     }
-    if !current.is_empty() {
+
+    if escaped {
+        current.push('\\');
+    }
+
+    if in_single || in_double {
+        bail!("Task command contains an unterminated quoted string");
+    }
+
+    if token_started {
         tokens.push(current);
     }
-    tokens
+
+    Ok(tokens)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::shell_split;
+
+    #[test]
+    fn shell_split_supports_escaped_quotes() {
+        assert_eq!(
+            shell_split(r#"python -c "print(\"ok\")""#).unwrap(),
+            vec!["python", "-c", r#"print("ok")"#],
+        );
+    }
+
+    #[test]
+    fn shell_split_preserves_empty_quoted_arguments() {
+        assert_eq!(
+            shell_split(r#"python -c "" "arg two""#).unwrap(),
+            vec!["python", "-c", "", "arg two"],
+        );
+    }
+
+    #[test]
+    fn shell_split_rejects_unterminated_quotes() {
+        assert!(shell_split(r#"python -c "print("ok")"#).is_err());
+    }
 }
 
 /// Returns `true` if the target is a ZIP archive containing a `__main__.py` file.
