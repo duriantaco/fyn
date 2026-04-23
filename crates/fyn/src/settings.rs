@@ -1585,11 +1585,19 @@ impl PythonPinSettings {
             no_project,
             global,
             rm,
+            python_downloads_json_url,
         } = args;
 
         let filesystem_install_mirrors = filesystem
             .map(|fs| fs.install_mirrors.clone())
             .unwrap_or_default();
+
+        let install_mirrors = PythonInstallMirrors {
+            python_downloads_json_url,
+            ..Default::default()
+        }
+        .combine(environment.install_mirrors)
+        .combine(filesystem_install_mirrors);
 
         Self {
             request,
@@ -1598,9 +1606,7 @@ impl PythonPinSettings {
             no_project,
             global,
             rm,
-            install_mirrors: environment
-                .install_mirrors
-                .combine(filesystem_install_mirrors),
+            install_mirrors,
         }
     }
 }

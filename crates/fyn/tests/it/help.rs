@@ -941,6 +941,18 @@ fn help_shell_subcommand() {
 }
 
 #[test]
+fn help_python_pin_subcommand() {
+    let context = fyn_test::test_context_with_versions!(&[]);
+    let output = context.help().arg("python").arg("pin").output().unwrap();
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("Pin to a specific Python version."));
+    assert!(stdout.contains("Usage: fyn python pin [OPTIONS] [REQUEST]"));
+    assert!(stdout.contains("--python-downloads-json-url"));
+}
+
+#[test]
 fn help_unknown_subcommand() {
     let context = fyn_test::test_context_with_versions!(&[]);
 
