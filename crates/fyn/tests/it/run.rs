@@ -3248,6 +3248,8 @@ fn run_from_directory() -> Result<()> {
      + foo==1.0.0 (from file://[TEMP_DIR]/project)
     error: Failed to spawn: `./project/main.py`
       Caused by: [OS ERROR 2]
+
+    hint: Check that the requested path exists relative to the current directory.
     ");
 
     // Even if we write a `.python-version` file in the current directory, we should prefer the
@@ -4163,6 +4165,48 @@ fn run_script_without_build_system() -> Result<()> {
     Checked in [TIME]
     error: Failed to spawn: `entry`
       Caused by: No such file or directory (os error 2)
+
+    hint: If `entry` is provided by a Python package, try `fyn tool run entry`.
+    ");
+
+    Ok(())
+}
+
+#[test]
+fn run_missing_command_with_tasks_shows_task_hint() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.8"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        test = "pytest -xvs"
+        lint = "ruff check ."
+        "#
+    })?;
+
+    fyn_snapshot!(context.filters(), context.run().arg("tesst"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Checked in [TIME]
+    error: Failed to spawn: `tesst`
+      Caused by: No such file or directory (os error 2)
+
+    hint: If you meant to run a task, use `fyn run --list-tasks` to inspect available tasks.
+
+    hint: If `tesst` is provided by a Python package, try `fyn tool run tesst`.
     ");
 
     Ok(())
