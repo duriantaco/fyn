@@ -1527,12 +1527,20 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         }) => commands::cache_size(&cache, args.human, printer, globals.preview),
         Commands::Status(StatusArgs { check, json }) => {
             let cache = cache.init().await?;
+            let install_mirrors = environment.install_mirrors.clone().combine(
+                filesystem
+                    .as_ref()
+                    .map(|filesystem| filesystem.install_mirrors.clone())
+                    .unwrap_or_default(),
+            );
             commands::status(
                 check,
                 json,
                 &project_dir,
                 filesystem.as_ref(),
                 globals.python_preference,
+                &install_mirrors,
+                &client_builder,
                 &cache,
                 &workspace_cache,
                 printer,

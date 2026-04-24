@@ -1,6 +1,7 @@
 use anyhow::Result;
 use assert_fs::prelude::*;
 
+use fyn_static::EnvVars;
 use fyn_test::fyn_snapshot;
 
 #[test]
@@ -278,4 +279,187 @@ fn status_json_check_in_unmanaged_directory() {
     ----- stderr -----
     "#
     );
+}
+
+#[test]
+fn status_check_compatible_python_pin() -> Result<()> {
+    let context = fyn_test::test_context!("3.11");
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc::indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+        requires-python = ">=3.11,<3.12"
+    "#})?;
+    context.temp_dir.child("fyn.lock").touch()?;
+    context
+        .temp_dir
+        .child(".python-version")
+        .write_str("3.11")?;
+
+    fyn_snapshot!(
+        context.filters(),
+        context.command().arg("status").arg("--check"),
+        @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    current directory: [TEMP_DIR]/
+    project directory: [TEMP_DIR]/
+    managed project: yes
+    workspace root: [TEMP_DIR]/
+    pyproject.toml: yes
+    fyn.lock: yes
+    pip-in-project: warn
+    environment: [VENV]/
+    python: [VENV]/bin/python3 (3.11.[X])
+    check: ok
+
+    ----- stderr -----
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn status_check_incompatible_python_pin() -> Result<()> {
+    let context = fyn_test::test_context!("3.11");
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc::indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+        requires-python = ">=3.11,<3.12"
+    "#})?;
+    context.temp_dir.child("fyn.lock").touch()?;
+    context
+        .temp_dir
+        .child(".python-version")
+        .write_str("3.10")?;
+
+    fyn_snapshot!(
+        context.filters(),
+        context.command().arg("status").arg("--check"),
+        @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+    current directory: [TEMP_DIR]/
+    project directory: [TEMP_DIR]/
+    managed project: yes
+    workspace root: [TEMP_DIR]/
+    pyproject.toml: yes
+    fyn.lock: yes
+    pip-in-project: warn
+    environment: [VENV]/
+    python: [VENV]/bin/python3 (3.11.[X])
+    check: failed
+    issue: The pinned Python version `3.10` is incompatible with the project `requires-python` value of `==3.11.*`.
+
+    ----- stderr -----
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn status_check_missing_environment() -> Result<()> {
+    let context = fyn_test::test_context_with_versions!(&[]);
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc::indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+    "#})?;
+    context.temp_dir.child("fyn.lock").touch()?;
+
+    fyn_snapshot!(
+        context.filters(),
+        context
+            .command()
+            .env_remove(EnvVars::VIRTUAL_ENV)
+            .arg("status")
+            .arg("--check"),
+        @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+    current directory: [TEMP_DIR]/
+    project directory: [TEMP_DIR]/
+    managed project: yes
+    workspace root: [TEMP_DIR]/
+    pyproject.toml: yes
+    fyn.lock: yes
+    pip-in-project: warn
+    environment: not found
+    python: not found
+    check: failed
+    issue: environment not found
+
+    ----- stderr -----
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn status_json_check_incompatible_python_pin() -> Result<()> {
+    let context = fyn_test::test_context!("3.11");
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc::indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+        requires-python = ">=3.11,<3.12"
+    "#})?;
+    context.temp_dir.child("fyn.lock").touch()?;
+    context
+        .temp_dir
+        .child(".python-version")
+        .write_str("3.10")?;
+
+    fyn_snapshot!(
+        context.filters(),
+        context.command().arg("status").arg("--check").arg("--json"),
+        @r#"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+    {
+      "current_directory": "[TEMP_DIR]/",
+      "project_directory": "[TEMP_DIR]/",
+      "managed_project": true,
+      "workspace_root": "[TEMP_DIR]/",
+      "pyproject_toml": true,
+      "fyn_lock": true,
+      "pip_in_project": "warn",
+      "environment": {
+        "path": "[VENV]/",
+        "python": "[VENV]/bin/python3",
+        "version": "3.11.[X]"
+      },
+      "check": {
+        "passed": false,
+        "issues": [
+          "The pinned Python version `3.10` is incompatible with the project `requires-python` value of `==3.11.*`."
+        ]
+      }
+    }
+
+    ----- stderr -----
+    "#
+    );
+
+    Ok(())
 }

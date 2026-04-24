@@ -9,7 +9,6 @@ use tracing::debug;
 
 use fyn_cache::Cache;
 use fyn_client::BaseClientBuilder;
-use fyn_configuration::DependencyGroupsWithDefaults;
 use fyn_fs::Simplified;
 use fyn_preview::Preview;
 use fyn_python::{
@@ -21,9 +20,10 @@ use fyn_settings::PythonInstallMirrors;
 use fyn_warnings::warn_user_once;
 use fyn_workspace::{DiscoveryOptions, VirtualProject, WorkspaceCache};
 
-use crate::commands::{
-    ExitStatus, project::find_requires_python, reporters::PythonDownloadReporter,
+use super::pin_compat::{
+    assert_pin_compatible_with_project, existing_pin_compatibility_issue, project_requires_python,
 };
+use crate::commands::{ExitStatus, reporters::PythonDownloadReporter};
 use crate::printer::Printer;
 
 /// Pin to a specific Python version.
@@ -105,14 +105,16 @@ pub(crate) async fn pin(
                         install_mirrors.python_downloads_json_url.as_deref(),
                     )
                     .await?;
-                    warn_if_existing_pin_incompatible_with_project(
+                    if let Some(issue) = existing_pin_compatibility_issue(
                         pin,
                         virtual_project,
                         python_preference,
                         &download_list,
                         cache,
                         preview,
-                    );
+                    ) {
+                        warn_user_once!("{issue}");
+                    }
                 }
             }
             return Ok(ExitStatus::Success);
@@ -197,23 +199,19 @@ pub(crate) async fn pin(
         if !upgrade && let Some(virtual_project) = &virtual_project {
             if let Some(request_version) = request.as_pep440_version() {
                 assert_pin_compatible_with_project(
-                    &Pin {
-                        request: &request,
-                        version: &request_version,
-                        resolved: false,
-                        existing: false,
-                    },
+                    &request,
+                    &request_version,
+                    false,
+                    false,
                     virtual_project,
                 )?;
             } else if let Some(python) = &python {
                 // Warn if the resolved Python is incompatible with the Python requirement unless --resolved is used
                 if let Err(err) = assert_pin_compatible_with_project(
-                    &Pin {
-                        request: &request,
-                        version: python.python_version(),
-                        resolved: true,
-                        existing: false,
-                    },
+                    &request,
+                    python.python_version(),
+                    true,
+                    false,
                     virtual_project,
                 ) {
                     if resolved {
@@ -326,10 +324,9 @@ async fn resolve_upgraded_pin(
 
     let Some(download) = download_list
         .iter_matching(&upgrade_request)
-        .find(|download| {
-            requires_python.is_none_or(|requires_python| {
-                requires_python.contains(download.key().version().version())
-            })
+        .find(|download| match requires_python {
+            Some(requires_python) => requires_python.contains(download.key().version().version()),
+            None => true,
         })
     else {
         if let Some(requires_python) = requires_python {
@@ -424,132 +421,4 @@ fn exact_version_request(key: &PythonInstallationKey) -> VersionRequest {
             variant,
         )
     }
-}
-
-/// Check if pinned request is compatible with the workspace/project's `Requires-Python`.
-fn warn_if_existing_pin_incompatible_with_project(
-    pin: &PythonRequest,
-    virtual_project: &VirtualProject,
-    python_preference: PythonPreference,
-    downloads_list: &ManagedPythonDownloadList,
-    cache: &Cache,
-    preview: Preview,
-) {
-    // Check if the pinned version is compatible with the project.
-    if let Some(pin_version) = pin.as_pep440_version() {
-        if let Err(err) = assert_pin_compatible_with_project(
-            &Pin {
-                request: pin,
-                version: &pin_version,
-                resolved: false,
-                existing: true,
-            },
-            virtual_project,
-        ) {
-            warn_user_once!("{err}");
-            return;
-        }
-    }
-
-    // If there is not a version in the pinned request, attempt to resolve the pin into an
-    // interpreter to check for compatibility on the current system.
-    match PythonInstallation::find(
-        pin,
-        EnvironmentPreference::OnlySystem,
-        python_preference,
-        downloads_list,
-        cache,
-        preview,
-    ) {
-        Ok(python) => {
-            let python_version = python.python_version();
-            debug!(
-                "The pinned Python version `{}` resolves to `{}`",
-                pin, python_version
-            );
-            // Warn on incompatibilities when viewing existing pins
-            if let Err(err) = assert_pin_compatible_with_project(
-                &Pin {
-                    request: pin,
-                    version: python_version,
-                    resolved: true,
-                    existing: true,
-                },
-                virtual_project,
-            ) {
-                warn_user_once!("{err}");
-            }
-        }
-        Err(err) => {
-            warn_user_once!(
-                "Failed to resolve pinned Python version `{}`: {err}",
-                pin.to_canonical_string(),
-            );
-        }
-    }
-}
-
-/// Utility struct for representing pins in error messages.
-struct Pin<'a> {
-    request: &'a PythonRequest,
-    version: &'a fyn_pep440::Version,
-    resolved: bool,
-    existing: bool,
-}
-
-fn project_requires_python(virtual_project: &VirtualProject) -> Result<Option<RequiresPython>> {
-    // Don't factor in requires-python settings on dependency-groups
-    let groups = DependencyGroupsWithDefaults::none();
-
-    match virtual_project {
-        VirtualProject::Project(project_workspace) => {
-            debug!(
-                "Discovered project `{}` at: {}",
-                project_workspace.project_name(),
-                project_workspace.workspace().install_path().display()
-            );
-
-            Ok(find_requires_python(
-                project_workspace.workspace(),
-                &groups,
-            )?)
-        }
-        VirtualProject::NonProject(workspace) => {
-            debug!(
-                "Discovered virtual workspace at: {}",
-                workspace.install_path().display()
-            );
-            Ok(find_requires_python(workspace, &groups)?)
-        }
-    }
-}
-
-/// Checks if the pinned Python version is compatible with the workspace/project's `Requires-Python`.
-fn assert_pin_compatible_with_project(pin: &Pin, virtual_project: &VirtualProject) -> Result<()> {
-    let (requires_python, project_type) = match virtual_project {
-        VirtualProject::Project(..) => (project_requires_python(virtual_project)?, "project"),
-        VirtualProject::NonProject(..) => (project_requires_python(virtual_project)?, "workspace"),
-    };
-
-    let Some(requires_python) = requires_python else {
-        return Ok(());
-    };
-
-    if requires_python.contains(pin.version) {
-        return Ok(());
-    }
-
-    let given = if pin.existing { "pinned" } else { "requested" };
-    let resolved = if pin.resolved {
-        format!(" resolves to `{}` which ", pin.version)
-    } else {
-        String::new()
-    };
-
-    Err(anyhow::anyhow!(
-        "The {given} Python version `{}`{resolved} is incompatible with the {} `requires-python` value of `{}`.",
-        pin.request.to_canonical_string(),
-        project_type,
-        requires_python
-    ))
 }
