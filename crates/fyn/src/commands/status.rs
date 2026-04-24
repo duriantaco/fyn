@@ -2,15 +2,24 @@ use std::fmt::Write;
 use std::path::Path;
 
 use fyn_cache::Cache;
+use fyn_client::BaseClientBuilder;
 use fyn_fs::Simplified;
 use fyn_preview::Preview;
-use fyn_python::{EnvironmentPreference, PythonEnvironment, PythonPreference, PythonRequest};
-use fyn_settings::{FilesystemOptions, PipInProjectPolicy};
-use fyn_workspace::{DiscoveryOptions, Workspace, WorkspaceCache};
+use fyn_python::downloads::ManagedPythonDownloadList;
+use fyn_python::{
+    EnvironmentPreference, PythonEnvironment, PythonPreference, PythonRequest, PythonVersionFile,
+    VersionFileDiscoveryOptions,
+};
+use fyn_settings::{FilesystemOptions, PipInProjectPolicy, PythonInstallMirrors};
+use fyn_workspace::{DiscoveryOptions, VirtualProject, Workspace, WorkspaceCache};
 use owo_colors::OwoColorize;
 use serde::Serialize;
+use tracing::debug;
 
 use crate::commands::ExitStatus;
+use crate::commands::python::pin_compat::{
+    assert_pin_compatible_with_project, existing_pin_compatibility_issue,
+};
 use crate::printer::Printer;
 
 fn pip_in_project_policy(filesystem: Option<&FilesystemOptions>) -> PipInProjectPolicy {
@@ -58,19 +67,113 @@ struct StatusReport {
     check: Option<StatusCheck>,
 }
 
-fn status_issues(managed_project: bool, pyproject_toml: bool, fyn_lock: bool) -> Vec<String> {
+#[derive(Clone, Copy)]
+struct StatusIssueInputs {
+    managed_project: bool,
+    pyproject_toml: bool,
+    fyn_lock: bool,
+    environment_found: bool,
+}
+
+fn status_issues(inputs: StatusIssueInputs) -> Vec<String> {
     let mut issues = Vec::new();
-    if !managed_project {
+    if !inputs.managed_project {
         issues.push("not inside a managed project".to_string());
         return issues;
     }
-    if !pyproject_toml {
+    if !inputs.pyproject_toml {
         issues.push("pyproject.toml not found in workspace root".to_string());
     }
-    if !fyn_lock {
+    if !inputs.fyn_lock {
         issues.push("fyn.lock not found in workspace root".to_string());
     }
+    if !inputs.environment_found {
+        issues.push("environment not found".to_string());
+    }
     issues
+}
+
+async fn python_pin_issues(
+    project_dir: &Path,
+    virtual_project: Option<&VirtualProject>,
+    python_preference: PythonPreference,
+    install_mirrors: &PythonInstallMirrors,
+    client_builder: &BaseClientBuilder<'_>,
+    cache: &Cache,
+    preview: Preview,
+) -> Vec<String> {
+    let Some(virtual_project) = virtual_project else {
+        return Vec::new();
+    };
+
+    let version_file =
+        match PythonVersionFile::discover(project_dir, &VersionFileDiscoveryOptions::default())
+            .await
+        {
+            Ok(version_file) => version_file,
+            Err(err) => {
+                debug!("Failed to discover Python version file: {err}");
+                return Vec::new();
+            }
+        };
+    let Some(version_file) = version_file else {
+        return Vec::new();
+    };
+
+    let pins: Vec<_> = version_file.versions().collect();
+    let download_list = if pins.is_empty() {
+        None
+    } else {
+        let client = match client_builder.clone().retries(0).build() {
+            Ok(client) => client,
+            Err(err) => {
+                debug!("Failed to create client for Python pin compatibility checks: {err}");
+                return Vec::new();
+            }
+        };
+        match ManagedPythonDownloadList::new(
+            &client,
+            install_mirrors.python_downloads_json_url.as_deref(),
+        )
+        .await
+        {
+            Ok(download_list) => Some(download_list),
+            Err(err) => {
+                debug!("Failed to load Python downloads metadata for status checks: {err}");
+                None
+            }
+        }
+    };
+
+    pins.into_iter()
+        .filter_map(|pin| {
+            download_list
+                .as_ref()
+                .and_then(|download_list| {
+                    existing_pin_compatibility_issue(
+                        pin,
+                        virtual_project,
+                        python_preference,
+                        download_list,
+                        cache,
+                        preview,
+                    )
+                })
+                .or_else(|| {
+                    pin.as_pep440_version().and_then(|pin_version| {
+                        assert_pin_compatible_with_project(
+                            pin,
+                            &pin_version,
+                            false,
+                            true,
+                            virtual_project,
+                        )
+                        .err()
+                        .map(|err| err.to_string())
+                    })
+                })
+        })
+        .collect()
 }
 
 /// Show the current project and environment status.
@@ -80,6 +183,8 @@ pub(crate) async fn status(
     project_dir: &Path,
     filesystem: Option<&FilesystemOptions>,
     python_preference: PythonPreference,
+    install_mirrors: &PythonInstallMirrors,
+    client_builder: &BaseClientBuilder<'_>,
     cache: &Cache,
     workspace_cache: &WorkspaceCache,
     printer: Printer,
@@ -107,8 +212,39 @@ pub(crate) async fn status(
         .map(|workspace| workspace.install_path().simplified_display().to_string());
     let pyproject_toml = root.join("pyproject.toml").is_file();
     let fyn_lock = root.join("fyn.lock").is_file();
+    let virtual_project = if check && managed_project {
+        match VirtualProject::discover(project_dir, &DiscoveryOptions::default(), workspace_cache)
+            .await
+        {
+            Ok(virtual_project) => Some(virtual_project),
+            Err(err) => {
+                debug!("Failed to discover virtual project for status checks: {err}");
+                None
+            }
+        }
+    } else {
+        None
+    };
     let issues = if check {
-        status_issues(managed_project, pyproject_toml, fyn_lock)
+        let mut issues = status_issues(StatusIssueInputs {
+            managed_project,
+            pyproject_toml,
+            fyn_lock,
+            environment_found: environment.is_some(),
+        });
+        issues.extend(
+            python_pin_issues(
+                project_dir,
+                virtual_project.as_ref(),
+                python_preference,
+                install_mirrors,
+                client_builder,
+                cache,
+                preview,
+            )
+            .await,
+        );
+        issues
     } else {
         Vec::new()
     };
