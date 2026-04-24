@@ -199,10 +199,17 @@ For automation, use `--check` to fail when obvious project checks do not pass:
 
 ```console
 $ fyn status --check
+...
+check: failed
+issue: environment not found
+hint: Run `fyn sync` or `fyn venv` to create the project environment.
 ```
 
-Today, `--check` reports failure if you are not inside a managed project. When you are inside a
-managed project, it also fails if `pyproject.toml` or `fyn.lock` is missing from the workspace root.
+`--check` fails if you are not inside a managed project. In managed projects, it also fails if
+`pyproject.toml`, `fyn.lock`, or the project environment is missing, or if the discovered
+`.python-version` pin does not satisfy the project's `requires-python`. Text output includes
+`issue:` and `hint:` lines, while `--json` exposes the same data via `check.issues` and
+`check.hints`.
 
 For editor integrations, scripts, or CI tooling, use JSON output:
 
@@ -337,6 +344,10 @@ print("hello world")
 ```console
 $ fyn run example.py
 ```
+
+If `fyn run` cannot spawn the requested command, it prints a targeted hint instead of only the raw
+OS error. Depending on the command, that may mean suggesting `fyn run --list-tasks`,
+`fyn tool run <command>`, or checking that a relative path like `./script` exists.
 
 Alternatively, you can use `fyn sync` to manually update the environment and then either activate it
 yourself or open an activated shell with `fyn shell` before executing commands directly:

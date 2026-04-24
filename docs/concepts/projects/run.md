@@ -58,6 +58,28 @@ $ fyn run test -- -k my_test
 Additional CLI arguments are not supported for chained tasks; run the child task directly when you
 need to pass extra arguments.
 
+## Missing commands
+
+If task resolution succeeds but the external command still cannot be spawned, fyn augments the error
+with the most likely next step instead of only showing the raw OS error.
+
+- For projects with tasks, a missing bare command suggests `fyn run --list-tasks`.
+- For bare executables that may come from Python packages, it suggests `fyn tool run <command>`.
+- For path-like commands such as `./script`, it reminds you to check that the path exists relative
+  to the current directory.
+
+For example:
+
+```console
+$ fyn run tesst
+error: Failed to spawn: `tesst`
+  Caused by: No such file or directory (os error 2)
+
+hint: If you meant to run a task, use `fyn run --list-tasks` to inspect available tasks.
+
+hint: If `tesst` is provided by a Python package, try `fyn tool run tesst`.
+```
+
 ## Requesting additional dependencies
 
 Additional dependencies or different versions of dependencies can be requested per invocation.

@@ -102,6 +102,10 @@ environment: /home/user/example/.venv
 python: /home/user/example/.venv/bin/python3 (3.12.0)
 ```
 
+Use `fyn status --check` to fail fast in CI or editor integrations. In managed projects, it also
+reports missing environments and `.python-version` pins that do not satisfy `requires-python`, and
+prints matching `hint:` lines with the next command to run.
+
 Use `fyn upgrade` to refresh all dependencies or only the packages you name:
 
 ```console
@@ -231,6 +235,9 @@ Use a specific Python version in the current directory:
 $ fyn python pin 3.11
 Pinned `.python-version` to `3.11`
 ```
+
+Use `--python-downloads-json-url <source>` when you need `fyn python pin` to resolve against a
+custom Python downloads manifest instead of the default bundled metadata.
 
 See the [installing Python guide](./guides/install-python.md) to get started.
 
