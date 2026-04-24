@@ -200,6 +200,7 @@ fn status_check_in_unmanaged_directory() {
     python: [VENV]/bin/python3 (3.12.[X])
     check: failed
     issue: not inside a managed project
+    hint: Run `fyn init` to create a managed project, or run this command inside an existing project.
 
     ----- stderr -----
     "
@@ -236,6 +237,7 @@ fn status_check_missing_lock() -> Result<()> {
     python: [VENV]/bin/python3 (3.12.[X])
     check: failed
     issue: fyn.lock not found in workspace root
+    hint: Run `fyn sync` or `fyn lock` to create `fyn.lock`.
 
     ----- stderr -----
     "
@@ -272,6 +274,9 @@ fn status_json_check_in_unmanaged_directory() {
         "passed": false,
         "issues": [
           "not inside a managed project"
+        ],
+        "hints": [
+          "Run `fyn init` to create a managed project, or run this command inside an existing project."
         ]
       }
     }
@@ -360,6 +365,7 @@ fn status_check_incompatible_python_pin() -> Result<()> {
     python: [VENV]/bin/python3 (3.11.[X])
     check: failed
     issue: The pinned Python version `3.10` is incompatible with the project `requires-python` value of `==3.11.*`.
+    hint: Run `fyn python pin` to update the pinned Python version.
 
     ----- stderr -----
     "
@@ -403,6 +409,7 @@ fn status_check_missing_environment() -> Result<()> {
     python: not found
     check: failed
     issue: environment not found
+    hint: Run `fyn sync` or `fyn venv` to create the project environment.
 
     ----- stderr -----
     "
@@ -453,6 +460,9 @@ fn status_json_check_incompatible_python_pin() -> Result<()> {
         "passed": false,
         "issues": [
           "The pinned Python version `3.10` is incompatible with the project `requires-python` value of `==3.11.*`."
+        ],
+        "hints": [
+          "Run `fyn python pin` to update the pinned Python version."
         ]
       }
     }

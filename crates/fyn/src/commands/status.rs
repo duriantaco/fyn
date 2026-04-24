@@ -51,6 +51,8 @@ struct StatusEnvironment {
 struct StatusCheck {
     passed: bool,
     issues: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    hints: Vec<String>,
 }
 
 #[derive(Serialize)]
@@ -91,6 +93,40 @@ fn status_issues(inputs: StatusIssueInputs) -> Vec<String> {
         issues.push("environment not found".to_string());
     }
     issues
+}
+
+fn status_hint(issue: &str) -> Option<String> {
+    match issue {
+        "not inside a managed project" => Some(
+            "Run `fyn init` to create a managed project, or run this command inside an existing project."
+                .to_string(),
+        ),
+        "pyproject.toml not found in workspace root" => Some(
+            "Create a `pyproject.toml` in the workspace root, or run this command from the correct project directory."
+                .to_string(),
+        ),
+        "fyn.lock not found in workspace root" => {
+            Some("Run `fyn sync` or `fyn lock` to create `fyn.lock`.".to_string())
+        }
+        "environment not found" => {
+            Some("Run `fyn sync` or `fyn venv` to create the project environment.".to_string())
+        }
+        _ if issue.starts_with("The pinned Python version `") => {
+            Some("Run `fyn python pin` to update the pinned Python version.".to_string())
+        }
+        _ if issue.starts_with("Failed to resolve pinned Python version `") => Some(
+            "Install the pinned Python with `fyn python install`, or update it with `fyn python pin`."
+                .to_string(),
+        ),
+        _ => None,
+    }
+}
+
+fn status_hints(issues: &[String]) -> Vec<String> {
+    issues
+        .iter()
+        .filter_map(|issue| status_hint(issue))
+        .collect()
 }
 
 async fn python_pin_issues(
@@ -248,6 +284,7 @@ pub(crate) async fn status(
     } else {
         Vec::new()
     };
+    let hints = status_hints(&issues);
     let check_passed = issues.is_empty();
     let report = StatusReport {
         current_directory: current_dir.simplified_display().to_string(),
@@ -268,6 +305,7 @@ pub(crate) async fn status(
         check: check.then_some(StatusCheck {
             passed: check_passed,
             issues: issues.clone(),
+            hints: hints.clone(),
         }),
     };
 
@@ -349,6 +387,9 @@ pub(crate) async fn status(
         )?;
         for issue in &issues {
             writeln!(printer.stdout(), "issue: {}", issue.yellow())?;
+            if let Some(hint) = status_hint(issue) {
+                writeln!(printer.stdout(), "hint: {}", hint.cyan())?;
+            }
         }
     }
 
