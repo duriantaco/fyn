@@ -89,6 +89,9 @@ $ fyn python list
 See the [`python list`](../concepts/python-versions.md#viewing-available-python-versions)
 documentation for more details.
 
+If you maintain your own catalog of downloadable Python builds, `fyn python install`, `find`,
+`list`, `upgrade`, and `pin` accept `--python-downloads-json-url <source>`.
+
 ## Automatic Python downloads
 
 Python does not need to be explicitly installed to use fyn. By default, fyn will automatically

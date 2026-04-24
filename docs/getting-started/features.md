@@ -12,7 +12,8 @@ Installing and managing Python itself.
 - `fyn python install`: Install Python versions.
 - `fyn python list`: View available Python versions.
 - `fyn python find`: Find an installed Python version.
-- `fyn python pin`: Pin the current project to use a specific Python version.
+- `fyn python pin`: Pin the current project to use a specific Python version, including custom
+  download catalogs via `--python-downloads-json-url`.
 - `fyn python uninstall`: Uninstall a Python version.
 
 See the [guide on installing Python](../guides/install-python.md) to get started.
@@ -37,9 +38,11 @@ Creating and working on Python projects, i.e., with a `pyproject.toml`.
 - `fyn sync`: Sync the project's dependencies with the environment.
 - `fyn lock`: Create a lockfile for the project's dependencies.
 - `fyn upgrade`: Upgrade all or selected project dependencies.
-- `fyn run`: Run a command in the project environment.
+- `fyn run`: Run a command in the project environment, with task- and tool-aware missing-command
+  hints.
 - `fyn shell`: Open a shell with the project environment activated.
-- `fyn status`: Inspect the current project and environment state.
+- `fyn status`: Inspect the current project and environment state, and surface actionable health
+  checks.
 - `fyn tree`: View the dependency tree for the project.
 - `fyn build`: Build the project into distribution archives.
 - `fyn publish`: Publish the project to a package index.

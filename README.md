@@ -130,6 +130,10 @@ Task `env` values are applied to the spawned command. For chained tasks, parent 
 inherited by child tasks, and child task values take precedence. Extra arguments are supported for
 `cmd` tasks, but not for chained tasks.
 
+If `fyn run` cannot spawn a command, it tries to point you at the next step instead of stopping at a
+raw OS error: `fyn run --list-tasks` for likely task typos, `fyn tool run <command>` for missing
+Python-provided executables, or a path-specific hint for missing `./script`-style commands.
+
 ### Shell activation
 
 Activate the project's virtual environment in a new shell:
@@ -182,7 +186,16 @@ python: /home/user/example/.venv/bin/python3 (3.12.0)
 ```
 
 Use `--check` to fail when obvious project checks do not pass, or `--json` for scripting and editor
-integrations.
+integrations. In managed projects, `--check` also reports missing environments and `.python-version`
+pins that do not satisfy `requires-python`, and prints `hint:` lines with the suggested fix.
+
+```console
+$ fyn status --check
+...
+check: failed
+issue: environment not found
+hint: Run `fyn sync` or `fyn venv` to create the project environment.
+```
 
 ### PyTorch backend diagnosis
 
@@ -277,6 +290,9 @@ Use a specific Python version in the current directory:
 $ fyn python pin 3.11
 Pinned `.python-version` to `3.11`
 ```
+
+Use `--python-downloads-json-url <source>` when you need `fyn python pin` to resolve against a
+custom Python downloads manifest instead of the default bundled metadata.
 
 ### The pip interface
 
