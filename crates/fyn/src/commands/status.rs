@@ -67,24 +67,27 @@ struct StatusReport {
     check: Option<StatusCheck>,
 }
 
-fn status_issues(
+#[derive(Clone, Copy)]
+struct StatusIssueInputs {
     managed_project: bool,
     pyproject_toml: bool,
     fyn_lock: bool,
     environment_found: bool,
-) -> Vec<String> {
+}
+
+fn status_issues(inputs: StatusIssueInputs) -> Vec<String> {
     let mut issues = Vec::new();
-    if !managed_project {
+    if !inputs.managed_project {
         issues.push("not inside a managed project".to_string());
         return issues;
     }
-    if !pyproject_toml {
+    if !inputs.pyproject_toml {
         issues.push("pyproject.toml not found in workspace root".to_string());
     }
-    if !fyn_lock {
+    if !inputs.fyn_lock {
         issues.push("fyn.lock not found in workspace root".to_string());
     }
-    if !environment_found {
+    if !inputs.environment_found {
         issues.push("environment not found".to_string());
     }
     issues
@@ -223,12 +226,12 @@ pub(crate) async fn status(
         None
     };
     let issues = if check {
-        let mut issues = status_issues(
+        let mut issues = status_issues(StatusIssueInputs {
             managed_project,
             pyproject_toml,
             fyn_lock,
-            environment.is_some(),
-        );
+            environment_found: environment.is_some(),
+        });
         issues.extend(
             python_pin_issues(
                 project_dir,
