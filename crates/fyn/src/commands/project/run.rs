@@ -76,6 +76,54 @@ use crate::commands::{ExitStatus, diagnostics, project};
 use crate::printer::Printer;
 use crate::settings::{FrozenSource, LockCheck, ResolverInstallerSettings, ResolverSettings};
 
+fn command_not_found_hints(
+    command: &RunCommand,
+    project_dir: &Path,
+    no_project: bool,
+) -> Vec<String> {
+    let RunCommand::External(executable, _) = command else {
+        return Vec::new();
+    };
+
+    let executable = executable.to_string_lossy();
+    let is_path_like = executable.contains(std::path::MAIN_SEPARATOR) || executable.contains('/');
+    if is_path_like {
+        return vec![
+            "Check that the requested path exists relative to the current directory.".to_string(),
+        ];
+    }
+
+    let mut hints = Vec::new();
+    if !no_project && lookup_tasks(project_dir).is_some() {
+        hints.push(
+            "If you meant to run a task, use `fyn run --list-tasks` to inspect available tasks."
+                .to_string(),
+        );
+    }
+    hints.push(format!(
+        "If `{}` is provided by a Python package, try `{}`.",
+        executable.cyan(),
+        format!("fyn tool run {executable}").green(),
+    ));
+    hints
+}
+
+fn command_not_found_error(
+    command: &RunCommand,
+    err: &io::Error,
+    project_dir: &Path,
+    no_project: bool,
+) -> anyhow::Error {
+    let mut message = format!(
+        "Failed to spawn: `{}`\n  Caused by: {err}",
+        command.display_executable()
+    );
+    for hint in command_not_found_hints(command, project_dir, no_project) {
+        let _ = write!(message, "\n\nhint: {hint}");
+    }
+    anyhow!(message)
+}
+
 /// Run a command.
 #[expect(clippy::fn_params_excessive_bools)]
 pub(crate) async fn run(
@@ -1290,10 +1338,21 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
 
     // Spawn and wait for completion
     // Standard input, output, and error streams are all inherited
-    // TODO(zanieb): Throw a nicer error message if the command is not found
-    let handle = process
-        .spawn()
-        .with_context(|| format!("Failed to spawn: `{}`", command.display_executable()))?;
+    let handle = match process.spawn() {
+        Ok(handle) => handle,
+        Err(err) if err.kind() == io::ErrorKind::NotFound => {
+            return Err(command_not_found_error(
+                &command,
+                &err,
+                project_dir,
+                no_project,
+            ));
+        }
+        Err(err) => {
+            return Err(err)
+                .with_context(|| format!("Failed to spawn: `{}`", command.display_executable()));
+        }
+    };
 
     run_to_completion(handle).await
 }
