@@ -104,8 +104,8 @@ fn parse_config(content: &str, path: &Path) -> Result<Option<Options>, PipConfig
         has_pip = true;
     }
 
-    if let Some(value) = get_optional_value(global, "no-index") {
-        pip.no_index = Some(parse_bool(value.unwrap_or("true"))?);
+    if global.contains_key("no-index") {
+        pip.no_index = Some(parse_bool(get_value(global, "no-index").unwrap_or("true"))?);
         has_pip = true;
     }
 
@@ -126,20 +126,12 @@ fn parse_config(content: &str, path: &Path) -> Result<Option<Options>, PipConfig
     }))
 }
 
-fn get_optional_value<'a>(
-    section: &'a PipConfSection,
-    key: &'static str,
-) -> Option<Option<&'a str>> {
-    section.get(key).map(|value| {
-        value
-            .as_deref()
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-    })
-}
-
 fn get_value<'a>(section: &'a PipConfSection, key: &'static str) -> Option<&'a str> {
-    get_optional_value(section, key).flatten()
+    section
+        .get(key)
+        .and_then(Option::as_deref)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
 }
 
 fn get_values<'a>(section: &'a PipConfSection, key: &'static str) -> impl Iterator<Item = &'a str> {
@@ -300,7 +292,7 @@ mod tests {
     #[test]
     fn parse_global_pip_config() {
         let options = parse_config(
-            r#"[global]
+            r"[global]
 index-url = https://example.com/simple
 extra-index-url =
     https://extra.example.com/simple
@@ -312,7 +304,7 @@ no-index = false
 trusted-host =
     example.com
     https://extra.example.com:8443
-"#,
+",
             Path::new("/tmp/pip.conf"),
         )
         .unwrap()
@@ -329,9 +321,9 @@ trusted-host =
     #[test]
     fn ignore_non_global_sections() {
         let options = parse_config(
-            r#"[install]
+            r"[install]
 index-url = https://example.com/simple
-"#,
+",
             Path::new("/tmp/pip.conf"),
         )
         .unwrap();
@@ -342,9 +334,9 @@ index-url = https://example.com/simple
     #[test]
     fn no_index_without_value_is_true() {
         let options = parse_config(
-            r#"[global]
+            r"[global]
 no-index
-"#,
+",
             Path::new("/tmp/pip.conf"),
         )
         .unwrap()

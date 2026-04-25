@@ -6749,12 +6749,12 @@ fn emit_index_urls_from_pip_config_file() -> Result<()> {
     let context = fyn_test::test_context!("3.12");
 
     let pip_conf = context.temp_dir.child("pip.conf");
-    pip_conf.write_str(indoc! {r#"
+    pip_conf.write_str(indoc! {r"
         [global]
         index-url = https://example.com/simple
         extra-index-url =
             https://extra.example.com/simple
-    "#})?;
+    "})?;
 
     let requirements_in = context.temp_dir.child("requirements.in");
     let wheel = context
