@@ -3194,6 +3194,7 @@ name = "fyn-settings"
 version = "0.0.35"
 dependencies = [
  "clap",
+ "configparser",
  "fs-err",
  "fyn-cache-info",
  "fyn-client",

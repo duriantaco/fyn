@@ -18,6 +18,7 @@ pub use crate::combine::*;
 pub use crate::settings::*;
 
 mod combine;
+mod pip_conf;
 mod settings;
 
 /// The [`Options`] as loaded from a configuration file on disk.
@@ -84,6 +85,11 @@ impl FilesystemOptions {
         let options = read_file(&file)?;
         validate_uv_toml(&file, &options)?;
         Ok(Some(Self(options.with_origin(Origin::System))))
+    }
+
+    /// Load settings from pip configuration files.
+    pub fn pip() -> Result<Option<Self>, Error> {
+        pip_conf::load()
     }
 
     /// Find the [`FilesystemOptions`] for the given path.
@@ -657,6 +663,9 @@ pub enum Error {
 
     #[error("Failed to parse: `{}`", _0.user_display())]
     UvToml(PathBuf, #[source] Box<toml::de::Error>),
+
+    #[error("Failed to parse pip configuration: `{}`", _0.user_display())]
+    PipConfig(PathBuf, #[source] Box<dyn std::error::Error + Send + Sync>),
 
     #[error("Failed to parse: `{}`. The `{}` field is not allowed in a `fyn.toml` file. `{}` is only applicable in the context of a project, and should be placed in a `pyproject.toml` file instead.", _0.user_display(), _1, _1
     )]

@@ -40,6 +40,7 @@ fyn-warnings = { workspace = true }
 fyn-workspace = { workspace = true, features = ["schemars", "clap"] }
 
 clap = { workspace = true }
+configparser = { workspace = true }
 fs-err = { workspace = true }
 schemars = { workspace = true, optional = true }
 serde = { workspace = true }

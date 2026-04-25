@@ -1209,6 +1209,7 @@ impl TestContext {
             .env(EnvVars::HOME, self.home_dir.as_os_str())
             .env(EnvVars::APPDATA, self.home_dir.as_os_str())
             .env(EnvVars::USERPROFILE, self.home_dir.as_os_str())
+            .env(EnvVars::XDG_CONFIG_HOME, self.user_config_dir.as_os_str())
             .env(
                 EnvVars::XDG_CONFIG_DIRS,
                 self.home_dir.join("config").as_os_str(),
@@ -1227,6 +1228,8 @@ impl TestContext {
             // When installations are allowed, we don't want to write to global state, like the
             // Windows registry
             .env(EnvVars::UV_PYTHON_INSTALL_REGISTRY, "0")
+            // Ignore any pip configuration file exported by the developer's shell.
+            .env_remove("PIP_CONFIG_FILE")
             // Since downloads, fetches and builds run in parallel, their message output order is
             // non-deterministic, so can't capture them in test output.
             .env(EnvVars::UV_TEST_NO_CLI_PROGRESS, "1")

@@ -212,7 +212,14 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
     //    If found, this file is combined with the user configuration file.
     // 3. The nearest configuration file (`fyn.toml` or `pyproject.toml`) in the directory tree,
     //    starting from the current directory.
+    // 4. pip configuration files, which are lower priority than fyn-native configuration.
     let workspace_cache = WorkspaceCache::default();
+    let pip_config = if deprecated_isolated || cli.top_level.no_config {
+        None
+    } else {
+        FilesystemOptions::pip().map_err(map_settings_error)?
+    };
+
     let filesystem = if let Some(config_file) = cli.top_level.config_file.as_ref() {
         if config_file
             .file_name()
@@ -243,7 +250,8 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         let system = FilesystemOptions::system().map_err(map_settings_error)?;
         let user = FilesystemOptions::user().map_err(map_settings_error)?;
         project.combine(user).combine(system)
-    };
+    }
+    .combine(pip_config);
 
     // Parse the external command, if necessary.
     let run_command = if let Commands::Project(command) = &mut *cli.command {
