@@ -16,11 +16,20 @@ workarounds, and a statement of intent for compatibility in the future.
 
 ## Configuration files and environment variables
 
-fyn does not read configuration files or environment variables that are specific to `pip`, like
-`pip.conf` or `PIP_INDEX_URL`.
+fyn reads a small subset of settings from `pip.conf`, including files selected with
+`PIP_CONFIG_FILE`, but does not read pip option environment variables like `PIP_INDEX_URL`.
 
-Reading configuration files and environment variables intended for other tools has a number of
-drawbacks:
+Supported `pip.conf` settings are limited to the `[global]` section:
+
+- `index-url`
+- `extra-index-url`
+- `find-links`
+- `no-index`
+- `trusted-host`
+
+fyn-native settings, fyn environment variables, and command-line arguments take precedence over
+`pip.conf`. This support is intentionally narrow, since reading configuration files and environment
+variables intended for other tools has a number of drawbacks:
 
 1. It requires bug-for-bug compatibility with the target tool, since users end up relying on bugs in
    the format, the parser, etc.
@@ -34,9 +43,10 @@ drawbacks:
    behavior, and many users may _not_ expect fyn to read configuration files intended for other
    tools.
 
-Instead, fyn supports its own environment variables, like `UV_INDEX_URL`. fyn also supports
-persistent configuration in a `fyn.toml` file or a `[tool.fyn.pip]` section of `pyproject.toml`. For
-more information, see [Configuration files](../concepts/configuration-files.md).
+For configuration outside the supported `pip.conf` subset, use fyn's own environment variables, like
+`UV_INDEX_URL`, or persistent configuration in a `fyn.toml` file or a `[tool.fyn.pip]` section of
+`pyproject.toml`. For more information, see
+[Configuration files](../concepts/configuration-files.md).
 
 When run inside a managed project, mutating `fyn pip` commands operate directly on the active
 environment and do not update `pyproject.toml` or `fyn.lock`. This boundary can be configured via
