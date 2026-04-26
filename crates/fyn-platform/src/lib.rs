@@ -163,7 +163,12 @@ impl Platform {
             (OperatingSystem::Linux, Libc::Some(env)) => Some({
                 // Special suffix for ARM with hardware float
                 if matches!(arch.family(), Architecture::Arm(ArmArchitecture::Armv7)) {
-                    format!("{env}eabihf")
+                    let env = env.to_string();
+                    if env.ends_with("eabihf") {
+                        env
+                    } else {
+                        format!("{env}eabihf")
+                    }
                 } else {
                     env.to_string()
                 }
@@ -316,6 +321,34 @@ mod tests {
         assert_eq!(platform.os.to_string(), "linux");
         assert_eq!(platform.arch.to_string(), "x86_64_v3");
         assert_eq!(platform.libc.to_string(), "gnu");
+    }
+
+    #[test]
+    fn test_armv7_gnueabihf_cargo_dist_triple() {
+        let platform = Platform {
+            os: Os::from_str("linux").unwrap(),
+            arch: Arch::from_str("armv7").unwrap(),
+            libc: Libc::from_str("gnueabihf").unwrap(),
+        };
+
+        assert_eq!(
+            platform.as_cargo_dist_triple(),
+            "armv7-unknown-linux-gnueabihf"
+        );
+    }
+
+    #[test]
+    fn test_armv7_gnu_cargo_dist_triple() {
+        let platform = Platform {
+            os: Os::from_str("linux").unwrap(),
+            arch: Arch::from_str("armv7").unwrap(),
+            libc: Libc::from_str("gnu").unwrap(),
+        };
+
+        assert_eq!(
+            platform.as_cargo_dist_triple(),
+            "armv7-unknown-linux-gnueabihf"
+        );
     }
 
     #[test]
