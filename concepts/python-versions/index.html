@@ -1,0 +1,4595 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="fyn is an extremely fast Python package and project manager, written in Rust.">
+      
+      
+        <meta name="author" content="fyn contributors">
+      
+      
+        <link rel="canonical" href="https://duriantaco.github.io/fyn/concepts/python-versions/">
+      
+      
+        <link rel="prev" href="../tools/">
+      
+      
+        <link rel="next" href="../configuration-files/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+     
+<title>Python versions | fyn</title>
+ 
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+     
+<link
+  rel="apple-touch-icon"
+  sizes="180x180"
+  href="../../assets/apple-touch-icon.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="32x32"
+  href="../../assets/favicon-32x32.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="16x16"
+  href="../../assets/favicon-16x16.png"
+/>
+<link rel="manifest" href="../../assets/site.webmanifest" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="theme-color" content="#ffffff" />
+<meta name="robots" content="index,follow" />
+<script type="application/ld+json">
+  {
+      
+      "datePublished": "2026-04-24 06:27:46Z",
+      "dateModified": "2026-04-24 06:27:46Z",
+      
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "fyn",
+      "url": "https://duriantaco.github.io/fyn/"
+  }
+</script>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#python-versions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="fyn" class="md-header__button md-logo" aria-label="fyn" data-md-component="logo">
+      
+  <img src="../../assets/skylos-logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            fyn
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Python versions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="skylos-light" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="skylos-dark" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/duriantaco/fyn" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    fyn
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="fyn" class="md-nav__button md-logo" aria-label="fyn" data-md-component="logo">
+      
+  <img src="../../assets/skylos-logo.png" alt="logo">
+
+    </a>
+    fyn
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/duriantaco/fyn" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    fyn
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../getting-started/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First steps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/help/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting help
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/install-python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installing Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/projects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working on projects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/package/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/migration/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/migration/pip-to-project/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From pip to a fyn project
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/integration/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/jupyter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jupyter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/marimo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    marimo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/github/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/gitlab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitLab CI/CD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/pre-commit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pre-commit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/pytorch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyTorch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/fastapi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FastAPI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/azure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Azure Artifacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/google/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Google Artifact Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/aws/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS CodeArtifact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/jfrog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JFrog Artifactory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/renovate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Renovate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/dependabot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependabot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/aws-lambda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS Lambda
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/integration/coiled/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coiled
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../projects/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structure and files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/init/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating projects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managing dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locking and syncing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuring projects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/build/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building distributions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exporting lockfiles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/workspaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using workspaces
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python versions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#managed-and-system-python-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managed and system Python installations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requesting-a-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requesting a version
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Requesting a version">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-version-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python version files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installing-a-python-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a Python version
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installing a Python version">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installing-python-executables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing Python executables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrading-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upgrading Python versions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrading Python versions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#minor-version-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minor version directories
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Python versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#viewing-available-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Viewing available Python versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#finding-a-python-executable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding a Python executable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discovery-of-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discovery of Python versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-pre-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python pre-releases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#free-threaded-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Free-threaded Python
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debug-python-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug Python variants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disabling-automatic-python-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disabling automatic Python downloads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requiring-or-disabling-managed-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requiring or disabling managed Python versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adjusting-python-version-preferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adjusting Python version preferences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-implementation-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python implementation support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managed-python-distributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managed Python distributions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Managed Python distributions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpython-distributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CPython distributions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pypy-distributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PyPy distributions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyodide-distributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyodide distributions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transparent-x86_64-emulation-on-aarch64" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transparent x86_64 emulation on aarch64
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registration-in-the-windows-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registration in the Windows registry
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../indexes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package indexes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../authentication/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The auth CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/http/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP credentials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/git/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git credentials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/certificates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TLS certificates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/third-party/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Third-party services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../preview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preview features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_12" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../pip/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The pip interface
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_12" id="__nav_4_12_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The pip interface
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pip/environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pip/packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managing packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pip/inspection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspecting environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pip/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Declaring dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pip/compile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locking environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pip/compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility with pip
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../reference/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/installer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installer options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../reference/troubleshooting/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Troubleshooting
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/troubleshooting/build-failures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build failures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/troubleshooting/reproducible-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducible examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../reference/internals/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internals
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/internals/resolver/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resolver
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_10" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../reference/policies/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Policies
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Policies
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/policies/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/policies/platforms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Platform support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/policies/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/policies/rust/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rust support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/policies/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../rfcs/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RFCs
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    RFCs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../rfcs/0001-selective-hatch-ux/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RFC 0001
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#managed-and-system-python-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managed and system Python installations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requesting-a-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requesting a version
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Requesting a version">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-version-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python version files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installing-a-python-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a Python version
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installing a Python version">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installing-python-executables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing Python executables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrading-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upgrading Python versions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrading Python versions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#minor-version-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minor version directories
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Python versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#viewing-available-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Viewing available Python versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#finding-a-python-executable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding a Python executable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discovery-of-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discovery of Python versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-pre-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python pre-releases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#free-threaded-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Free-threaded Python
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debug-python-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug Python variants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disabling-automatic-python-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disabling automatic Python downloads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requiring-or-disabling-managed-python-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requiring or disabling managed Python versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adjusting-python-version-preferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adjusting Python version preferences
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-implementation-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python implementation support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managed-python-distributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managed Python distributions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Managed Python distributions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpython-distributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CPython distributions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pypy-distributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PyPy distributions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyodide-distributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyodide distributions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transparent-x86_64-emulation-on-aarch64" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transparent x86_64 emulation on aarch64
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registration-in-the-windows-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registration in the Windows registry
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Concepts
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="python-versions"><a class="toclink" href="#python-versions">Python versions</a></h1>
+<p>A Python version is composed of a Python interpreter (i.e. the <code>python</code> executable), the standard
+library, and other supporting files.</p>
+<h2 id="managed-and-system-python-installations"><a class="toclink" href="#managed-and-system-python-installations">Managed and system Python installations</a></h2>
+<p>Since it is common for a system to have an existing Python installation, fyn supports
+<a href="#discovery-of-python-versions">discovering</a> Python versions. However, fyn also supports
+<a href="#installing-a-python-version">installing Python versions</a> itself. To distinguish between these two
+types of Python installations, fyn refers to Python versions it installs as <em>managed</em> Python
+installations and all other Python installations as <em>system</em> Python installations.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>fyn does not distinguish between Python versions installed by the operating system vs those
+installed and managed by other tools. For example, if a Python installation is managed with
+<code>pyenv</code>, it would still be considered a <em>system</em> Python version in fyn.</p>
+</div>
+<h2 id="requesting-a-version"><a class="toclink" href="#requesting-a-version">Requesting a version</a></h2>
+<p>A specific Python version can be requested with the <code>--python</code> flag in most fyn commands. For
+example, when creating a virtual environment:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>venv<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.11.6
+</code></pre></div>
+<p>fyn will ensure that Python 3.11.6 is available — downloading and installing it if necessary — then
+create the virtual environment with it.</p>
+<p>The following Python version request formats are supported:</p>
+<ul>
+<li><code>&lt;version&gt;</code> (e.g., <code>3</code>, <code>3.12</code>, <code>3.12.3</code>)</li>
+<li><code>&lt;version-specifier&gt;</code> (e.g., <code>&gt;=3.12,&lt;3.13</code>)</li>
+<li><code>&lt;version&gt;&lt;short-variant&gt;</code> (e.g., <code>3.13t</code>, <code>3.12.0d</code>)</li>
+<li><code>&lt;version&gt;+&lt;variant&gt;</code> (e.g., <code>3.13+freethreaded</code>, <code>3.12.0+debug</code>, <code>3.14+gil</code>)</li>
+<li><code>&lt;implementation&gt;</code> (e.g., <code>cpython</code> or <code>cp</code>)</li>
+<li><code>&lt;implementation&gt;@&lt;version&gt;</code> (e.g., <code>cpython@3.12</code>)</li>
+<li><code>&lt;implementation&gt;&lt;version&gt;</code> (e.g., <code>cpython3.12</code> or <code>cp312</code>)</li>
+<li><code>&lt;implementation&gt;&lt;version-specifier&gt;</code> (e.g., <code>cpython&gt;=3.12,&lt;3.13</code>)</li>
+<li><code>&lt;implementation&gt;-&lt;version&gt;-&lt;os&gt;-&lt;arch&gt;-&lt;libc&gt;</code> (e.g., <code>cpython-3.12.3-macos-aarch64-none</code>)</li>
+</ul>
+<p>Additionally, a specific system Python interpreter can be requested with:</p>
+<ul>
+<li><code>&lt;executable-path&gt;</code> (e.g., <code>/opt/homebrew/bin/python3</code>)</li>
+<li><code>&lt;executable-name&gt;</code> (e.g., <code>mypython3</code>)</li>
+<li><code>&lt;install-dir&gt;</code> (e.g., <code>/some/environment/</code>)</li>
+</ul>
+<p>By default, fyn will automatically download Python versions if they cannot be found on the system.
+This behavior can be
+<a href="#disabling-automatic-python-downloads">disabled with the <code>python-downloads</code> option</a>.</p>
+<h3 id="python-version-files"><a class="toclink" href="#python-version-files">Python version files</a></h3>
+<p>The <code>.python-version</code> file can be used to create a default Python version request. fyn searches for
+a <code>.python-version</code> file in the working directory and each of its parents. If none is found, fyn
+will check the user-level configuration directory. Any of the request formats described above can be
+used, though use of a version number is recommended for interoperability with other tools.</p>
+<p>A <code>.python-version</code> file can be created in the current directory with the
+<a href="../../reference/cli/#fyn-python-pin"><code>fyn python pin</code></a> command.</p>
+<p>When resolving pins against custom managed Python metadata, <code>fyn python pin</code> accepts
+<code>--python-downloads-json-url &lt;source&gt;</code> and uses that catalog instead of the default bundled
+downloads list.</p>
+<p>A discovered Python pin can be upgraded to the latest compatible exact version with
+<a href="../../reference/cli/#fyn-python-pin"><code>fyn python pin --upgrade</code></a>. If a project or workspace is
+found, the upgraded version must still satisfy its <code>requires-python</code> constraint.</p>
+<p>A global <code>.python-version</code> file can be created in the user configuration directory with the
+<a href="../../reference/cli/#fyn-python-pin"><code>fyn python pin --global</code></a> command.</p>
+<p>Discovery of <code>.python-version</code> files can be disabled with <code>--no-config</code>.</p>
+<p>fyn will not search for <code>.python-version</code> files beyond project or workspace boundaries (except the
+user configuration directory).</p>
+<h2 id="installing-a-python-version"><a class="toclink" href="#installing-a-python-version">Installing a Python version</a></h2>
+<p>fyn bundles a list of downloadable CPython and PyPy distributions for macOS, Linux, and Windows.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>By default, Python versions are automatically downloaded as needed without using
+<code>fyn python install</code>.</p>
+</div>
+<p>To install a Python version at a specific version:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.12.3
+</code></pre></div>
+<p>To install the latest patch version:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.12
+</code></pre></div>
+<p>To install a version that satisfies constraints:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;&gt;=3.8,&lt;3.10&#39;</span>
+</code></pre></div>
+<p>To install multiple versions:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.9<span class="w"> </span><span class="m">3</span>.10<span class="w"> </span><span class="m">3</span>.11
+</code></pre></div>
+<p>To install a specific implementation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span>pypy
+</code></pre></div>
+<p>All the <a href="#requesting-a-version">Python version request</a> formats are supported except those that are
+used for requesting local interpreters such as a file path.</p>
+<p>By default <code>fyn python install</code> will verify that a managed Python version is installed or install
+the latest version. If a <code>.python-version</code> file is present, fyn will install the Python version
+listed in the file. A project that requires multiple Python versions may define a <code>.python-versions</code>
+file. If present, fyn will install all the Python versions listed in the file.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The available Python versions are frozen for each fyn release. To install new Python versions,
+you may need upgrade fyn.</p>
+</div>
+<p>See the <a href="../../reference/storage/#python-versions">storage documentation</a> for details about where
+installed Python versions are stored.</p>
+<h3 id="installing-python-executables"><a class="toclink" href="#installing-python-executables">Installing Python executables</a></h3>
+<p>fyn installs Python executables into your <code>PATH</code> by default, e.g., on Unix <code>fyn python install 3.12</code>
+will install a Python executable into <code>~/.local/bin</code>, e.g., as <code>python3.12</code>. See the
+<a href="../../reference/storage/#python-executables">storage documentation</a> for more details about the
+target directory.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If <code>~/.local/bin</code> is not in your <code>PATH</code>, you can add it with <code>fyn python update-shell</code>.</p>
+</div>
+<p>To install <code>python</code> and <code>python3</code> executables, include the <code>--default</code> option:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.12<span class="w"> </span>--default
+</code></pre></div>
+<p>When installing Python executables, fyn will only overwrite an existing executable if it is managed
+by fyn — e.g., if <code>~/.local/bin/python3.12</code> exists already fyn will not overwrite it without the
+<code>--force</code> flag.</p>
+<p>fyn will update executables that it manages. However, it will prefer the latest patch version of
+each Python minor version by default. For example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.12.7<span class="w">  </span><span class="c1"># Adds `python3.12` to `~/.local/bin`</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.12.6<span class="w">  </span><span class="c1"># Does not update `python3.12`</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.12.8<span class="w">  </span><span class="c1"># Updates `python3.12` to point to 3.12.8</span>
+</code></pre></div>
+<h2 id="upgrading-python-versions"><a class="toclink" href="#upgrading-python-versions">Upgrading Python versions</a></h2>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Upgrades are only supported for fyn-managed Python versions.</p>
+<p>Upgrades are not currently supported for PyPy, GraalPy, and Pyodide.</p>
+</div>
+<p>fyn allows transparently upgrading Python versions to the latest patch release, e.g., 3.13.4 to
+3.13.5. fyn does not allow transparently upgrading across minor Python versions, e.g., 3.12 to 3.13,
+because changing minor versions can affect dependency resolution.</p>
+<p>fyn-managed Python versions can be upgraded to the latest supported patch release with the
+<code>python upgrade</code> command:</p>
+<p>To upgrade a Python version to the latest supported patch release:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>upgrade<span class="w"> </span><span class="m">3</span>.12
+</code></pre></div>
+<p>To upgrade all installed Python versions:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>upgrade
+</code></pre></div>
+<p>After an upgrade, fyn will prefer the new version, but will retain the existing version as it may
+still be used by virtual environments.</p>
+<p>Virtual environments using the Python version will be automatically upgraded to the new patch
+version.</p>
+<p>If a virtual environment was created with an explicitly requested patch version, e.g.,
+<code>fyn venv -p 3.10.8</code>, it will not be transparently upgraded to a new version.</p>
+<h3 id="minor-version-directories"><a class="toclink" href="#minor-version-directories">Minor version directories</a></h3>
+<p>Automatic upgrades for virtual environments are implemented using a directory with the Python minor
+version, e.g.:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>~/.local/share/fyn/python/cpython-3.12-macos-aarch64-none
+</code></pre></div>
+<p>which is a symbolic link (on Unix) or junction (on Windows) pointing to a specific patch version:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gp">$ </span>readlink<span class="w"> </span>~/.local/share/fyn/python/cpython-3.12-macos-aarch64-none
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="go">~/.local/share/fyn/python/cpython-3.12.11-macos-aarch64-none</span>
+</code></pre></div>
+<p>If this link is resolved by another tool, e.g., by canonicalizing the Python interpreter path, and
+used to create a virtual environment, it will not be automatically upgraded.</p>
+<h2 id="project-python-versions"><a class="toclink" href="#project-python-versions">Project Python versions</a></h2>
+<p>fyn will respect Python requirements defined in <code>requires-python</code> in the <code>pyproject.toml</code> file
+during project command invocations. The first Python version that is compatible with the requirement
+will be used, unless a version is otherwise requested, e.g., via a <code>.python-version</code> file or the
+<code>--python</code> flag.</p>
+<h2 id="viewing-available-python-versions"><a class="toclink" href="#viewing-available-python-versions">Viewing available Python versions</a></h2>
+<p>To list installed and available Python versions:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>list
+</code></pre></div>
+<p>To filter the Python versions, provide a request, e.g., to show all Python 3.13 interpreters:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>list<span class="w"> </span><span class="m">3</span>.13
+</code></pre></div>
+<p>Or, to show all PyPy interpreters:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>list<span class="w"> </span>pypy
+</code></pre></div>
+<p>By default, downloads for other platforms and old patch versions are hidden.</p>
+<p>To view all versions:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>list<span class="w"> </span>--all-versions
+</code></pre></div>
+<p>To view Python versions for other platforms:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>list<span class="w"> </span>--all-platforms
+</code></pre></div>
+<p>To exclude downloads and only show installed Python versions:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>list<span class="w"> </span>--only-installed
+</code></pre></div>
+<p>See the <a href="../../reference/cli/#fyn-python-list"><code>fyn python list</code></a> reference for more details.</p>
+<h2 id="finding-a-python-executable"><a class="toclink" href="#finding-a-python-executable">Finding a Python executable</a></h2>
+<p>To find a Python executable, use the <code>fyn python find</code> command:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>find
+</code></pre></div>
+<p>By default, this will display the path to the first available Python executable. See the
+<a href="#discovery-of-python-versions">discovery rules</a> for details about how executables are discovered.</p>
+<p>This interface also supports many <a href="#requesting-a-version">request formats</a>, e.g., to find a Python
+executable that has a version of 3.11 or newer:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>find<span class="w"> </span><span class="s1">&#39;&gt;=3.11&#39;</span>
+</code></pre></div>
+<p>By default, <code>fyn python find</code> will include Python versions from virtual environments. If a <code>.venv</code>
+directory is found in the working directory or any of the parent directories or the <code>VIRTUAL_ENV</code>
+environment variable is set, it will take precedence over any Python executables on the <code>PATH</code>.</p>
+<p>To ignore virtual environments, use the <code>--system</code> flag:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>find<span class="w"> </span>--system
+</code></pre></div>
+<h2 id="discovery-of-python-versions"><a class="toclink" href="#discovery-of-python-versions">Discovery of Python versions</a></h2>
+<p>When searching for a Python version, the following locations are checked:</p>
+<ul>
+<li>Managed Python installations in the <code>UV_PYTHON_INSTALL_DIR</code>.</li>
+<li>A Python interpreter on the <code>PATH</code> as <code>python</code>, <code>python3</code>, or <code>python3.x</code> on macOS and Linux, or
+  <code>python.exe</code> on Windows.</li>
+<li>On Windows, the Python interpreters in the Windows registry and Microsoft Store Python
+  interpreters (see <code>py --list-paths</code>) that match the requested version.</li>
+</ul>
+<p>In some cases, fyn allows using a Python version from a virtual environment. In this case, the
+virtual environment's interpreter will be checked for compatibility with the request before
+searching for an installation as described above. See the
+<a href="../../pip/environments/#discovery-of-python-environments">pip-compatible virtual environment discovery</a>
+documentation for details.</p>
+<p>When performing discovery, non-executable files will be ignored. Each discovered executable is
+queried for metadata to ensure it meets the <a href="#requesting-a-version">requested Python version</a>. If
+the query fails, the executable will be skipped. If the executable satisfies the request, it is used
+without inspecting additional executables.</p>
+<p>When searching for a managed Python version, fyn will prefer newer versions first. When searching
+for a system Python version, fyn will use the first compatible version — not the newest version.</p>
+<p>If a Python version cannot be found on the system, fyn will check for a compatible managed Python
+version download.</p>
+<h2 id="python-pre-releases"><a class="toclink" href="#python-pre-releases">Python pre-releases</a></h2>
+<p>Python pre-releases will not be selected by default. Python pre-releases will be used if there is no
+other available installation matching the request. For example, if only a pre-release version is
+available it will be used but otherwise a stable release version will be used. Similarly, if the
+path to a pre-release Python executable is provided then no other Python version matches the request
+and the pre-release version will be used.</p>
+<p>If a pre-release Python version is available and matches the request, fyn will not download a stable
+Python version instead.</p>
+<h2 id="free-threaded-python"><a class="toclink" href="#free-threaded-python">Free-threaded Python</a></h2>
+<p>fyn supports discovering and installing
+<a href="https://docs.python.org/3.14/glossary.html#term-free-threading">free-threaded</a> Python variants in
+CPython 3.13+.</p>
+<p>For Python 3.13, free-threaded Python versions will not be selected by default. Free-threaded Python
+versions will only be selected when explicitly requested, e.g., with <code>3.13t</code> or <code>3.13+freethreaded</code>.</p>
+<p>For Python 3.14+, fyn will allow use of free-threaded Python 3.14+ interpreters without explicit
+selection. The GIL-enabled build of Python will still be preferred, e.g., when performing an
+installation with <code>fyn python install 3.14</code>. However, e.g., if a free-threaded interpreter comes
+before a GIL-enabled build on the <code>PATH</code>, it will be used.</p>
+<p>If both free-threaded and GIL-enabled Python versions are available on the system, and want to
+require the use of the GIL-enabled variant in a project, you can use the <code>+gil</code> variant specifier.</p>
+<h2 id="debug-python-variants"><a class="toclink" href="#debug-python-variants">Debug Python variants</a></h2>
+<p>fyn supports discovering and installing
+<a href="https://docs.python.org/3.14/using/configure.html#debug-build">debug builds</a> of Python, i.e., with
+debug assertions enabled.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Debug builds of Python are slower and are not appropriate for general use.</p>
+</div>
+<p>Debug builds will be used if there is no other available installation matching the request. For
+example, if only a debug version is available it will be used but otherwise a stable release version
+will be used. Similarly, if the path to a debug Python executable is provided then no other Python
+version matches the request and the debug version will be used.</p>
+<p>Debug builds of Python can be explicitly requested with, e.g., <code>3.13d</code> or <code>3.13+debug</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>CPython versions installed by fyn usually have debug symbols stripped to reduce the distribution
+size. These debug builds do not have debug symbols stripped, which can be useful when debugging
+Python processes with a C-level debugger.</p>
+</div>
+<h2 id="disabling-automatic-python-downloads"><a class="toclink" href="#disabling-automatic-python-downloads">Disabling automatic Python downloads</a></h2>
+<p>By default, fyn will automatically download Python versions when needed.</p>
+<p>The <a href="../../reference/settings/#python-downloads"><code>python-downloads</code></a> option can be used to disable
+this behavior. By default, it is set to <code>automatic</code>; set to <code>manual</code> to only allow Python downloads
+during <code>fyn python install</code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The <code>python-downloads</code> setting can be set in a
+<a href="../configuration-files/">persistent configuration file</a> to change the default behavior, or
+the <code>--no-python-downloads</code> flag can be passed to any fyn command.</p>
+</div>
+<h2 id="requiring-or-disabling-managed-python-versions"><a class="toclink" href="#requiring-or-disabling-managed-python-versions">Requiring or disabling managed Python versions</a></h2>
+<p>By default, fyn will attempt to use Python versions found on the system and only download managed
+Python versions when necessary. To ignore system Python versions, and only use managed Python
+versions, use the <code>--managed-python</code> flag:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>list<span class="w"> </span>--managed-python
+</code></pre></div>
+<p>Similarly, to ignore managed Python versions and only use system Python versions, use the
+<code>--no-managed-python</code> flag:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>list<span class="w"> </span>--no-managed-python
+</code></pre></div>
+<p>To change fyn's default behavior in a configuration file, use the
+<a href="#adjusting-python-version-preferences"><code>python-preference</code> setting</a>.</p>
+<h2 id="adjusting-python-version-preferences"><a class="toclink" href="#adjusting-python-version-preferences">Adjusting Python version preferences</a></h2>
+<p>The <a href="../../reference/settings/#python-preference"><code>python-preference</code></a> setting determines whether to
+prefer using Python installations that are already present on the system, or those that are
+downloaded and installed by fyn.</p>
+<p>By default, the <code>python-preference</code> is set to <code>managed</code> which prefers managed Python installations
+over system Python installations. However, system Python installations are still preferred over
+downloading a managed Python version.</p>
+<p>The following alternative options are available:</p>
+<ul>
+<li><code>only-managed</code>: Only use managed Python installations; never use system Python installations.
+  Equivalent to <code>--managed-python</code>.</li>
+<li><code>system</code>: Prefer system Python installations over managed Python installations.</li>
+<li><code>only-system</code>: Only use system Python installations; never use managed Python installations.
+  Equivalent to <code>--no-managed-python</code>.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Automatic Python version downloads can be <a href="#disabling-automatic-python-downloads">disabled</a>
+without changing the preference.</p>
+</div>
+<h2 id="python-implementation-support"><a class="toclink" href="#python-implementation-support">Python implementation support</a></h2>
+<p>fyn supports the CPython, PyPy, Pyodide, and GraalPy Python implementations. If a Python
+implementation is not supported, fyn will fail to discover its interpreter.</p>
+<p>The implementations may be requested with either the long or short name:</p>
+<ul>
+<li>CPython: <code>cpython</code>, <code>cp</code></li>
+<li>PyPy: <code>pypy</code>, <code>pp</code></li>
+<li>GraalPy: <code>graalpy</code>, <code>gp</code></li>
+<li>Pyodide: <code>pyodide</code></li>
+</ul>
+<p>Implementation name requests are not case-sensitive.</p>
+<p>See the <a href="#requesting-a-version">Python version request</a> documentation for more details on the
+supported formats.</p>
+<h2 id="managed-python-distributions"><a class="toclink" href="#managed-python-distributions">Managed Python distributions</a></h2>
+<p>fyn supports downloading and installing CPython, PyPy, and Pyodide distributions.</p>
+<h3 id="cpython-distributions"><a class="toclink" href="#cpython-distributions">CPython distributions</a></h3>
+<p>As Python does not publish official distributable CPython binaries, fyn instead uses pre-built
+distributions from the Astral
+<a href="https://github.com/astral-sh/python-build-standalone"><code>python-build-standalone</code></a> project.
+<code>python-build-standalone</code> is also is used in many other Python projects, like
+<a href="https://mise.jdx.dev/lang/python.html">Mise</a> and
+<a href="https://github.com/bazelbuild/rules_python">bazelbuild/rules_python</a>.</p>
+<p>The fyn Python distributions are self-contained, highly-portable, and performant. While Python can
+be built from source, as in tools like <code>pyenv</code>, doing so requires preinstalled system dependencies,
+and creating optimized, performant builds (e.g., with PGO and LTO enabled) is very slow.</p>
+<p>These distributions have some behavior quirks, generally as a consequence of portability; see the
+<a href="https://gregoryszorc.com/docs/python-build-standalone/main/quirks.html"><code>python-build-standalone</code> quirks</a>
+documentation for details.</p>
+<h3 id="pypy-distributions"><a class="toclink" href="#pypy-distributions">PyPy distributions</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>PyPy versions lag behind CPython and currently only supports Python versions up to 3.11</p>
+</div>
+<p>PyPy distributions are provided by the <a href="https://pypy.org">PyPy project</a>.</p>
+<h3 id="pyodide-distributions"><a class="toclink" href="#pyodide-distributions">Pyodide distributions</a></h3>
+<p>Pyodide distributions are provided by the <a href="https://github.com/pyodide/pyodide">Pyodide project</a>.</p>
+<p>Pyodide is a port of CPython for the WebAssembly / Emscripten platform.</p>
+<h2 id="transparent-x86_64-emulation-on-aarch64"><a class="toclink" href="#transparent-x86_64-emulation-on-aarch64">Transparent x86_64 emulation on aarch64</a></h2>
+<p>Both macOS and Windows support running x86_64 binaries on aarch64 through transparent emulation.
+This is called <a href="https://support.apple.com/en-gb/102527">Rosetta 2</a> or
+<a href="https://learn.microsoft.com/en-us/windows/arm/apps-on-arm-x86-emulation">Windows on ARM (WoA) emulation</a>.
+It's possible to use x86_64 fyn on aarch64, and also possible to use an x86_64 Python interpreter on
+aarch64. Either fyn binary can use either Python interpreter, but a Python interpreter needs
+packages for its architecture, either all x86_64 or all aarch64.</p>
+<h2 id="registration-in-the-windows-registry"><a class="toclink" href="#registration-in-the-windows-registry">Registration in the Windows registry</a></h2>
+<p>On Windows, installation of managed Python versions will register them with the Windows registry as
+defined by <a href="https://peps.python.org/pep-0514/">PEP 514</a>.</p>
+<p>After installation, the Python versions can be selected with the <code>py</code> launcher, e.g.:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="gp">$ </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.13.1
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="gp">$ </span>py<span class="w"> </span>-V:Astral/CPython3.13.1
+</code></pre></div>
+<p>On uninstall, fyn will remove the registry entry for the target version as well as any broken
+registry entries.</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 24, 2026 06:27:46 UTC">April 24, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../tools/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Tools">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Tools
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../configuration-files/" class="md-footer__link md-footer__link--next" aria-label="Next: Configuration files">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Configuration files
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/duriantaco/fyn" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/duriantaco/fyn/discussions" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/fyn/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.path", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.sections", "navigation.indexes", "navigation.tracking", "content.code.annotate", "toc.follow", "navigation.footer", "navigation.top", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../js/extra.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,364 @@
+# [Working on projects](#working-on-projects)
+
+fyn supports managing Python projects, which define their dependencies in a `pyproject.toml` file.
+
+## [Creating a new project](#creating-a-new-project)
+
+You can create a new Python project using the `fyn init` command:
+
+```
+$ fyn init hello-world
+$ cd hello-world
+```
+
+Alternatively, you can initialize a project in the working directory:
+
+```
+$ mkdir hello-world
+$ cd hello-world
+$ fyn init
+```
+
+fyn will create the following files:
+
+```
+├── .gitignore
+├── .python-version
+├── README.md
+├── main.py
+└── pyproject.toml
+```
+
+The `main.py` file contains a simple "Hello world" program. Try it out with `fyn run`:
+
+```
+$ fyn run main.py
+Hello from hello-world!
+```
+
+## [Project structure](#project-structure)
+
+A project consists of a few important parts that work together and allow fyn to manage your project. In addition to the files created by `fyn init`, fyn will create a virtual environment and `fyn.lock` file in the root of your project the first time you run a project command, i.e., `fyn run`, `fyn sync`, or `fyn lock`.
+
+A complete listing would look like:
+
+```
+.
+├── .venv
+│   ├── bin
+│   ├── lib
+│   └── pyvenv.cfg
+├── .python-version
+├── README.md
+├── main.py
+├── pyproject.toml
+└── fyn.lock
+```
+
+### [`pyproject.toml`](#pyprojecttoml)
+
+The `pyproject.toml` contains metadata about your project:
+
+pyproject.toml
+
+```
+[project]
+name = "hello-world"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+dependencies = []
+```
+
+You'll use this file to specify dependencies, as well as details about the project such as its description or license. You can edit this file manually, or use commands like `fyn add` and `fyn remove` to manage your project from the terminal.
+
+Tip
+
+See the official [`pyproject.toml` guide](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) for more details on getting started with the `pyproject.toml` format.
+
+You'll also use this file to specify fyn [configuration options](../../concepts/configuration-files/) in a [`[tool.fyn]`](../../reference/settings/) section.
+
+### [`.python-version`](#python-version)
+
+The `.python-version` file contains the project's default Python version. This file tells fyn which Python version to use when creating the project's virtual environment.
+
+### [`.venv`](#venv)
+
+The `.venv` folder contains your project's virtual environment, a Python environment that is isolated from the rest of your system. This is where fyn will install your project's dependencies.
+
+See the [project environment](../../concepts/projects/layout/#the-project-environment) documentation for more details.
+
+### [`fyn.lock`](#fynlock)
+
+`fyn.lock` is a cross-platform lockfile that contains exact information about your project's dependencies. Unlike the `pyproject.toml` which is used to specify the broad requirements of your project, the lockfile contains the exact resolved versions that are installed in the project environment. This file should be checked into version control, allowing for consistent and reproducible installations across machines.
+
+`fyn.lock` is a human-readable TOML file but is managed by fyn and should not be edited manually.
+
+See the [lockfile](../../concepts/projects/layout/#the-lockfile) documentation for more details.
+
+## [Managing dependencies](#managing-dependencies)
+
+You can add dependencies to your `pyproject.toml` with the `fyn add` command. This will also update the lockfile and project environment:
+
+```
+$ fyn add requests
+```
+
+You can also specify version constraints or alternative sources:
+
+```
+$ # Specify a version constraint
+$ fyn add 'requests==2.31.0'
+
+$ # Add a git dependency
+$ fyn add git+https://github.com/psf/requests
+```
+
+If you're migrating from a `requirements.txt` file, you can use `fyn add` with the `-r` flag to add all dependencies from the file:
+
+```
+$ # Add all dependencies from `requirements.txt`.
+$ fyn add -r requirements.txt -c constraints.txt
+```
+
+To remove a package, you can use `fyn remove`:
+
+```
+$ fyn remove requests
+```
+
+To upgrade a package, run `fyn upgrade` with the package name:
+
+```
+$ fyn upgrade requests
+```
+
+`fyn upgrade` is a convenience command that re-locks with upgrade semantics and then syncs the environment. If you want to preview the change first, use `--dry-run`. If you want to update the lockfile without syncing the environment yet, use `--no-sync`.
+
+```
+$ fyn upgrade --dry-run
+$ fyn upgrade --no-sync requests
+```
+
+If you want the lower-level equivalent, run `fyn lock` with the `--upgrade-package` flag:
+
+```
+$ fyn lock --upgrade-package requests
+```
+
+The `--upgrade-package` flag will attempt to update the specified package to the latest compatible version, while keeping the rest of the lockfile intact.
+
+See the documentation on [managing dependencies](../../concepts/projects/dependencies/) for more details.
+
+## [Checking project status](#checking-project-status)
+
+Use `fyn status` to inspect what fyn sees in the current directory:
+
+```
+$ fyn status
+current directory: /path/to/project
+project directory: /path/to/project
+managed project: yes
+workspace root: /path/to/project
+pyproject.toml: yes
+fyn.lock: yes
+pip-in-project: warn
+environment: /path/to/project/.venv
+python: /path/to/project/.venv/bin/python3 (3.12.0)
+```
+
+This is useful when you want to confirm whether you're inside a managed project, whether the lockfile is present, and which environment and Python interpreter fyn is currently using.
+
+For automation, use `--check` to fail when obvious project checks do not pass:
+
+```
+$ fyn status --check
+...
+check: failed
+issue: environment not found
+hint: Run `fyn sync` or `fyn venv` to create the project environment.
+```
+
+`--check` fails if you are not inside a managed project. In managed projects, it also fails if `pyproject.toml`, `fyn.lock`, or the project environment is missing, or if the discovered `.python-version` pin does not satisfy the project's `requires-python`. Text output includes `issue:` and `hint:` lines, while `--json` exposes the same data via `check.issues` and `check.hints`.
+
+For editor integrations, scripts, or CI tooling, use JSON output:
+
+```
+$ fyn status --json
+```
+
+## [Opening an activated shell](#opening-an-activated-shell)
+
+If you want to work inside the project environment directly, use `fyn shell`:
+
+```
+$ fyn shell
+success: Activated virtual environment at .venv
+Type exit to deactivate.
+```
+
+`fyn shell` spawns a new shell process with the environment activated. When selecting the environment, it prefers:
+
+1. An explicit path passed to `fyn shell`
+1. `VIRTUAL_ENV`, if it is set
+1. The discovered project or workspace environment
+1. A local `.venv` fallback
+
+Use `--no-project` if you want to skip project discovery and only check for `.venv` in the current directory:
+
+```
+$ fyn shell --no-project
+```
+
+## [Defining project tasks](#defining-project-tasks)
+
+Use `[tool.fyn.tasks]` to define repeatable project commands in `pyproject.toml`:
+
+pyproject.toml
+
+```
+[tool.fyn.tasks]
+test = { cmd = "pytest -q", env = { PYTHONWARNINGS = "error" } }
+lint = "ruff check ."
+check = { chain = ["lint", "test"], description = "Run lint and tests" }
+```
+
+Then run them with `fyn run`:
+
+```
+$ fyn run test
+$ fyn run check
+$ fyn run --list-tasks
+```
+
+String tasks run a single command. Table tasks can define:
+
+- `cmd`: a command to execute
+- `chain`: a list of other task names to run in order
+- `description`: text shown by `fyn run --list-tasks`
+- `env`: environment variables applied to that task
+
+If a chained task defines `env`, those variables are inherited by child tasks, and child values override the parent values. Extra arguments are supported for `cmd` tasks:
+
+```
+$ fyn run test -- -k my_test
+```
+
+Extra arguments are not supported for chained tasks; run the child task directly when you need to pass additional flags.
+
+## [Viewing your version](#viewing-your-version)
+
+The `fyn version` command can be used to read your package's version.
+
+To get the version of your package, run `fyn version`:
+
+```
+$ fyn version
+hello-world 0.7.0
+```
+
+To get the version without the package name, use the `--short` option:
+
+```
+$ fyn version --short
+0.7.0
+```
+
+To get version information in a JSON format, use the `--output-format json` option:
+
+```
+$ fyn version --output-format json
+{
+    "package_name": "hello-world",
+    "version": "0.7.0",
+    "commit_info": null
+}
+```
+
+See the [publishing guide](../package/#updating-your-version) for details on updating your package version.
+
+## [Running commands](#running-commands)
+
+`fyn run` can be used to run arbitrary scripts or commands in your project environment.
+
+Prior to every `fyn run` invocation, fyn will verify that the lockfile is up-to-date with the `pyproject.toml`, and that the environment is up-to-date with the lockfile, keeping your project in-sync without the need for manual intervention. `fyn run` guarantees that your command is run in an environment with all required dependencies at their locked versions.
+
+Note
+
+`fyn run` does not remove extraneous packages (those not in the lockfile) from the environment by default. See [handling of extraneous packages](../../concepts/projects/sync/#handling-of-extraneous-packages) for details.
+
+For example, to use `flask`:
+
+```
+$ fyn add flask
+$ fyn run -- flask run -p 3000
+```
+
+Or, to run a script:
+
+example.py
+
+```
+# Require a project dependency
+import flask
+
+print("hello world")
+```
+
+```
+$ fyn run example.py
+```
+
+If `fyn run` cannot spawn the requested command, it prints a targeted hint instead of only the raw OS error. Depending on the command, that may mean suggesting `fyn run --list-tasks`, `fyn tool run <command>`, or checking that a relative path like `./script` exists.
+
+Alternatively, you can use `fyn sync` to manually update the environment and then either activate it yourself or open an activated shell with `fyn shell` before executing commands directly:
+
+```
+$ fyn sync
+$ fyn shell
+success: Activated virtual environment at .venv
+Type exit to deactivate.
+```
+
+If you prefer manual activation, the platform-specific commands are:
+
+```
+$ fyn sync
+$ source .venv/bin/activate
+$ flask run -p 3000
+$ python example.py
+```
+
+```
+PS> fyn sync
+PS> .venv\Scripts\activate
+PS> flask run -p 3000
+PS> python example.py
+```
+
+Note
+
+The virtual environment must be active to run scripts and commands in the project without `fyn run`. `fyn shell` is the simplest cross-shell way to do that. Manual activation still differs per shell and platform.
+
+See the documentation on [running commands and scripts](../../concepts/projects/run/) in projects for more details.
+
+## [Building distributions](#building-distributions)
+
+`fyn build` can be used to build source distributions and binary distributions (wheel) for your project.
+
+By default, `fyn build` will build the project in the current directory, and place the built artifacts in a `dist/` subdirectory:
+
+```
+$ fyn build
+$ ls dist/
+hello-world-0.1.0-py3-none-any.whl
+hello-world-0.1.0.tar.gz
+```
+
+See the documentation on [building projects](../../concepts/projects/build/) for more details.
+
+## [Next steps](#next-steps)
+
+To learn more about working on projects with fyn, see the [projects concept](../../concepts/projects/) page and the [command reference](../../reference/cli/#fyn).
+
+Or, read on to learn how to [export a fyn lockfile to different formats](../../concepts/projects/export/).

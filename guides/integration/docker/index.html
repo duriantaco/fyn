@@ -1,0 +1,4709 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A complete guide to using fyn in Docker to manage Python dependencies while optimizing build times and image size via multi-stage builds, intermediate layers, and more.">
+      
+      
+        <meta name="author" content="fyn contributors">
+      
+      
+        <link rel="canonical" href="https://duriantaco.github.io/fyn/guides/integration/docker/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../jupyter/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+     
+<title>Using fyn in Docker | fyn</title>
+ 
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+     
+<link
+  rel="apple-touch-icon"
+  sizes="180x180"
+  href="../../../assets/apple-touch-icon.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="32x32"
+  href="../../../assets/favicon-32x32.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="16x16"
+  href="../../../assets/favicon-16x16.png"
+/>
+<link rel="manifest" href="../../../assets/site.webmanifest" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="theme-color" content="#ffffff" />
+<meta name="robots" content="index,follow" />
+<script type="application/ld+json">
+  {
+      
+      "datePublished": "2026-04-13 08:37:51Z",
+      "dateModified": "2026-04-13 08:37:51Z",
+      
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "fyn",
+      "url": "https://duriantaco.github.io/fyn/"
+  }
+</script>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#using-fyn-in-docker" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="fyn" class="md-header__button md-logo" aria-label="fyn" data-md-component="logo">
+      
+  <img src="../../../assets/skylos-logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            fyn
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Using fyn in Docker
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="skylos-light" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="skylos-dark" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/duriantaco/fyn" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    fyn
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="fyn" class="md-nav__button md-logo" aria-label="fyn" data-md-component="logo">
+      
+  <img src="../../../assets/skylos-logo.png" alt="logo">
+
+    </a>
+    fyn
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/duriantaco/fyn" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    fyn
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../getting-started/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/first-steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First steps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/help/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting help
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install-python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installing Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../projects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working on projects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../package/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../migration/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/pip-to-project/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From pip to a fyn project
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_8" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-fyn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing fyn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-a-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a project
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-installed-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using installed tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developing-in-a-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developing in a container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Developing in a container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mounting-the-project-with-docker-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mounting the project with docker run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-watch-with-docker-compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring watch with docker compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimizations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Optimizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compiling-bytecode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compiling bytecode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intermediate-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intermediate layers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Intermediate layers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intermediate-layers-in-workspaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intermediate layers in workspaces
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-editable-installs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-editable installs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-fyn-temporarily" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using fyn temporarily
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-pip-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the pip interface
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the pip interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installing-a-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a package
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-a-project_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a project
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verifying-image-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verifying image provenance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jupyter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jupyter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../marimo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    marimo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../github/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitlab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitLab CI/CD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pre-commit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pre-commit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pytorch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyTorch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fastapi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FastAPI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../azure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Azure Artifacts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../google/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Google Artifact Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS CodeArtifact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jfrog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JFrog Artifactory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../renovate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Renovate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependabot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependabot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aws-lambda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS Lambda
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coiled/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coiled
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../concepts/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../concepts/projects/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/projects/layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structure and files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/projects/init/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating projects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/projects/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managing dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/projects/run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/projects/sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locking and syncing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/projects/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuring projects
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/projects/build/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building distributions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/projects/export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exporting lockfiles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/projects/workspaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using workspaces
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/python-versions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/configuration-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/indexes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package indexes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/build-backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../concepts/authentication/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/authentication/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The auth CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/authentication/http/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP credentials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/authentication/git/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git credentials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/authentication/certificates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TLS certificates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/authentication/third-party/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Third-party services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/preview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preview features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_12" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../pip/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The pip interface
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4_12" id="__nav_4_12_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The pip interface
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../pip/environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../pip/packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managing packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../pip/inspection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspecting environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../pip/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Declaring dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../pip/compile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locking environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../pip/compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility with pip
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/installer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installer options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/troubleshooting/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Troubleshooting
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/troubleshooting/build-failures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build failures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/troubleshooting/reproducible-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducible examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/internals/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internals
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/internals/resolver/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resolver
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_10" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../reference/policies/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Policies
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Policies
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/policies/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/policies/platforms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Platform support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/policies/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/policies/rust/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rust support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/policies/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../rfcs/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RFCs
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    RFCs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../rfcs/0001-selective-hatch-ux/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RFC 0001
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-fyn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing fyn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-a-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a project
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-installed-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using installed tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developing-in-a-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developing in a container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Developing in a container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mounting-the-project-with-docker-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mounting the project with docker run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-watch-with-docker-compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring watch with docker compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimizations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Optimizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compiling-bytecode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compiling bytecode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intermediate-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intermediate layers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Intermediate layers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intermediate-layers-in-workspaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intermediate layers in workspaces
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-editable-installs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-editable installs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-fyn-temporarily" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using fyn temporarily
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-pip-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the pip interface
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the pip interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installing-a-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a package
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-a-project_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a project
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verifying-image-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verifying image provenance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Guides
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Integrations
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="using-fyn-in-docker"><a class="toclink" href="#using-fyn-in-docker">Using fyn in Docker</a></h1>
+<h2 id="getting-started"><a class="toclink" href="#getting-started">Getting started</a></h2>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Check out the upstream <a href="https://github.com/astral-sh/uv-docker-example"><code>uv-docker-example</code></a>
+project for an example of best practices when using fyn to build an application in Docker.</p>
+</div>
+<p>fyn provides both <em>distroless</em> Docker images, which are useful for
+<a href="#installing-fyn">copying fyn binaries</a> into your own image builds, and images derived from popular
+base images, which are useful for using fyn in a container. The distroless images do not contain
+anything but the fyn binaries. In contrast, the derived images include an operating system with fyn
+pre-installed.</p>
+<p>As an example, to run fyn in a container using a Debian-based image:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">$ </span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>ghcr.io/oha/fyn:debian<span class="w"> </span>fyn<span class="w"> </span>--help
+</code></pre></div>
+<h3 id="available-images"><a class="toclink" href="#available-images">Available images</a></h3>
+<p>The following distroless images are available:</p>
+<ul>
+<li><code>ghcr.io/oha/fyn:latest</code></li>
+<li><code>ghcr.io/oha/fyn:{major}.{minor}.{patch}</code>, e.g., <code>ghcr.io/oha/fyn:0.10.14</code></li>
+<li><code>ghcr.io/oha/fyn:{major}.{minor}</code>, e.g., <code>ghcr.io/oha/fyn:0.8</code> (the latest patch version)</li>
+</ul>
+<p>And the following derived images are available:</p>
+<!-- prettier-ignore -->
+<ul>
+<li>Based on <code>alpine:3.23</code>:<ul>
+<li><code>ghcr.io/oha/fyn:alpine</code></li>
+<li><code>ghcr.io/oha/fyn:alpine3.23</code></li>
+</ul>
+</li>
+<li>Based on <code>alpine:3.22</code>:<ul>
+<li><code>ghcr.io/oha/fyn:alpine3.22</code></li>
+</ul>
+</li>
+<li>Based on <code>debian:trixie-slim</code>:<ul>
+<li><code>ghcr.io/oha/fyn:debian-slim</code></li>
+<li><code>ghcr.io/oha/fyn:trixie-slim</code></li>
+</ul>
+</li>
+<li>Based on <code>buildpack-deps:trixie</code>:<ul>
+<li><code>ghcr.io/oha/fyn:debian</code></li>
+<li><code>ghcr.io/oha/fyn:trixie</code></li>
+</ul>
+</li>
+<li>Based on <code>dhi.io/alpine-base:3.23</code>:<ul>
+<li><code>ghcr.io/oha/fyn:alpine-dhi</code></li>
+<li><code>ghcr.io/oha/fyn:alpine3.23-dhi</code></li>
+</ul>
+</li>
+<li>Based on <code>dhi.io/debian-base:trixie-debian13</code>:<ul>
+<li><code>ghcr.io/oha/fyn:debian-dhi</code></li>
+<li><code>ghcr.io/oha/fyn:trixie-dhi</code></li>
+</ul>
+</li>
+<li>Based on <code>dhi/python:3.x</code>:<ul>
+<li><code>ghcr.io/oha/fyn:python3.14-dhi</code></li>
+<li><code>ghcr.io/oha/fyn:python3.13-dhi</code></li>
+<li><code>ghcr.io/oha/fyn:python3.12-dhi</code></li>
+<li><code>ghcr.io/oha/fyn:python3.11-dhi</code></li>
+<li><code>ghcr.io/oha/fyn:python3.10-dhi</code></li>
+</ul>
+</li>
+<li>Based on <code>python3.x-alpine</code>:<ul>
+<li><code>ghcr.io/oha/fyn:python3.14-alpine</code></li>
+<li><code>ghcr.io/oha/fyn:python3.14-alpine3.23</code></li>
+<li><code>ghcr.io/oha/fyn:python3.13-alpine</code></li>
+<li><code>ghcr.io/oha/fyn:python3.13-alpine3.23</code></li>
+<li><code>ghcr.io/oha/fyn:python3.12-alpine</code></li>
+<li><code>ghcr.io/oha/fyn:python3.12-alpine3.23</code></li>
+<li><code>ghcr.io/oha/fyn:python3.11-alpine</code></li>
+<li><code>ghcr.io/oha/fyn:python3.11-alpine3.23</code></li>
+<li><code>ghcr.io/oha/fyn:python3.10-alpine</code></li>
+<li><code>ghcr.io/oha/fyn:python3.10-alpine3.23</code></li>
+<li><code>ghcr.io/oha/fyn:python3.9-alpine</code></li>
+<li><code>ghcr.io/oha/fyn:python3.9-alpine3.22</code></li>
+</ul>
+</li>
+<li>Based on <code>python3.x-trixie</code>:<ul>
+<li><code>ghcr.io/oha/fyn:python3.14-trixie</code></li>
+<li><code>ghcr.io/oha/fyn:python3.13-trixie</code></li>
+<li><code>ghcr.io/oha/fyn:python3.12-trixie</code></li>
+<li><code>ghcr.io/oha/fyn:python3.11-trixie</code></li>
+<li><code>ghcr.io/oha/fyn:python3.10-trixie</code></li>
+<li><code>ghcr.io/oha/fyn:python3.9-trixie</code></li>
+</ul>
+</li>
+<li>Based on <code>python3.x-slim-trixie</code>:<ul>
+<li><code>ghcr.io/oha/fyn:python3.14-trixie-slim</code></li>
+<li><code>ghcr.io/oha/fyn:python3.13-trixie-slim</code></li>
+<li><code>ghcr.io/oha/fyn:python3.12-trixie-slim</code></li>
+<li><code>ghcr.io/oha/fyn:python3.11-trixie-slim</code></li>
+<li><code>ghcr.io/oha/fyn:python3.10-trixie-slim</code></li>
+<li><code>ghcr.io/oha/fyn:python3.9-trixie-slim</code></li>
+</ul>
+</li>
+</ul>
+<!-- prettier-ignore-end -->
+
+<p>As with the distroless image, each derived image is published with fyn version tags as
+<code>ghcr.io/oha/fyn:{major}.{minor}.{patch}-{base}</code> and <code>ghcr.io/oha/fyn:{major}.{minor}-{base}</code>, e.g.,
+<code>ghcr.io/oha/fyn:0.10.14-alpine</code>.</p>
+<p>In addition, starting with <code>0.8</code> each derived image also sets <code>UV_TOOL_BIN_DIR</code> to <code>/usr/local/bin</code>
+to allow <code>fyn tool install</code> to work as expected with the default user.</p>
+<p>For more details, see the published container package for this repository.</p>
+<h3 id="installing-fyn"><a class="toclink" href="#installing-fyn">Installing fyn</a></h3>
+<p>Use one of the above images with fyn pre-installed or install fyn by copying the binary from the
+official distroless Docker image:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim-trixie</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">COPY</span><span class="w"> </span>--from<span class="o">=</span>ghcr.io/oha/fyn:latest<span class="w"> </span>/fyn<span class="w"> </span>/fynx<span class="w"> </span>/bin/
+</code></pre></div>
+<p>Or, with an installer script you downloaded from a GitHub release:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim-trixie</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c"># The installer requires curl (and certificates) to download the release archive</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">RUN</span><span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>--no-install-recommends<span class="w"> </span>curl<span class="w"> </span>ca-certificates
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c"># Copy a release installer script into the build context first</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">COPY</span><span class="w"> </span>install.sh<span class="w"> </span>/fyn-installer.sh
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c"># Run the installer then remove it</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="k">RUN</span><span class="w"> </span>sh<span class="w"> </span>/fyn-installer.sh<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>/fyn-installer.sh
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c"># Ensure the installed binary is on the `PATH`</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/root/.local/bin/:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>Note this requires <code>curl</code> to be available.</p>
+<p>In either case, it is best practice to pin to a specific fyn version, e.g., with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">COPY</span><span class="w"> </span>--from<span class="o">=</span>ghcr.io/oha/fyn:0.10.14<span class="w"> </span>/fyn<span class="w"> </span>/fynx<span class="w"> </span>/bin/
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>While the Dockerfile example above pins to a specific tag, it's also
+possible to pin a specific SHA256. Pinning a specific SHA256 is considered
+best practice in environments that require reproducible builds as tags can
+be moved across different commit SHAs.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c"># e.g., using a hash from a previous release</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">COPY</span><span class="w"> </span>--from<span class="o">=</span>ghcr.io/oha/fyn@sha256:2381d6aa60c326b71fd40023f921a0a3b8f91b14d5db6b90402e65a635053709<span class="w"> </span>/fyn<span class="w"> </span>/fynx<span class="w"> </span>/bin/
+</code></pre></div>
+</div>
+<p>Or, if you prefer the installer flow, use the same <code>COPY install.sh /fyn-installer.sh</code> pattern with
+an installer script from the release you want to pin.</p>
+<h3 id="installing-a-project"><a class="toclink" href="#installing-a-project">Installing a project</a></h3>
+<p>If you're using fyn to manage your project, you can copy it into the image and install it:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c"># Copy the project into the image</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>/app
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c"># Disable development dependencies</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">UV_NO_DEV</span><span class="o">=</span><span class="m">1</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c"># Sync the project into a new environment, asserting the lockfile is up to date</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>sync<span class="w"> </span>--locked
+</code></pre></div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>It is best practice to add <code>.venv</code> to a <a href="https://docs.docker.com/build/concepts/context/#dockerignore-files"><code>.dockerignore</code> file</a>
+in your repository to prevent it from being included in image builds. The project virtual
+environment is dependent on your local platform and should be created from scratch in the image.</p>
+</div>
+<p>Then, to start your application by default:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c"># Presuming there is a `my_app` command provided by the project</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;fyn&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;run&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;my_app&quot;</span><span class="p">]</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>It is best practice to use <a href="#intermediate-layers">intermediate layers</a> separating installation
+of dependencies and the project itself to improve Docker image build times.</p>
+</div>
+<p>See a complete example in the
+<a href="https://github.com/astral-sh/uv-docker-example/blob/main/Dockerfile"><code>uv-docker-example</code> project</a>.</p>
+<h3 id="using-the-environment"><a class="toclink" href="#using-the-environment">Using the environment</a></h3>
+<p>Once the project is installed, you can either <em>activate</em> the project virtual environment by placing
+its binary directory at the front of the path:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/app/.venv/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>Or, you can use <code>fyn run</code> for any commands that require the environment:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>run<span class="w"> </span>some_script.py
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Alternatively, the
+<a href="../../../concepts/projects/config/#project-environment-path"><code>UV_PROJECT_ENVIRONMENT</code> setting</a> can
+be set before syncing to install to the system Python environment and skip environment activation
+entirely.</p>
+</div>
+<h3 id="using-installed-tools"><a class="toclink" href="#using-installed-tools">Using installed tools</a></h3>
+<p>To use installed tools, ensure the <a href="../../../concepts/tools/#tool-executables">tool bin directory</a> is
+on the path:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span>/root/.local/bin:<span class="nv">$PATH</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>cowsay
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="gp">$ </span>docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span><span class="k">$(</span>docker<span class="w"> </span>build<span class="w"> </span>-q<span class="w"> </span>.<span class="k">)</span><span class="w"> </span>/bin/bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;cowsay -t hello&quot;</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="go">  _____</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="go">| hello |</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="go">  =====</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="go">     \</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="go">      \</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="go">        ^__^</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="go">        (oo)\_______</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="go">        (__)\       )\/\</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="go">            ||----w |</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="go">            ||     ||</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The tool bin directory's location can be determined by running the <code>fyn tool dir --bin</code> command
+in the container.</p>
+<p>Alternatively, it can be set to a constant location:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">UV_TOOL_BIN_DIR</span><span class="o">=</span>/opt/fyn-bin/
+</code></pre></div>
+</div>
+<h2 id="developing-in-a-container"><a class="toclink" href="#developing-in-a-container">Developing in a container</a></h2>
+<p>When developing, it's useful to mount the project directory into a container. With this setup,
+changes to the project can be immediately reflected in a containerized service without rebuilding
+the image. However, it is important <em>not</em> to include the project virtual environment (<code>.venv</code>) in
+the mount, because the virtual environment is platform specific and the one built for the image
+should be kept.</p>
+<h3 id="mounting-the-project-with-docker-run"><a class="toclink" href="#mounting-the-project-with-docker-run">Mounting the project with <code>docker run</code></a></h3>
+<p>Bind mount the project (in the working directory) to <code>/app</code> while retaining the <code>.venv</code> directory
+with an <a href="https://docs.docker.com/engine/storage/#volumes">anonymous volume</a>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="gp">$ </span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--volume<span class="w"> </span>.:/app<span class="w"> </span>--volume<span class="w"> </span>/app/.venv<span class="w"> </span><span class="o">[</span>...<span class="o">]</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The <code>--rm</code> flag is included to ensure the container and anonymous volume are cleaned up when the
+container exits.</p>
+</div>
+<p>See a complete example in the
+<a href="https://github.com/astral-sh/uv-docker-example/blob/main/run.sh"><code>uv-docker-example</code> project</a>.</p>
+<h3 id="configuring-watch-with-docker-compose"><a class="toclink" href="#configuring-watch-with-docker-compose">Configuring <code>watch</code> with <code>docker compose</code></a></h3>
+<p>When using Docker compose, more sophisticated tooling is available for container development. The
+<a href="https://docs.docker.com/compose/file-watch/#compose-watch-versus-bind-mounts"><code>watch</code></a> option
+allows for greater granularity than is practical with a bind mount and supports triggering updates
+to the containerized service when files change.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This feature requires Compose 2.22.0 which is bundled with Docker Desktop 4.24.</p>
+</div>
+<p>Configure <code>watch</code> in your
+<a href="https://docs.docker.com/compose/compose-application-model/#the-compose-file">Docker compose file</a>
+to mount the project directory without syncing the project virtual environment and to rebuild the
+image when the configuration changes:</p>
+<div class="highlight"><span class="filename">compose.yaml</span><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">example</span><span class="p">:</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span><span class="c1"># ...</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="nt">develop</span><span class="p">:</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">      </span><span class="c1"># Create a `watch` configuration to update the app</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">      </span><span class="c1">#</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">      </span><span class="nt">watch</span><span class="p">:</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">        </span><span class="c1"># Sync the working directory with the `/app` directory in the container</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sync</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">          </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">          </span><span class="c1"># Exclude the project virtual environment</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">          </span><span class="nt">ignore</span><span class="p">:</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.venv/</span>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="w">        </span><span class="c1"># Rebuild the image on changes to the `pyproject.toml`</span>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rebuild</span>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./pyproject.toml</span>
+</code></pre></div>
+<p>Then, run <code>docker compose watch</code> to run the container with the development setup.</p>
+<p>See a complete example in the
+<a href="https://github.com/astral-sh/uv-docker-example/blob/main/compose.yml"><code>uv-docker-example</code> project</a>.</p>
+<h2 id="optimizations"><a class="toclink" href="#optimizations">Optimizations</a></h2>
+<h3 id="compiling-bytecode"><a class="toclink" href="#compiling-bytecode">Compiling bytecode</a></h3>
+<p>Compiling Python source files to bytecode is typically desirable for production images as it tends
+to improve startup time (at the cost of increased installation time and image size).</p>
+<p>To enable bytecode compilation, use the <code>--compile-bytecode</code> flag:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span>--compile-bytecode
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>sync<span class="w"> </span>--compile-bytecode
+</code></pre></div>
+<p>Alternatively, you can set the <code>UV_COMPILE_BYTECODE</code> environment variable to ensure that all
+commands within the Dockerfile compile bytecode:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">UV_COMPILE_BYTECODE</span><span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>fyn will only compile the standard library of <em>managed</em> Python versions during
+<code>fyn python install</code>. The distributor of unmanaged Python versions decides if the
+standard library is pre-compiled. For example, the official <code>python</code> image will not
+have a compiled standard library.</p>
+</div>
+<h3 id="caching"><a class="toclink" href="#caching">Caching</a></h3>
+<p>A <a href="https://docs.docker.com/build/guide/mounts/#add-a-cache-mount">cache mount</a> can be used to
+improve performance across builds:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">UV_LINK_MODE</span><span class="o">=</span>copy
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/fyn<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span>fyn<span class="w"> </span>sync
+</code></pre></div>
+<p>Changing the <a href="../../../reference/settings/#link-mode"><code>UV_LINK_MODE</code></a> silences warnings about not
+being able to link files since the cache and sync target are on separate file systems.</p>
+<p>If you're not mounting the cache, image size can be reduced by using the <code>--no-cache</code> flag or
+setting <code>UV_NO_CACHE</code>.</p>
+<p>By default, managed Python installations are not cached before being installed. Setting
+<code>UV_PYTHON_CACHE_DIR</code> can be used in combination with a cache mount:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">UV_PYTHON_CACHE_DIR</span><span class="o">=</span>/root/.cache/fyn/python
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/fyn<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span>fyn<span class="w"> </span>python<span class="w"> </span>install
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The cache directory's location can be determined by running the <code>fyn cache dir</code> command in the
+container.</p>
+<p>Alternatively, the cache can be set to a constant location:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">UV_CACHE_DIR</span><span class="o">=</span>/opt/fyn-cache/
+</code></pre></div>
+</div>
+<h3 id="intermediate-layers"><a class="toclink" href="#intermediate-layers">Intermediate layers</a></h3>
+<p>If you're using fyn to manage your project, you can improve build times by moving your transitive
+dependency installation into its own layer via the <code>--no-install</code> options.</p>
+<p><code>fyn sync --no-install-project</code> will install the dependencies of the project but not the project
+itself. Since the project changes frequently, but its dependencies are generally static, this can be
+a big time saver.</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c"># Install fyn</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="k">COPY</span><span class="w"> </span>--from<span class="o">=</span>ghcr.io/oha/fyn:latest<span class="w"> </span>/fyn<span class="w"> </span>/fynx<span class="w"> </span>/bin/
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="c"># Change the working directory to the `app` directory</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="c"># Install dependencies</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/fyn<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">    </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span>fyn.lock,target<span class="o">=</span>fyn.lock<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">    </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span>pyproject.toml,target<span class="o">=</span>pyproject.toml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="w">    </span>fyn<span class="w"> </span>sync<span class="w"> </span>--locked<span class="w"> </span>--no-install-project
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="c"># Copy the project into the image</span>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>/app
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a>
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="c"># Sync the project</span>
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/fyn<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="w">    </span>fyn<span class="w"> </span>sync<span class="w"> </span>--locked
+</code></pre></div>
+<p>Note that the <code>pyproject.toml</code> is required to identify the project root and name, but the project
+<em>contents</em> are not copied into the image until the final <code>fyn sync</code> command.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If you want to remove additional, specific packages from the sync,
+use <code>--no-install-package &lt;name&gt;</code>.</p>
+</div>
+<h4 id="intermediate-layers-in-workspaces"><a class="toclink" href="#intermediate-layers-in-workspaces">Intermediate layers in workspaces</a></h4>
+<p>If you're using a <a href="../../../concepts/projects/workspaces/">workspace</a>, then a couple changes are
+needed:</p>
+<ul>
+<li>Use <code>--frozen</code> instead of <code>--locked</code> during the initially sync.</li>
+<li>Use the <code>--no-install-workspace</code> flag which excludes the project <em>and</em> any workspace members.</li>
+</ul>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c"># Install fyn</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="k">COPY</span><span class="w"> </span>--from<span class="o">=</span>ghcr.io/oha/fyn:latest<span class="w"> </span>/fyn<span class="w"> </span>/fynx<span class="w"> </span>/bin/
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/fyn<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">    </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span>fyn.lock,target<span class="o">=</span>fyn.lock<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">    </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span>pyproject.toml,target<span class="o">=</span>pyproject.toml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">    </span>fyn<span class="w"> </span>sync<span class="w"> </span>--frozen<span class="w"> </span>--no-install-workspace
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>/app
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a><span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/fyn<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="w">    </span>fyn<span class="w"> </span>sync<span class="w"> </span>--locked
+</code></pre></div>
+<p>fyn cannot assert that the <code>fyn.lock</code> file is up-to-date without each of the workspace member
+<code>pyproject.toml</code> files, so we use <code>--frozen</code> instead of <code>--locked</code> to skip the check during the
+initial sync. The next sync, after all the workspace members have been copied, can still use
+<code>--locked</code> and will validate that the lockfile is correct for all workspace members.</p>
+<h3 id="non-editable-installs"><a class="toclink" href="#non-editable-installs">Non-editable installs</a></h3>
+<p>By default, fyn installs projects and workspace members in editable mode, such that changes to the
+source code are immediately reflected in the environment.</p>
+<p><code>fyn sync</code> and <code>fyn run</code> both accept a <code>--no-editable</code> flag, which instructs fyn to install the
+project in non-editable mode, removing any dependency on the source code.</p>
+<p>In the context of a multi-stage Docker image, <code>--no-editable</code> can be used to include the project in
+the synced virtual environment from one stage, then copy the virtual environment alone (and not the
+source code) into the final image.</p>
+<p>For example:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c"># Install fyn</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="k">COPY</span><span class="w"> </span>--from<span class="o">=</span>ghcr.io/oha/fyn:latest<span class="w"> </span>/fyn<span class="w"> </span>/fynx<span class="w"> </span>/bin/
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c"># Use the system Python across both stages</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">UV_PYTHON_DOWNLOADS</span><span class="o">=</span><span class="m">0</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="c"># Change the working directory to the `app` directory</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="c"># Install dependencies</span>
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/fyn<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="w">    </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span>fyn.lock,target<span class="o">=</span>fyn.lock<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="w">    </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span>pyproject.toml,target<span class="o">=</span>pyproject.toml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="w">    </span>fyn<span class="w"> </span>sync<span class="w"> </span>--locked<span class="w"> </span>--no-install-project<span class="w"> </span>--no-editable
+<a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a>
+<a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a><span class="c"># Copy the project into the intermediate image</span>
+<a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a><span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>/app
+<a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a>
+<a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a><span class="c"># Sync the project</span>
+<a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a><span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>cache,target<span class="o">=</span>/root/.cache/fyn<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a><span class="w">    </span>fyn<span class="w"> </span>sync<span class="w"> </span>--locked<span class="w"> </span>--no-editable
+<a id="__codelineno-21-23" name="__codelineno-21-23" href="#__codelineno-21-23"></a>
+<a id="__codelineno-21-24" name="__codelineno-21-24" href="#__codelineno-21-24"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim</span>
+<a id="__codelineno-21-25" name="__codelineno-21-25" href="#__codelineno-21-25"></a>
+<a id="__codelineno-21-26" name="__codelineno-21-26" href="#__codelineno-21-26"></a><span class="c"># Copy the environment, but not the source code</span>
+<a id="__codelineno-21-27" name="__codelineno-21-27" href="#__codelineno-21-27"></a><span class="k">COPY</span><span class="w"> </span>--from<span class="o">=</span>builder<span class="w"> </span>/app/.venv<span class="w"> </span>/app/.venv
+<a id="__codelineno-21-28" name="__codelineno-21-28" href="#__codelineno-21-28"></a>
+<a id="__codelineno-21-29" name="__codelineno-21-29" href="#__codelineno-21-29"></a><span class="c"># Run the application</span>
+<a id="__codelineno-21-30" name="__codelineno-21-30" href="#__codelineno-21-30"></a><span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;/app/.venv/bin/hello&quot;</span><span class="p">]</span>
+</code></pre></div>
+<h3 id="using-fyn-temporarily"><a class="toclink" href="#using-fyn-temporarily">Using fyn temporarily</a></h3>
+<p>If fyn isn't needed in the final image, the binary can be mounted in each invocation:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="k">RUN</span><span class="w"> </span>--mount<span class="o">=</span><span class="nv">from</span><span class="o">=</span>ghcr.io/oha/fyn,source<span class="o">=</span>/fyn,target<span class="o">=</span>/bin/fyn<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">    </span>fyn<span class="w"> </span>sync
+</code></pre></div>
+<h2 id="using-the-pip-interface"><a class="toclink" href="#using-the-pip-interface">Using the pip interface</a></h2>
+<h3 id="installing-a-package"><a class="toclink" href="#installing-a-package">Installing a package</a></h3>
+<p>The system Python environment is safe to use this context, since a container is already isolated.
+The <code>--system</code> flag can be used to install in the system environment:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--system<span class="w"> </span>ruff
+</code></pre></div>
+<p>To use the system Python environment by default, set the <code>UV_SYSTEM_PYTHON</code> variable:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">UV_SYSTEM_PYTHON</span><span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+<p>Alternatively, a virtual environment can be created and activated:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>venv<span class="w"> </span>/opt/venv
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="c"># Use the virtual environment automatically</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">VIRTUAL_ENV</span><span class="o">=</span>/opt/venv
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="c"># Place entry points in the environment at the front of the path</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="k">ENV</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/opt/venv/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>When using a virtual environment, the <code>--system</code> flag should be omitted from fyn invocations:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>ruff
+</code></pre></div>
+<h3 id="installing-requirements"><a class="toclink" href="#installing-requirements">Installing requirements</a></h3>
+<p>To install requirements files, copy them into the container:</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>.
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre></div>
+<h3 id="installing-a-project_1"><a class="toclink" href="#installing-a-project_1">Installing a project</a></h3>
+<p>When installing a project alongside requirements, it is best practice to separate copying the
+requirements from the rest of the source code. This allows the dependencies of the project (which do
+not change often) to be cached separately from the project itself (which changes very frequently).</p>
+<div class="highlight"><span class="filename">Dockerfile</span><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="k">COPY</span><span class="w"> </span>pyproject.toml<span class="w"> </span>.
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>pyproject.toml
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="k">RUN</span><span class="w"> </span>fyn<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</code></pre></div>
+<h2 id="verifying-image-provenance"><a class="toclink" href="#verifying-image-provenance">Verifying image provenance</a></h2>
+<p>The Docker images are signed during the build process to provide proof of their origin. These
+attestations can be used to verify that an image was produced from an official channel.</p>
+<p>For example, you can verify the attestations with the
+<a href="https://cli.github.com/">GitHub CLI tool <code>gh</code></a>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="gp">$ </span>gh<span class="w"> </span>attestation<span class="w"> </span>verify<span class="w"> </span>--owner<span class="w"> </span>&lt;repo-owner&gt;<span class="w"> </span>oci://ghcr.io/oha/fyn:latest
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="go">Loaded digest sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx for oci://ghcr.io/oha/fyn:latest</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="go">Loaded 1 attestation from GitHub API</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="go">The following policy criteria will be enforced:</span>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="go">- OIDC Issuer must match:................... https://token.actions.githubusercontent.com</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="go">- Source Repository Owner URI must match:... https://github.com/&lt;repo-owner&gt;</span>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a><span class="go">- Predicate type must match:................ https://slsa.dev/provenance/v1</span>
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="go">- Subject Alternative Name must match regex: (?i)^https://github.com/&lt;repo-owner&gt;/</span>
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a>
+<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a><span class="go">✓ Verification succeeded!</span>
+<a id="__codelineno-29-12" name="__codelineno-29-12" href="#__codelineno-29-12"></a>
+<a id="__codelineno-29-13" name="__codelineno-29-13" href="#__codelineno-29-13"></a><span class="go">sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx was attested by:</span>
+<a id="__codelineno-29-14" name="__codelineno-29-14" href="#__codelineno-29-14"></a><span class="go">REPO          PREDICATE_TYPE                  WORKFLOW</span>
+<a id="__codelineno-29-15" name="__codelineno-29-15" href="#__codelineno-29-15"></a><span class="go">&lt;repo-owner&gt;/fyn  https://slsa.dev/provenance/v1  .github/workflows/build-docker.yml@refs/heads/main</span>
+</code></pre></div>
+<p>This tells you that the specific Docker image was built by the official fyn GitHub release workflow
+and hasn't been tampered with since.</p>
+<p>GitHub attestations build on the <a href="https://www.sigstore.dev/">sigstore.dev infrastructure</a>. As such
+you can also use the <a href="https://github.com/sigstore/cosign"><code>cosign</code> command</a> to verify the
+attestation blob against the (multi-platform) manifest for <code>fyn</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="gp">$ </span><span class="nv">REPO</span><span class="o">=</span>&lt;repo-owner&gt;/fyn
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="gp">$ </span>gh<span class="w"> </span>attestation<span class="w"> </span>download<span class="w"> </span>--repo<span class="w"> </span><span class="nv">$REPO</span><span class="w"> </span>oci://ghcr.io/oha/fyn:latest
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="go">Wrote attestations to file sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jsonl.</span>
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="go">Any previous content has been overwritten</span>
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="go">The trusted metadata is now available at sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jsonl</span>
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="gp">$ </span>docker<span class="w"> </span>buildx<span class="w"> </span>imagetools<span class="w"> </span>inspect<span class="w"> </span>ghcr.io/oha/fyn:latest<span class="w"> </span>--format<span class="w"> </span><span class="s2">&quot;{{json .Manifest}}&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>manifest.json
+<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="gp">$ </span>cosign<span class="w"> </span>verify-blob-attestation<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="w">    </span>--new-bundle-format<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="w">    </span>--bundle<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>jq<span class="w"> </span>-r<span class="w"> </span>.digest<span class="w"> </span>manifest.json<span class="k">)</span><span class="s2">.jsonl&quot;</span><span class="w">  </span><span class="se">\</span>
+<a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a><span class="w">    </span>--certificate-oidc-issuer<span class="o">=</span><span class="s2">&quot;https://token.actions.githubusercontent.com&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a><span class="w">    </span>--certificate-identity-regexp<span class="o">=</span><span class="s2">&quot;^https://github\.com/</span><span class="si">${</span><span class="nv">REPO</span><span class="si">}</span><span class="s2">/.*&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a><span class="w">    </span>&lt;<span class="o">(</span>jq<span class="w"> </span>-j<span class="w"> </span><span class="s1">&#39;.|del(.digest,.size)&#39;</span><span class="w"> </span>manifest.json<span class="o">)</span>
+<a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a><span class="go">Verified OK</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>These examples use <code>latest</code>, but best practice is to verify the attestation for a specific
+version tag, e.g., <code>ghcr.io/oha/fyn:0.10.14</code>, or (even better) the specific image digest,
+such as <code>ghcr.io/oha/fyn:0.5.27@sha256:5adf09a5a526f380237408032a9308000d14d5947eafa687ad6c6a2476787b4f</code>.</p>
+</div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 13, 2026 08:37:51 UTC">April 13, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../" class="md-footer__link md-footer__link--prev" aria-label="Previous: Integration guides">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Integration guides
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../jupyter/" class="md-footer__link md-footer__link--next" aria-label="Next: Jupyter">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Jupyter
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/duriantaco/fyn" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/duriantaco/fyn/discussions" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/fyn/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.path", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.sections", "navigation.indexes", "navigation.tracking", "content.code.annotate", "toc.follow", "navigation.footer", "navigation.top", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../js/extra.js"></script>
+      
+    
+  </body>
+</html>

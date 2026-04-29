@@ -1,0 +1,82 @@
+# [Using fyn in pre-commit](#using-fyn-in-pre-commit)
+
+An official pre-commit hook is provided at [`oha/fyn-pre-commit`](https://github.com/oha/fyn-pre-commit).
+
+To use fyn with pre-commit, add one of the following examples to the `repos` list in the `.pre-commit-config.yaml`.
+
+To make sure your `fyn.lock` file is up to date even if your `pyproject.toml` file was changed:
+
+.pre-commit-config.yaml
+
+```
+repos:
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
+    rev: 0.10.14
+    hooks:
+      - id: fyn-lock
+```
+
+To keep a `requirements.txt` file in sync with your `fyn.lock` file:
+
+.pre-commit-config.yaml
+
+```
+repos:
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
+    rev: 0.10.14
+    hooks:
+      - id: fyn-export
+```
+
+To compile requirements files:
+
+.pre-commit-config.yaml
+
+```
+repos:
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
+    rev: 0.10.14
+    hooks:
+      # Compile requirements
+      - id: pip-compile
+        args: [requirements.in, -o, requirements.txt]
+```
+
+To compile alternative requirements files, modify `args` and `files`:
+
+.pre-commit-config.yaml
+
+```
+repos:
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
+    rev: 0.10.14
+    hooks:
+      # Compile requirements
+      - id: pip-compile
+        args: [requirements-dev.in, -o, requirements-dev.txt]
+        files: ^requirements-dev\.(in|txt)$
+```
+
+To run the hook over multiple files at the same time, add additional entries:
+
+.pre-commit-config.yaml
+
+```
+repos:
+  - repo: https://github.com/oha/fyn-pre-commit
+    # fyn version.
+    rev: 0.10.14
+    hooks:
+      # Compile requirements
+      - id: pip-compile
+        name: pip-compile requirements.in
+        args: [requirements.in, -o, requirements.txt]
+      - id: pip-compile
+        name: pip-compile requirements-dev.in
+        args: [requirements-dev.in, -o, requirements-dev.txt]
+        files: ^requirements-dev\.(in|txt)$
+```
