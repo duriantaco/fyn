@@ -137,7 +137,8 @@ impl Platform {
     /// Convert this platform to a `cargo-dist` style triple string.
     pub fn as_cargo_dist_triple(&self) -> String {
         use target_lexicon::{
-            Architecture, ArmArchitecture, OperatingSystem, Riscv64Architecture, X86_32Architecture,
+            Architecture, ArmArchitecture, Environment, OperatingSystem, Riscv64Architecture,
+            X86_32Architecture,
         };
 
         let Self { os, arch, libc } = &self;
@@ -161,14 +162,12 @@ impl Platform {
         let abi = match (&**os, libc) {
             (OperatingSystem::Windows, _) => Some("msvc".to_string()),
             (OperatingSystem::Linux, Libc::Some(env)) => Some({
-                // Special suffix for ARM with hardware float
-                if matches!(arch.family(), Architecture::Arm(ArmArchitecture::Armv7)) {
-                    let env = env.to_string();
-                    if env.ends_with("eabihf") {
-                        env
-                    } else {
-                        format!("{env}eabihf")
-                    }
+                // If ARMv7 FP detection fails, we fall back to hard-float because
+                // fyn's ARMv7 application artifacts are currently hard-float only.
+                if matches!(arch.family(), Architecture::Arm(ArmArchitecture::Armv7))
+                    && matches!(env, Environment::Gnu | Environment::Musl)
+                {
+                    format!("{env}eabihf")
                 } else {
                     env.to_string()
                 }
@@ -324,31 +323,27 @@ mod tests {
     }
 
     #[test]
-    fn test_armv7_gnueabihf_cargo_dist_triple() {
-        let platform = Platform {
-            os: Os::from_str("linux").unwrap(),
-            arch: Arch::from_str("armv7").unwrap(),
-            libc: Libc::from_str("gnueabihf").unwrap(),
-        };
-
-        assert_eq!(
-            platform.as_cargo_dist_triple(),
-            "armv7-unknown-linux-gnueabihf"
-        );
-    }
-
-    #[test]
-    fn test_armv7_gnu_cargo_dist_triple() {
-        let platform = Platform {
-            os: Os::from_str("linux").unwrap(),
-            arch: Arch::from_str("armv7").unwrap(),
-            libc: Libc::from_str("gnu").unwrap(),
-        };
-
-        assert_eq!(
-            platform.as_cargo_dist_triple(),
-            "armv7-unknown-linux-gnueabihf"
-        );
+    fn test_as_cargo_dist_triple_armv7_libc_handling() {
+        for (arch, libc, expected) in [
+            // ARMv7: detected ABI passes through unchanged.
+            ("armv7", "gnueabihf", "armv7-unknown-linux-gnueabihf"),
+            ("armv7", "gnueabi", "armv7-unknown-linux-gnueabi"),
+            ("armv7", "musleabihf", "armv7-unknown-linux-musleabihf"),
+            ("armv7", "musleabi", "armv7-unknown-linux-musleabi"),
+            // ARMv7: generic libc (detection failure) is biased to hard-float.
+            ("armv7", "gnu", "armv7-unknown-linux-gnueabihf"),
+            ("armv7", "musl", "armv7-unknown-linux-musleabihf"),
+            // Non-ARMv7: libc passes through unchanged.
+            ("aarch64", "gnu", "aarch64-unknown-linux-gnu"),
+            ("x86_64", "musl", "x86_64-unknown-linux-musl"),
+        ] {
+            let platform = Platform::from_parts("linux", arch, libc).unwrap();
+            assert_eq!(
+                platform.as_cargo_dist_triple(),
+                expected,
+                "linux-{arch}-{libc}"
+            );
+        }
     }
 
     #[test]
