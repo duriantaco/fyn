@@ -37,9 +37,15 @@ enum PipConfigError {
 }
 
 pub(crate) fn load() -> Result<Option<FilesystemOptions>, Error> {
+    read_config_files(config_files())
+}
+
+fn read_config_files(
+    files: impl IntoIterator<Item = (PathBuf, Origin)>,
+) -> Result<Option<FilesystemOptions>, Error> {
     let mut combined = None;
 
-    for (path, origin) in config_files() {
+    for (path, origin) in files {
         let Some(options) = read_config_file(&path, origin)? else {
             continue;
         };
@@ -65,9 +71,19 @@ fn read_config_file(path: &Path, origin: Origin) -> Result<Option<FilesystemOpti
         Err(err) => return Err(err.into()),
     };
 
+    tracing::debug!("Reading pip configuration from: `{}`", path.display());
     let options = parse_config(&content, path)
         .map_err(|err| Error::PipConfig(path.to_path_buf(), Box::new(err)))?;
-    Ok(options.map(|options| FilesystemOptions::from(options.with_origin(origin))))
+    if let Some(options) = options {
+        tracing::debug!("Loaded pip configuration from: `{}`", path.display());
+        Ok(Some(FilesystemOptions::from(options.with_origin(origin))))
+    } else {
+        tracing::debug!(
+            "Ignoring pip configuration with no supported settings: `{}`",
+            path.display()
+        );
+        Ok(None)
+    }
 }
 
 fn parse_config(content: &str, path: &Path) -> Result<Option<Options>, PipConfigError> {
@@ -212,7 +228,15 @@ fn config_files() -> Vec<(PathBuf, Origin)> {
         .filter(|value| !value.is_empty())
         .map(PathBuf::from);
 
-    if config_file.as_deref().is_some_and(is_dev_null) {
+    config_files_from(config_file)
+}
+
+fn config_files_from(config_file: Option<PathBuf>) -> Vec<(PathBuf, Origin)> {
+    if let Some(config_file) = config_file.as_deref().filter(|path| is_dev_null(path)) {
+        tracing::debug!(
+            "Skipping pip configuration discovery because `{PIP_CONFIG_FILE}` points to: `{}`",
+            config_file.display()
+        );
         return Vec::new();
     }
 
@@ -288,6 +312,7 @@ fn is_dev_null(path: &Path) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::TempDir;
 
     #[test]
     fn parse_global_pip_config() {
@@ -343,5 +368,172 @@ no-index
         .unwrap();
 
         assert_eq!(options.pip.unwrap().no_index, Some(true));
+    }
+
+    #[test]
+    fn pip_config_file_dev_null_disables_all_pip_config_discovery() {
+        let dev_null = if cfg!(windows) { "NUL" } else { "/dev/null" };
+        let files = config_files_from(Some(PathBuf::from(dev_null)));
+
+        assert!(files.is_empty());
+    }
+
+    #[test]
+    fn later_pip_config_files_override_earlier_files() {
+        let temp_dir = TempDir::new().unwrap();
+        let system = write_config(
+            &temp_dir,
+            "system.conf",
+            r"[global]
+index-url = https://system.example/simple
+extra-index-url = https://system-extra.example/simple
+no-index = true
+",
+        );
+        let user = write_config(
+            &temp_dir,
+            "user.conf",
+            r"[global]
+index-url = https://user.example/simple
+extra-index-url = https://user-extra.example/simple
+",
+        );
+        let virtualenv = write_config(
+            &temp_dir,
+            "virtualenv.conf",
+            r"[global]
+index-url = https://virtualenv.example/simple
+",
+        );
+        let explicit = write_config(
+            &temp_dir,
+            "explicit.conf",
+            r"[global]
+index-url = https://explicit.example/simple
+extra-index-url = https://explicit-extra.example/simple
+no-index = false
+",
+        );
+
+        let options = read_config_files([
+            (system, Origin::System),
+            (user, Origin::User),
+            (virtualenv, Origin::User),
+            (explicit, Origin::User),
+        ])
+        .unwrap()
+        .unwrap()
+        .into_options();
+
+        assert_eq!(pip_index_url(&options), "https://explicit.example/simple");
+        assert_eq!(options.pip.as_ref().unwrap().no_index, Some(false));
+        assert_eq!(
+            pip_extra_index_urls(&options),
+            vec![
+                "https://explicit-extra.example/simple".to_string(),
+                "https://user-extra.example/simple".to_string(),
+                "https://system-extra.example/simple".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn higher_precedence_options_override_pip_config_options() {
+        let native_options = parse_config(
+            r"[global]
+index-url = https://native.example/simple
+no-index = false
+",
+            Path::new("/tmp/fyn.toml"),
+        )
+        .unwrap();
+        let pip_config_options = parse_config(
+            r"[global]
+index-url = https://pip.example/simple
+no-index = true
+",
+            Path::new("/tmp/pip.conf"),
+        )
+        .unwrap();
+
+        let options = native_options.combine(pip_config_options).unwrap();
+
+        assert_eq!(pip_index_url(&options), "https://native.example/simple");
+        assert_eq!(options.pip.as_ref().unwrap().no_index, Some(false));
+    }
+
+    #[test]
+    fn invalid_pip_config_values_include_option_and_value() {
+        let err = parse_config(
+            r"[global]
+index-url = https://[::1
+",
+            Path::new("/tmp/pip.conf"),
+        )
+        .unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("invalid value for `index-url`: `https://[::1`")
+        );
+
+        let err = parse_config(
+            r"[global]
+trusted-host = example.com:notaport
+",
+            Path::new("/tmp/pip.conf"),
+        )
+        .unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "invalid value for `trusted-host`: `example.com:notaport`"
+        );
+
+        let err = parse_config(
+            r"[global]
+no-index = maybe
+",
+            Path::new("/tmp/pip.conf"),
+        )
+        .unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "invalid value for `no-index`: `maybe` (expected a boolean)"
+        );
+    }
+
+    fn write_config(temp_dir: &TempDir, name: &str, content: &str) -> PathBuf {
+        let path = temp_dir.path().join(name);
+        fs_err::write(&path, content).unwrap();
+        path
+    }
+
+    fn pip_index_url(options: &Options) -> String {
+        let index: Index = options
+            .pip
+            .as_ref()
+            .unwrap()
+            .index_url
+            .as_ref()
+            .unwrap()
+            .clone()
+            .into();
+        index.url().to_string()
+    }
+
+    fn pip_extra_index_urls(options: &Options) -> Vec<String> {
+        options
+            .pip
+            .as_ref()
+            .unwrap()
+            .extra_index_url
+            .as_ref()
+            .unwrap()
+            .iter()
+            .cloned()
+            .map(|index| {
+                let index: Index = index.into();
+                index.url().to_string()
+            })
+            .collect()
     }
 }
