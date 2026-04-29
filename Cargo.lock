@@ -2043,6 +2043,7 @@ dependencies = [
  "fyn-platform-tags",
  "fyn-preview",
  "fyn-pypi-types",
+ "fyn-version",
  "fyn-warnings",
  "globset",
  "indexmap",
