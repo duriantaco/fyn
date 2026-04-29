@@ -24,6 +24,7 @@ fyn-pep508 = { workspace = true }
 fyn-platform-tags = { workspace = true }
 fyn-preview = { workspace = true }
 fyn-pypi-types = { workspace = true }
+fyn-version = { workspace = true }
 fyn-warnings = { workspace = true }
 
 base64 = { workspace = true }
