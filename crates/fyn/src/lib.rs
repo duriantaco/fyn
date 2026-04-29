@@ -61,7 +61,7 @@ use crate::settings::{
     CacheSettings, GlobalSettings, PipCheckSettings, PipCompileSettings, PipDownloadSettings,
     PipFreezeSettings, PipIndexVersionsSettings, PipInstallSettings, PipListSettings,
     PipShowSettings, PipSyncSettings, PipUninstallSettings, PipUpgradeSettings, PipWheelSettings,
-    PublishSettings,
+    PublishSettings, resolve_color,
 };
 
 pub(crate) mod child;
@@ -92,6 +92,27 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         std::env::set_current_dir(directory)?;
     }
 
+    // Load environment variables not handled by Clap.
+    let environment = EnvironmentOptions::new()?;
+
+    // Configure the `tracing` crate, which controls internal logging.
+    #[cfg(feature = "tracing-durations-export")]
+    let (durations_layer, _duration_guard) =
+        logging::setup_durations(environment.tracing_durations_file.as_ref())?;
+    #[cfg(not(feature = "tracing-durations-export"))]
+    let durations_layer = None::<tracing_subscriber::layer::Identity>;
+    logging::setup_logging(
+        match cli.top_level.global_args.verbose {
+            0 => logging::Level::Off,
+            1 => logging::Level::DebugUv,
+            2 => logging::Level::TraceUv,
+            3.. => logging::Level::TraceAll,
+        },
+        durations_layer,
+        resolve_color(&cli.top_level.global_args),
+        environment.log_context.unwrap_or_default(),
+    )?;
+
     // Determine the project directory.
     //
     // If `--project` points to a `pyproject.toml` file, resolve to its parent directory,
@@ -114,9 +135,6 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
         })
         .map(Cow::Owned)
         .unwrap_or_else(|| Cow::Borrowed(&*CWD));
-
-    // Load environment variables not handled by Clap
-    let environment = EnvironmentOptions::new()?;
 
     // Validate that the project directory exists if explicitly provided via --project, except for
     // `fyn init`, which creates the project directory (separate deprecation).
@@ -431,24 +449,6 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
     // Set the global flags.
     fyn_flags::init(EnvironmentFlags::from(&environment))
         .map_err(|()| anyhow::anyhow!("Flags are already initialized"))?;
-
-    // Configure the `tracing` crate, which controls internal logging.
-    #[cfg(feature = "tracing-durations-export")]
-    let (durations_layer, _duration_guard) =
-        logging::setup_durations(environment.tracing_durations_file.as_ref())?;
-    #[cfg(not(feature = "tracing-durations-export"))]
-    let durations_layer = None::<tracing_subscriber::layer::Identity>;
-    logging::setup_logging(
-        match globals.verbose {
-            0 => logging::Level::Off,
-            1 => logging::Level::DebugUv,
-            2 => logging::Level::TraceUv,
-            3.. => logging::Level::TraceAll,
-        },
-        durations_layer,
-        globals.color,
-        environment.log_context.unwrap_or_default(),
-    )?;
 
     debug!("fyn {}", fyn_cli::version::fyn_self_version());
     if let Some(config_file) = cli.top_level.config_file.as_ref() {
