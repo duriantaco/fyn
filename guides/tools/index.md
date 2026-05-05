@@ -1,0 +1,278 @@
+# [Using tools](#using-tools)
+
+Many Python packages provide applications that can be used as tools. fyn has specialized support for easily invoking and installing tools.
+
+## [Running tools](#running-tools)
+
+The `fynx` command invokes a tool without installing it.
+
+For example, to run `ruff`:
+
+```
+$ fynx ruff
+```
+
+Note
+
+This is exactly equivalent to:
+
+```
+$ fyn tool run ruff
+```
+
+`fynx` is provided as an alias for convenience.
+
+Arguments can be provided after the tool name:
+
+```
+$ fynx pycowsay hello from fyn
+
+  -------------
+< hello from fyn >
+  -------------
+   \   ^__^
+    \  (oo)\_______
+       (__)\       )\/\
+           ||----w |
+           ||     ||
+```
+
+Tools are installed into temporary, isolated environments when using `fynx`.
+
+Note
+
+If you are running a tool in a [*project*](../../concepts/projects/) and the tool requires that your project is installed, e.g., when using `pytest` or `mypy`, you'll want to use [`fyn run`](../projects/#running-commands) instead of `fynx`. Otherwise, the tool will be run in a virtual environment that is isolated from your project.
+
+If your project has a flat structure, e.g., instead of using a `src` directory for modules, the project itself does not need to be installed and `fynx` is fine. In this case, using `fyn run` is only beneficial if you want to pin the version of the tool in the project's dependencies.
+
+## [Commands with different package names](#commands-with-different-package-names)
+
+When `fynx ruff` is invoked, fyn installs the `ruff` package which provides the `ruff` command. However, sometimes the package and command names differ.
+
+The `--from` option can be used to invoke a command from a specific package, e.g., `http` which is provided by `httpie`:
+
+```
+$ fynx --from httpie http
+```
+
+## [Requesting specific versions](#requesting-specific-versions)
+
+To run a tool at a specific version, use `command@<version>`:
+
+```
+$ fynx ruff@0.3.0 check
+```
+
+To run a tool at the latest version, use `command@latest`:
+
+```
+$ fynx ruff@latest check
+```
+
+The `--from` option can also be used to specify package versions, as above:
+
+```
+$ fynx --from 'ruff==0.3.0' ruff check
+```
+
+Or, to constrain to a range of versions:
+
+```
+$ fynx --from 'ruff>0.2.0,<0.3.0' ruff check
+```
+
+Note the `@` syntax cannot be used for anything other than an exact version.
+
+## [Requesting extras](#requesting-extras)
+
+The `--from` option can be used to run a tool with extras:
+
+```
+$ fynx --from 'mypy[faster-cache,reports]' mypy --xml-report mypy_report
+```
+
+This can also be combined with version selection:
+
+```
+$ fynx --from 'mypy[faster-cache,reports]==1.13.0' mypy --xml-report mypy_report
+```
+
+## [Requesting different sources](#requesting-different-sources)
+
+The `--from` option can also be used to install from alternative sources.
+
+For example, to pull from git:
+
+```
+$ fynx --from git+https://github.com/httpie/cli httpie
+```
+
+You can also pull the latest commit from a specific named branch:
+
+```
+$ fynx --from git+https://github.com/httpie/cli@master httpie
+```
+
+Or pull a specific tag:
+
+```
+$ fynx --from git+https://github.com/httpie/cli@3.2.4 httpie
+```
+
+Or even a specific commit:
+
+```
+$ fynx --from git+https://github.com/httpie/cli@2843b87 httpie
+```
+
+Or with [Git LFS](https://git-lfs.com) support:
+
+```
+$ uvx --lfs --from git+https://github.com/astral-sh/lfs-cowsay lfs-cowsay
+```
+
+## [Commands with plugins](#commands-with-plugins)
+
+Additional dependencies can be included, e.g., to include `mkdocs-material` when running `mkdocs`:
+
+```
+$ fynx --with mkdocs-material mkdocs --help
+```
+
+## [Installing tools](#installing-tools)
+
+If a tool is used often, it is useful to install it to a persistent environment and add it to the `PATH` instead of invoking `fynx` repeatedly.
+
+Tip
+
+`fynx` is a convenient alias for `fyn tool run`. All of the other commands for interacting with tools require the full `fyn tool` prefix.
+
+To install `ruff`:
+
+```
+$ fyn tool install ruff
+```
+
+When a tool is installed, its executables are placed in a `bin` directory in the `PATH` which allows the tool to be run without fyn. If it's not on the `PATH`, a warning will be displayed and `fyn tool update-shell` can be used to add it to the `PATH`.
+
+After installing `ruff`, it should be available:
+
+```
+$ ruff --version
+```
+
+Unlike `fyn pip install`, installing a tool does not make its modules available in the current environment. For example, the following command will fail:
+
+```
+$ python -c "import ruff"
+```
+
+This isolation is important for reducing interactions and conflicts between dependencies of tools, scripts, and projects.
+
+Unlike `fynx`, `fyn tool install` operates on a *package* and will install all executables provided by the tool.
+
+For example, the following will install the `http`, `https`, and `httpie` executables:
+
+```
+$ fyn tool install httpie
+```
+
+Additionally, package versions can be included without `--from`:
+
+```
+$ fyn tool install 'httpie>0.1.0'
+```
+
+And, similarly, for package sources:
+
+```
+$ fyn tool install git+https://github.com/httpie/cli
+```
+
+Or package sources with [Git LFS](https://git-lfs.com):
+
+```
+$ fyn tool install --lfs git+https://github.com/astral-sh/lfs-cowsay
+```
+
+As with `fynx`, installations can include additional packages:
+
+```
+$ fyn tool install mkdocs --with mkdocs-material
+```
+
+Multiple related executables can be installed together in the same tool environment, using the `--with-executables-from` flag. For example, the following will install the executables from `ansible`, plus those ones provided by `ansible-core` and `ansible-lint`:
+
+```
+$ fyn tool install --with-executables-from ansible-core,ansible-lint ansible
+```
+
+## [Upgrading tools](#upgrading-tools)
+
+To upgrade a tool, use `fyn tool upgrade`:
+
+```
+$ fyn tool upgrade ruff
+```
+
+Tool upgrades will respect the version constraints provided when installing the tool. For example, `fyn tool install ruff >=0.3,<0.4` followed by `fyn tool upgrade ruff` will upgrade Ruff to the latest version in the range `>=0.3,<0.4`.
+
+To instead replace the version constraints, re-install the tool with `fyn tool install`:
+
+```
+$ fyn tool install ruff>=0.4
+```
+
+To instead upgrade all tools:
+
+```
+$ fyn tool upgrade --all
+```
+
+## [Requesting Python versions](#requesting-python-versions)
+
+By default, fyn will use your default Python interpreter (the first it finds) when running, installing, or upgrading tools. You can specify the Python interpreter to use with the `--python` option.
+
+For example, to request a specific Python version when running a tool:
+
+```
+$ fynx --python 3.10 ruff
+```
+
+Or, when installing a tool:
+
+```
+$ fyn tool install --python 3.10 ruff
+```
+
+Or, when upgrading a tool:
+
+```
+$ fyn tool upgrade --python 3.10 ruff
+```
+
+For more details on requesting Python versions, see the [Python version](../../concepts/python-versions/#requesting-a-version) concept page.
+
+## [Legacy Windows Scripts](#legacy-windows-scripts)
+
+Tools also support running [legacy setuptools scripts](https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#scripts). These scripts are available via `$(fyn tool dir)\<tool-name>\Scripts` when installed.
+
+Currently only legacy scripts with the `.ps1`, `.cmd`, and `.bat` extensions are supported.
+
+For example, below is an example running a Command Prompt script.
+
+```
+$ fyn tool run --from nuitka==2.6.7 nuitka.cmd --version
+```
+
+In addition, you don't need to specify the extension. `fynx` will automatically look for files ending in `.ps1`, `.cmd`, and `.bat` in that order of execution on your behalf.
+
+```
+$ fyn tool run --from nuitka==2.6.7 nuitka --version
+```
+
+## [Next steps](#next-steps)
+
+To learn more about managing tools with fyn, see the [Tools concept](../../concepts/tools/) page and the [command reference](../../reference/cli/#fyn-tool).
+
+Or, read on to learn how to [work on projects](../projects/).
