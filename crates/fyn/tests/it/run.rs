@@ -3004,6 +3004,29 @@ fn run_requirements_txt() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn run_remote_requirements_offline_redacts_credentials() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let script = context.temp_dir.child("main.py");
+    script.write_str("print('hello')")?;
+
+    fyn_snapshot!(context.filters(), context.run()
+        .arg("--offline")
+        .arg("--with-requirements")
+        .arg("http://username:password@example.com/requirements.txt")
+        .arg(script.as_os_str()), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: Network connectivity is disabled, but a remote requirements file was requested: http://username:****@example.com/requirements.txt
+    ");
+
+    Ok(())
+}
+
 /// Ignore and warn when (e.g.) the `--index-url` argument is a provided `requirements.txt`.
 #[test]
 fn run_requirements_txt_arguments() -> Result<()> {

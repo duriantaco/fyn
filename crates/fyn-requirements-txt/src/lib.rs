@@ -275,20 +275,6 @@ impl RequirementsTxt {
 
             #[cfg(feature = "http")]
             {
-                // Avoid constructing a client if network is disabled already
-                if client_builder.is_offline() {
-                    return Err(RequirementsTxtFileError {
-                        file: requirements_txt.to_path_buf(),
-                        error: RequirementsTxtParserError::Io(io::Error::new(
-                            io::ErrorKind::InvalidInput,
-                            format!(
-                                "Network connectivity is disabled, but a remote requirements file was requested: {}",
-                                requirements_txt.display()
-                            ),
-                        )),
-                    });
-                }
-
                 let path_utf8 =
                     requirements_txt
                         .to_str()
@@ -304,6 +290,20 @@ impl RequirementsTxt {
                         error: RequirementsTxtParserError::InvalidUrl(path_utf8.to_string(), err),
                     }
                 })?;
+
+                // Avoid constructing a client if network is disabled already
+                if client_builder.is_offline() {
+                    return Err(RequirementsTxtFileError {
+                        file: requirements_txt.to_path_buf(),
+                        error: RequirementsTxtParserError::Io(io::Error::new(
+                            io::ErrorKind::InvalidInput,
+                            format!(
+                                "Network connectivity is disabled, but a remote requirements file was requested: {url}"
+                            ),
+                        )),
+                    });
+                }
+
                 let client = client_builder
                     .build()
                     .map_err(|err| RequirementsTxtFileError {
