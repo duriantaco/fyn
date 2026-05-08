@@ -298,8 +298,7 @@ impl RequirementsTxt {
                         error: RequirementsTxtParserError::Io(io::Error::new(
                             io::ErrorKind::InvalidInput,
                             format!(
-                                "Network connectivity is disabled, but a remote requirements file was requested: {}",
-                                url
+                                "Network connectivity is disabled, but a remote requirements file was requested: {url}"
                             ),
                         )),
                     });
