@@ -33,8 +33,8 @@ use fyn_python::{
 };
 use fyn_static::EnvVars;
 
-// Exclude any packages uploaded after this date.
-static EXCLUDE_NEWER: &str = "2024-03-25T00:00:00Z";
+// Shared test timestamp for deterministic package availability and relative times.
+static TEST_TIMESTAMP: &str = "2024-03-25T00:00:00Z";
 
 pub const PACKSE_VERSION: &str = "0.3.59";
 pub const DEFAULT_PYTHON_VERSION: &str = "3.12";
@@ -1222,9 +1222,9 @@ impl TestContext {
             // Installations are not allowed by default; see `Self::with_managed_python_dirs`
             .env(EnvVars::UV_PYTHON_DOWNLOADS, "never")
             .env(EnvVars::UV_TEST_PYTHON_PATH, self.python_path())
-            // Lock to a point in time view of the world
-            .env(EnvVars::UV_EXCLUDE_NEWER, EXCLUDE_NEWER)
-            .env(EnvVars::UV_TEST_CURRENT_TIMESTAMP, EXCLUDE_NEWER)
+            .env(EnvVars::UV_EXCLUDE_NEWER, TEST_TIMESTAMP)
+            .env(EnvVars::UV_TEST_CURRENT_TIMESTAMP, TEST_TIMESTAMP)
+            .env(EnvVars::UV_TEST_AVAILABLE_VERSION_CUTOFF, TEST_TIMESTAMP)
             // When installations are allowed, we don't want to write to global state, like the
             // Windows registry
             .env(EnvVars::UV_PYTHON_INSTALL_REGISTRY, "0")
