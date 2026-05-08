@@ -34971,7 +34971,7 @@ fn lock_frozen_warning() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    warning: The lockfile at `fyn.lock` was only checked for validity, not whether it is up-to-date, because `UV_FROZEN=1` was provided; use `--no-frozen` or `--check` instead
+    warning: The lockfile at `fyn.lock` was only checked for validity, not whether it is up-to-date, because `UV_FROZEN=1` was provided; use `--check` instead
     ");
 
     Ok(())

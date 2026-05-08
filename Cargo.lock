@@ -2602,6 +2602,7 @@ version = "0.0.35"
 dependencies = [
  "fyn-redacted",
  "fyn-static",
+ "percent-encoding",
  "serde",
  "thiserror 2.0.18",
  "tracing",
