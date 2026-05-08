@@ -1704,6 +1704,86 @@ fn install_editable() {
 }
 
 #[test]
+fn install_no_editable() {
+    let context = fyn_test::test_context!("3.12");
+    let package = context.workspace_root.join("test/packages/executable_file");
+
+    fyn_snapshot!(context.filters(), context.pip_install()
+        .arg("-e")
+        .arg(&package)
+        .arg("--no-editable"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + executable-file==1.0.0 (from file://[WORKSPACE]/test/packages/executable_file)
+    "
+    );
+
+    let path = context.site_packages().join("executable_file.pth");
+    assert!(!path.exists());
+}
+
+#[test]
+fn install_no_editable_requirements_txt() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let package = context.workspace_root.join("test/packages/executable_file");
+
+    let requirements_txt = context.temp_dir.child("requirements.txt");
+    requirements_txt.write_str(&format!("-e {}", package.simplified_display()))?;
+
+    fyn_snapshot!(context.filters(), context.pip_install()
+        .arg("-r")
+        .arg("requirements.txt")
+        .arg("--no-editable"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + executable-file==1.0.0 (from file://[WORKSPACE]/test/packages/executable_file)
+    "
+    );
+
+    let path = context.site_packages().join("executable_file.pth");
+    assert!(!path.exists());
+
+    Ok(())
+}
+
+#[test]
+fn install_no_editable_env_var() {
+    let context = fyn_test::test_context!("3.12");
+    let package = context.workspace_root.join("test/packages/executable_file");
+
+    fyn_snapshot!(context.filters(), context.pip_install()
+        .env(EnvVars::UV_NO_EDITABLE, "1")
+        .arg("-e")
+        .arg(&package), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + executable-file==1.0.0 (from file://[WORKSPACE]/test/packages/executable_file)
+    "
+    );
+
+    let path = context.site_packages().join("executable_file.pth");
+    assert!(!path.exists());
+}
+
+#[test]
 fn install_editable_and_registry() {
     let context = fyn_test::test_context!("3.12");
 
@@ -2930,7 +3010,7 @@ fn install_git_private_https_interactive() {
 
     // The path to a git binary may be arbitrary, filter and replace
     // The trailing space is load bearing, as to not match on false positives
-    let filters: Vec<_> = [("\\/([[:alnum:]]*\\/)*git ", "/usr/bin/git ")]
+    let filters: Vec<_> = [(r"/([^/\s]+/)*git ", "/usr/bin/git ")]
         .into_iter()
         .chain(context.filters())
         .collect();
@@ -3447,7 +3527,8 @@ fn only_binary_editable_setup_py() {
 /// don't propagate the `--prerelease` flag to the source distribution build regardless.
 #[test]
 fn no_prerelease_hint_source_builds() -> Result<()> {
-    let context = fyn_test::test_context!("3.12").with_exclude_newer("2018-10-08");
+    // Use an explicit UTC timestamp so the snapshot is stable across host time zones.
+    let context = fyn_test::test_context!("3.12").with_exclude_newer("2018-10-09T00:00:00Z");
 
     let pyproject_toml = context.temp_dir.child("pyproject.toml");
     pyproject_toml.write_str(indoc! {r#"
@@ -3468,11 +3549,21 @@ fn no_prerelease_hint_source_builds() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 1 package in [TIME]
       × Failed to build `project @ file://[TEMP_DIR]/`
       ├─▶ Failed to resolve requirements from `setup.py` build
       ├─▶ No solution found when resolving: `setuptools>=40.8.0`
       ╰─▶ Because only setuptools<=40.4.3 is available and you require setuptools>=40.8.0, we can conclude that your requirements are unsatisfiable.
+
+          hint: `setuptools` was filtered by `exclude-newer` to only include packages uploaded before 2018-10-09T00:00:00Z. The latest version satisfying the requirement is v69.2.0, published at 2024-03-13T11:20:54.103Z. Consider using `exclude-newer-package` to override the cutoff for this package.
     "
     );
 

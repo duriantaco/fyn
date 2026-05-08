@@ -166,6 +166,7 @@ pub(crate) async fn pip_upgrade(
         Vec::new(),
         Vec::new(),
         Vec::new(),
+        None,
         &extras,
         &GroupsSpecification::default(),
         resolution,
