@@ -27,8 +27,8 @@ use fyn_cli::{
     AuthorFrom, BuildArgs, ExportArgs, FormatArgs, PublishArgs, PythonDirArgs,
     ResolverInstallerArgs, ToolUpgradeArgs,
     options::{
-        Flag, FlagSource, check_conflicts, flag, resolve_flag, resolver_installer_options,
-        resolver_options,
+        Flag, FlagSource, check_conflicts, flag, resolve_flag, resolve_flag_pair,
+        resolver_installer_options, resolver_options,
     },
 };
 use fyn_client::Connectivity;
@@ -190,15 +190,13 @@ fn resolve_python_preference(
     environment: &EnvironmentOptions,
 ) -> PythonPreference {
     // Resolve flags from CLI and environment variables.
-    let managed_python = resolve_flag(
+    let (managed_python, no_managed_python) = resolve_flag_pair(
         args.managed_python,
-        "managed-python",
-        environment.managed_python,
-    );
-    let no_managed_python = resolve_flag(
         args.no_managed_python,
+        "managed-python",
         "no-managed-python",
-        environment.no_managed_python,
+        Some(environment.managed_python),
+        Some(environment.no_managed_python),
     );
 
     // Check for conflicts between managed_python and python_preference.
@@ -640,10 +638,22 @@ impl RunSettings {
         // Check for conflicts between locked and frozen.
         check_conflicts(locked, frozen);
 
-        let dev = dev || environment.dev.value == Some(true);
-        let no_dev = no_dev || environment.no_dev.value == Some(true);
-
-        let no_editable = no_editable || environment.no_editable.value == Some(true);
+        let (dev, no_dev) = resolve_flag_pair(
+            dev,
+            no_dev,
+            "dev",
+            "no-dev",
+            Some(environment.dev),
+            Some(environment.no_dev),
+        );
+        let (editable, no_editable) = resolve_flag_pair(
+            editable,
+            no_editable,
+            "editable",
+            "no-editable",
+            None,
+            Some(environment.no_editable),
+        );
         let isolated = isolated || environment.isolated.value == Some(true);
         let show_resolution = show_resolution || environment.show_resolution.value == Some(true);
         let no_env_file = no_env_file || environment.no_env_file.value == Some(true);
@@ -661,8 +671,8 @@ impl RunSettings {
                 flag(all_extras, no_all_extras, "all-extras").unwrap_or_default(),
             ),
             groups: DependencyGroups::from_args(
-                dev,
-                no_dev,
+                dev.into(),
+                no_dev.into(),
                 only_dev,
                 group,
                 no_group,
@@ -670,7 +680,7 @@ impl RunSettings {
                 only_group,
                 all_groups,
             ),
-            editable: flag(editable, no_editable, "editable").map(EditableMode::from),
+            editable: flag(editable.into(), no_editable.into(), "editable").map(EditableMode::from),
             modifications: if flag(exact, inexact, "inexact").unwrap_or(false) {
                 Modifications::Exact
             } else {
@@ -1714,9 +1724,22 @@ impl SyncSettings {
         // Check for conflicts between locked and frozen.
         check_conflicts(locked, frozen);
 
-        let dev = dev || environment.dev.value == Some(true);
-        let no_dev = no_dev || environment.no_dev.value == Some(true);
-        let no_editable = no_editable || environment.no_editable.value == Some(true);
+        let (dev, no_dev) = resolve_flag_pair(
+            dev,
+            no_dev,
+            "dev",
+            "no-dev",
+            Some(environment.dev),
+            Some(environment.no_dev),
+        );
+        let (editable, no_editable) = resolve_flag_pair(
+            editable,
+            no_editable,
+            "editable",
+            "no-editable",
+            None,
+            Some(environment.no_editable),
+        );
 
         Self {
             output_format,
@@ -1735,8 +1758,8 @@ impl SyncSettings {
                 flag(all_extras, no_all_extras, "all-extras").unwrap_or_default(),
             ),
             groups: DependencyGroups::from_args(
-                dev,
-                no_dev,
+                dev.into(),
+                no_dev.into(),
                 only_dev,
                 group,
                 no_group,
@@ -1744,7 +1767,7 @@ impl SyncSettings {
                 only_group,
                 all_groups,
             ),
-            editable: flag(editable, no_editable, "editable").map(EditableMode::from),
+            editable: flag(editable.into(), no_editable.into(), "editable").map(EditableMode::from),
             install_options: InstallOptions::new(
                 no_install_project,
                 only_install_project,
@@ -1926,7 +1949,14 @@ impl AddSettings {
 
         // Resolve flags from CLI and environment variables.
         let dev = dev || environment.dev.value == Some(true);
-        let no_editable = no_editable || environment.no_editable.value == Some(true);
+        let (editable, no_editable) = resolve_flag_pair(
+            editable,
+            no_editable,
+            "editable",
+            "no-editable",
+            None,
+            Some(environment.no_editable),
+        );
 
         let dependency_type = if let Some(extra) = optional {
             DependencyType::Optional(extra)
@@ -2048,7 +2078,7 @@ impl AddSettings {
             only_install_local,
             no_install_package,
             only_install_package,
-            editable: flag(editable, no_editable, "editable"),
+            editable: flag(editable.into(), no_editable.into(), "editable"),
             extras: extra.unwrap_or_default(),
             refresh: Refresh::from(refresh),
             indexes,
@@ -2309,13 +2339,19 @@ impl TreeSettings {
         // Check for conflicts between locked and frozen.
         check_conflicts(locked, frozen);
 
-        let dev = dev || environment.dev.value == Some(true);
-        let no_dev = no_dev || environment.no_dev.value == Some(true);
+        let (dev, no_dev) = resolve_flag_pair(
+            dev,
+            no_dev,
+            "dev",
+            "no-dev",
+            Some(environment.dev),
+            Some(environment.no_dev),
+        );
 
         Self {
             groups: DependencyGroups::from_args(
-                dev,
-                no_dev,
+                dev.into(),
+                no_dev.into(),
                 only_dev,
                 group,
                 no_group,
@@ -2431,9 +2467,22 @@ impl ExportSettings {
         // Check for conflicts between locked and frozen.
         check_conflicts(locked, frozen);
 
-        let dev = dev || environment.dev.value == Some(true);
-        let no_dev = no_dev || environment.no_dev.value == Some(true);
-        let no_editable = no_editable || environment.no_editable.value == Some(true);
+        let (dev, no_dev) = resolve_flag_pair(
+            dev,
+            no_dev,
+            "dev",
+            "no-dev",
+            Some(environment.dev),
+            Some(environment.no_dev),
+        );
+        let (editable, no_editable) = resolve_flag_pair(
+            editable,
+            no_editable,
+            "editable",
+            "no-editable",
+            None,
+            Some(environment.no_editable),
+        );
 
         Self {
             format,
@@ -2450,8 +2499,8 @@ impl ExportSettings {
                 flag(all_extras, no_all_extras, "all-extras").unwrap_or_default(),
             ),
             groups: DependencyGroups::from_args(
-                dev,
-                no_dev,
+                dev.into(),
+                no_dev.into(),
                 only_dev,
                 group,
                 no_group,
@@ -2459,7 +2508,7 @@ impl ExportSettings {
                 only_group,
                 all_groups,
             ),
-            editable: flag(editable, no_editable, "editable").map(EditableMode::from),
+            editable: flag(editable.into(), no_editable.into(), "editable").map(EditableMode::from),
             hashes: flag(hashes, no_hashes, "hashes").unwrap_or(true),
             install_options: InstallOptions::new(
                 no_emit_project,
@@ -4066,20 +4115,34 @@ impl VenvSettings {
 
         // Resolve flags from CLI and environment variables.
         let seed = seed || environment.venv_seed.value == Some(true);
-        let clear = clear || environment.venv_clear.value == Some(true);
-        let relocatable = relocatable || environment.venv_relocatable.value == Some(true);
+        let (clear, no_clear) = resolve_flag_pair(
+            clear,
+            no_clear,
+            "clear",
+            "no-clear",
+            Some(environment.venv_clear),
+            None,
+        );
+        let (relocatable, no_relocatable) = resolve_flag_pair(
+            relocatable,
+            no_relocatable,
+            "relocatable",
+            "no-relocatable",
+            Some(environment.venv_relocatable),
+            None,
+        );
 
         Self {
             seed,
             allow_existing,
-            clear,
-            no_clear,
+            clear: clear.into(),
+            no_clear: no_clear.into(),
             path,
             prompt,
             system_site_packages,
             no_project,
-            relocatable,
-            no_relocatable,
+            relocatable: relocatable.into(),
+            no_relocatable: no_relocatable.into(),
             refresh: Refresh::from(refresh),
             settings: PipSettings::combine(
                 PipOptions {

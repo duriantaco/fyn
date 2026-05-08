@@ -19,6 +19,7 @@ workspace = true
 fyn-redacted = { workspace = true }
 fyn-static = { workspace = true }
 
+percent-encoding = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
