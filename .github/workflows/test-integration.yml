@@ -459,6 +459,40 @@ jobs:
         run: |
           ./fyn pip install anyio
 
+  integration-test-python-install-wine:
+    name: "python install under wine"
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    env:
+      WINEARCH: win64
+      WINEDEBUG: -all
+      WINEPREFIX: /home/runner/fyn-wine-prefix
+
+    steps:
+      - name: "Install Wine"
+        run: |
+          echo 'Acquire::Retries "3";' | sudo tee /etc/apt/apt.conf.d/80-retries > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends wine wine64
+
+      - name: "Download binary"
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: fyn-windows-x86_64-${{ inputs.sha }}
+
+      - name: "Initialize Wine"
+        run: |
+          wine --version
+          wineboot --init
+
+      - name: "Install Python"
+        # Regression test for https://github.com/astral-sh/uv/issues/19187.
+        run: |
+          mkdir -p "$RUNNER_TEMP/fyn-cache" "$RUNNER_TEMP/fyn-python"
+          export UV_CACHE_DIR="$(winepath -w "$RUNNER_TEMP/fyn-cache")"
+          export UV_PYTHON_INSTALL_DIR="$(winepath -w "$RUNNER_TEMP/fyn-python")"
+          wine ./fyn.exe python install -v --no-registry --no-bin 3.12.13
+
   integration-test-pypy-windows-x86_64:
     name: "pypy on windows"
     timeout-minutes: 10
