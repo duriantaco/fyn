@@ -242,7 +242,7 @@ async fn do_uninstall(
     }
     // For each uninstalled installation, check if there are no remaining installations
     // for its minor version. If there are none remaining, remove the symlink directory
-    // (or junction on Windows) if it exists.
+    // (or directory link on Windows) if it exists.
     for installation in &matching_installations {
         if !remaining_minor_versions.contains_key(installation.minor_version_key()) {
             if let Some(minor_version_link) =
@@ -261,7 +261,7 @@ async fn do_uninstall(
                         ));
                     }
                     let symlink_term = if cfg!(windows) {
-                        "junction"
+                        "directory link"
                     } else {
                         "symlink directory"
                     };

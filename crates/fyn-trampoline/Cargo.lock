@@ -16,7 +16,7 @@ checksum = "94cdc65b1cf9e871453ce2f86f5aaec24ff2eaa36a1fa3e02e441dddc3613b99"
 
 [[package]]
 name = "fyn-macros"
-version = "0.0.33"
+version = "0.0.35"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -26,7 +26,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-static"
-version = "0.0.33"
+version = "0.0.35"
 dependencies = [
  "fyn-macros",
  "thiserror",
@@ -47,7 +47,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-windows"
-version = "0.0.33"
+version = "0.0.35"
 dependencies = [
  "windows",
 ]
