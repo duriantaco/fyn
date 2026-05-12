@@ -210,6 +210,59 @@ fn uninstall_record_path_traversal() -> Result<()> {
     Ok(())
 }
 
+/// Egg `top_level.txt` entries must be top-level names, not paths.
+#[test]
+fn uninstall_egg_info_top_level_path_traversal() -> Result<()> {
+    let context = fyn_test::test_context!("3.12")
+        .with_filter((r"(\.\./)+traversal_target", "[..]/traversal_target"));
+
+    let site_packages = ChildPath::new(context.site_packages());
+
+    let egg_info = site_packages.child("evilpkg-0.1.0.egg-info");
+    egg_info.create_dir_all()?;
+
+    let target_dir = context.venv.child("traversal_target");
+    target_dir.create_dir_all()?;
+    let target_file = target_dir.child("secret.txt");
+    target_file.write_str("I should not be deleted")?;
+
+    let depth = context
+        .site_packages()
+        .strip_prefix(context.venv.path())?
+        .components()
+        .count();
+    let traversal_entry = format!("{}traversal_target", "../".repeat(depth));
+    assert!(context.site_packages().join(&traversal_entry).exists());
+
+    egg_info
+        .child("top_level.txt")
+        .write_str(&format!("evilpkg\n{traversal_entry}\n"))?;
+
+    let package_dir = site_packages.child("evilpkg");
+    package_dir.create_dir_all()?;
+    let init_py = package_dir.child("__init__.py");
+    init_py.touch()?;
+
+    fyn_snapshot!(context.filters(), context.pip_uninstall()
+        .arg("evilpkg"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    warning: Invalid `top_level.txt` entry in evilpkg==0.1.0 that is not a top-level module or package, skipping: [..]/traversal_target
+    Uninstalled 1 package in [TIME]
+     - evilpkg==0.1.0
+    ");
+
+    assert!(target_dir.exists());
+    assert!(target_file.exists());
+    assert!(!init_py.exists());
+    assert!(!egg_info.exists());
+
+    Ok(())
+}
+
 #[test]
 #[cfg(feature = "test-pypi")]
 fn missing_record() -> Result<()> {
