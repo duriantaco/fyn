@@ -98,13 +98,14 @@ workspace root: /home/user/example
 pyproject.toml: yes
 fyn.lock: yes
 pip-in-project: warn
+project environment: /home/user/example/.venv
 environment: /home/user/example/.venv
 python: /home/user/example/.venv/bin/python3 (3.12.0)
 ```
 
 Use `fyn status --check` to fail fast in CI or editor integrations. In managed projects, it also
-reports missing environments and `.python-version` pins that do not satisfy `requires-python`, and
-prints matching `hint:` lines with the next command to run.
+reports missing or mismatched project environments and `.python-version` pins that do not satisfy
+`requires-python`, and prints matching `hint:` lines with the next command to run.
 
 Use `fyn upgrade` to refresh all dependencies or only the packages you name:
 

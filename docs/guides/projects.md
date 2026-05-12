@@ -188,12 +188,14 @@ workspace root: /path/to/project
 pyproject.toml: yes
 fyn.lock: yes
 pip-in-project: warn
+project environment: /path/to/project/.venv
 environment: /path/to/project/.venv
 python: /path/to/project/.venv/bin/python3 (3.12.0)
 ```
 
 This is useful when you want to confirm whether you're inside a managed project, whether the
-lockfile is present, and which environment and Python interpreter fyn is currently using.
+lockfile is present, which project environment fyn expects, and which environment and Python
+interpreter fyn is currently using.
 
 For automation, use `--check` to fail when obvious project checks do not pass:
 
@@ -206,10 +208,10 @@ hint: Run `fyn sync` or `fyn venv` to create the project environment.
 ```
 
 `--check` fails if you are not inside a managed project. In managed projects, it also fails if
-`pyproject.toml`, `fyn.lock`, or the project environment is missing, or if the discovered
-`.python-version` pin does not satisfy the project's `requires-python`. Text output includes
-`issue:` and `hint:` lines, while `--json` exposes the same data via `check.issues` and
-`check.hints`.
+`pyproject.toml`, `fyn.lock`, or the project environment is missing, if the active environment does
+not match the project environment, or if the discovered `.python-version` pin does not satisfy the
+project's `requires-python`. Text output includes `issue:` and `hint:` lines, while `--json` exposes
+the same data via `check.issues` and `check.hints`.
 
 For editor integrations, scripts, or CI tooling, use JSON output:
 
