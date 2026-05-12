@@ -158,7 +158,8 @@ pub fn uninstall_wheel(
     })
 }
 
-static WARNED_FOR_PACKAGE: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+static WARNED_FOR_RECORD_ENTRY_PACKAGE: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+static WARNED_FOR_EGG_TOP_LEVEL_PACKAGE: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
 
 /// Warn and reject paths that are not part of the install scheme.
 fn is_path_in_scheme(
@@ -177,7 +178,7 @@ fn is_path_in_scheme(
     {
         true
     } else {
-        if WARNED_FOR_PACKAGE
+        if WARNED_FOR_RECORD_ENTRY_PACKAGE
             .get_or_init(|| Mutex::new(HashSet::new()))
             .lock()
             .expect("the warning mutex should not be poisoned")
@@ -193,14 +194,39 @@ fn is_path_in_scheme(
     }
 }
 
+/// Check that a `top_level.txt` entry names a single top-level module or package.
+///
+/// Unlike wheel `RECORD` entries, egg `top_level.txt` entries refer to direct children of the
+/// egg's base location, not arbitrary paths. Treating them as paths can make uninstall delete
+/// directories outside `site-packages`.
+fn is_valid_top_level_entry(entry: &str, distribution: impl Display) -> bool {
+    if is_safe_top_level_entry(entry) {
+        true
+    } else {
+        if WARNED_FOR_EGG_TOP_LEVEL_PACKAGE
+            .get_or_init(|| Mutex::new(HashSet::new()))
+            .lock()
+            .expect("the warning mutex should not be poisoned")
+            .insert(distribution.to_string())
+        {
+            warn_user!(
+                "Invalid `top_level.txt` entry in {} that is not a top-level module or package, skipping: {}",
+                distribution,
+                entry
+            );
+        }
+        false
+    }
+}
+
+fn is_safe_top_level_entry(entry: &str) -> bool {
+    !entry.is_empty() && entry != "." && entry != ".." && !entry.contains(['/', '\\'])
+}
+
 /// Uninstall the egg represented by the `.egg-info` directory.
 ///
 /// See: <https://github.com/pypa/pip/blob/41587f5e0017bcd849f42b314dc8a34a7db75621/src/pip/_internal/req/req_uninstall.py#L483>
-pub fn uninstall_egg(
-    egg_info: &Path,
-    distribution: impl Display,
-    layout: &Layout,
-) -> Result<Uninstall, Error> {
+pub fn uninstall_egg(egg_info: &Path, distribution: impl Display) -> Result<Uninstall, Error> {
     let mut file_count = 0usize;
     let mut dir_count = 0usize;
 
@@ -251,11 +277,11 @@ pub fn uninstall_egg(
 
     // Remove everything in `top_level.txt`.
     for entry in top_level {
-        let path = dist_location.join(&entry);
-
-        if !is_path_in_scheme(&entry, dist_location, &distribution, layout) {
+        if !is_valid_top_level_entry(&entry, &distribution) {
             continue;
         }
+
+        let path = dist_location.join(&entry);
 
         // Remove as a directory.
         match fs_err::remove_dir_all(&path) {
@@ -418,7 +444,19 @@ mod tests {
     use fyn_pypi_types::Scheme;
 
     use crate::Layout;
-    use crate::uninstall::{uninstall_egg, uninstall_wheel};
+    use crate::uninstall::{is_safe_top_level_entry, uninstall_egg, uninstall_wheel};
+
+    #[test]
+    fn test_top_level_entry_safe_name() {
+        assert!(is_safe_top_level_entry("package"));
+
+        assert!(!is_safe_top_level_entry(""));
+        assert!(!is_safe_top_level_entry("."));
+        assert!(!is_safe_top_level_entry(".."));
+        assert!(!is_safe_top_level_entry("../package"));
+        assert!(!is_safe_top_level_entry("package/name"));
+        assert!(!is_safe_top_level_entry(r"package\name"));
+    }
 
     #[test]
     fn uninstall_record_path_traversal() {
@@ -474,9 +512,7 @@ mod tests {
     fn uninstall_egg_info_path_traversal() {
         let venv = assert_fs::TempDir::new().unwrap();
         let site_packages = venv.child("lib/python3.12/site-packages");
-        let outside_dir = assert_fs::TempDir::new().unwrap();
-
-        let target_dir = outside_dir.child("traversal_target");
+        let target_dir = venv.child("traversal_target");
         let target_file = target_dir.child("secret.txt");
         target_file.write_str("I should not be deleted").unwrap();
 
@@ -493,20 +529,7 @@ mod tests {
         let init_py = site_packages.child("evilpkg").child("__init__.py");
         init_py.touch().unwrap();
 
-        let layout = Layout {
-            sys_executable: venv.path().join("bin/python"),
-            python_version: (3, 13),
-            os_name: "posix".to_string(),
-            scheme: Scheme {
-                purelib: site_packages.to_path_buf(),
-                platlib: site_packages.to_path_buf(),
-                scripts: venv.path().join("bin"),
-                data: venv.path().to_path_buf(),
-                include: venv.path().join("include/python3.12"),
-            },
-        };
-
-        uninstall_egg(egg_info.path(), "evilpkg 0.1.0", &layout).unwrap();
+        uninstall_egg(egg_info.path(), "evilpkg 0.1.0").unwrap();
 
         assert!(target_dir.exists());
         assert!(target_file.exists());
@@ -530,20 +553,7 @@ mod tests {
         egg_info.create_dir_all().unwrap();
         egg_info.child("top_level.txt").write_str("\n").unwrap();
 
-        let layout = Layout {
-            sys_executable: venv.path().join("bin/python"),
-            python_version: (3, 13),
-            os_name: "posix".to_string(),
-            scheme: Scheme {
-                purelib: site_packages.to_path_buf(),
-                platlib: site_packages.to_path_buf(),
-                scripts: venv.path().join("bin"),
-                data: venv.path().to_path_buf(),
-                include: venv.path().join("include/python3.12"),
-            },
-        };
-
-        uninstall_egg(egg_info.path(), "emptypkg 0.1.0", &layout).unwrap();
+        uninstall_egg(egg_info.path(), "emptypkg 0.1.0").unwrap();
 
         assert!(!egg_info.exists());
         assert!(
@@ -579,20 +589,7 @@ mod tests {
             .write_str("\npkg_a\n   \r\npkg_b\n\n")
             .unwrap();
 
-        let layout = Layout {
-            sys_executable: venv.path().join("bin/python"),
-            python_version: (3, 13),
-            os_name: "posix".to_string(),
-            scheme: Scheme {
-                purelib: site_packages.to_path_buf(),
-                platlib: site_packages.to_path_buf(),
-                scripts: venv.path().join("bin"),
-                data: venv.path().to_path_buf(),
-                include: venv.path().join("include/python3.12"),
-            },
-        };
-
-        uninstall_egg(egg_info.path(), "mixedpkg 0.1.0", &layout).unwrap();
+        uninstall_egg(egg_info.path(), "mixedpkg 0.1.0").unwrap();
 
         assert!(!egg_info.exists());
         assert!(!pkg_a_init.exists(), "pkg_a must be removed");

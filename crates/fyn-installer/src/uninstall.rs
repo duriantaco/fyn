@@ -16,7 +16,6 @@ pub async fn uninstall(
             InstalledDistKind::EggInfoDirectory(_) => Ok(fyn_install_wheel::uninstall_egg(
                 dist.install_path(),
                 &dist,
-                &layout,
             )?),
             InstalledDistKind::LegacyEditable(dist) => Ok(
                 fyn_install_wheel::uninstall_legacy_editable(&dist.egg_link)?,
