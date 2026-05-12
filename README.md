@@ -181,13 +181,15 @@ workspace root: /home/user/example
 pyproject.toml: yes
 fyn.lock: yes
 pip-in-project: warn
+project environment: /home/user/example/.venv
 environment: /home/user/example/.venv
 python: /home/user/example/.venv/bin/python3 (3.12.0)
 ```
 
 Use `--check` to fail when obvious project checks do not pass, or `--json` for scripting and editor
-integrations. In managed projects, `--check` also reports missing environments and `.python-version`
-pins that do not satisfy `requires-python`, and prints `hint:` lines with the suggested fix.
+integrations. In managed projects, `--check` also reports missing or mismatched project environments
+and `.python-version` pins that do not satisfy `requires-python`, and prints `hint:` lines with the
+suggested fix.
 
 ```console
 $ fyn status --check

@@ -1,4 +1,5 @@
 use anyhow::Result;
+use assert_cmd::assert::OutputAssertExt;
 use assert_fs::prelude::*;
 
 use fyn_static::EnvVars;
@@ -28,6 +29,7 @@ fn status_in_managed_project() -> Result<()> {
     pyproject.toml: yes
     fyn.lock: yes
     pip-in-project: warn
+    project environment: [VENV]/
     environment: [VENV]/
     python: [VENV]/bin/python3 (3.12.[X])
 
@@ -92,6 +94,10 @@ fn status_json_in_managed_project() -> Result<()> {
       "pyproject_toml": true,
       "fyn_lock": true,
       "pip_in_project": "warn",
+      "project_environment": {
+        "path": "[VENV]/",
+        "found": true
+      },
       "environment": {
         "path": "[VENV]/",
         "python": "[VENV]/bin/python3",
@@ -167,6 +173,7 @@ fn status_check_in_managed_project() -> Result<()> {
     pyproject.toml: yes
     fyn.lock: yes
     pip-in-project: warn
+    project environment: [VENV]/
     environment: [VENV]/
     python: [VENV]/bin/python3 (3.12.[X])
     check: ok
@@ -233,6 +240,7 @@ fn status_check_missing_lock() -> Result<()> {
     pyproject.toml: yes
     fyn.lock: no
     pip-in-project: warn
+    project environment: [VENV]/
     environment: [VENV]/
     python: [VENV]/bin/python3 (3.12.[X])
     check: failed
@@ -318,6 +326,7 @@ fn status_check_compatible_python_pin() -> Result<()> {
     pyproject.toml: yes
     fyn.lock: yes
     pip-in-project: warn
+    project environment: [VENV]/
     environment: [VENV]/
     python: [VENV]/bin/python3 (3.11.[X])
     check: ok
@@ -361,6 +370,7 @@ fn status_check_incompatible_python_pin() -> Result<()> {
     pyproject.toml: yes
     fyn.lock: yes
     pip-in-project: warn
+    project environment: [VENV]/
     environment: [VENV]/
     python: [VENV]/bin/python3 (3.11.[X])
     check: failed
@@ -405,11 +415,108 @@ fn status_check_missing_environment() -> Result<()> {
     pyproject.toml: yes
     fyn.lock: yes
     pip-in-project: warn
+    project environment: [VENV]/ (not found)
     environment: not found
     python: not found
     check: failed
     issue: environment not found
     hint: Run `fyn sync` or `fyn venv` to create the project environment.
+
+    ----- stderr -----
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn status_check_missing_project_environment_with_active_environment() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc::indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+    "#})?;
+    context.temp_dir.child("fyn.lock").touch()?;
+
+    fyn_snapshot!(
+        context.filters(),
+        context
+            .command()
+            .env(EnvVars::UV_PROJECT_ENVIRONMENT, "project-env")
+            .arg("status")
+            .arg("--check"),
+        @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+    current directory: [TEMP_DIR]/
+    project directory: [TEMP_DIR]/
+    managed project: yes
+    workspace root: [TEMP_DIR]/
+    pyproject.toml: yes
+    fyn.lock: yes
+    pip-in-project: warn
+    project environment: [TEMP_DIR]/project-env (not found)
+    environment: [VENV]/
+    python: [VENV]/bin/python3 (3.12.[X])
+    check: failed
+    issue: project environment not found
+    hint: Run `fyn sync` or `fyn venv` to create the project environment.
+
+    ----- stderr -----
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn status_check_active_environment_mismatch() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc::indoc! {r#"
+        [project]
+        name = "example"
+        version = "0.1.0"
+    "#})?;
+    context.temp_dir.child("fyn.lock").touch()?;
+
+    context
+        .venv()
+        .env(EnvVars::UV_PROJECT_ENVIRONMENT, "project-env")
+        .assert()
+        .success();
+
+    fyn_snapshot!(
+        context.filters(),
+        context
+            .command()
+            .env(EnvVars::UV_PROJECT_ENVIRONMENT, "project-env")
+            .arg("status")
+            .arg("--check"),
+        @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+    current directory: [TEMP_DIR]/
+    project directory: [TEMP_DIR]/
+    managed project: yes
+    workspace root: [TEMP_DIR]/
+    pyproject.toml: yes
+    fyn.lock: yes
+    pip-in-project: warn
+    project environment: [TEMP_DIR]/project-env
+    environment: [VENV]/
+    python: [VENV]/bin/python3 (3.12.[X])
+    check: failed
+    issue: active environment does not match project environment
+    hint: Run `fyn shell` to activate the project environment, or unset `VIRTUAL_ENV` before running fyn.
 
     ----- stderr -----
     "
@@ -451,6 +558,10 @@ fn status_json_check_incompatible_python_pin() -> Result<()> {
       "pyproject_toml": true,
       "fyn_lock": true,
       "pip_in_project": "warn",
+      "project_environment": {
+        "path": "[VENV]/",
+        "found": true
+      },
       "environment": {
         "path": "[VENV]/",
         "python": "[VENV]/bin/python3",

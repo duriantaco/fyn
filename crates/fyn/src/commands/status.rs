@@ -48,6 +48,12 @@ struct StatusEnvironment {
 }
 
 #[derive(Serialize)]
+struct StatusProjectEnvironment {
+    path: String,
+    found: bool,
+}
+
+#[derive(Serialize)]
 struct StatusCheck {
     passed: bool,
     issues: Vec<String>,
@@ -64,6 +70,8 @@ struct StatusReport {
     pyproject_toml: bool,
     fyn_lock: bool,
     pip_in_project: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    project_environment: Option<StatusProjectEnvironment>,
     environment: Option<StatusEnvironment>,
     #[serde(skip_serializing_if = "Option::is_none")]
     check: Option<StatusCheck>,
@@ -75,6 +83,8 @@ struct StatusIssueInputs {
     pyproject_toml: bool,
     fyn_lock: bool,
     environment_found: bool,
+    project_environment_found: Option<bool>,
+    environment_matches_project: Option<bool>,
 }
 
 fn status_issues(inputs: StatusIssueInputs) -> Vec<String> {
@@ -91,6 +101,10 @@ fn status_issues(inputs: StatusIssueInputs) -> Vec<String> {
     }
     if !inputs.environment_found {
         issues.push("environment not found".to_string());
+    } else if matches!(inputs.project_environment_found, Some(false)) {
+        issues.push("project environment not found".to_string());
+    } else if matches!(inputs.environment_matches_project, Some(false)) {
+        issues.push("active environment does not match project environment".to_string());
     }
     issues
 }
@@ -111,6 +125,13 @@ fn status_hint(issue: &str) -> Option<String> {
         "environment not found" => {
             Some("Run `fyn sync` or `fyn venv` to create the project environment.".to_string())
         }
+        "project environment not found" => {
+            Some("Run `fyn sync` or `fyn venv` to create the project environment.".to_string())
+        }
+        "active environment does not match project environment" => Some(
+            "Run `fyn shell` to activate the project environment, or unset `VIRTUAL_ENV` before running fyn."
+                .to_string(),
+        ),
         _ if issue.starts_with("The pinned Python version `") => {
             Some("Run `fyn python pin` to update the pinned Python version.".to_string())
         }
@@ -248,6 +269,22 @@ pub(crate) async fn status(
         .map(|workspace| workspace.install_path().simplified_display().to_string());
     let pyproject_toml = root.join("pyproject.toml").is_file();
     let fyn_lock = root.join("fyn.lock").is_file();
+    let project_environment_path = workspace
+        .as_ref()
+        .map(|workspace| workspace.venv(Some(false)));
+    let project_environment = project_environment_path
+        .as_ref()
+        .and_then(|path| PythonEnvironment::from_root(path, cache).ok());
+    let environment = environment.or_else(|| project_environment.clone());
+    let project_environment_found = project_environment_path
+        .as_ref()
+        .map(|_| project_environment.is_some());
+    let environment_matches_project = environment.as_ref().zip(project_environment.as_ref()).map(
+        |(environment, project_environment)| {
+            fyn_fs::is_same_file_allow_missing(environment.root(), project_environment.root())
+                .unwrap_or(false)
+        },
+    );
     let virtual_project = if check && managed_project {
         match VirtualProject::discover(project_dir, &DiscoveryOptions::default(), workspace_cache)
             .await
@@ -267,6 +304,8 @@ pub(crate) async fn status(
             pyproject_toml,
             fyn_lock,
             environment_found: environment.is_some(),
+            project_environment_found,
+            environment_matches_project,
         });
         issues.extend(
             python_pin_issues(
@@ -294,6 +333,13 @@ pub(crate) async fn status(
         pyproject_toml,
         fyn_lock,
         pip_in_project: policy_name(pip_in_project_policy(filesystem)),
+        project_environment: project_environment_path
+            .as_ref()
+            .zip(project_environment_found)
+            .map(|(path, found)| StatusProjectEnvironment {
+                path: path.simplified_display().to_string(),
+                found,
+            }),
         environment: environment.as_ref().map(|environment| StatusEnvironment {
             path: environment.root().simplified_display().to_string(),
             python: environment
@@ -361,6 +407,22 @@ pub(crate) async fn status(
         "pip-in-project: {}",
         report.pip_in_project.cyan()
     )?;
+    if let Some(project_environment) = report.project_environment.as_ref() {
+        if project_environment.found {
+            writeln!(
+                printer.stdout(),
+                "project environment: {}",
+                project_environment.path.cyan()
+            )?;
+        } else {
+            writeln!(
+                printer.stdout(),
+                "project environment: {} ({})",
+                project_environment.path.cyan(),
+                "not found".dimmed()
+            )?;
+        }
+    }
 
     if let Some(environment) = report.environment {
         writeln!(printer.stdout(), "environment: {}", environment.path.cyan())?;
