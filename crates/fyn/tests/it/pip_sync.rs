@@ -1306,6 +1306,54 @@ fn install_local_wheel() -> Result<()> {
     Ok(())
 }
 
+/// Reject decoded path separators in an unnamed wheel URL before using the filename in cache paths.
+#[test]
+fn install_unnamed_wheel_url_rejects_path_traversal() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let requirements_txt = context.temp_dir.child("requirements.txt");
+    requirements_txt
+        .write_str("https://example.com/packages/pkg-1.0-py3-none-..%2F..%2F..%2Ftarget.whl")?;
+
+    fyn_snapshot!(context.filters(), context.pip_sync()
+        .arg("requirements.txt")
+        .arg("--strict"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: The wheel filename \"pkg-1.0-py3-none-../../../target.whl\" is invalid: Tag components must contain only ASCII letters, digits, underscores, and periods
+    "
+    );
+
+    Ok(())
+}
+
+/// Reject decoded stream separators in an unnamed wheel URL before using the filename in cache paths.
+#[test]
+fn install_unnamed_wheel_url_rejects_stream_separator() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let requirements_txt = context.temp_dir.child("requirements.txt");
+    requirements_txt
+        .write_str("https://example.com/packages/pkg-1.0-py3-none-target%3Astream.whl")?;
+
+    fyn_snapshot!(context.filters(), context.pip_sync()
+        .arg("requirements.txt")
+        .arg("--strict"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: The wheel filename \"pkg-1.0-py3-none-target:stream.whl\" is invalid: Tag components must contain only ASCII letters, digits, underscores, and periods
+    "
+    );
+
+    Ok(())
+}
+
 /// Install a wheel whose actual version doesn't match the version encoded in the filename.
 #[test]
 fn mismatched_version() -> Result<()> {
@@ -5975,6 +6023,60 @@ fn pep_751() -> Result<()> {
      - idna==3.6
      + iniconfig==2.0.0
      - sniffio==1.3.1
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn pep_751_require_hashes_directory() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("foo").child("pyproject.toml");
+    pyproject_toml.write_str(
+        r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+        "#,
+    )?;
+    context
+        .temp_dir
+        .child("foo")
+        .child("src")
+        .child("foo")
+        .child("__init__.py")
+        .touch()?;
+
+    let pylock_toml = context.temp_dir.child("pylock.toml");
+    pylock_toml.write_str(
+        r#"
+        lock-version = "1.0"
+        created-by = "fyn"
+        requires-python = ">=3.12"
+
+        [[packages]]
+        name = "foo"
+        version = "1.0.0"
+        directory = { path = "foo" }
+        "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context.pip_sync()
+        .arg("--preview")
+        .arg("pylock.toml")
+        .arg("--require-hashes"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: In `--require-hashes` mode, all requirements must have a hash, but none were provided for: foo
     "
     );
 

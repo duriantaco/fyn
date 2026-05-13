@@ -5,6 +5,8 @@ use std::{fmt, io};
 
 use thiserror::Error;
 
+use crate::ParseReleaseArchError;
+
 #[derive(Error, Debug)]
 pub enum PlatformError {
     #[error(transparent)]
@@ -17,6 +19,12 @@ pub enum PlatformError {
     InvalidIosSimulatorArch(Arch),
     #[error("Invalid iOS device architecture: {0}")]
     InvalidIosDeviceArch(Arch),
+    #[error("Invalid release and architecture suffix: {release_arch}")]
+    InvalidReleaseArch {
+        release_arch: String,
+        #[source]
+        error: ParseReleaseArchError,
+    },
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

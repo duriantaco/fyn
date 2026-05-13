@@ -2597,6 +2597,22 @@ impl<'a, T: BuildContext> SourceDistributionBuilder<'a, T> {
     ) -> Result<Option<ResolutionMetadata>, Error> {
         debug!("Preparing metadata for: {source}");
 
+        let source_name = source.name();
+        if self
+            .build_context
+            .build_options()
+            .no_build_requirement(source_name)
+            // Editable requirements without a known name need metadata to apply
+            // package-specific build settings; named editables must respect `--no-build`.
+            && !(source_name.is_none() && source.is_editable())
+        {
+            return if let Some(name) = source_name {
+                Err(Error::NoBuildPackage(name.clone()))
+            } else {
+                Err(Error::NoBuild)
+            };
+        }
+
         // Ensure that the _installed_ Python version is compatible with the `requires-python`
         // specifier.
         if let Some(requires_python) = source.requires_python() {
