@@ -2708,6 +2708,7 @@ pub(crate) struct PipCompileSettings {
     pub(crate) excludes_from_workspace: Vec<PackageName>,
     pub(crate) build_constraints_from_workspace: Vec<Requirement>,
     pub(crate) environments: SupportedEnvironments,
+    pub(crate) required_environments: SupportedEnvironments,
     pub(crate) refresh: Refresh,
     pub(crate) settings: PipSettings,
 }
@@ -2830,6 +2831,15 @@ impl PipCompileSettings {
             SupportedEnvironments::default()
         };
 
+        let required_environments = if let Some(configuration) = &filesystem {
+            configuration
+                .required_environments
+                .clone()
+                .unwrap_or_default()
+        } else {
+            SupportedEnvironments::default()
+        };
+
         Self {
             format,
             src_file,
@@ -2854,6 +2864,7 @@ impl PipCompileSettings {
             excludes_from_workspace,
             build_constraints_from_workspace,
             environments,
+            required_environments,
             refresh: Refresh::from(refresh),
             settings: PipSettings::combine(
                 PipOptions {

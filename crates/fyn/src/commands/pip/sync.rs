@@ -448,7 +448,11 @@ pub(crate) async fn pip_sync(
             &tags,
             &build_options,
         )?;
-        let hasher = HashStrategy::from_resolution(&resolution, HashCheckingMode::Verify)?;
+        let hasher = if let Some(hash_checking) = hash_checking {
+            HashStrategy::from_resolution(&resolution, hash_checking)?
+        } else {
+            HashStrategy::None
+        };
 
         (resolution, hasher)
     } else {

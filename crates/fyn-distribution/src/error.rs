@@ -38,6 +38,8 @@ impl fmt::Display for PythonVersion {
 pub enum Error {
     #[error("Building source distributions is disabled")]
     NoBuild,
+    #[error("Building source distributions for `{0}` is disabled")]
+    NoBuildPackage(PackageName),
 
     // Network error
     #[error(transparent)]
