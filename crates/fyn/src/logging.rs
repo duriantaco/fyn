@@ -13,7 +13,7 @@ use tracing_tree::HierarchicalLayer;
 use tracing_tree::time::Uptime;
 
 use fyn_cli::ColorChoice;
-use fyn_logging::UvFormat;
+use fyn_logging::{UvFormat, fyn_fields};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Level {
@@ -106,6 +106,7 @@ pub(crate) fn setup_logging(
             .with(
                 tracing_subscriber::fmt::layer()
                     .event_format(UvFormat::default())
+                    .fmt_fields(fyn_fields())
                     .with_writer(writer)
                     .with_ansi(ansi)
                     .with_filter(filter),

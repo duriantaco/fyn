@@ -2728,6 +2728,7 @@ dependencies = [
 name = "fyn-logging"
 version = "0.0.35"
 dependencies = [
+ "anstream 1.0.0",
  "jiff",
  "owo-colors",
  "tracing",
