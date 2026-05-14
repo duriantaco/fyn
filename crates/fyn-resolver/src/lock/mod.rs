@@ -7156,4 +7156,69 @@ sdist = { url = "https://example.com/typing-extensions-4.10.0.tar.gz", hash = "s
             vec!["base".to_string(), "typing-extensions".to_string()]
         );
     }
+
+    #[test]
+    fn why_display_for_package_filters_target_version() {
+        let lock: Lock = toml::from_str(
+            r#"
+version = 1
+requires-python = ">=3.12"
+
+[manifest]
+members = ["project"]
+
+[[package]]
+name = "project"
+version = "0.1.0"
+source = { editable = "" }
+dependencies = [
+    { name = "alpha", version = "1.0.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "beta", version = "1.0.0", source = { registry = "https://pypi.org/simple" } },
+]
+
+[[package]]
+name = "alpha"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [{ name = "shared", version = "1.0.0", source = { registry = "https://pypi.org/simple" } }]
+sdist = { url = "https://example.com/alpha-1.0.0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 0 }
+
+[[package]]
+name = "beta"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [{ name = "shared", version = "2.0.0", source = { registry = "https://pypi.org/simple" } }]
+sdist = { url = "https://example.com/beta-1.0.0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 0 }
+
+[[package]]
+name = "shared"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://example.com/shared-1.0.0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 0 }
+
+[[package]]
+name = "shared"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://example.com/shared-2.0.0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 0 }
+"#,
+        )
+        .unwrap();
+
+        let groups = DependencyGroups::default().with_defaults(DefaultGroups::List(vec![]));
+        let target = PackageName::from_str("shared").unwrap();
+        let version = Version::from_str("1.0.0").unwrap();
+
+        let display = WhyDisplay::for_package(&lock, None, &target, &version, usize::MAX, &groups);
+        let paths = display
+            .paths()
+            .iter()
+            .map(String::as_str)
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            paths,
+            vec!["project v0.1.0 -> alpha v1.0.0 -> shared v1.0.0"]
+        );
+    }
 }

@@ -2682,6 +2682,7 @@ pub(crate) struct AuditSettings {
     pub(crate) settings: ResolverSettings,
     pub(crate) service_format: VulnerabilityServiceFormat,
     pub(crate) service_url: Option<String>,
+    pub(crate) explain: bool,
     pub(crate) ignore: Vec<VulnerabilityID>,
     pub(crate) ignore_until_fixed: Vec<VulnerabilityID>,
 }
@@ -2709,6 +2710,7 @@ impl AuditSettings {
             script: _,
             python_version,
             python_platform,
+            explain,
             locked,
             frozen,
             build,
@@ -2768,6 +2770,7 @@ impl AuditSettings {
             settings: ResolverSettings::combine(resolver_options(resolver, build), filesystem),
             service_format,
             service_url,
+            explain,
             ignore: {
                 let AuditOptions {
                     ignore: config_ignore,

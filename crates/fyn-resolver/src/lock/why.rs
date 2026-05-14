@@ -7,6 +7,7 @@ use rustc_hash::{FxBuildHasher, FxHashMap, FxHashSet};
 use fyn_configuration::DependencyGroupsWithDefaults;
 use fyn_distribution_types::Requirement;
 use fyn_normalize::{ExtraName, GroupName, PackageName};
+use fyn_pep440::Version;
 use fyn_pep508::MarkerTree;
 use fyn_pypi_types::ResolverMarkerEnvironment;
 
@@ -15,6 +16,7 @@ use crate::lock::{Dependency, Lock, Package, PackageId};
 #[derive(Debug)]
 pub struct WhyDisplay {
     target: PackageName,
+    target_version: Option<Version>,
     paths: Vec<String>,
 }
 
@@ -24,6 +26,29 @@ impl WhyDisplay {
         lock: &Lock,
         markers: Option<&ResolverMarkerEnvironment>,
         target: &PackageName,
+        depth: usize,
+        groups: &DependencyGroupsWithDefaults,
+    ) -> Self {
+        Self::from_target(lock, markers, target, None, depth, groups)
+    }
+
+    /// Explain why the target package version is included in the project dependency graph.
+    pub fn for_package(
+        lock: &Lock,
+        markers: Option<&ResolverMarkerEnvironment>,
+        target: &PackageName,
+        target_version: &Version,
+        depth: usize,
+        groups: &DependencyGroupsWithDefaults,
+    ) -> Self {
+        Self::from_target(lock, markers, target, Some(target_version), depth, groups)
+    }
+
+    fn from_target(
+        lock: &Lock,
+        markers: Option<&ResolverMarkerEnvironment>,
+        target: &PackageName,
+        target_version: Option<&Version>,
         depth: usize,
         groups: &DependencyGroupsWithDefaults,
     ) -> Self {
@@ -52,6 +77,7 @@ impl WhyDisplay {
 
         let mut display = Self {
             target: target.clone(),
+            target_version: target_version.cloned(),
             paths: Vec::new(),
         };
         let mut paths = BTreeSet::new();
@@ -141,6 +167,10 @@ impl WhyDisplay {
         self.paths.is_empty()
     }
 
+    pub fn paths(&self) -> &[String] {
+        &self.paths
+    }
+
     #[allow(clippy::too_many_arguments)]
     fn visit<'lock>(
         &self,
@@ -160,7 +190,12 @@ impl WhyDisplay {
             return;
         }
 
-        if package.name() == &self.target {
+        if package.name() == &self.target
+            && self
+                .target_version
+                .as_ref()
+                .is_none_or(|version| package.version() == Some(version))
+        {
             paths.insert(format_path(path));
             seen.remove(&package.id);
             return;
