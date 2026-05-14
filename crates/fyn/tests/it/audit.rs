@@ -3,9 +3,73 @@ use assert_fs::prelude::*;
 use indoc::indoc;
 use serde_json::json;
 use wiremock::matchers::{method, path};
-use wiremock::{Mock, MockServer, ResponseTemplate};
+use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
 use fyn_test::fyn_snapshot;
+
+async fn mock_osv_vulnerability(
+    server: &MockServer,
+    package: &str,
+    id: &str,
+    summary: &str,
+    fixed: Option<&str>,
+) {
+    let package = package.to_string();
+    let id = id.to_string();
+
+    Mock::given(method("POST"))
+        .and(path("/v1/querybatch"))
+        .respond_with({
+            let package = package.clone();
+            let id = id.clone();
+            move |req: &Request| {
+                let body: serde_json::Value =
+                    serde_json::from_slice(&req.body).expect("querybatch request is valid JSON");
+                let results = body["queries"]
+                    .as_array()
+                    .expect("querybatch request contains queries")
+                    .iter()
+                    .map(|query| {
+                        if query["package"]["name"].as_str() == Some(package.as_str()) {
+                            json!({"vulns": [{"id": id}]})
+                        } else {
+                            json!({"vulns": []})
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                ResponseTemplate::new(200).set_body_json(json!({ "results": results }))
+            }
+        })
+        .mount(server)
+        .await;
+
+    let affected = fixed.map(|fixed| {
+        json!([{
+            "ranges": [{
+                "type": "ECOSYSTEM",
+                "events": [
+                    {"introduced": "0"},
+                    {"fixed": fixed}
+                ]
+            }]
+        }])
+    });
+
+    let mut body = json!({
+        "id": id,
+        "modified": "2026-01-01T00:00:00Z",
+        "summary": summary,
+    });
+    if let Some(affected) = affected {
+        body["affected"] = affected;
+    }
+
+    Mock::given(method("GET"))
+        .and(path(format!("/v1/vulns/{id}")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(body))
+        .mount(server)
+        .await;
+}
 
 #[tokio::test]
 async fn audit_service_url_override() {
@@ -228,6 +292,200 @@ async fn audit_ignore_by_id() {
 
     ----- stderr -----
     Found no known vulnerabilities and no adverse project statuses in 1 package
+    ");
+}
+
+#[tokio::test]
+async fn audit_explain_direct_vulnerability() {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml
+        .write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["iniconfig==2.0.0"]
+    "#})
+        .unwrap();
+
+    context.lock().assert().success();
+
+    let server = MockServer::start().await;
+    mock_osv_vulnerability(
+        &server,
+        "iniconfig",
+        "PYSEC-2023-0001",
+        "A test vulnerability in iniconfig",
+        Some("2.1.0"),
+    )
+    .await;
+
+    fyn_snapshot!(context.filters(), context
+        .audit()
+        .arg("--frozen")
+        .arg("--preview")
+        .arg("--explain")
+        .arg("--service-url")
+        .arg(server.uri()), @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+
+    Vulnerabilities:
+
+    iniconfig 2.0.0 has 1 known vulnerability:
+
+    - PYSEC-2023-0001: A test vulnerability in iniconfig
+
+      Included because:
+      project v0.1.0 -> iniconfig v2.0.0
+
+      Fixed in: 2.1.0
+
+      Advisory information: https://osv.dev/vulnerability/PYSEC-2023-0001
+
+
+    ----- stderr -----
+    Found 1 known vulnerability and no adverse project statuses in 1 package
+    ");
+}
+
+#[tokio::test]
+async fn audit_explain_transitive_vulnerability() {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml
+        .write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["anyio==4.3.0"]
+    "#})
+        .unwrap();
+
+    context.lock().assert().success();
+
+    let server = MockServer::start().await;
+    mock_osv_vulnerability(
+        &server,
+        "sniffio",
+        "PYSEC-2023-0002",
+        "A test vulnerability in sniffio",
+        None,
+    )
+    .await;
+
+    fyn_snapshot!(context.filters(), context
+        .audit()
+        .arg("--frozen")
+        .arg("--preview")
+        .arg("--explain")
+        .arg("--service-url")
+        .arg(server.uri()), @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+
+    Vulnerabilities:
+
+    sniffio 1.3.1 has 1 known vulnerability:
+
+    - PYSEC-2023-0002: A test vulnerability in sniffio
+
+      Included because:
+      project v0.1.0 -> anyio v4.3.0 -> sniffio v1.3.1
+
+      No fix versions available
+
+      Advisory information: https://osv.dev/vulnerability/PYSEC-2023-0002
+
+
+    ----- stderr -----
+    Found 1 known vulnerability and no adverse project statuses in 3 packages
+    ");
+}
+
+#[tokio::test]
+async fn audit_explain_script_vulnerability() {
+    let context = fyn_test::test_context!("3.12");
+
+    let script = context.temp_dir.child("script.py");
+    script
+        .write_str(indoc! {r#"
+        # /// script
+        # requires-python = ">=3.12"
+        # dependencies = [
+        #   "iniconfig==2.0.0",
+        # ]
+        # ///
+        import iniconfig
+    "#})
+        .unwrap();
+
+    let lockfile = context.temp_dir.child("script.py.lock");
+    lockfile
+        .write_str(indoc! {r#"
+        version = 1
+        revision = 3
+        requires-python = ">=3.12"
+
+        [manifest]
+        requirements = [{ name = "iniconfig", specifier = "==2.0.0" }]
+
+        [[package]]
+        name = "iniconfig"
+        version = "2.0.0"
+        source = { registry = "https://pypi.org/simple" }
+        sdist = { url = "https://files.pythonhosted.org/packages/d7/4b/cbd8e699e64a6f16ca3a8220661b5f83792b3017d0f79807cb8708d33913/iniconfig-2.0.0.tar.gz", hash = "sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3", size = 4646, upload-time = "2023-01-07T12:52:09.585Z" }
+        wheels = [
+            { url = "https://files.pythonhosted.org/packages/ef/a6/62565a6e1cf69e10f5727360368e451d4b7f58beebd3ce04b132a8bf3491/iniconfig-2.0.0-py3-none-any.whl", hash = "sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374", size = 5892, upload-time = "2023-01-07T12:52:07.538Z" },
+        ]
+    "#})
+        .unwrap();
+
+    let server = MockServer::start().await;
+    mock_osv_vulnerability(
+        &server,
+        "iniconfig",
+        "PYSEC-2023-0001",
+        "A test vulnerability in iniconfig",
+        Some("2.1.0"),
+    )
+    .await;
+
+    fyn_snapshot!(context.filters(), context
+        .audit()
+        .arg("--frozen")
+        .arg("--preview")
+        .arg("--explain")
+        .arg("--script")
+        .arg("script.py")
+        .arg("--service-url")
+        .arg(server.uri()), @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+
+    Vulnerabilities:
+
+    iniconfig 2.0.0 has 1 known vulnerability:
+
+    - PYSEC-2023-0001: A test vulnerability in iniconfig
+
+      Included because:
+      iniconfig v2.0.0
+
+      Fixed in: 2.1.0
+
+      Advisory information: https://osv.dev/vulnerability/PYSEC-2023-0001
+
+
+    ----- stderr -----
+    Found 1 known vulnerability and no adverse project statuses in 1 package
     ");
 }
 

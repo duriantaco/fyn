@@ -6536,6 +6536,10 @@ pub struct AuditArgs {
     #[arg(long)]
     pub python_platform: Option<TargetTriple>,
 
+    /// Show dependency paths for audit findings.
+    #[arg(long)]
+    pub explain: bool,
+
     /// A vulnerability ID to ignore during auditing.
     ///
     /// May be provided multiple times.

@@ -1,7 +1,9 @@
-use itertools::Itertools as _;
-use owo_colors::OwoColorize;
+use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::path::Path;
+
+use itertools::Itertools as _;
+use owo_colors::OwoColorize;
 
 use crate::commands::ExitStatus;
 use crate::commands::diagnostics;
@@ -23,11 +25,15 @@ use fyn_audit::service::{VulnerabilityServiceFormat, osv};
 use fyn_audit::types::{Dependency, Finding, VulnerabilityID};
 use fyn_cache::Cache;
 use fyn_client::BaseClientBuilder;
-use fyn_configuration::{Concurrency, DependencyGroups, ExtrasSpecification, TargetTriple};
-use fyn_normalize::{DefaultExtras, DefaultGroups};
+use fyn_configuration::{
+    Concurrency, DependencyGroups, DependencyGroupsWithDefaults, ExtrasSpecification, TargetTriple,
+};
+use fyn_normalize::{DefaultExtras, DefaultGroups, PackageName};
+use fyn_pep440::Version;
 use fyn_preview::{Preview, PreviewFeature};
 use fyn_python::{PythonDownloads, PythonPreference, PythonVersion};
 use fyn_redacted::DisplaySafeUrl;
+use fyn_resolver::{Lock, WhyDisplay};
 use fyn_scripts::Pep723Script;
 use fyn_settings::PythonInstallMirrors;
 use fyn_warnings::warn_user;
@@ -56,6 +62,7 @@ pub(crate) async fn audit(
     preview: Preview,
     service: VulnerabilityServiceFormat,
     service_url: Option<String>,
+    explain: bool,
     ignore: Vec<VulnerabilityID>,
     ignore_until_fixed: Vec<VulnerabilityID>,
 ) -> Result<ExitStatus> {
@@ -204,7 +211,7 @@ pub(crate) async fn audit(
     target.validate_groups(&groups)?;
 
     // Determine the markers to use for resolution.
-    let _markers = (!universal).then(|| {
+    let markers = (!universal).then(|| {
         resolution_markers(
             python_version.as_ref(),
             python_platform.as_ref(),
@@ -273,18 +280,60 @@ pub(crate) async fn audit(
         }
     }
 
+    let explanations = if explain {
+        audit_explanations(&lock, markers.as_ref(), &groups, &all_findings)
+    } else {
+        BTreeMap::new()
+    };
+
     let display = AuditResults {
         printer,
         n_packages: auditable.len(),
         findings: all_findings,
+        explanations,
     };
     display.render()
+}
+
+fn audit_explanations(
+    lock: &Lock,
+    markers: Option<&fyn_pypi_types::ResolverMarkerEnvironment>,
+    groups: &DependencyGroupsWithDefaults,
+    findings: &[Finding],
+) -> BTreeMap<(PackageName, Version), Vec<String>> {
+    let mut explanations = BTreeMap::new();
+
+    for finding in findings {
+        let Finding::Vulnerability(vulnerability) = finding else {
+            continue;
+        };
+
+        let key = (
+            vulnerability.dependency.name().clone(),
+            vulnerability.dependency.version().clone(),
+        );
+        explanations.entry(key).or_insert_with(|| {
+            WhyDisplay::for_package(
+                lock,
+                markers,
+                vulnerability.dependency.name(),
+                vulnerability.dependency.version(),
+                usize::MAX,
+                groups,
+            )
+            .paths()
+            .to_vec()
+        });
+    }
+
+    explanations
 }
 
 struct AuditResults {
     printer: Printer,
     n_packages: usize,
     findings: Vec<Finding>,
+    explanations: BTreeMap<(PackageName, Version), Vec<String>>,
 }
 
 impl AuditResults {
@@ -359,6 +408,23 @@ impl AuditResults {
                         id = vuln.best_id().as_str().bold(),
                         description = vuln.summary.as_deref().unwrap_or("No summary provided"),
                     )?;
+
+                    if let Some(paths) = self.explanations.get(&(
+                        vuln.dependency.name().clone(),
+                        vuln.dependency.version().clone(),
+                    )) {
+                        if paths.is_empty() {
+                            writeln!(
+                                self.printer.stdout_important(),
+                                "\n  Dependency path unavailable for the selected audit view"
+                            )?;
+                        } else {
+                            writeln!(self.printer.stdout_important(), "\n  Included because:")?;
+                            for path in paths {
+                                writeln!(self.printer.stdout_important(), "  {path}")?;
+                            }
+                        }
+                    }
 
                     if vuln.fix_versions.is_empty() {
                         writeln!(
