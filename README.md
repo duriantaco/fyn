@@ -16,6 +16,7 @@ reduced package-index request metadata, added features, and long-standing bug fi
 - Built-in [task runner](#task-runner) — define and run project tasks in `pyproject.toml`.
 - [Activates virtual environments](#shell-activation) with `fyn shell`.
 - [Upgrades dependencies](#upgrade-dependencies) in one command with `fyn upgrade`.
+- Explains dependency paths with `fyn why <package>`.
 - [Runs scripts](#scripts), with support for inline dependency metadata.
 - [Installs and manages](#python-versions) Python versions.
 - [Runs and installs](#tools) tools published as Python packages.
@@ -167,6 +168,20 @@ success: Dependencies upgraded successfully.
 Supports `--dry-run` and `--no-sync`.
 
 `fyn upgrade` is the convenience form of running `fyn lock --upgrade` and then `fyn sync`.
+
+### Explain dependencies
+
+Show the project dependency paths that include a package:
+
+```console
+$ fyn why numpy
+numpy is included because:
+project v0.1.0 -> pandas v2.2.1 -> numpy v1.26.4
+project v0.1.0 -> scikit-learn v1.4.1.post1 -> scipy v1.12.0 -> numpy v1.26.4
+```
+
+Use `--universal` to ignore the current platform and Python version, or the dependency group flags
+such as `--group`, `--only-group`, and `--no-dev` to explain the selected project view.
 
 ### Project status
 
@@ -415,6 +430,7 @@ comparison, or the table below for some of the larger user-visible differences:
 | Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                            |
 | `shell` command               | No `uv shell`                         | `fyn shell`                                   |
 | `upgrade` command             | No `uv upgrade`                       | `fyn upgrade`                                 |
+| `why` command                 | No `uv why`                           | `fyn why`                                     |
 | `status` command              | No `uv status`                        | `fyn status`                                  |
 | `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`                            |
 | Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project`: `warn`, `error`, or `allow` |

@@ -11,7 +11,7 @@ fn help() {
     success: true
     exit_code: 0
     ----- stdout -----
-    An extremely fast Python package manager.
+    An extremely fast Python package and project manager.
 
     Usage: fyn [OPTIONS] <COMMAND>
 
@@ -27,6 +27,7 @@ fn help() {
       upgrade                    Upgrade project dependencies
       export                     Export the project's lockfile to an alternate format
       tree                       Display the project's dependency tree
+      why                        Explain why a package is included in the project
       format                     Format Python code in the project
       audit                      Audit the project's dependencies
       tool                       Run and install commands provided by Python packages
@@ -97,7 +98,7 @@ fn help_flag() {
     success: true
     exit_code: 0
     ----- stdout -----
-    An extremely fast Python package manager.
+    An extremely fast Python package and project manager.
 
     Usage: fyn [OPTIONS] <COMMAND>
 
@@ -113,6 +114,7 @@ fn help_flag() {
       upgrade  Upgrade project dependencies
       export   Export the project's lockfile to an alternate format
       tree     Display the project's dependency tree
+      why      Explain why a package is included in the project
       format   Format Python code in the project
       audit    Audit the project's dependencies
       tool     Run and install commands provided by Python packages
@@ -181,7 +183,7 @@ fn help_short_flag() {
     success: true
     exit_code: 0
     ----- stdout -----
-    An extremely fast Python package manager.
+    An extremely fast Python package and project manager.
 
     Usage: fyn [OPTIONS] <COMMAND>
 
@@ -197,6 +199,7 @@ fn help_short_flag() {
       upgrade  Upgrade project dependencies
       export   Export the project's lockfile to an alternate format
       tree     Display the project's dependency tree
+      why      Explain why a package is included in the project
       format   Format Python code in the project
       audit    Audit the project's dependencies
       tool     Run and install commands provided by Python packages
@@ -974,6 +977,7 @@ fn help_unknown_subcommand() {
         upgrade
         export
         tree
+        why
         format
         audit
         tool
@@ -1008,6 +1012,7 @@ fn help_unknown_subcommand() {
         upgrade
         export
         tree
+        why
         format
         audit
         tool
@@ -1043,6 +1048,7 @@ fn help_unknown_subsubcommand() {
         pin
         dir
         uninstall
+        install-shim
         update-shell
     ");
 }
@@ -1055,7 +1061,7 @@ fn help_with_global_option() {
     success: true
     exit_code: 0
     ----- stdout -----
-    An extremely fast Python package manager.
+    An extremely fast Python package and project manager.
 
     Usage: fyn [OPTIONS] <COMMAND>
 
@@ -1071,6 +1077,7 @@ fn help_with_global_option() {
       upgrade                    Upgrade project dependencies
       export                     Export the project's lockfile to an alternate format
       tree                       Display the project's dependency tree
+      why                        Explain why a package is included in the project
       format                     Format Python code in the project
       audit                      Audit the project's dependencies
       tool                       Run and install commands provided by Python packages
@@ -1182,7 +1189,7 @@ fn help_with_no_pager() {
     success: true
     exit_code: 0
     ----- stdout -----
-    An extremely fast Python package manager.
+    An extremely fast Python package and project manager.
 
     Usage: fyn [OPTIONS] <COMMAND>
 
@@ -1198,6 +1205,7 @@ fn help_with_no_pager() {
       upgrade                    Upgrade project dependencies
       export                     Export the project's lockfile to an alternate format
       tree                       Display the project's dependency tree
+      why                        Explain why a package is included in the project
       format                     Format Python code in the project
       audit                      Audit the project's dependencies
       tool                       Run and install commands provided by Python packages

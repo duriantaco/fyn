@@ -174,3 +174,6 @@ mod workspace;
 mod workspace_dir;
 mod workspace_list;
 mod workspace_metadata;
+
+#[cfg(all(feature = "test-python", feature = "test-pypi"))]
+mod why;

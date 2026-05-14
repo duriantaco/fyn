@@ -1662,6 +1662,14 @@ impl TestContext {
         command
     }
 
+    /// Create a `fyn why` command with options shared across scenarios.
+    pub fn why(&self) -> Command {
+        let mut command = self.new_command();
+        command.arg("why");
+        self.add_shared_options(&mut command, false);
+        command
+    }
+
     /// Create a `fyn cache clean` command.
     pub fn clean(&self) -> Command {
         let mut command = self.new_command();

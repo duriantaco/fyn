@@ -62,6 +62,7 @@ pub use crate::lock::export::{PylockToml, PylockTomlErrorKind, cyclonedx_json};
 pub use crate::lock::installable::Installable;
 pub use crate::lock::map::PackageMap;
 pub use crate::lock::tree::TreeDisplay;
+pub use crate::lock::why::WhyDisplay;
 use crate::resolution::{AnnotatedDist, ResolutionGraphNode};
 use crate::universal_marker::{ConflictMarker, UniversalMarker};
 use crate::{
@@ -73,6 +74,7 @@ mod export;
 mod installable;
 mod map;
 mod tree;
+mod why;
 
 /// The current version of the lockfile format.
 pub const VERSION: u32 = 1;

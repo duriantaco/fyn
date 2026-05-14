@@ -44,6 +44,7 @@ Creating and working on Python projects, i.e., with a `pyproject.toml`.
 - `fyn status`: Inspect the current project and environment state, and surface actionable health
   checks.
 - `fyn tree`: View the dependency tree for the project.
+- `fyn why`: Explain why a package is included in the project dependency graph.
 - `fyn build`: Build the project into distribution archives.
 - `fyn publish`: Publish the project to a package index.
 

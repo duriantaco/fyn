@@ -21,7 +21,7 @@ use fyn_cli::{
     PythonInstallArgs, PythonListArgs, PythonListFormat, PythonPinArgs, PythonUninstallArgs,
     PythonUpgradeArgs, RemoveArgs, RunArgs, SyncArgs, SyncFormat, ToolDirArgs, ToolInstallArgs,
     ToolListArgs, ToolRunArgs, ToolUninstallArgs, TreeArgs, VenvArgs, VersionArgs, VersionBumpSpec,
-    VersionFormat,
+    VersionFormat, WhyArgs,
 };
 use fyn_cli::{
     AuthorFrom, BuildArgs, ExportArgs, FormatArgs, PublishArgs, PythonDirArgs,
@@ -2369,6 +2369,103 @@ impl TreeSettings {
             invert: tree.invert,
             outdated: tree.outdated,
             show_sizes: tree.show_sizes,
+            script,
+            python_version,
+            python_platform,
+            python: python.and_then(Maybe::into_option),
+            resolver: ResolverSettings::combine(resolver_options(resolver, build), filesystem),
+            install_mirrors: environment
+                .install_mirrors
+                .combine(filesystem_install_mirrors),
+        }
+    }
+}
+
+/// The resolved settings to use for a `why` invocation.
+#[expect(clippy::struct_excessive_bools)]
+#[derive(Debug, Clone)]
+pub(crate) struct WhySettings {
+    pub(crate) package: PackageName,
+    pub(crate) groups: DependencyGroups,
+    pub(crate) lock_check: LockCheck,
+    pub(crate) frozen: Option<FrozenSource>,
+    pub(crate) universal: bool,
+    pub(crate) depth: u8,
+    #[allow(dead_code)]
+    pub(crate) script: Option<PathBuf>,
+    pub(crate) python_version: Option<PythonVersion>,
+    pub(crate) python_platform: Option<TargetTriple>,
+    pub(crate) python: Option<String>,
+    pub(crate) install_mirrors: PythonInstallMirrors,
+    pub(crate) resolver: ResolverSettings,
+}
+
+impl WhySettings {
+    /// Resolve the [`WhySettings`] from the CLI and workspace configuration.
+    pub(crate) fn resolve(
+        args: WhyArgs,
+        filesystem: Option<FilesystemOptions>,
+        environment: EnvironmentOptions,
+    ) -> Self {
+        let WhyArgs {
+            package,
+            universal,
+            depth,
+            dev,
+            only_dev,
+            no_dev,
+            group,
+            no_group,
+            no_default_groups,
+            only_group,
+            all_groups,
+            locked,
+            frozen,
+            build,
+            resolver,
+            script,
+            python_version,
+            python_platform,
+            python,
+        } = args;
+
+        let filesystem_install_mirrors = filesystem
+            .clone()
+            .map(|fs| fs.install_mirrors.clone())
+            .unwrap_or_default();
+
+        // Resolve flags from CLI and environment variables.
+        let locked = resolve_flag(locked, "locked", environment.locked);
+        let frozen = resolve_flag(frozen, "frozen", environment.frozen);
+
+        // Check for conflicts between locked and frozen.
+        check_conflicts(locked, frozen);
+
+        let (dev, no_dev) = resolve_flag_pair(
+            dev,
+            no_dev,
+            "dev",
+            "no-dev",
+            Some(environment.dev),
+            Some(environment.no_dev),
+        );
+
+        Self {
+            package,
+            groups: DependencyGroups::from_args(
+                dev.into(),
+                no_dev.into(),
+                only_dev,
+                group,
+                no_group,
+                no_default_groups,
+                only_group,
+                all_groups,
+            ),
+            lock_check: resolve_lock_check(locked),
+            frozen: resolve_frozen(frozen),
+            universal,
+            depth,
             script,
             python_version,
             python_platform,
