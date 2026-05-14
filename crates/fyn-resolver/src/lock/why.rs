@@ -315,6 +315,7 @@ impl Edge<'_> {
     }
 }
 
+#[derive(Clone, Copy)]
 enum EdgeKind<'lock> {
     Prod,
     Optional(&'lock ExtraName),

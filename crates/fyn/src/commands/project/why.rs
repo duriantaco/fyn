@@ -30,7 +30,6 @@ use crate::settings::LockCheck;
 use crate::settings::ResolverSettings;
 
 /// Run a command.
-#[expect(clippy::fn_params_excessive_bools)]
 pub(crate) async fn why(
     project_dir: &Path,
     package: PackageName,

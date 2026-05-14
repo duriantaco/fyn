@@ -2382,7 +2382,6 @@ impl TreeSettings {
 }
 
 /// The resolved settings to use for a `why` invocation.
-#[expect(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone)]
 pub(crate) struct WhySettings {
     pub(crate) package: PackageName,
