@@ -114,6 +114,14 @@ $ fyn upgrade
 $ fyn upgrade requests flask
 ```
 
+Use `fyn why` to explain the dependency paths that include a package:
+
+```console
+$ fyn why numpy
+numpy is included because:
+project v0.1.0 -> pandas v2.2.1 -> numpy v1.26.4
+```
+
 Use `fyn shell` to open a new shell with the project environment activated:
 
 ```console

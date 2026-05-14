@@ -372,6 +372,10 @@ async fn run(mut cli: Cli) -> Result<ExitStatus> {
                 script: Some(script),
                 ..
             })
+            | ProjectCommand::Why(fyn_cli::WhyArgs {
+                script: Some(script),
+                ..
+            })
             | ProjectCommand::Export(fyn_cli::ExportArgs {
                 script: Some(script),
                 ..
@@ -3030,6 +3034,46 @@ async fn run_project(
                 args.install_mirrors,
                 args.resolver,
                 &client_builder.subcommand(vec!["tree".to_owned()]),
+                script,
+                globals.python_preference,
+                globals.python_downloads,
+                globals.concurrency,
+                no_config,
+                &cache,
+                printer,
+                globals.preview,
+            ))
+            .await
+        }
+        ProjectCommand::Why(args) => {
+            // Resolve the settings from the command-line arguments and workspace configuration.
+            let args = settings::WhySettings::resolve(args, filesystem, environment);
+            show_settings!(args);
+
+            // Initialize the cache.
+            let cache = cache.init().await?;
+
+            // Unwrap the script.
+            let script = script.map(|script| match script {
+                Pep723Item::Script(script) => script,
+                Pep723Item::Stdin(..) => unreachable!("`fyn why` does not support stdin"),
+                Pep723Item::Remote(..) => unreachable!("`fyn why` does not support remote files"),
+            });
+
+            Box::pin(commands::why(
+                project_dir,
+                args.package,
+                args.groups,
+                args.lock_check,
+                args.frozen,
+                args.universal,
+                args.depth,
+                args.python_version,
+                args.python_platform,
+                args.python,
+                args.install_mirrors,
+                args.resolver,
+                &client_builder.subcommand(vec!["why".to_owned()]),
                 script,
                 globals.python_preference,
                 globals.python_downloads,

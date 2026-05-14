@@ -48,6 +48,7 @@ you ask for.
   `fyn run --list-tasks`.
 - **`fyn shell`**
 - **`fyn upgrade`**
+- **`fyn why`** — explain the dependency paths that include a package.
 - **`fyn status`**
 - **Managed-project pip guardrails** — configure `pip-in-project = "warn" | "error" | "allow"` to
   control direct `fyn pip` mutations inside managed projects.
@@ -65,6 +66,7 @@ you ask for.
 | Task runner                     | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                        |
 | `shell` command                 | No `uv shell`                         | `fyn shell`                               |
 | `upgrade` command               | No `uv upgrade`                       | `fyn upgrade`                             |
+| `why` command                   | No `uv why`                           | `fyn why`                                 |
 | `status` command                | No `uv status`                        | `fyn status`                              |
 | Managed-project `pip` policy    | No `pip-in-project` setting           | `pip-in-project` = warn \| error \| allow |
 | Cache size limit                | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                       |

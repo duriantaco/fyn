@@ -77,6 +77,7 @@ pub(crate) mod sync;
 pub(crate) mod tree;
 pub(crate) mod upgrade;
 pub(crate) mod version;
+pub(crate) mod why;
 
 /// The source of a missing lockfile error.
 #[derive(Debug, Clone, Copy)]

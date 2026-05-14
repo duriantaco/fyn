@@ -12,7 +12,7 @@ pub use fork_strategy::ForkStrategy;
 pub use lock::{
     Installable, Lock, LockError, LockVersion, Package, PackageMap, PylockToml,
     PylockTomlErrorKind, RequirementsTxtExport, ResolverManifest, SatisfiesResult, TreeDisplay,
-    VERSION, cyclonedx_json,
+    VERSION, WhyDisplay, cyclonedx_json,
 };
 pub use manifest::Manifest;
 pub use options::{Flexibility, Options, OptionsBuilder};

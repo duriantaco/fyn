@@ -1276,6 +1276,8 @@ pub enum ProjectCommand {
     Export(ExportArgs),
     /// Display the project's dependency tree.
     Tree(TreeArgs),
+    /// Explain why a package is included in the project.
+    Why(WhyArgs),
     /// Format Python code in the project.
     ///
     /// Formats Python code using the Ruff formatter. By default, all Python files in the project
@@ -5763,7 +5765,7 @@ pub struct TreeArgs {
     /// Shows resolved package versions for all Python versions and platforms, rather than filtering
     /// to those that are relevant for the current environment.
     ///
-    /// Multiple versions may be shown for a each package.
+    /// Multiple versions may be shown for each package.
     #[arg(long)]
     pub universal: bool,
 
@@ -5881,6 +5883,151 @@ pub struct TreeArgs {
     ///
     /// By default, the tree is filtered to match the platform as reported by the Python
     /// interpreter. Use `--universal` to display the tree for all platforms, or use
+    /// `--python-version` or `--python-platform` to override a subset of markers.
+    ///
+    /// See `fyn help python` for details on Python discovery and supported request formats.
+    #[arg(
+        long,
+        short,
+        env = EnvVars::UV_PYTHON,
+        verbatim_doc_comment,
+        help_heading = "Python options",
+        value_parser = parse_maybe_string,
+        value_hint = ValueHint::Other,
+    )]
+    pub python: Option<Maybe<String>>,
+}
+
+#[derive(Args)]
+pub struct WhyArgs {
+    /// The package to explain.
+    #[arg(value_hint = ValueHint::Other)]
+    pub package: PackageName,
+
+    /// Show platform-independent dependency paths.
+    ///
+    /// Shows resolved package versions for all Python versions and platforms, rather than filtering
+    /// to those that are relevant for the current environment.
+    ///
+    /// Multiple versions may be shown for each package.
+    #[arg(long)]
+    pub universal: bool,
+
+    /// Maximum dependency path depth.
+    #[arg(long, short, default_value_t = 255)]
+    pub depth: u8,
+
+    /// Include the development dependency group [env: UV_DEV=]
+    ///
+    /// Development dependencies are defined via `dependency-groups.dev` or
+    /// `tool.fyn.dev-dependencies` in a `pyproject.toml`.
+    ///
+    /// This option is an alias for `--group dev`.
+    #[arg(long, overrides_with("no_dev"), hide = true, value_parser = clap::builder::BoolishValueParser::new())]
+    pub dev: bool,
+
+    /// Only include the development dependency group.
+    ///
+    /// The project and its dependencies will be omitted.
+    ///
+    /// This option is an alias for `--only-group dev`. Implies `--no-default-groups`.
+    #[arg(long, conflicts_with_all = ["group", "all_groups", "no_dev"])]
+    pub only_dev: bool,
+
+    /// Disable the development dependency group [env: UV_NO_DEV=]
+    ///
+    /// This option is an alias of `--no-group dev`.
+    /// See `--no-default-groups` to disable all default groups instead.
+    #[arg(long, overrides_with("dev"), value_parser = clap::builder::BoolishValueParser::new())]
+    pub no_dev: bool,
+
+    /// Include dependencies from the specified dependency group.
+    ///
+    /// May be provided multiple times.
+    #[arg(long, conflicts_with_all = ["only_group", "only_dev"])]
+    pub group: Vec<GroupName>,
+
+    /// Disable the specified dependency group.
+    ///
+    /// This option always takes precedence over default groups,
+    /// `--all-groups`, and `--group`.
+    ///
+    /// May be provided multiple times.
+    #[arg(long, env = EnvVars::UV_NO_GROUP, value_delimiter = ' ')]
+    pub no_group: Vec<GroupName>,
+
+    /// Ignore the default dependency groups.
+    ///
+    /// fyn includes the groups defined in `tool.fyn.default-groups` by default.
+    /// This disables that option, however, specific groups can still be included with `--group`.
+    #[arg(long, env = EnvVars::UV_NO_DEFAULT_GROUPS, value_parser = clap::builder::BoolishValueParser::new())]
+    pub no_default_groups: bool,
+
+    /// Only include dependencies from the specified dependency group.
+    ///
+    /// The project and its dependencies will be omitted.
+    ///
+    /// May be provided multiple times. Implies `--no-default-groups`.
+    #[arg(long, conflicts_with_all = ["group", "dev", "all_groups"])]
+    pub only_group: Vec<GroupName>,
+
+    /// Include dependencies from all dependency groups.
+    ///
+    /// `--no-group` can be used to exclude specific groups.
+    #[arg(long, conflicts_with_all = ["only_group", "only_dev"])]
+    pub all_groups: bool,
+
+    /// Assert that the `fyn.lock` will remain unchanged [env: UV_LOCKED=]
+    ///
+    /// Requires that the lockfile is up-to-date. If the lockfile is missing or needs to be updated,
+    /// fyn will exit with an error.
+    #[arg(long, conflicts_with_all = ["frozen", "upgrade"])]
+    pub locked: bool,
+
+    /// Display the requirements without locking the project [env: UV_FROZEN=]
+    ///
+    /// If the lockfile is missing, fyn will exit with an error.
+    #[arg(long, conflicts_with_all = ["locked", "upgrade", "no_sources"])]
+    pub frozen: bool,
+
+    #[command(flatten)]
+    pub build: BuildOptionsArgs,
+
+    #[command(flatten)]
+    pub resolver: ResolverArgs,
+
+    /// Explain dependencies for the specified PEP 723 Python script, rather than the current
+    /// project.
+    ///
+    /// If provided, fyn will resolve the dependencies based on its inline metadata table, in
+    /// adherence with PEP 723.
+    #[arg(long, value_hint = ValueHint::FilePath)]
+    pub script: Option<PathBuf>,
+
+    /// The Python version to use when filtering dependency paths.
+    ///
+    /// For example, pass `--python-version 3.10` to display the paths that would be included
+    /// when installing on Python 3.10.
+    ///
+    /// Defaults to the version of the discovered Python interpreter.
+    #[arg(long, conflicts_with = "universal")]
+    pub python_version: Option<PythonVersion>,
+
+    /// The platform to use when filtering dependency paths.
+    ///
+    /// For example, pass `--platform windows` to display the paths that would be included when
+    /// installing on Windows.
+    ///
+    /// Represented as a "target triple", a string that describes the target platform in terms of
+    /// its CPU, vendor, and operating system name, like `x86_64-unknown-linux-gnu` or
+    /// `aarch64-apple-darwin`.
+    #[arg(long, conflicts_with = "universal")]
+    pub python_platform: Option<TargetTriple>,
+
+    /// The Python interpreter to use for locking and filtering.
+    ///
+    /// By default, dependency paths are filtered to match the platform as reported by the Python
+    /// interpreter. Use `--universal` to display paths for all platforms, or use
     /// `--python-version` or `--python-platform` to override a subset of markers.
     ///
     /// See `fyn help python` for details on Python discovery and supported request formats.
