@@ -3,11 +3,11 @@
 ## Finding ways to help
 
 We label issues that would be good for a first time contributor as
-[`good first issue`](https://github.com/oha/fyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
+[`good first issue`](https://github.com/duriantaco/fyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22).
 These usually do not require significant experience with Rust or the fyn code base.
 
 We label issues that we think are a good opportunity for subsequent contributions as
-[`help wanted`](https://github.com/oha/fyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
+[`help wanted`](https://github.com/duriantaco/fyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 These require varying levels of experience with Rust and fyn. Often, we want to accomplish these
 tasks but do not have the resources to do so ourselves.
 
@@ -20,7 +20,7 @@ for community contribution. We're happy to receive contributions for other issue
 important to make sure we have consensus on the solution to the problem first.
 
 Outside of issues with the labels above, issues labeled as
-[`bug`](https://github.com/oha/fyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22bug%22) are the best
+[`bug`](https://github.com/duriantaco/fyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22bug%22) are the best
 candidates for contribution. In contrast, issues labeled with `needs-decision` or `needs-design` are
 _not_ good candidates for contribution. Please do not open pull requests for issues with these
 labels.

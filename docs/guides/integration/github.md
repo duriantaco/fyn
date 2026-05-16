@@ -350,8 +350,8 @@ steps:
 ## Publishing to PyPI
 
 fyn can be used to build and publish your package to PyPI from GitHub Actions. We provide a
-standalone example alongside this guide in
-[oha/trusted-publishing-examples](https://github.com/oha/trusted-publishing-examples). The workflow
+standalone example alongside Astral's uv guide in
+[astral-sh/trusted-publishing-examples](https://github.com/astral-sh/trusted-publishing-examples). The workflow
 uses [trusted publishing](https://docs.pypi.org/trusted-publishers/), so no credentials need to be
 configured.
 

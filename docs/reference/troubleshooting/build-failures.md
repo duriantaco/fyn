@@ -116,7 +116,7 @@ The following examples demonstrate common build failures and how to resolve them
 
 If the build error mentions a missing command, for example, `gcc`:
 
-<!-- docker run --platform linux/x86_64 -it ghcr.io/oha/fyn:python3.10-trixie-slim /bin/bash -c "fyn pip install --system pysha3==1.0.2" -->
+<!-- docker run --platform linux/x86_64 -it ghcr.io/duriantaco/fyn:python3.10-trixie-slim /bin/bash -c "fyn pip install --system pysha3==1.0.2" -->
 
 ```hl_lines="17"
 × Failed to build `pysha3==1.0.2`
@@ -164,7 +164,7 @@ install it with your system package manager.
 
 For example, installing `pygraphviz` requires Graphviz to be installed:
 
-<!-- docker run --platform linux/x86_64 -it ghcr.io/oha/fyn:python3.12-trixie /bin/bash -c "fyn pip install --system 'pygraphviz'" -->
+<!-- docker run --platform linux/x86_64 -it ghcr.io/duriantaco/fyn:python3.12-trixie /bin/bash -c "fyn pip install --system 'pygraphviz'" -->
 
 ```hl_lines="18-19"
 × Failed to build `pygraphviz==1.14`
@@ -215,7 +215,7 @@ If the build error mentions a failing import, consider
 For example, some packages assume that `pip` is available without declaring it as a build
 dependency:
 
-<!-- docker run --platform linux/x86_64 -it ghcr.io/oha/fyn:python3.12-trixie-slim /bin/bash -c "fyn pip install --system chumpy" -->
+<!-- docker run --platform linux/x86_64 -it ghcr.io/duriantaco/fyn:python3.12-trixie-slim /bin/bash -c "fyn pip install --system chumpy" -->
 
 ```hl_lines="7"
   × Failed to build `chumpy==0.70`
@@ -271,7 +271,7 @@ dill<0.3.9,>=0.2.2
 apache-beam<=2.49.0
 ```
 
-<!-- docker run --platform linux/x86_64 -it ghcr.io/oha/fyn:python3.10-trixie-slim /bin/bash -c "printf 'dill<0.3.9,>=0.2.2\napache-beam<=2.49.0' | fyn pip compile -" -->
+<!-- docker run --platform linux/x86_64 -it ghcr.io/duriantaco/fyn:python3.10-trixie-slim /bin/bash -c "printf 'dill<0.3.9,>=0.2.2\napache-beam<=2.49.0' | fyn pip compile -" -->
 
 ```hl_lines="1"
 × Failed to build `apache-beam==2.0.0`

@@ -5,10 +5,14 @@ description:
   compile requirements files.
 ---
 
+# Under development
+
+Astral's uv-pre-commit hook has not been forked yet.  The documentation below is for future use once an official fyn-pre-commit exists.
+
 # Using fyn in pre-commit
 
 An official pre-commit hook is provided at
-[`oha/fyn-pre-commit`](https://github.com/oha/fyn-pre-commit).
+[`duriantaco/fyn-pre-commit`](https://github.com/duriantaco/fyn-pre-commit).
 
 To use fyn with pre-commit, add one of the following examples to the `repos` list in the
 `.pre-commit-config.yaml`.
@@ -17,7 +21,7 @@ To make sure your `fyn.lock` file is up to date even if your `pyproject.toml` fi
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fyn-pre-commit
+  - repo: https://github.com/duriantaco/fyn-pre-commit
     # fyn version.
     rev: 0.10.14
     hooks:
@@ -28,7 +32,7 @@ To keep a `requirements.txt` file in sync with your `fyn.lock` file:
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fyn-pre-commit
+  - repo: https://github.com/duriantaco/fyn-pre-commit
     # fyn version.
     rev: 0.10.14
     hooks:
@@ -39,7 +43,7 @@ To compile requirements files:
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fyn-pre-commit
+  - repo: https://github.com/duriantaco/fyn-pre-commit
     # fyn version.
     rev: 0.10.14
     hooks:
@@ -52,7 +56,7 @@ To compile alternative requirements files, modify `args` and `files`:
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fyn-pre-commit
+  - repo: https://github.com/duriantaco/fyn-pre-commit
     # fyn version.
     rev: 0.10.14
     hooks:
@@ -66,7 +70,7 @@ To run the hook over multiple files at the same time, add additional entries:
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: https://github.com/oha/fyn-pre-commit
+  - repo: https://github.com/duriantaco/fyn-pre-commit
     # fyn version.
     rev: 0.10.14
     hooks:

@@ -83,7 +83,7 @@ using Coiled.
 To instruct Coiled to run the script on a virtual machine on AWS, add two comments to the top:
 
 ```python title="process.py" hl_lines="1-2"
-# COILED container ghcr.io/oha/fyn:debian-slim
+# COILED container ghcr.io/duriantaco/fyn:debian-slim
 # COILED region us-east-2
 
 # /// script

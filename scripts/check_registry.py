@@ -15,7 +15,7 @@ expected_registry = [
 Name                           Property
 ----                           --------
 fyn                            DisplayName : fyn contributors
-                               SupportUrl  : https://github.com/oha/fyn
+                               SupportUrl  : https://github.com/duriantaco/fyn
 """,
     # The actual Python installations
     r"""
@@ -25,7 +25,7 @@ fyn                            DisplayName : fyn contributors
 Name                           Property
 ----                           --------
 fyn                            DisplayName : fyn contributors
-                               SupportUrl  : https://github.com/oha/fyn
+                               SupportUrl  : https://github.com/duriantaco/fyn
 
 
     Hive: HKEY_CURRENT_USER\Software\Python\fyn
@@ -34,7 +34,7 @@ fyn                            DisplayName : fyn contributors
 Name                           Property
 ----                           --------
 CPython3.11.11                 DisplayName     : CPython 3.11.11 (64-bit)
-                               SupportUrl      : https://github.com/oha/fyn
+                               SupportUrl      : https://github.com/duriantaco/fyn
                                Version         : 3.11.11
                                SysVersion      : 3.11.11
                                SysArchitecture : 64bit
@@ -58,7 +58,7 @@ InstallPath                    (default)              : C:\Users\runneradmin\App
 Name                           Property
 ----                           --------
 CPython3.12.8                  DisplayName     : CPython 3.12.8 (64-bit)
-                               SupportUrl      : https://github.com/oha/fyn
+                               SupportUrl      : https://github.com/duriantaco/fyn
                                Version         : 3.12.8
                                SysVersion      : 3.12.8
                                SysArchitecture : 64bit
@@ -82,7 +82,7 @@ InstallPath                    (default)              : C:\Users\runneradmin\App
 Name                           Property
 ----                           --------
 CPython3.13.1                  DisplayName     : CPython 3.13.1 (64-bit)
-                               SupportUrl      : https://github.com/oha/fyn
+                               SupportUrl      : https://github.com/duriantaco/fyn
                                Version         : 3.13.1
                                SysVersion      : 3.13.1
                                SysArchitecture : 64bit

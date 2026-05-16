@@ -153,7 +153,7 @@ fyn pip install wheel && fyn pip install --no-build-isolation biopython==1.77
 ```
 
 For a list of packages that are known to fail under PEP 517 build isolation, see
-[#2252](https://github.com/oha/fyn/issues/2252).
+[#2252](https://github.com/astral-sh/fyn/issues/2252).
 
 ## Transitive URL dependencies
 
@@ -303,7 +303,7 @@ Additionally, pip will fall back to the `user` install scheme if it detects that
 have write permissions to the target directory, as is the case on some systems when installing into
 the system Python. fyn does not implement any such fallback.
 
-For more, see [#2077](https://github.com/oha/fyn/issues/2077).
+For more, see [#2077](https://github.com/astral-sh/uv/issues/2077).
 
 ## `--only-binary` enforcement
 
@@ -397,8 +397,8 @@ does support a large subset.
 Missing options and subcommands are prioritized based on user demand and the complexity of the
 implementation, and tend to be tracked in individual issues. For example:
 
-- [`--trusted-host`](https://github.com/oha/fyn/issues/1339)
-- [`--user`](https://github.com/oha/fyn/issues/2077)
+- [`--trusted-host`](https://github.com/astral-sh/fyn/issues/1339)
+- [`--user`](https://github.com/astral-sh/uv/issues/2077)
 
 If you encounter a missing option or subcommand, please search the issue tracker to see if it has
 already been reported, and if not, consider opening a new issue. Feel free to upvote any existing

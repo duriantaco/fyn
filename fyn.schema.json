@@ -520,7 +520,7 @@
       ]
     },
     "sources": {
-      "description": "The sources to use when resolving dependencies.\n\n`tool.fyn.sources` enriches the dependency metadata with additional sources, incorporated\nduring development. A dependency source can be a Git repository, a URL, a local path, or an\nalternative registry.\n\nSee [Dependencies](https://github.com/oha/fyn) for more.",
+      "description": "The sources to use when resolving dependencies.\n\n`tool.fyn.sources` enriches the dependency metadata with additional sources, incorporated\nduring development. A dependency source can be a Git repository, a URL, a local path, or an\nalternative registry.\n\nSee [Dependencies](https://duriantaco.github.io/fyn/concepts/projects/dependencies/) for more.",
       "anyOf": [
         {
           "$ref": "#/definitions/ToolfynSources"

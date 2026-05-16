@@ -15,7 +15,7 @@ fyn_TEMPLATE = """{GENERATED_HEADER}
 
 fyn is a Python package and project manager.
 
-See the [repository](https://github.com/oha/fyn)
+See the [repository](https://github.com/duriantaco/fyn)
 for more information.
 
 This crate is the entry point to the fyn command-line interface. The Rust API exposed here is not
@@ -47,7 +47,7 @@ See fyn's crate versioning policy for details on versioning.
 """
 
 
-REPO_URL = "https://github.com/oha/fyn"
+REPO_URL = "https://github.com/duriantaco/fyn"
 PRETTIER_VERSION = "3.8.3"
 
 
