@@ -20,6 +20,9 @@ target/
 # Python tmp files
 __pycache__
 
+# Node dependencies
+/node_modules/
+
 # GitHub issue mirror
 .prism/
 

@@ -22,7 +22,8 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - run: npx prettier --check .
+      - run: npm ci --ignore-scripts --audit=false --fund=false
+      - run: npm run format:check
 
   python:
     timeout-minutes: 10
