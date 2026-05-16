@@ -70,8 +70,8 @@ Lockfile changes:
 added, removed, and changed packages, and also reports lockfile metadata changes such as
 `requires-python` updates. It does not write `fyn.lock`.
 
-The resolver, build, cache, refresh, Python, and upgrade options accepted by `fyn lock` can be passed
-before or after `diff`:
+The resolver, build, cache, refresh, Python, and upgrade options accepted by `fyn lock` can be
+passed before or after `diff`:
 
 ```console
 $ fyn lock --python 3.12 diff
