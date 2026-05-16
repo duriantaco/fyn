@@ -55,6 +55,32 @@ This is equivalent to the `--locked` flag for other commands.
     needs to be explicitly updated if you want to upgrade dependencies. See the documentation on
     [upgrading locked package versions](#upgrading-locked-package-versions) for details.
 
+## Previewing lockfile changes
+
+To see what `fyn lock` would change before writing `fyn.lock`, use `fyn lock diff`:
+
+```console
+$ fyn lock diff
+Lockfile changes:
++ anyio v4.3.0 (registry+https://pypi.org/simple)
+~ project v0.1.0 metadata changed
+```
+
+`fyn lock diff` runs the resolver in dry-run mode and prints a package-level summary. It reports
+added, removed, and changed packages, and also reports lockfile metadata changes such as
+`requires-python` updates. It does not write `fyn.lock`.
+
+The resolver, build, cache, refresh, Python, and upgrade options accepted by `fyn lock` can be passed
+before or after `diff`:
+
+```console
+$ fyn lock --python 3.12 diff
+$ fyn lock diff --python 3.12 --upgrade-package requests
+```
+
+This is useful in reviews and CI when you want to inspect the impact of dependency or metadata
+changes before committing an updated lockfile.
+
 ## Creating the lockfile
 
 While the lockfile is created [automatically](#automatic-lock-and-sync), the lockfile may also be

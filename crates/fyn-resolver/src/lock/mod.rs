@@ -56,6 +56,7 @@ use fyn_workspace::{Editability, WorkspaceMember};
 
 use crate::exclude_newer::ExcludeNewerSpan;
 use crate::fork_strategy::ForkStrategy;
+pub use crate::lock::diff::LockDiffDisplay;
 pub(crate) use crate::lock::export::PylockTomlPackage;
 pub use crate::lock::export::RequirementsTxtExport;
 pub use crate::lock::export::{PylockToml, PylockTomlErrorKind, cyclonedx_json};
@@ -70,6 +71,7 @@ use crate::{
     PackageExcludeNewer, PrereleaseMode, ResolutionMode, ResolverOutput,
 };
 
+mod diff;
 mod export;
 mod installable;
 mod map;

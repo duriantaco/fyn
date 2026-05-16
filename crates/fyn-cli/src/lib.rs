@@ -5221,6 +5221,9 @@ pub struct SyncArgs {
 
 #[derive(Args)]
 pub struct LockArgs {
+    #[command(subcommand)]
+    pub command: Option<LockCommand>,
+
     /// Check if the lockfile is up-to-date.
     ///
     /// Asserts that the `fyn.lock` would remain unchanged after a resolution. If the lockfile is
@@ -5261,6 +5264,51 @@ pub struct LockArgs {
     ///
     /// If provided, fyn will lock the script (based on its inline metadata table, in adherence with
     /// PEP 723) to a `.lock` file adjacent to the script itself.
+    #[arg(long, value_hint = ValueHint::FilePath)]
+    pub script: Option<PathBuf>,
+
+    #[command(flatten)]
+    pub resolver: ResolverArgs,
+
+    #[command(flatten)]
+    pub build: BuildOptionsArgs,
+
+    #[command(flatten)]
+    pub refresh: RefreshArgs,
+
+    /// The Python interpreter to use during resolution.
+    ///
+    /// A Python interpreter is required for building source distributions to determine package
+    /// metadata when there are not wheels.
+    ///
+    /// The interpreter is also used as the fallback value for the minimum Python version if
+    /// `requires-python` is not set.
+    ///
+    /// See `fyn help python` for details on Python discovery and supported request formats.
+    #[arg(
+        long,
+        short,
+        env = EnvVars::UV_PYTHON,
+        verbatim_doc_comment,
+        help_heading = "Python options",
+        value_parser = parse_maybe_string,
+        value_hint = ValueHint::Other,
+    )]
+    pub python: Option<Maybe<String>>,
+}
+
+#[derive(Subcommand)]
+pub enum LockCommand {
+    /// Show the lockfile changes that would be produced by locking.
+    Diff(Box<LockDiffArgs>),
+}
+
+#[derive(Args)]
+pub struct LockDiffArgs {
+    /// Diff the lockfile for the specified Python script, rather than the current project.
+    ///
+    /// If provided, fyn will resolve the dependencies based on its inline metadata table, in
+    /// adherence with PEP 723, without writing the script lockfile.
     #[arg(long, value_hint = ValueHint::FilePath)]
     pub script: Option<PathBuf>,
 
@@ -8211,7 +8259,7 @@ pub struct GenerateShellCompletionArgs {
     pub version: bool,
 }
 
-#[derive(Args)]
+#[derive(Args, Default)]
 pub struct IndexArgs {
     /// The URLs to use when resolving dependencies, in addition to the default index.
     ///
@@ -8315,7 +8363,7 @@ pub struct IndexArgs {
     pub no_index: bool,
 }
 
-#[derive(Args)]
+#[derive(Args, Default)]
 pub struct RefreshArgs {
     /// Refresh all cached data.
     #[arg(long, overrides_with("no_refresh"), help_heading = "Cache options")]
@@ -8334,7 +8382,7 @@ pub struct RefreshArgs {
     pub refresh_package: Vec<PackageName>,
 }
 
-#[derive(Args)]
+#[derive(Args, Default)]
 pub struct BuildOptionsArgs {
     /// Don't build source distributions.
     ///
@@ -8587,7 +8635,7 @@ pub struct InstallerArgs {
 }
 
 /// Arguments that are used by commands that need to resolve (but not install) packages.
-#[derive(Args)]
+#[derive(Args, Default)]
 pub struct ResolverArgs {
     #[command(flatten)]
     pub index_args: IndexArgs,
