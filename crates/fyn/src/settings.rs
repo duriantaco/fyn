@@ -8,6 +8,7 @@ use std::time::Duration;
 use rustc_hash::FxHashSet;
 
 use crate::commands::{PythonUpgrade, PythonUpgradeSource};
+use clap::parser::ValueSource;
 use fyn_audit::service::VulnerabilityServiceFormat;
 use fyn_audit::types::VulnerabilityID;
 use fyn_auth::Service;
@@ -1817,6 +1818,7 @@ impl LockSettings {
         environment: EnvironmentOptions,
     ) -> Self {
         let LockArgs {
+            command: _,
             check,
             locked,
             check_exists,
@@ -1858,6 +1860,210 @@ impl LockSettings {
                 .install_mirrors
                 .combine(filesystem_install_mirrors),
         }
+    }
+}
+
+/// The resolved settings to use for a `lock diff` invocation.
+#[derive(Debug, Clone)]
+pub(crate) struct LockDiffSettings {
+    pub(crate) python: Option<String>,
+    pub(crate) install_mirrors: PythonInstallMirrors,
+    pub(crate) refresh: Refresh,
+    pub(crate) settings: ResolverSettings,
+}
+
+#[derive(Debug, Clone, Default)]
+pub(crate) struct LockDiffArgSources {
+    command_line: FxHashSet<String>,
+}
+
+impl LockDiffArgSources {
+    pub(crate) fn from_arg_matches(matches: &clap::ArgMatches) -> Self {
+        Self {
+            command_line: matches
+                .ids()
+                .filter(|id| matches.value_source(id.as_str()) == Some(ValueSource::CommandLine))
+                .map(|id| id.as_str().to_string())
+                .collect(),
+        }
+    }
+
+    fn retain<T: Default>(&self, id: &str, value: T) -> T {
+        if self.command_line.contains(id) {
+            value
+        } else {
+            T::default()
+        }
+    }
+
+    fn retain_index_args(&self, args: fyn_cli::IndexArgs) -> fyn_cli::IndexArgs {
+        let fyn_cli::IndexArgs {
+            index,
+            default_index,
+            index_url,
+            extra_index_url,
+            find_links,
+            no_index,
+        } = args;
+
+        fyn_cli::IndexArgs {
+            index: self.retain("index", index),
+            default_index: self.retain("default_index", default_index),
+            index_url: self.retain("index_url", index_url),
+            extra_index_url: self.retain("extra_index_url", extra_index_url),
+            find_links: self.retain("find_links", find_links),
+            no_index: self.retain("no_index", no_index),
+        }
+    }
+
+    fn retain_resolver_args(&self, args: fyn_cli::ResolverArgs) -> fyn_cli::ResolverArgs {
+        let fyn_cli::ResolverArgs {
+            index_args,
+            upgrade,
+            no_upgrade,
+            upgrade_package,
+            index_strategy,
+            keyring_provider,
+            resolution,
+            prerelease,
+            pre,
+            fork_strategy,
+            config_setting,
+            config_settings_package,
+            no_build_isolation,
+            no_build_isolation_package,
+            build_isolation,
+            exclude_newer,
+            link_mode,
+            no_sources,
+            no_sources_package,
+            exclude_newer_package,
+        } = args;
+
+        fyn_cli::ResolverArgs {
+            index_args: self.retain_index_args(index_args),
+            upgrade: self.retain("upgrade", upgrade),
+            no_upgrade: self.retain("no_upgrade", no_upgrade),
+            upgrade_package: self.retain("upgrade_package", upgrade_package),
+            index_strategy: self.retain("index_strategy", index_strategy),
+            keyring_provider: self.retain("keyring_provider", keyring_provider),
+            resolution: self.retain("resolution", resolution),
+            prerelease: self.retain("prerelease", prerelease),
+            pre: self.retain("pre", pre),
+            fork_strategy: self.retain("fork_strategy", fork_strategy),
+            config_setting: self.retain("config_setting", config_setting),
+            config_settings_package: self
+                .retain("config_settings_package", config_settings_package),
+            no_build_isolation: self.retain("no_build_isolation", no_build_isolation),
+            no_build_isolation_package: self
+                .retain("no_build_isolation_package", no_build_isolation_package),
+            build_isolation: self.retain("build_isolation", build_isolation),
+            exclude_newer: self.retain("exclude_newer", exclude_newer),
+            link_mode: self.retain("link_mode", link_mode),
+            no_sources: self.retain("no_sources", no_sources),
+            no_sources_package: self.retain("no_sources_package", no_sources_package),
+            exclude_newer_package: self.retain("exclude_newer_package", exclude_newer_package),
+        }
+    }
+
+    fn retain_build_args(&self, args: fyn_cli::BuildOptionsArgs) -> fyn_cli::BuildOptionsArgs {
+        let fyn_cli::BuildOptionsArgs {
+            no_build,
+            build,
+            no_build_package,
+            no_binary,
+            binary,
+            no_binary_package,
+        } = args;
+
+        fyn_cli::BuildOptionsArgs {
+            no_build: self.retain("no_build", no_build),
+            build: self.retain("build", build),
+            no_build_package: self.retain("no_build_package", no_build_package),
+            no_binary: self.retain("no_binary", no_binary),
+            binary: self.retain("binary", binary),
+            no_binary_package: self.retain("no_binary_package", no_binary_package),
+        }
+    }
+
+    fn retain_refresh_args(&self, args: fyn_cli::RefreshArgs) -> fyn_cli::RefreshArgs {
+        let fyn_cli::RefreshArgs {
+            refresh,
+            no_refresh,
+            refresh_package,
+        } = args;
+
+        fyn_cli::RefreshArgs {
+            refresh: self.retain("refresh", refresh),
+            no_refresh: self.retain("no_refresh", no_refresh),
+            refresh_package: self.retain("refresh_package", refresh_package),
+        }
+    }
+
+    fn retain_python(&self, python: Option<Maybe<String>>) -> Option<Maybe<String>> {
+        self.retain("python", python)
+    }
+}
+
+impl LockDiffSettings {
+    /// Resolve the [`LockDiffSettings`] from the CLI and filesystem configuration.
+    pub(crate) fn resolve(
+        args: fyn_cli::LockDiffArgs,
+        parent_resolver: fyn_cli::ResolverArgs,
+        parent_build: fyn_cli::BuildOptionsArgs,
+        parent_refresh: fyn_cli::RefreshArgs,
+        parent_python: Option<Maybe<String>>,
+        sources: &LockDiffArgSources,
+        filesystem: Option<FilesystemOptions>,
+        environment: EnvironmentOptions,
+    ) -> Self {
+        let fyn_cli::LockDiffArgs {
+            script: _,
+            resolver,
+            build,
+            refresh,
+            python,
+        } = args;
+
+        let resolver = sources.retain_resolver_args(resolver);
+        let build = sources.retain_build_args(build);
+        let refresh = sources.retain_refresh_args(refresh);
+        let python = sources.retain_python(python);
+
+        let refresh = Refresh::from(combine_refresh_args(refresh, parent_refresh));
+        let resolver_options = resolver_options(resolver, build)
+            .combine(resolver_options(parent_resolver, parent_build));
+
+        let filesystem_install_mirrors = filesystem
+            .clone()
+            .map(|fs| fs.install_mirrors.clone())
+            .unwrap_or_default();
+
+        Self {
+            python: python
+                .and_then(Maybe::into_option)
+                .or_else(|| parent_python.and_then(Maybe::into_option)),
+            refresh,
+            settings: ResolverSettings::combine(resolver_options, filesystem),
+            install_mirrors: environment
+                .install_mirrors
+                .combine(filesystem_install_mirrors),
+        }
+    }
+}
+
+fn combine_refresh_args(
+    command: fyn_cli::RefreshArgs,
+    parent: fyn_cli::RefreshArgs,
+) -> fyn_cli::RefreshArgs {
+    fyn_cli::RefreshArgs {
+        refresh: command.refresh || (!command.no_refresh && parent.refresh),
+        no_refresh: command.no_refresh || (!command.refresh && parent.no_refresh),
+        refresh_package: command
+            .refresh_package
+            .into_iter()
+            .chain(parent.refresh_package)
+            .collect(),
     }
 }
 

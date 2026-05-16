@@ -285,6 +285,16 @@ $ fyn lock --script example.py
 Running `fyn lock --script` will create a `.lock` file adjacent to the script (e.g.,
 `example.py.lock`).
 
+To preview script lockfile changes without writing the `.lock` file, use `fyn lock diff` with the
+script path:
+
+```console
+$ fyn lock diff --script example.py
+```
+
+This resolves the script metadata in dry-run mode and reports package or lockfile metadata changes
+that would be written by `fyn lock --script`.
+
 Once locked, subsequent operations like `fyn run --script`, `fyn add --script`,
 `fyn export --script`, and `fyn tree --script` will reuse the locked dependencies, updating the
 lockfile if necessary.

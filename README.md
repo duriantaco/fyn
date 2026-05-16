@@ -92,10 +92,17 @@ All checks passed!
 $ fyn lock
 Resolved 2 packages in 0.33ms
 
+$ fyn lock diff
+No lockfile changes detected
+
 $ fyn sync
 Resolved 2 packages in 0.70ms
 Checked 1 package in 0.02ms
 ```
+
+Use `fyn lock diff` to preview how dependency or project metadata edits would change `fyn.lock`
+without writing it. The diff reports added, removed, and changed packages, plus metadata-only
+lockfile updates, which is useful before reviewing or committing a lockfile change.
 
 ### Task runner
 

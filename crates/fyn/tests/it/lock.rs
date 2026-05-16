@@ -15,6 +15,260 @@ use fyn_test::{
 };
 
 #[test]
+fn lock_diff_project() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(
+        r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["iniconfig"]
+        "#,
+    )?;
+
+    context
+        .lock()
+        .arg("--dry-run")
+        .arg("diff")
+        .assert()
+        .failure();
+    context
+        .lock()
+        .arg("--no-index")
+        .arg("diff")
+        .assert()
+        .failure();
+
+    fyn_snapshot!(context.filters(), context.lock().arg("diff"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    Lockfile changes:
+    + iniconfig v2.0.0 (registry+https://pypi.org/simple)
+    + project v0.1.0 (virtual+.)
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    ");
+
+    fyn_snapshot!(context.filters(), context.lock(), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    ");
+
+    fyn_snapshot!(context.filters(), context.lock().arg("diff"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    No lockfile changes detected
+
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    ");
+
+    let lock = context.read("fyn.lock");
+
+    pyproject_toml.write_str(
+        r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["anyio"]
+        "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context.lock().arg("diff"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    Lockfile changes:
+    + anyio v4.3.0 (registry+https://pypi.org/simple)
+    + idna v3.6 (registry+https://pypi.org/simple)
+    - iniconfig v2.0.0 (registry+https://pypi.org/simple)
+    ~ project v0.1.0 metadata changed
+    + sniffio v1.3.1 (registry+https://pypi.org/simple)
+
+    ----- stderr -----
+    Resolved 4 packages in [TIME]
+    ");
+
+    assert_eq!(lock, context.read("fyn.lock"));
+
+    Ok(())
+}
+
+#[test]
+fn lock_diff_lockfile_metadata() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(
+        r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = []
+        "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context.lock(), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+
+    pyproject_toml.write_str(
+        r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.11"
+        dependencies = []
+        "#,
+    )?;
+
+    fyn_snapshot!(context.filters(), context.lock().arg("diff"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    Lockfile changes:
+    ~ lockfile metadata changed
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+
+    Ok(())
+}
+
+#[test]
+fn lock_diff_option_precedence() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let output = context
+        .lock()
+        .env(EnvVars::UV_PYTHON, "env-python")
+        .arg("--show-settings")
+        .arg("--python")
+        .arg("cli-python")
+        .arg("diff")
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let output = String::from_utf8(output)?;
+    assert!(output.contains("cli-python"));
+    assert!(!output.contains("env-python"));
+
+    let output = context
+        .lock()
+        .env(EnvVars::UV_RESOLUTION, "highest")
+        .arg("--show-settings")
+        .arg("--resolution")
+        .arg("lowest")
+        .arg("diff")
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let output = String::from_utf8(output)?;
+    assert!(output.contains("resolution: Lowest,"));
+
+    let output = context
+        .lock()
+        .env(EnvVars::UV_RESOLUTION, "highest")
+        .arg("--show-settings")
+        .arg("diff")
+        .arg("--resolution")
+        .arg("lowest")
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let output = String::from_utf8(output)?;
+    assert!(output.contains("resolution: Lowest,"));
+
+    Ok(())
+}
+
+#[test]
+fn lock_diff_script() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    let test_script = context.temp_dir.child("main.py");
+    test_script.write_str(indoc! { r#"
+        # /// script
+        # requires-python = ">=3.11"
+        # dependencies = [
+        #   "iniconfig",
+        # ]
+        # ///
+
+        import iniconfig
+       "#
+    })?;
+
+    fyn_snapshot!(context.filters(), context.lock().arg("diff").arg("--script").arg("main.py"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    Lockfile changes:
+    + iniconfig v2.0.0 (registry+https://pypi.org/simple)
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+
+    assert!(!context.temp_dir.join("main.py.lock").exists());
+
+    fyn_snapshot!(context.filters(), context.lock().arg("--script").arg("main.py"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+
+    fyn_snapshot!(context.filters(), context.lock().arg("diff").arg("--script").arg("main.py"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    No lockfile changes detected
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+
+    fyn_snapshot!(context.filters(), context.lock().arg("--script").arg("main.py").arg("diff"), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    No lockfile changes detected
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+
+    Ok(())
+}
+
+#[test]
 fn lock_wheel_registry() -> Result<()> {
     let context = fyn_test::test_context!("3.12");
 

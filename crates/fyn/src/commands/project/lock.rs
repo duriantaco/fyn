@@ -33,8 +33,8 @@ use fyn_python::{
 use fyn_requirements::ExtrasResolver;
 use fyn_requirements::upgrade::{LockedRequirements, read_lock_requirements};
 use fyn_resolver::{
-    FlatIndex, InMemoryIndex, Lock, Options, OptionsBuilder, Package, PythonRequirement,
-    ResolverEnvironment, ResolverManifest, SatisfiesResult, UniversalMarker,
+    FlatIndex, InMemoryIndex, Lock, LockDiffDisplay, Options, OptionsBuilder, Package,
+    PythonRequirement, ResolverEnvironment, ResolverManifest, SatisfiesResult, UniversalMarker,
 };
 use fyn_scripts::Pep723Script;
 use fyn_settings::PythonInstallMirrors;
@@ -260,6 +260,118 @@ pub(crate) async fn lock(
         Err(err @ ProjectError::LockMismatch(..)) => {
             writeln!(printer.stderr(), "{}", err.to_string().bold())?;
             Ok(ExitStatus::Failure)
+        }
+        Err(ProjectError::Operation(err)) => {
+            diagnostics::OperationDiagnostic::native_tls(client_builder.is_native_tls())
+                .report(err)
+                .map_or(Ok(ExitStatus::Failure), |err| Err(err.into()))
+        }
+        Err(err) => Err(err.into()),
+    }
+}
+
+/// Show the lockfile changes that would be produced by locking.
+pub(crate) async fn diff(
+    project_dir: &Path,
+    refresh: Refresh,
+    python: Option<String>,
+    install_mirrors: PythonInstallMirrors,
+    settings: ResolverSettings,
+    client_builder: BaseClientBuilder<'_>,
+    script: Option<ScriptPath>,
+    python_preference: PythonPreference,
+    python_downloads: PythonDownloads,
+    concurrency: Concurrency,
+    no_config: bool,
+    cache: &Cache,
+    workspace_cache: &WorkspaceCache,
+    printer: Printer,
+    preview: Preview,
+) -> anyhow::Result<ExitStatus> {
+    // Find the project requirements.
+    let workspace;
+    let target = match script.as_ref() {
+        Some(ScriptPath::Script(script)) => LockTarget::Script(script),
+        Some(ScriptPath::Path(_)) => unreachable!("`fyn lock diff` only accepts parsed scripts"),
+        None => {
+            workspace =
+                Workspace::discover(project_dir, &DiscoveryOptions::default(), workspace_cache)
+                    .await?;
+            LockTarget::Workspace(&workspace)
+        }
+    };
+
+    // Discover the interpreter used to re-resolve the lockfile without writing it.
+    let interpreter = match target {
+        LockTarget::Workspace(workspace) => ProjectInterpreter::discover(
+            workspace,
+            project_dir,
+            // Don't enable any groups' requires-python for interpreter discovery.
+            &DependencyGroupsWithDefaults::none(),
+            python.as_deref().map(PythonRequest::parse),
+            &client_builder,
+            python_preference,
+            python_downloads,
+            &install_mirrors,
+            false,
+            no_config,
+            Some(false),
+            cache,
+            printer,
+            preview,
+        )
+        .await?
+        .into_interpreter(),
+        LockTarget::Script(script) => ScriptInterpreter::discover(
+            script.into(),
+            python.as_deref().map(PythonRequest::parse),
+            &client_builder,
+            python_preference,
+            python_downloads,
+            &install_mirrors,
+            false,
+            no_config,
+            Some(false),
+            cache,
+            printer,
+            preview,
+        )
+        .await?
+        .into_interpreter(),
+    };
+
+    // Initialize any shared state.
+    let state = UniversalState::default();
+
+    // Resolve in dry-run mode so no lockfile is written.
+    match Box::pin(
+        LockOperation::new(
+            LockMode::DryRun(&interpreter),
+            &settings,
+            &client_builder,
+            &state,
+            Box::new(DefaultResolveLogger),
+            &concurrency,
+            cache,
+            workspace_cache,
+            printer,
+            preview,
+        )
+        .with_refresh(&refresh)
+        .execute(target),
+    )
+    .await
+    {
+        Ok(result) => {
+            let display = match &result {
+                LockResult::Unchanged(lock) => LockDiffDisplay::new(Some(lock), lock),
+                LockResult::Changed(previous, lock) => {
+                    LockDiffDisplay::new(previous.as_ref(), lock)
+                }
+            };
+
+            write!(printer.stdout(), "{display}")?;
+            Ok(ExitStatus::Success)
         }
         Err(ProjectError::Operation(err)) => {
             diagnostics::OperationDiagnostic::native_tls(client_builder.is_native_tls())
