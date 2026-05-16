@@ -11,7 +11,13 @@
   schedule: ["* 0-3 * * 1"],
   semanticCommits: "disabled",
   separateMajorMinor: false,
-  enabledManagers: ["github-actions", "pre-commit", "cargo", "custom.regex"],
+  enabledManagers: [
+    "github-actions",
+    "pre-commit",
+    "cargo",
+    "npm",
+    "custom.regex",
+  ],
   cargo: {
     // See https://docs.renovatebot.com/configuration-options/#rangestrategy
     rangeStrategy: "update-lockfile",
@@ -84,6 +90,20 @@
       groupName: "pre-commit dependencies",
       matchManagers: ["pre-commit"],
       description: "Weekly update of pre-commit dependencies",
+    },
+    {
+      groupName: "Node dev-dependencies",
+      matchManagers: ["npm"],
+      matchDepTypes: ["devDependencies"],
+      description: "Weekly update of Node development dependencies",
+    },
+    {
+      groupName: "Prettier",
+      // Avoid immediately consuming freshly published formatter packages.
+      matchDatasources: ["npm"],
+      matchPackageNames: ["prettier"],
+      minimumReleaseAge: "7 days",
+      internalChecksFilter: "strict",
     },
     {
       groupName: "Rust dev-dependencies",
