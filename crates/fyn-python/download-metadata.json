@@ -62372,23 +62372,6 @@
     "variant": null,
     "build": "20230507"
   },
-  "cpython-3.11.3-emscripten-wasm32-musl": {
-    "name": "cpython",
-    "arch": {
-      "family": "wasm32",
-      "variant": null
-    },
-    "os": "emscripten",
-    "libc": "musl",
-    "major": 3,
-    "minor": 11,
-    "patch": 3,
-    "prerelease": "",
-    "url": "https://github.com/pyodide/pyodide/releases/download/0.25.1/xbuildenv-0.25.1.tar.bz2",
-    "sha256": null,
-    "variant": null,
-    "build": "0.25.1"
-  },
   "cpython-3.11.3-linux-aarch64-gnu": {
     "name": "cpython",
     "arch": {
