@@ -1,4 +1,5 @@
 use std::io::Cursor;
+use std::io::Write;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -16,8 +17,10 @@ use wiremock::{
     Mock, MockServer, ResponseTemplate,
     matchers::{basic_auth, method, path},
 };
+use zip::write::SimpleFileOptions;
+use zip::{CompressionMethod, ZipWriter};
 
-use fyn_fs::Simplified;
+use fyn_fs::{PortablePath, Simplified};
 use fyn_static::EnvVars;
 #[cfg(feature = "test-git")]
 use fyn_test::decode_token;
@@ -25,6 +28,7 @@ use fyn_test::{
     DEFAULT_PYTHON_VERSION, TestContext, build_vendor_links_url, download_to_disk, fyn_snapshot,
     get_bin, packse_index_url, venv_bin_path,
 };
+use walkdir::WalkDir;
 
 #[test]
 fn missing_requirements_txt() {
@@ -93,12 +97,12 @@ fn install_warns_inside_managed_project() -> Result<()> {
 
     ----- stderr -----
     warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
-    
+
     State impact:
       environment: direct changes only
       pyproject.toml: unchanged
       fyn.lock: unchanged
-    
+
     Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     warning: Requirements file `requirements.txt` does not contain any dependencies
     Checked in [TIME]
@@ -13292,6 +13296,14 @@ fn reserved_script_name() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     warning: The script name `activate.bash` is reserved for virtual environment activation scripts.
@@ -13322,13 +13334,226 @@ fn reserved_script_name() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Uninstalled 1 package in [TIME]
     error: Failed to install: project-0.1.0-py3-none-any.whl (project==0.1.0 (from file://[TEMP_DIR]/))
-      Caused by: Scripts must not use the reserved name python
+      Caused by: Scripts must not use the reserved name `python`, got: `python`
     "
     );
+
+    Ok(())
+}
+
+fn repacked_wheel_with_entrypoint(
+    context: &TestContext,
+    section: &str,
+    entrypoint_name: &str,
+) -> Result<PathBuf> {
+    context.init().arg("--lib").arg("foo").assert().success();
+    context.build().arg("--wheel").arg("foo").assert().success();
+
+    let built_wheel = context.temp_dir.join("foo/dist/foo-0.1.0-py3-none-any.whl");
+    let unpacked = context.temp_dir.join("foo-unpacked");
+    fyn_extract::unzip(File::open(&built_wheel)?, &unpacked)?;
+
+    fs::write(
+        unpacked.join("foo-0.1.0.dist-info/entry_points.txt"),
+        formatdoc! {"
+            [{section}]
+            {entrypoint_name} = foo:main
+            ",
+        },
+    )?;
+
+    let repacked_wheel = context.temp_dir.join("foo-0.1.0-py3-none-any.whl");
+    let mut writer = ZipWriter::new(File::create(&repacked_wheel)?);
+    let options = SimpleFileOptions::default().compression_method(CompressionMethod::Stored);
+    for entry in WalkDir::new(&unpacked) {
+        let entry = entry?;
+        let path = entry.path();
+        let name = path.strip_prefix(&unpacked)?;
+        if name.as_os_str().is_empty() {
+            continue;
+        }
+
+        // Zip entries must use forward slashes, even on Windows.
+        let mut name = PortablePath::from(name).to_string();
+        if path.is_dir() {
+            name.push('/');
+            writer.add_directory(name, options)?;
+        } else {
+            writer.start_file(name, options)?;
+            writer.write_all(&fs::read(path)?)?;
+        }
+    }
+    writer.finish()?;
+
+    Ok(repacked_wheel)
+}
+
+#[test]
+fn reject_wheel_entrypoint_paths() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    // Build a normal wheel, then rewrite its entry-point metadata to exercise the installer
+    // directly, rather than relying on backend-side validation.
+    let escaped_entrypoint = context.temp_dir.child("escaped-entrypoint");
+    let repacked_wheel = repacked_wheel_with_entrypoint(
+        &context,
+        "console_scripts",
+        &escaped_entrypoint.path().portable_display().to_string(),
+    )?;
+
+    fyn_snapshot!(context.filters(), context.pip_install().arg(&repacked_wheel), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    error: Failed to install: foo-0.1.0-py3-none-any.whl (foo==0.1.0 (from file://[TEMP_DIR]/foo-0.1.0-py3-none-any.whl))
+      Caused by: The wheel is invalid: Script path must resolve to a file within the scripts directory: `[TEMP_DIR]/escaped-entrypoint`
+    "
+    );
+
+    escaped_entrypoint.assert(predicates::path::missing());
+
+    Ok(())
+}
+
+#[test]
+fn reject_normalized_reserved_wheel_entrypoint_name() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let repacked_wheel =
+        repacked_wheel_with_entrypoint(&context, "console_scripts", "nested/../python")?;
+
+    fyn_snapshot!(context.filters(), context.pip_install().arg(&repacked_wheel), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    error: Failed to install: foo-0.1.0-py3-none-any.whl (foo==0.1.0 (from file://[TEMP_DIR]/foo-0.1.0-py3-none-any.whl))
+      Caused by: Scripts must not use the reserved name `python`, got: `nested/../python`
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn reject_normalized_reserved_gui_wheel_entrypoint_name() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let repacked_wheel =
+        repacked_wheel_with_entrypoint(&context, "gui_scripts", "nested/../python")?;
+
+    fyn_snapshot!(context.filters(), context.pip_install().arg(&repacked_wheel), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    error: Failed to install: foo-0.1.0-py3-none-any.whl (foo==0.1.0 (from file://[TEMP_DIR]/foo-0.1.0-py3-none-any.whl))
+      Caused by: Scripts must not use the reserved name `python`, got: `nested/../python`
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn warn_normalized_activation_wheel_entrypoint_name() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let repacked_wheel =
+        repacked_wheel_with_entrypoint(&context, "console_scripts", "nested/../activate.bash")?;
+
+    fyn_snapshot!(context.filters(), context.pip_install().arg(&repacked_wheel), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    warning: The script name `activate.bash` is reserved for virtual environment activation scripts.
+    Installed 1 package in [TIME]
+     + foo==0.1.0 (from file://[TEMP_DIR]/foo-0.1.0-py3-none-any.whl)
+    "
+    );
+
+    Ok(())
+}
+
+#[test]
+fn accept_normalized_gui_wheel_entrypoint_paths() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let repacked_wheel =
+        repacked_wheel_with_entrypoint(&context, "gui_scripts", "nested/../normalized-gui")?;
+
+    fyn_snapshot!(context.filters(), context.pip_install().arg(&repacked_wheel), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + foo==0.1.0 (from file://[TEMP_DIR]/foo-0.1.0-py3-none-any.whl)
+    "
+    );
+
+    let script_name = if cfg!(windows) {
+        "normalized-gui.exe"
+    } else {
+        "normalized-gui"
+    };
+    let normalized_script = venv_bin_path(&context.venv).join(script_name);
+    assert!(normalized_script.exists());
+
+    Ok(())
+}
+
+#[test]
+fn accept_normalized_wheel_entrypoint_paths() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let repacked_wheel =
+        repacked_wheel_with_entrypoint(&context, "console_scripts", "nested/../normalized-script")?;
+
+    fyn_snapshot!(context.filters(), context.pip_install().arg(&repacked_wheel), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    Prepared 1 package in [TIME]
+    Installed 1 package in [TIME]
+     + foo==0.1.0 (from file://[TEMP_DIR]/foo-0.1.0-py3-none-any.whl)
+    "
+    );
+
+    let script_name = if cfg!(windows) {
+        "normalized-script.exe"
+    } else {
+        "normalized-script"
+    };
+    let normalized_script = venv_bin_path(&context.venv).join(script_name);
+    assert!(normalized_script.exists());
 
     Ok(())
 }
