@@ -69,8 +69,6 @@ $ pip install fyn
     [contributing setup guide](https://github.com/duriantaco/fyn/blob/main/CONTRIBUTING.md#setup)
     for details on building fyn from source.
 
-
-
 ### GitHub Releases
 
 fyn release artifacts can be downloaded directly from
@@ -78,7 +76,6 @@ fyn release artifacts can be downloaded directly from
 
 Each release page includes binaries for supported platforms, and may also include standalone
 installer scripts.
-
 
 !!! note
 

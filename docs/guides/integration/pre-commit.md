@@ -7,7 +7,8 @@ description:
 
 # Under development
 
-Astral's uv-pre-commit hook has not been forked yet.  The documentation below is for future use once an official fyn-pre-commit exists.
+Astral's uv-pre-commit hook has not been forked yet. The documentation below is for future use once
+an official fyn-pre-commit exists.
 
 # Using fyn in pre-commit
 

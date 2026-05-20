@@ -20,10 +20,10 @@ for community contribution. We're happy to receive contributions for other issue
 important to make sure we have consensus on the solution to the problem first.
 
 Outside of issues with the labels above, issues labeled as
-[`bug`](https://github.com/duriantaco/fyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22bug%22) are the best
-candidates for contribution. In contrast, issues labeled with `needs-decision` or `needs-design` are
-_not_ good candidates for contribution. Please do not open pull requests for issues with these
-labels.
+[`bug`](https://github.com/duriantaco/fyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22bug%22) are the
+best candidates for contribution. In contrast, issues labeled with `needs-decision` or
+`needs-design` are _not_ good candidates for contribution. Please do not open pull requests for
+issues with these labels.
 
 Please do not open pull requests for new features without prior discussion. While we appreciate
 exploration of new features, we will almost always close these pull requests immediately. Adding a

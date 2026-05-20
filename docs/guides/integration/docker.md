@@ -32,7 +32,8 @@ The following distroless images are available:
 
 - `ghcr.io/duriantaco/fyn:latest`
 - `ghcr.io/duriantaco/fyn:{major}.{minor}.{patch}`, e.g., `ghcr.io/duriantaco/fyn:0.10.14`
-- `ghcr.io/duriantaco/fyn:{major}.{minor}`, e.g., `ghcr.io/duriantaco/fyn:0.8` (the latest patch version)
+- `ghcr.io/duriantaco/fyn:{major}.{minor}`, e.g., `ghcr.io/duriantaco/fyn:0.8` (the latest patch
+  version)
 
 And the following derived images are available:
 
@@ -90,8 +91,8 @@ And the following derived images are available:
 <!-- prettier-ignore-end -->
 
 As with the distroless image, each derived image is published with fyn version tags as
-`ghcr.io/duriantaco/fyn:{major}.{minor}.{patch}-{base}` and `ghcr.io/duriantaco/fyn:{major}.{minor}-{base}`, e.g.,
-`ghcr.io/duriantaco/fyn:0.10.14-alpine`.
+`ghcr.io/duriantaco/fyn:{major}.{minor}.{patch}-{base}` and
+`ghcr.io/duriantaco/fyn:{major}.{minor}-{base}`, e.g., `ghcr.io/duriantaco/fyn:0.10.14-alpine`.
 
 In addition, starting with `0.8` each derived image also sets `UV_TOOL_BIN_DIR` to `/usr/local/bin`
 to allow `fyn tool install` to work as expected with the default user.
