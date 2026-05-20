@@ -1,0 +1,55 @@
+# [Building distributions](#building-distributions)
+
+To distribute your project to others (e.g., to upload it to an index like PyPI), you'll need to build it into a distributable format.
+
+Python projects are typically distributed as both source distributions (sdists) and binary distributions (wheels). The former is typically a `.tar.gz` or `.zip` file containing the project's source code along with some additional metadata, while the latter is a `.whl` file containing pre-built artifacts that can be installed directly.
+
+Important
+
+When using `fyn build`, fyn acts as a [build frontend](https://peps.python.org/pep-0517/#terminology-and-goals) and only determines the Python version to use and invokes the build backend. The details of the builds, such as the included files and the distribution filenames, are determined by the build backend, as defined in [`[build-system]`](../config/#build-systems). Information about build configuration can be found in the respective tool's documentation.
+
+## [Using `fyn build`](#using-fyn-build)
+
+`fyn build` can be used to build both source distributions and binary distributions for your project. By default, `fyn build` will build the project in the current directory, and place the built artifacts in a `dist/` subdirectory:
+
+```
+$ fyn build
+$ ls dist/
+example-0.1.0-py3-none-any.whl
+example-0.1.0.tar.gz
+```
+
+You can build the project in a different directory by providing a path to `fyn build`, e.g., `fyn build path/to/project`.
+
+`fyn build` will first build a source distribution, and then build a binary distribution (wheel) from that source distribution.
+
+You can limit `fyn build` to building a source distribution with `fyn build --sdist`, a binary distribution with `fyn build --wheel`, or build both distributions from source with `fyn build --sdist --wheel`.
+
+## [Build constraints](#build-constraints)
+
+`fyn build` accepts `--build-constraint`, which can be used to constrain the versions of any build requirements during the build process. When coupled with `--require-hashes`, fyn will enforce that the requirement used to build the project match specific, known hashes, for reproducibility.
+
+For example, given the following `constraints.txt`:
+
+```
+setuptools==68.2.2 --hash=sha256:b454a35605876da60632df1a60f736524eb73cc47bbc9f3f1ef1b644de74fd2a
+```
+
+Running the following would build the project with the specified version of `setuptools`, and verify that the downloaded `setuptools` distribution matches the specified hash:
+
+```
+$ fyn build --build-constraint constraints.txt --require-hashes
+```
+
+## [Preventing publish to PyPI](#preventing-publish-to-pypi)
+
+If you have internal packages that you do not want to be published, you can mark them as private:
+
+```
+[project]
+classifiers = ["Private :: Do Not Upload"]
+```
+
+This setting makes PyPI reject your uploaded package from publishing. It does not affect security or privacy settings on alternative registries.
+
+We also recommend only generating [per-project PyPI API tokens](https://pypi.org/help/#apitoken): Without a PyPI token matching the project, it can't be accidentally published.

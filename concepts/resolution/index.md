@@ -1,0 +1,624 @@
+# [Resolution](#resolution)
+
+Resolution is the process of taking a list of requirements and converting them to a list of package versions that fulfill the requirements. Resolution requires recursively searching for compatible versions of packages, ensuring that the requested requirements are fulfilled and that the requirements of the requested packages are compatible.
+
+## [Dependencies](#dependencies)
+
+Most projects and packages have dependencies. Dependencies are other packages that are necessary in order for the current package to work. A package defines its dependencies as *requirements*, roughly a combination of a package name and acceptable versions. The dependencies defined by the current project are called *direct dependencies*. The dependencies added by each dependency of the current project are called *indirect* or *transitive dependencies*.
+
+Note
+
+See the [dependency specifiers page](https://packaging.python.org/en/latest/specifications/dependency-specifiers/) in the Python Packaging documentation for details about dependencies.
+
+## [Basic examples](#basic-examples)
+
+To help demonstrate the resolution process, consider the following dependencies:
+
+- The project depends on `foo` and `bar`.
+- `foo` has one version, 1.0.0:
+  - `foo 1.0.0` depends on `lib>=1.0.0`.
+- `bar` has one version, 1.0.0:
+  - `bar 1.0.0` depends on `lib>=2.0.0`.
+- `lib` has two versions, 1.0.0 and 2.0.0. Both versions have no dependencies.
+
+In this example, the resolver must find a set of package versions which satisfies the project requirements. Since there is only one version of both `foo` and `bar`, those will be used. The resolution must also include the transitive dependencies, so a version of `lib` must be chosen. `foo 1.0.0` allows all available versions of `lib`, but `bar 1.0.0` requires `lib>=2.0.0` so `lib 2.0.0` must be used.
+
+In some resolutions, there may be more than one valid solution. Consider the following dependencies:
+
+- The project depends on `foo` and `bar`.
+- `foo` has two versions, 1.0.0 and 2.0.0:
+  - `foo 1.0.0` has no dependencies.
+  - `foo 2.0.0` depends on `lib==2.0.0`.
+- `bar` has two versions, 1.0.0 and 2.0.0:
+  - `bar 1.0.0` has no dependencies.
+  - `bar 2.0.0` depends on `lib==1.0.0`
+- `lib` has two versions, 1.0.0 and 2.0.0. Both versions have no dependencies.
+
+In this example, some version of both `foo` and `bar` must be selected; however, determining which version requires considering the dependencies of each version of `foo` and `bar`. `foo 2.0.0` and `bar 2.0.0` cannot be installed together as they conflict on their required version of `lib`, so the resolver must select either `foo 1.0.0` (along with `bar 2.0.0`) or `bar 1.0.0` (along with `foo 2.0.0`). Both are valid solutions, and different resolution algorithms may yield either result.
+
+## [Platform markers](#platform-markers)
+
+Markers allow attaching an expression to requirements that indicate when the dependency should be used. For example `bar ; python_version < "3.9"` indicates that `bar` should only be installed on Python 3.8 and earlier.
+
+Markers are used to adjust a package's dependencies based on the current environment or platform. For example, markers can be used to modify dependencies by operating system, CPU architecture, Python version, Python implementation, and more.
+
+Note
+
+See the [environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers) section in the Python Packaging documentation for more details about markers.
+
+Markers are important for resolution because their values change the required dependencies. Typically, Python package resolvers use the markers of the *current* platform to determine which dependencies to use since the package is often being *installed* on the current platform. However, for *locking* dependencies this is problematic — the lockfile would only work for developers using the same platform the lockfile was created on. To solve this problem, platform-independent, or "universal" resolvers exist.
+
+fyn supports both [platform-specific](#platform-specific-resolution) and [universal](#universal-resolution) resolution.
+
+## [Platform-specific resolution](#platform-specific-resolution)
+
+By default, fyn's pip interface, i.e., [`fyn pip compile`](../../pip/compile/), produces a resolution that is platform-specific, like `pip-tools`. There is no way to use platform-specific resolution in the fyn's project interface.
+
+fyn also supports resolving for specific, alternate platforms and Python versions with the `--python-platform` and `--python-version` options. For example, if using Python 3.12 on macOS, `fyn pip compile --python-platform linux --python-version 3.10 requirements.in` can be used to produce a resolution for Python 3.10 on Linux instead. Unlike universal resolution, during platform-specific resolution, the provided `--python-version` is the exact python version to use, not a lower bound.
+
+Note
+
+Python's environment markers expose far more information about the current machine than can be expressed by a simple `--python-platform` argument. For example, the `platform_version` marker on macOS includes the time at which the kernel was built, which can (in theory) be encoded in package requirements. fyn's resolver makes a best-effort attempt to generate a resolution that is compatible with any machine running on the target `--python-platform`, which should be sufficient for most use cases, but may lose fidelity for complex package and platform combinations.
+
+## [Universal resolution](#universal-resolution)
+
+fyn's lockfile (`fyn.lock`) is created with a universal resolution and is portable across platforms. This ensures that dependencies are locked for everyone working on the project, regardless of operating system, architecture, and Python version. The fyn lockfile is created and modified by [project](../projects/) commands such as `fyn lock`, `fyn sync`, and `fyn add`.
+
+Universal resolution is also available in fyn's pip interface, i.e., [`fyn pip compile`](../../pip/compile/), with the `--universal` flag. The resulting requirements file will contain markers to indicate which platform each dependency is relevant for.
+
+During universal resolution, a package may be listed multiple times with different versions or URLs if different versions are needed for different platforms — the markers determine which version will be used. A universal resolution is often more constrained than a platform-specific resolution, since we need to take the requirements for all markers into account.
+
+During universal resolution, all required packages must be compatible with the *entire* range of `requires-python` declared in the `pyproject.toml`. For example, if a project's `requires-python` is `>=3.8`, resolution will fail if all versions of given dependency require Python 3.9 or later, since the dependency lacks a usable version for (e.g.) Python 3.8, the lower bound of the project's supported range. In other words, the project's `requires-python` must be a subset of the `requires-python` of all its dependencies.
+
+When selecting the compatible version for a given dependency, fyn will ([by default](#multi-version-resolution)) attempt to choose the latest compatible version for each supported Python version. For example, if a project's `requires-python` is `>=3.8`, and the latest version of a dependency requires Python 3.9 or later, while all prior versions supporting Python 3.8, the resolver will select the latest version for users running Python 3.9 or later, and previous versions for users running Python 3.8.
+
+When evaluating `requires-python` ranges for dependencies, fyn only considers lower bounds and ignores upper bounds entirely. For example, `>=3.8, <4` is treated as `>=3.8`. Respecting upper bounds on `requires-python` often leads to formally correct but practically incorrect resolutions, as, e.g., resolvers will backtrack to the first published version that omits the upper bound (see: [`Requires-Python` upper limits](https://discuss.python.org/t/requires-python-upper-limits/12663)).
+
+## [Limited resolution environments](#limited-resolution-environments)
+
+By default, the universal resolver attempts to solve for all platforms and Python versions.
+
+If your project supports only a limited set of platforms or Python versions, you can constrain the set of solved platforms via the `environments` setting, which accepts a list of [PEP 508 environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers). In other words, you can use the `environments` setting to *reduce* the set of supported platforms.
+
+For example, to constrain the lockfile to macOS and Linux, and avoid solving for Windows:
+
+pyproject.toml
+
+```
+[tool.fyn]
+environments = [
+    "sys_platform == 'darwin'",
+    "sys_platform == 'linux'",
+]
+```
+
+Or, to avoid solving for alternative Python implementations:
+
+pyproject.toml
+
+```
+[tool.fyn]
+environments = [
+    "implementation_name == 'cpython'"
+]
+```
+
+Entries in the `environments` setting must be disjoint (i.e., they must not overlap). For example, `sys_platform == 'darwin'` and `sys_platform == 'linux'` are disjoint, but `sys_platform == 'darwin'` and `python_version >= '3.9'` are not, since both could be true at the same time.
+
+## [Required environments](#required-environments)
+
+In the Python ecosystem, packages can be published as source distributions, built distributions (wheels), or both; but to install a package, a built distribution is required. If a package lacks a built distribution, or lacks a distribution for the current platform or Python version (built distributions are often platform-specific), fyn will attempt to build the package from source, then install the resulting built distribution.
+
+Some packages (like PyTorch) publish built distributions, but omit a source distribution. Such packages are *only* installable on platforms for which a built distribution is available. For example, if a package publishes built distributions for Linux, but not macOS or Windows, then that package will *only* be installable on Linux.
+
+Packages that lack source distributions cause problems for universal resolution, since there will typically be at least one platform or Python version for which the package is not installable.
+
+By default, fyn requires each such package to include at least one wheel that is compatible with the target Python version. The `required-environments` setting can be used to ensure that the resulting resolution contains wheels for specific platforms, or fails if no such wheels are available. The setting accepts a list of [PEP 508 environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers).
+
+While the `environments` setting *limits* the set of environments that fyn will consider when resolving dependencies, `required-environments` *expands* the set of platforms that fyn *must* support when resolving dependencies.
+
+For example, `environments = ["sys_platform == 'darwin'"]` would limit fyn to solving for macOS (and ignoring Linux and Windows). On the other hand, `required-environments = ["sys_platform == 'darwin'"]` would *require* that any package without a source distribution include a wheel for macOS in order to be installable (and would fail if no such wheel is available).
+
+In practice, `required-environments` can be useful for declaring explicit support for non-latest platforms, since this often requires backtracking past the latest published versions of those packages. For example, to guarantee that any built distribution-only packages includes support for Intel macOS:
+
+pyproject.toml
+
+```
+[tool.fyn]
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'x86_64'"
+]
+```
+
+## [Common marker values](#common-marker-values)
+
+The `environments` and `required-environments` settings accept [PEP 508 environment markers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#environment-markers). The values for these markers are derived from the Python runtime (e.g., [`sys.platform`](https://docs.python.org/3/library/sys.html#sys.platform), [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine), [`platform.system()`](https://docs.python.org/3/library/platform.html#platform.system), and [`os.name`](https://docs.python.org/3/library/os.html#os.name)).
+
+For quick reference, the most common marker values by platform are:
+
+| Marker | Linux | macOS | Windows | | --- | --- | --- | --- | | `sys_platform` | `'linux'` | `'darwin'` | `'win32'` | | `platform_system` | `'Linux'` | `'Darwin'` | `'Windows'` | | `platform_machine` (x86-64) | `'x86_64'` | `'x86_64'` | `'AMD64'` | | `platform_machine` (ARM64) | `'aarch64'` | `'arm64'` | `'ARM64'` | | `os_name` | `'posix'` | `'posix'` | `'nt'` |
+
+Note
+
+On Windows, `sys_platform` is always `'win32'`, even on 64-bit systems.
+
+You can check the values for your current platform by running:
+
+```
+$ fynx python -c "import sysconfig; print(sysconfig.get_config_vars())"
+```
+
+## [Dependency preferences](#dependency-preferences)
+
+If resolution output file exists, i.e., a fyn lockfile (`fyn.lock`) or a requirements output file (`requirements.txt`), fyn will *prefer* the dependency versions listed there. Similarly, if installing a package into a virtual environment, fyn will prefer the already installed version if present. This means that locked or installed versions will not change unless an incompatible version is requested or an upgrade is explicitly requested with `--upgrade`.
+
+## [Resolution strategy](#resolution-strategy)
+
+By default, fyn tries to use the latest version of each package. For example, `fyn pip install flask>=2.0.0` will install the latest version of Flask, e.g., 3.0.0. If `flask>=2.0.0` is a dependency of the project, only `flask` 3.0.0 will be used. This is important, for example, because running tests will not check that the project is actually compatible with its stated lower bound of `flask` 2.0.0.
+
+With `--resolution lowest`, fyn will install the lowest possible version for all dependencies, both direct and indirect (transitive). Alternatively, `--resolution lowest-direct` will use the lowest compatible versions for all direct dependencies, while using the latest compatible versions for all other dependencies. fyn will always use the latest versions for build dependencies.
+
+For example, given the following `requirements.in` file:
+
+requirements.in
+
+```
+flask>=2.0.0
+```
+
+Running `fyn pip compile requirements.in -o requirements.txt` would produce the following `requirements.txt` file:
+
+requirements.txt
+
+```
+# This file was autogenerated by fyn via the following command:
+#    fyn pip compile requirements.in -o requirements.txt
+blinker==1.7.0
+    # via flask
+click==8.1.7
+    # via flask
+flask==3.0.0
+itsdangerous==2.1.2
+    # via flask
+jinja2==3.1.2
+    # via flask
+markupsafe==2.1.3
+    # via
+    #   jinja2
+    #   werkzeug
+werkzeug==3.0.1
+    # via flask
+```
+
+However, `fyn pip compile --resolution lowest requirements.in -o requirements.txt` would instead produce:
+
+requirements.txt
+
+```
+# This file was autogenerated by fyn via the following command:
+#    fyn pip compile --resolution lowest requirements.in -o requirements.txt
+click==7.1.2
+    # via flask
+flask==2.0.0
+itsdangerous==2.0.0
+    # via flask
+jinja2==3.0.0
+    # via flask
+markupsafe==2.0.0
+    # via jinja2
+werkzeug==2.0.0
+    # via flask
+```
+
+When publishing libraries, it is recommended to separately run tests with `--resolution lowest` or `--resolution lowest-direct` in continuous integration to ensure compatibility with the declared lower bounds.
+
+## [Pre-release handling](#pre-release-handling)
+
+By default, fyn will accept pre-release versions during dependency resolution in two cases:
+
+1. If the package is a direct dependency, and its version specifiers include a pre-release specifier (e.g., `flask>=2.0.0rc1`).
+1. If *all* published versions of a package are pre-releases.
+
+If dependency resolution fails due to a transitive pre-release, fyn will prompt use of `--prerelease allow` to allow pre-releases for all dependencies.
+
+Alternatively, the transitive dependency can be added as a [constraint](#dependency-constraints) or direct dependency (i.e. in `requirements.in` or `pyproject.toml`) with a pre-release version specifier (e.g., `flask>=2.0.0rc1`) to opt in to pre-release support for that specific dependency.
+
+Pre-releases are [notoriously difficult](https://pubgrub-rs-guide.netlify.app/limitations/prerelease_versions) to model, and are a frequent source of bugs in other packaging tools. fyn's pre-release handling is *intentionally* limited and requires user opt-in for pre-releases to ensure correctness.
+
+For more details, see [Pre-release compatibility](../../pip/compatibility/#pre-release-compatibility).
+
+## [Multi-version resolution](#multi-version-resolution)
+
+During universal resolution, a package may be listed multiple times with different versions or URLs within the same lockfile, since different versions may be needed for different platforms or Python versions.
+
+The `--fork-strategy` setting can be used to control how fyn trades off between (1) minimizing the number of selected versions and (2) selecting the latest-possible version for each platform. The former leads to greater consistency across platforms, while the latter leads to use of newer package versions where possible.
+
+By default (`--fork-strategy requires-python`), fyn will optimize for selecting the latest version of each package for each supported Python version, while minimizing the number of selected versions across platforms.
+
+For example, when resolving `numpy` with a Python requirement of `>=3.8`, fyn would select the following versions:
+
+```
+numpy==1.24.4 ; python_version == "3.8"
+numpy==2.0.2 ; python_version == "3.9"
+numpy==2.2.0 ; python_version >= "3.10"
+```
+
+This resolution reflects the fact that NumPy 2.2.0 and later require at least Python 3.10, while earlier versions are compatible with Python 3.8 and 3.9.
+
+Under `--fork-strategy fewest`, fyn will instead minimize the number of selected versions for each package, preferring older versions that are compatible with a wider range of supported Python versions or platforms.
+
+For example, when in the scenario above, fyn would select `numpy==1.24.4` for all Python versions, rather than upgrading to `numpy==2.0.2` for Python 3.9 and `numpy==2.2.0` for Python 3.10 and later.
+
+## [Dependency constraints](#dependency-constraints)
+
+Like pip, fyn supports constraint files (`--constraint constraints.txt`) which narrow the set of acceptable versions for the given packages. Constraint files are similar to requirements files, but being listed as a constraint alone will not cause a package to be included to the resolution. Instead, constraints only take effect if a requested package is already pulled in as a direct or transitive dependency. Constraints are useful for reducing the range of available versions for a transitive dependency. They can also be used to keep a resolution in sync with some other set of resolved versions, regardless of which packages are overlapping between the two.
+
+## [Dependency overrides](#dependency-overrides)
+
+Dependency overrides allow bypassing unsuccessful or undesirable resolutions by overriding a package's declared dependencies. Overrides are a useful last resort for cases in which you *know* that a dependency is compatible with a certain version of a package, despite the metadata indicating otherwise.
+
+For example, if a transitive dependency declares the requirement `pydantic>=1.0,<2.0`, but *does* work with `pydantic>=2.0`, the user can override the declared dependency by including `pydantic>=1.0,<3` in the overrides, thereby allowing the resolver to choose a newer version of `pydantic`.
+
+Concretely, if `pydantic>=1.0,<3` is included as an override, fyn will ignore all declared requirements on `pydantic`, replacing them with the override. In the above example, the `pydantic>=1.0,<2.0` requirement would be ignored completely, and would instead be replaced with `pydantic>=1.0,<3`.
+
+While constraints can only *reduce* the set of acceptable versions for a package, overrides can *expand* the set of acceptable versions, providing an escape hatch for erroneous upper version bounds. As with constraints, overrides do not add a dependency on the package and only take effect if the package is requested in a direct or transitive dependency.
+
+In a `pyproject.toml`, use `tool.fyn.override-dependencies` to define a list of overrides. In the pip-compatible interface, the `--override` option can be used to pass files with the same format as constraints files.
+
+If multiple overrides are provided for the same package, they must be differentiated with [markers](#platform-markers). If a package has a dependency with a marker, it is replaced unconditionally when using overrides — it does not matter if the marker evaluates to true or false.
+
+## [Dependency metadata](#dependency-metadata)
+
+During resolution, fyn needs to resolve the metadata for each package it encounters, in order to determine its dependencies. This metadata is often available as a static file in the package index; however, for packages that only provide source distributions, the metadata may not be available upfront.
+
+In such cases, fyn has to build the package to determine its metadata (e.g., by invoking `setup.py`). This can introduce a performance penalty during resolution. Further, it imposes the requirement that the package can be built on all platforms, which may not be true.
+
+For example, you may have a package that should only be built and installed on Linux, but doesn't build successfully on macOS or Windows. While fyn can construct a perfectly valid lockfile for this scenario, doing so would require building the package, which would fail on non-Linux platforms.
+
+The `tool.fyn.dependency-metadata` table can be used to provide static metadata for such dependencies upfront, thereby allowing fyn to skip the build step and use the provided metadata instead.
+
+For example, to provide metadata for `chumpy` upfront, include its `dependency-metadata` in the `pyproject.toml`:
+
+```
+[[tool.fyn.dependency-metadata]]
+name = "chumpy"
+version = "0.70"
+requires-dist = ["numpy>=1.8.1", "scipy>=0.13.0", "six>=1.11.0"]
+```
+
+These declarations are intended for cases in which a package does *not* declare static metadata upfront, though they are also useful for packages that require [disabling build isolation](../projects/config/#build-isolation) In such cases, it may be easier to declare the package metadata upfront, rather than creating a custom build environment prior to resolving the package.
+
+For example, past versions of `flash-attn` did not declare static metadata. By declaring metadata for `flash-attn` upfront, fyn can resolve `flash-attn` without building the package from source (which itself requires installing `torch`):
+
+```
+[project]
+name = "project"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["flash-attn"]
+
+[tool.fyn.sources]
+flash-attn = { git = "https://github.com/Dao-AILab/flash-attention", tag = "v2.6.3" }
+
+[[tool.fyn.dependency-metadata]]
+name = "flash-attn"
+version = "2.6.3"
+requires-dist = ["torch", "einops"]
+```
+
+Like dependency overrides, `tool.fyn.dependency-metadata` can also be used for cases in which a package's metadata is incorrect or incomplete, or when a package is not available in the package index. While dependency overrides allow overriding the allowed versions of a package globally, metadata overrides allow overriding the declared metadata of a *specific package*.
+
+Note
+
+The `version` field in `tool.fyn.dependency-metadata` is optional for registry-based dependencies (when omitted, fyn will assume the metadata applies to all versions of the package), but *required* for direct URL dependencies (like Git dependencies).
+
+Entries in the `tool.fyn.dependency-metadata` table follow the [Metadata 2.3](https://packaging.python.org/en/latest/specifications/core-metadata/) specification, though only `name`, `version`, `requires-dist`, `requires-python`, and `provides-extra` are read by fyn. The `version` field is also considered optional. If omitted, the metadata will be used for all versions of the specified package.
+
+## [Conflicting dependencies](#conflicting-dependencies)
+
+fyn requires that all dependencies declared by a project are compatible with each other and resolves all dependencies together when creating the lockfile. This includes project dependencies, optional dependencies ("extras"), and dependency groups (development dependencies).
+
+If dependencies declared in one extra are not compatible with those in another extra, fyn will fail to resolve the requirements of the project with an error. For example, consider two sets of optional dependencies that conflict with one another:
+
+pyproject.toml
+
+```
+[project.optional-dependencies]
+extra1 = ["numpy==2.1.2"]
+extra2 = ["numpy==2.0.0"]
+```
+
+If you run `fyn lock` with the above dependencies, resolution will fail:
+
+```
+$ fyn lock
+  x No solution found when resolving dependencies:
+  `-> Because myproject[extra2] depends on numpy==2.0.0 and myproject[extra1] depends on numpy==2.1.2, we can conclude that myproject[extra1] and
+      myproject[extra2] are incompatible.
+      And because your project requires myproject[extra1] and myproject[extra2], we can conclude that your projects's requirements are unsatisfiable.
+```
+
+To work around this, fyn supports explicit declaration of conflicts. If you specify that `extra1` and `extra2` are conflicting, fyn will resolve them separately. Specify conflicts in the `tool.fyn` section:
+
+pyproject.toml
+
+```
+[tool.fyn]
+conflicts = [
+    [
+      { extra = "extra1" },
+      { extra = "extra2" },
+    ],
+]
+```
+
+Now, running `fyn lock` will succeed. However, now you cannot install both `extra1` and `extra2` at the same time:
+
+```
+$ fyn sync --extra extra1 --extra extra2
+Resolved 3 packages in 14ms
+error: extra `extra1`, extra `extra2` are incompatible with the declared conflicts: {`myproject[extra1]`, `myproject[extra2]`}
+```
+
+This error occurs because installing both `extra1` and `extra2` would result in installing two different versions of a package into the same environment.
+
+The above strategy for dealing with conflicting optional dependencies also works with dependency groups:
+
+pyproject.toml
+
+```
+[dependency-groups]
+group1 = ["numpy==2.1.2"]
+group2 = ["numpy==2.0.0"]
+
+[tool.fyn]
+conflicts = [
+    [
+      { group = "group1" },
+      { group = "group2" },
+    ],
+]
+```
+
+The only difference from conflicting extras is that you need to use the `group` key instead of `extra`.
+
+When using a workspace with multiple projects, the same restrictions apply — fyn requires all workspace members to be compatible with each other. Similarly, conflicts can be declared across workspace members.
+
+For example, consider the following workspace:
+
+member1/pyproject.toml
+
+```
+[project]
+name = "member1"
+
+[project.optional-dependencies]
+extra1 = ["numpy==2.1.2"]
+```
+
+member2/pyproject.toml
+
+```
+[project]
+name = "member2"
+
+[project.optional-dependencies]
+extra2 = ["numpy==2.0.0"]
+```
+
+To declare a conflict between extras in these different workspace members, use the `package` key:
+
+pyproject.toml
+
+```
+[tool.fyn]
+conflicts = [
+    [
+      { package = "member1", extra = "extra1" },
+      { package = "member2", extra = "extra2" },
+    ],
+]
+```
+
+It's also possible for the project dependencies (i.e., `project.dependencies`) of one workspace member to conflict with the extra of another member, for example:
+
+member1/pyproject.toml
+
+```
+[project]
+name = "member1"
+dependencies = ["numpy==2.1.2"]
+```
+
+member2/pyproject.toml
+
+```
+[project]
+name = "member2"
+
+[project.optional-dependencies]
+extra2 = ["numpy==2.0.0"]
+```
+
+This conflict can also be declared using the `package` key:
+
+pyproject.toml
+
+```
+[tool.fyn]
+conflicts = [
+    [
+      { package = "member1" },
+      { package = "member2", extra = "extra2" },
+    ],
+]
+```
+
+Similarly, it's possible for some workspace members to have conflicting project dependencies:
+
+member1/pyproject.toml
+
+```
+[project]
+name = "member1"
+dependencies = ["numpy==2.1.2"]
+```
+
+member2/pyproject.toml
+
+```
+[project]
+name = "member2"
+dependencies = ["numpy==2.0.0"]
+```
+
+This conflict can also be declared using the `package` key:
+
+pyproject.toml
+
+```
+[tool.fyn]
+conflicts = [
+    [
+      { package = "member1" },
+      { package = "member2" },
+    ],
+]
+```
+
+These workspace members will not be installable together, e.g., the workspace root cannot define:
+
+pyproject.toml
+
+```
+[project]
+name = "root"
+dependencies = ["member1", "member2"]
+```
+
+## [Lower bounds](#lower-bounds)
+
+By default, `fyn add` adds lower bounds to dependencies and, when using fyn to manage projects, fyn will warn if direct dependencies don't have lower bounds.
+
+Lower bounds are not critical in the "happy path", but they are important for cases where there are dependency conflicts. For example, consider a project that requires two packages and those packages have conflicting dependencies. The resolver needs to check all combinations of all versions within the constraints for the two packages — if all of them conflict, an error is reported because the dependencies are not satisfiable. If there are no lower bounds, the resolver can (and often will) backtrack down to the oldest version of a package. This isn't only problematic because it's slow, the old version of the package often fails to build, or the resolver can end up picking a version that's old enough that it doesn't depend on the conflicting package, but also doesn't work with your code.
+
+Lower bounds are particularly critical when writing a library. It's important to declare the lowest version for each dependency that your library works with, and to validate that the bounds are correct — testing with [`--resolution lowest` or `--resolution lowest-direct`](#resolution-strategy). Otherwise, a user may receive an old, incompatible version of one of your library's dependencies and the library will fail with an unexpected error.
+
+## [Reproducible resolutions](#reproducible-resolutions)
+
+fyn supports an `--exclude-newer` option to limit resolution to distributions published before a specific date, allowing reproduction of installations regardless of new package releases. The date may be specified as an [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html) timestamp (e.g., `2006-12-02T02:07:43Z`) or a local date in the same format (e.g., `2006-12-02`) in your system's configured time zone.
+
+Important
+
+The package index must support the `upload-time` field as specified in [`PEP 700`](https://peps.python.org/pep-0700/). If the field is not present for a given distribution, the distribution will be treated as unavailable unless the package is opted out via `--exclude-newer-package <package>=false`. PyPI provides `upload-time` for all packages.
+
+To ensure reproducibility, messages for unsatisfiable resolutions will not mention that distributions were excluded due to the `--exclude-newer` flag — newer distributions will be treated as if they do not exist.
+
+Note
+
+The `--exclude-newer` option is only applied to packages that are read from a registry (as opposed to, e.g., Git dependencies). Further, when using the `fyn pip` interface, fyn will not downgrade previously installed packages unless the `--reinstall` flag is provided, in which case fyn will perform a new resolution.
+
+This option is also supported in the `pyproject.toml`, e.g.:
+
+```
+[tool.fyn]
+exclude-newer = "2006-12-02T02:07:43Z"
+```
+
+When specified in persistent configuration, local date times are not allowed.
+
+Values may also be specified for specific packages, e.g., `--exclude-newer-package setuptools=2006-12-02`, or:
+
+```
+[tool.fyn]
+exclude-newer-package = { setuptools = "2006-12-02T02:07:43Z" }
+```
+
+The same flag also accepts `<package>=false` to opt a package out of the `--exclude-newer` restriction, e.g., to allow resolving packages from an index that does not publish upload times.
+
+Package-specific values will take precedence over global values.
+
+Indexes can also define their own `exclude-newer` value:
+
+```
+[[tool.fyn.index]]
+name = "internal"
+url = "https://internal.example.com/simple"
+exclude-newer = false
+```
+
+Or:
+
+```
+[[tool.fyn.index]]
+name = "internal"
+url = "https://internal.example.com/simple"
+exclude-newer = "7 days"
+```
+
+Index-specific values are preview-only, take precedence over the global `exclude-newer` setting, and are themselves overridden by `exclude-newer-package`.
+
+## [Dependency cooldowns](#dependency-cooldowns)
+
+fyn also supports dependency "cooldowns" in which resolution will ignore packages newer than a duration. This is a good way to improve security posture by delaying package updates until the community has had the opportunity to vet new versions of packages.
+
+This feature is available via the [`exclude-newer` option](#reproducible-resolutions) and shares the same semantics.
+
+Define a dependency cooldown by specifying a duration instead of an absolute value. Either a "friendly" duration (e.g., `24 hours`, `1 week`, `30 days`) or an ISO 8601 duration (e.g., `PT24H`, `P7D`, `P30D`) can be used.
+
+Note
+
+Durations do not respect semantics of the local time zone and are always resolved to a fixed number of seconds assuming that a day is 24 hours (e.g., DST transitions are ignored). Calendar units such as months and years are not allowed since they are inherently inconsistent lengths.
+
+When a duration is used for resolution, a timestamp is calculated relative to the current time. When using a `fyn.lock` file, the timestamp is included in the lockfile. fyn will not update the lockfile when the current time changes, instead, fyn will update the timestamp when a new resolution is performed, e.g., when `--upgrade` or `--refresh` is used.
+
+This option is also supported in the `pyproject.toml`, e.g.:
+
+```
+[tool.fyn]
+exclude-newer = "1 week"
+```
+
+Values may also be specified for specific packages, e.g., `--exclude-newer-package "setuptools=30 days"`, or:
+
+```
+[tool.fyn]
+exclude-newer = "1 week"
+exclude-newer-package = { setuptools = "30 days" }
+```
+
+## [Source distribution](#source-distribution)
+
+[PEP 625](https://peps.python.org/pep-0625/) specifies that packages must distribute source distributions as gzip tarball (`.tar.gz`) archives. Prior to this specification, other archive formats, which need to be supported for backward compatibility, were also allowed. fyn supports reading and extracting archives in the following formats:
+
+- gzip tarball (`.tar.gz`, `.tgz`)
+- bzip2 tarball (`.tar.bz2`, `.tbz`)
+- xz tarball (`.tar.xz`, `.txz`)
+- zstd tarball (`.tar.zst`)
+- lzip tarball (`.tar.lz`)
+- lzma tarball (`.tar.lzma`)
+- zip (`.zip`)
+
+Important
+
+Using source distribution extensions other than `.tar.gz` is strongly discouraged, as these extensions are not widely or consistently supported across the Python packaging ecosystem.
+
+Deprecated
+
+Support for source distribution extensions other than `.tar.gz` is deprecated and will be removed in a future release of fyn.
+
+## [Lockfile versioning](#lockfile-versioning)
+
+The `fyn.lock` file uses a versioned schema. The schema version is included in the `version` field of the lockfile.
+
+Any given version of fyn can read and write lockfiles with the same schema version, but will reject lockfiles with a greater schema version. For example, if your fyn version supports schema v1, `fyn lock` will error if it encounters an existing lockfile with schema v2.
+
+fyn versions that support schema v2 *may* be able to read lockfiles with schema v1 if the schema update was backwards-compatible. However, this is not guaranteed, and fyn may exit with an error if it encounters a lockfile with an outdated schema version.
+
+The schema version is considered part of the public API, and so is only bumped in minor releases, as a breaking change (see [Versioning](../../reference/policies/versioning/)). As such, all fyn patch versions within a given minor fyn release are guaranteed to have full lockfile compatibility. In other words, lockfiles may only be rejected across minor releases.
+
+The `revision` field of the lockfile is used to track backwards compatible changes to the lockfile. For example, adding a new field to distributions. Changes to the revision will not cause older versions of fyn to error.
+
+## [Learn more](#learn-more)
+
+For more details about the internals of the resolver, see the [resolver reference](../../reference/internals/resolver/) documentation.

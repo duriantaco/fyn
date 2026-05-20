@@ -1,0 +1,90 @@
+# fyn
+
+> fyn is an extremely fast Python package and project manager, written in Rust.
+
+You can use fyn to install Python dependencies, run scripts, manage virtual environments,
+build and publish packages, and even install Python itself. fyn is capable of replacing
+`pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`, `twine`, `virtualenv`, and more.
+
+fyn includes both a pip-compatible CLI (prepend `fyn` to a pip command, e.g., `fyn pip install ruff`)
+and a first-class project interface (e.g., `fyn add ruff`) complete with lockfiles and
+workspace support.
+
+When fetching documentation, use explicit `index.md` paths for directories. This returns
+clean markdown instead of rendered HTML with JS/CSS.
+
+
+## Getting started
+
+- [Features](https://duriantaco.github.io/fyn/getting-started/features/index.md)
+- [First steps](https://duriantaco.github.io/fyn/getting-started/first-steps/index.md)
+- [Installation](https://duriantaco.github.io/fyn/getting-started/installation/index.md)
+
+## Guides
+
+- [Installing Python](https://duriantaco.github.io/fyn/guides/install-python/index.md)
+- [Publishing packages](https://duriantaco.github.io/fyn/guides/package/index.md)
+- [Working on projects](https://duriantaco.github.io/fyn/guides/projects/index.md)
+- [Running scripts](https://duriantaco.github.io/fyn/guides/scripts/index.md)
+- [Using tools](https://duriantaco.github.io/fyn/guides/tools/index.md)
+
+## Integrations
+
+- [AWS Lambda](https://duriantaco.github.io/fyn/guides/integration/aws-lambda/index.md)
+- [AWS CodeArtifact](https://duriantaco.github.io/fyn/guides/integration/aws/index.md)
+- [Azure Artifacts](https://duriantaco.github.io/fyn/guides/integration/azure/index.md)
+- [Coiled](https://duriantaco.github.io/fyn/guides/integration/coiled/index.md)
+- [Dependabot](https://duriantaco.github.io/fyn/guides/integration/dependabot/index.md)
+- [Docker](https://duriantaco.github.io/fyn/guides/integration/docker/index.md)
+- [FastAPI](https://duriantaco.github.io/fyn/guides/integration/fastapi/index.md)
+- [GitHub Actions](https://duriantaco.github.io/fyn/guides/integration/github/index.md)
+- [GitLab CI/CD](https://duriantaco.github.io/fyn/guides/integration/gitlab/index.md)
+- [Google Artifact Registry](https://duriantaco.github.io/fyn/guides/integration/google/index.md)
+- [JFrog Artifactory](https://duriantaco.github.io/fyn/guides/integration/jfrog/index.md)
+- [Jupyter](https://duriantaco.github.io/fyn/guides/integration/jupyter/index.md)
+- [marimo](https://duriantaco.github.io/fyn/guides/integration/marimo/index.md)
+- [Pre-commit](https://duriantaco.github.io/fyn/guides/integration/pre-commit/index.md)
+- [PyTorch](https://duriantaco.github.io/fyn/guides/integration/pytorch/index.md)
+- [Renovate](https://duriantaco.github.io/fyn/guides/integration/renovate/index.md)
+
+## Projects
+
+- [Building distributions](https://duriantaco.github.io/fyn/concepts/projects/build/index.md)
+- [Configuring projects](https://duriantaco.github.io/fyn/concepts/projects/config/index.md)
+- [Managing dependencies](https://duriantaco.github.io/fyn/concepts/projects/dependencies/index.md)
+- [Exporting lockfiles](https://duriantaco.github.io/fyn/concepts/projects/export/index.md)
+- [Creating projects](https://duriantaco.github.io/fyn/concepts/projects/init/index.md)
+- [Structure and files](https://duriantaco.github.io/fyn/concepts/projects/layout/index.md)
+- [Running commands](https://duriantaco.github.io/fyn/concepts/projects/run/index.md)
+- [Locking and syncing](https://duriantaco.github.io/fyn/concepts/projects/sync/index.md)
+- [Using workspaces](https://duriantaco.github.io/fyn/concepts/projects/workspaces/index.md)
+
+## Features
+
+- [Build backend](https://duriantaco.github.io/fyn/concepts/build-backend/index.md)
+- [Caching](https://duriantaco.github.io/fyn/concepts/cache/index.md)
+- [Configuration files](https://duriantaco.github.io/fyn/concepts/configuration-files/index.md)
+- [Package indexes](https://duriantaco.github.io/fyn/concepts/indexes/index.md)
+- [Preview features](https://duriantaco.github.io/fyn/concepts/preview/index.md)
+- [Python versions](https://duriantaco.github.io/fyn/concepts/python-versions/index.md)
+- [Resolution](https://duriantaco.github.io/fyn/concepts/resolution/index.md)
+- [Tools](https://duriantaco.github.io/fyn/concepts/tools/index.md)
+- [Authentication](https://duriantaco.github.io/fyn/concepts/authentication/index.md)
+
+## The pip interface
+
+- [Compatibility with pip](https://duriantaco.github.io/fyn/pip/compatibility/index.md)
+- [Locking environments](https://duriantaco.github.io/fyn/pip/compile/index.md)
+- [Declaring dependencies](https://duriantaco.github.io/fyn/pip/dependencies/index.md)
+- [Using environments](https://duriantaco.github.io/fyn/pip/environments/index.md)
+- [Inspecting environments](https://duriantaco.github.io/fyn/pip/inspection/index.md)
+- [Managing packages](https://duriantaco.github.io/fyn/pip/packages/index.md)
+
+## Reference
+
+- [Commands](https://duriantaco.github.io/fyn/reference/cli/index.md)
+- [Environment variables](https://duriantaco.github.io/fyn/reference/environment/index.md)
+- [Installer options](https://duriantaco.github.io/fyn/reference/installer/index.md)
+- [Settings](https://duriantaco.github.io/fyn/reference/settings/index.md)
+- [Storage](https://duriantaco.github.io/fyn/reference/storage/index.md)
+
