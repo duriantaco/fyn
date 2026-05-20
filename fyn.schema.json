@@ -520,7 +520,7 @@
       ]
     },
     "sources": {
-      "description": "The sources to use when resolving dependencies.\n\n`tool.fyn.sources` enriches the dependency metadata with additional sources, incorporated\nduring development. A dependency source can be a Git repository, a URL, a local path, or an\nalternative registry.\n\nSee [Dependencies](https://github.com/oha/fyn) for more.",
+      "description": "The sources to use when resolving dependencies.\n\n`tool.fyn.sources` enriches the dependency metadata with additional sources, incorporated\nduring development. A dependency source can be a Git repository, a URL, a local path, or an\nalternative registry.\n\nSee [Dependencies](https://duriantaco.github.io/fyn/concepts/projects/dependencies/) for more.",
       "anyOf": [
         {
           "$ref": "#/definitions/ToolfynSources"
@@ -868,7 +868,7 @@
       }
     },
     "DisplaySafeUrl": {
-      "description": "A [`Url`] wrapper that redacts credentials when displaying the URL.\n\n`DisplaySafeUrl` wraps the standard [`url::Url`] type, providing functionality to mask\nsecrets by default when the URL is displayed or logged. This helps prevent accidental\nexposure of sensitive information in logs and debug output.\n\n# Examples\n\n```\nuse fyn_redacted::DisplaySafeUrl;\nuse std::str::FromStr;\n\n// Create a `DisplaySafeUrl` from a `&str`\nlet mut url = DisplaySafeUrl::parse(\"https://user:password@example.com\").unwrap();\n\n// Display will mask secrets\nassert_eq!(url.to_string(), \"https://user:****@example.com/\");\n\n// You can still access the username and password\nassert_eq!(url.username(), \"user\");\nassert_eq!(url.password(), Some(\"password\"));\n\n// And you can still update the username and password\nlet _ = url.set_username(\"new_user\");\nlet _ = url.set_password(Some(\"new_password\"));\nassert_eq!(url.username(), \"new_user\");\nassert_eq!(url.password(), Some(\"new_password\"));\n\n// It is also possible to remove the credentials entirely\nurl.remove_credentials();\nassert_eq!(url.username(), \"\");\nassert_eq!(url.password(), None);\n```",
+      "description": "A [`Url`] wrapper that redacts credentials and sensitive query parameters when displaying the URL.\n\n`DisplaySafeUrl` wraps the standard [`url::Url`] type, providing functionality to mask\nsecrets by default when the URL is displayed or logged. This helps prevent accidental\nexposure of sensitive information in logs and debug output.\n\n# Examples\n\n```\nuse fyn_redacted::DisplaySafeUrl;\nuse std::str::FromStr;\n\n// Create a `DisplaySafeUrl` from a `&str`\nlet mut url = DisplaySafeUrl::parse(\"https://user:password@example.com\").unwrap();\n\n// Display will mask secrets\nassert_eq!(url.to_string(), \"https://user:****@example.com/\");\n\n// You can still access the username and password\nassert_eq!(url.username(), \"user\");\nassert_eq!(url.password(), Some(\"password\"));\n\n// And you can still update the username and password\nlet _ = url.set_username(\"new_user\");\nlet _ = url.set_password(Some(\"new_password\"));\nassert_eq!(url.username(), \"new_user\");\nassert_eq!(url.password(), Some(\"new_password\"));\n\n// It is also possible to remove the credentials entirely\nurl.remove_credentials();\nassert_eq!(url.username(), \"\");\nassert_eq!(url.password(), None);\n```",
       "type": "string",
       "format": "uri"
     },
@@ -1013,6 +1013,13 @@
             }
           ]
         },
+        "exclude-packages": {
+          "description": "Exclude matching packages from this index.\n\nAccepts glob patterns matched against normalized package names. If no `include-packages`\npatterns match a package, and an `exclude-packages` pattern matches, this index will be\nskipped for that package unless it has an explicit `[tool.fyn.sources]` index pin.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PackageNamePattern"
+          }
+        },
         "explicit": {
           "description": "Mark the index as explicit.\n\nExplicit indexes will _only_ be used when explicitly requested via a `[tool.fyn.sources]`\ndefinition, as in:\n\n```toml\n[[tool.fyn.index]]\nname = \"pytorch\"\nurl = \"https://download.pytorch.org/whl/cu121\"\nexplicit = true\n\n[tool.fyn.sources]\ntorch = { index = \"pytorch\" }\n```",
           "type": "boolean",
@@ -1033,6 +1040,13 @@
           "default": null,
           "items": {
             "$ref": "#/definitions/StatusCode"
+          }
+        },
+        "include-packages": {
+          "description": "Route matching packages exclusively to this index.\n\nAccepts glob patterns matched against normalized package names. If any pattern matches a\npackage, only indexes whose `include-packages` also match will be searched for that package,\nunless it has an explicit `[tool.fyn.sources]` index pin.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PackageNamePattern"
           }
         },
         "name": {
@@ -1204,6 +1218,9 @@
     },
     "PackageName": {
       "description": "The normalized name of a package.\n\nConverts the name to lowercase and collapses runs of `-`, `_`, and `.` down to a single `-`.\nFor example, `---`, `.`, and `__` are all converted to a single `-`.\n\nSee: <https://packaging.python.org/en/latest/specifications/name-normalization/>",
+      "type": "string"
+    },
+    "PackageNamePattern": {
       "type": "string"
     },
     "PackageNameSpecifier": {

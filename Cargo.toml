@@ -11,7 +11,7 @@ resolver = "2"
 edition = "2024"
 rust-version = "1.92.0"
 homepage = "https://pypi.org/project/fyn/"
-repository = "https://github.com/oha/fyn"
+repository = "https://github.com/duriantaco/fyn"
 authors = ["fyn"]
 license = "MIT OR Apache-2.0"
 

@@ -23,75 +23,76 @@ pre-installed.
 As an example, to run fyn in a container using a Debian-based image:
 
 ```console
-$ docker run --rm -it ghcr.io/oha/fyn:debian fyn --help
+$ docker run --rm -it ghcr.io/duriantaco/fyn:debian fyn --help
 ```
 
 ### Available images
 
 The following distroless images are available:
 
-- `ghcr.io/oha/fyn:latest`
-- `ghcr.io/oha/fyn:{major}.{minor}.{patch}`, e.g., `ghcr.io/oha/fyn:0.10.14`
-- `ghcr.io/oha/fyn:{major}.{minor}`, e.g., `ghcr.io/oha/fyn:0.8` (the latest patch version)
+- `ghcr.io/duriantaco/fyn:latest`
+- `ghcr.io/duriantaco/fyn:{major}.{minor}.{patch}`, e.g., `ghcr.io/duriantaco/fyn:0.10.14`
+- `ghcr.io/duriantaco/fyn:{major}.{minor}`, e.g., `ghcr.io/duriantaco/fyn:0.8` (the latest patch
+  version)
 
 And the following derived images are available:
 
 <!-- prettier-ignore -->
 - Based on `alpine:3.23`:
-    - `ghcr.io/oha/fyn:alpine`
-    - `ghcr.io/oha/fyn:alpine3.23`
+    - `ghcr.io/duriantaco/fyn:alpine`
+    - `ghcr.io/duriantaco/fyn:alpine3.23`
 - Based on `alpine:3.22`:
-    - `ghcr.io/oha/fyn:alpine3.22`
+    - `ghcr.io/duriantaco/fyn:alpine3.22`
 - Based on `debian:trixie-slim`:
-    - `ghcr.io/oha/fyn:debian-slim`
-    - `ghcr.io/oha/fyn:trixie-slim`
+    - `ghcr.io/duriantaco/fyn:debian-slim`
+    - `ghcr.io/duriantaco/fyn:trixie-slim`
 - Based on `buildpack-deps:trixie`:
-    - `ghcr.io/oha/fyn:debian`
-    - `ghcr.io/oha/fyn:trixie`
+    - `ghcr.io/duriantaco/fyn:debian`
+    - `ghcr.io/duriantaco/fyn:trixie`
 - Based on `dhi.io/alpine-base:3.23`:
-    - `ghcr.io/oha/fyn:alpine-dhi`
-    - `ghcr.io/oha/fyn:alpine3.23-dhi`
+    - `ghcr.io/duriantaco/fyn:alpine-dhi`
+    - `ghcr.io/duriantaco/fyn:alpine3.23-dhi`
 - Based on `dhi.io/debian-base:trixie-debian13`:
-    - `ghcr.io/oha/fyn:debian-dhi`
-    - `ghcr.io/oha/fyn:trixie-dhi`
+    - `ghcr.io/duriantaco/fyn:debian-dhi`
+    - `ghcr.io/duriantaco/fyn:trixie-dhi`
 - Based on `dhi/python:3.x`:
-    - `ghcr.io/oha/fyn:python3.14-dhi`
-    - `ghcr.io/oha/fyn:python3.13-dhi`
-    - `ghcr.io/oha/fyn:python3.12-dhi`
-    - `ghcr.io/oha/fyn:python3.11-dhi`
-    - `ghcr.io/oha/fyn:python3.10-dhi`
+    - `ghcr.io/duriantaco/fyn:python3.14-dhi`
+    - `ghcr.io/duriantaco/fyn:python3.13-dhi`
+    - `ghcr.io/duriantaco/fyn:python3.12-dhi`
+    - `ghcr.io/duriantaco/fyn:python3.11-dhi`
+    - `ghcr.io/duriantaco/fyn:python3.10-dhi`
 - Based on `python3.x-alpine`:
-    - `ghcr.io/oha/fyn:python3.14-alpine`
-    - `ghcr.io/oha/fyn:python3.14-alpine3.23`
-    - `ghcr.io/oha/fyn:python3.13-alpine`
-    - `ghcr.io/oha/fyn:python3.13-alpine3.23`
-    - `ghcr.io/oha/fyn:python3.12-alpine`
-    - `ghcr.io/oha/fyn:python3.12-alpine3.23`
-    - `ghcr.io/oha/fyn:python3.11-alpine`
-    - `ghcr.io/oha/fyn:python3.11-alpine3.23`
-    - `ghcr.io/oha/fyn:python3.10-alpine`
-    - `ghcr.io/oha/fyn:python3.10-alpine3.23`
-    - `ghcr.io/oha/fyn:python3.9-alpine`
-    - `ghcr.io/oha/fyn:python3.9-alpine3.22`
+    - `ghcr.io/duriantaco/fyn:python3.14-alpine`
+    - `ghcr.io/duriantaco/fyn:python3.14-alpine3.23`
+    - `ghcr.io/duriantaco/fyn:python3.13-alpine`
+    - `ghcr.io/duriantaco/fyn:python3.13-alpine3.23`
+    - `ghcr.io/duriantaco/fyn:python3.12-alpine`
+    - `ghcr.io/duriantaco/fyn:python3.12-alpine3.23`
+    - `ghcr.io/duriantaco/fyn:python3.11-alpine`
+    - `ghcr.io/duriantaco/fyn:python3.11-alpine3.23`
+    - `ghcr.io/duriantaco/fyn:python3.10-alpine`
+    - `ghcr.io/duriantaco/fyn:python3.10-alpine3.23`
+    - `ghcr.io/duriantaco/fyn:python3.9-alpine`
+    - `ghcr.io/duriantaco/fyn:python3.9-alpine3.22`
 - Based on `python3.x-trixie`:
-    - `ghcr.io/oha/fyn:python3.14-trixie`
-    - `ghcr.io/oha/fyn:python3.13-trixie`
-    - `ghcr.io/oha/fyn:python3.12-trixie`
-    - `ghcr.io/oha/fyn:python3.11-trixie`
-    - `ghcr.io/oha/fyn:python3.10-trixie`
-    - `ghcr.io/oha/fyn:python3.9-trixie`
+    - `ghcr.io/duriantaco/fyn:python3.14-trixie`
+    - `ghcr.io/duriantaco/fyn:python3.13-trixie`
+    - `ghcr.io/duriantaco/fyn:python3.12-trixie`
+    - `ghcr.io/duriantaco/fyn:python3.11-trixie`
+    - `ghcr.io/duriantaco/fyn:python3.10-trixie`
+    - `ghcr.io/duriantaco/fyn:python3.9-trixie`
 - Based on `python3.x-slim-trixie`:
-    - `ghcr.io/oha/fyn:python3.14-trixie-slim`
-    - `ghcr.io/oha/fyn:python3.13-trixie-slim`
-    - `ghcr.io/oha/fyn:python3.12-trixie-slim`
-    - `ghcr.io/oha/fyn:python3.11-trixie-slim`
-    - `ghcr.io/oha/fyn:python3.10-trixie-slim`
-    - `ghcr.io/oha/fyn:python3.9-trixie-slim`
+    - `ghcr.io/duriantaco/fyn:python3.14-trixie-slim`
+    - `ghcr.io/duriantaco/fyn:python3.13-trixie-slim`
+    - `ghcr.io/duriantaco/fyn:python3.12-trixie-slim`
+    - `ghcr.io/duriantaco/fyn:python3.11-trixie-slim`
+    - `ghcr.io/duriantaco/fyn:python3.10-trixie-slim`
+    - `ghcr.io/duriantaco/fyn:python3.9-trixie-slim`
 <!-- prettier-ignore-end -->
 
 As with the distroless image, each derived image is published with fyn version tags as
-`ghcr.io/oha/fyn:{major}.{minor}.{patch}-{base}` and `ghcr.io/oha/fyn:{major}.{minor}-{base}`, e.g.,
-`ghcr.io/oha/fyn:0.10.14-alpine`.
+`ghcr.io/duriantaco/fyn:{major}.{minor}.{patch}-{base}` and
+`ghcr.io/duriantaco/fyn:{major}.{minor}-{base}`, e.g., `ghcr.io/duriantaco/fyn:0.10.14-alpine`.
 
 In addition, starting with `0.8` each derived image also sets `UV_TOOL_BIN_DIR` to `/usr/local/bin`
 to allow `fyn tool install` to work as expected with the default user.
@@ -105,7 +106,7 @@ official distroless Docker image:
 
 ```dockerfile title="Dockerfile"
 FROM python:3.12-slim-trixie
-COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
+COPY --from=ghcr.io/duriantaco/fyn:latest /fyn /fynx /bin/
 ```
 
 Or, with an installer script you downloaded from a GitHub release:
@@ -131,7 +132,7 @@ Note this requires `curl` to be available.
 In either case, it is best practice to pin to a specific fyn version, e.g., with:
 
 ```dockerfile
-COPY --from=ghcr.io/oha/fyn:0.10.14 /fyn /fynx /bin/
+COPY --from=ghcr.io/duriantaco/fyn:0.10.14 /fyn /fynx /bin/
 ```
 
 !!! tip
@@ -143,7 +144,7 @@ COPY --from=ghcr.io/oha/fyn:0.10.14 /fyn /fynx /bin/
 
     ```Dockerfile
     # e.g., using a hash from a previous release
-    COPY --from=ghcr.io/oha/fyn@sha256:2381d6aa60c326b71fd40023f921a0a3b8f91b14d5db6b90402e65a635053709 /fyn /fynx /bin/
+    COPY --from=ghcr.io/duriantaco/fyn@sha256:2381d6aa60c326b71fd40023f921a0a3b8f91b14d5db6b90402e65a635053709 /fyn /fynx /bin/
     ```
 
 Or, if you prefer the installer flow, use the same `COPY install.sh /fyn-installer.sh` pattern with
@@ -392,7 +393,7 @@ a big time saver.
 ```dockerfile title="Dockerfile"
 # Install fyn
 FROM python:3.12-slim
-COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
+COPY --from=ghcr.io/duriantaco/fyn:latest /fyn /fynx /bin/
 
 # Change the working directory to the `app` directory
 WORKDIR /app
@@ -430,7 +431,7 @@ needed:
 ```dockerfile title="Dockerfile"
 # Install fyn
 FROM python:3.12-slim
-COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
+COPY --from=ghcr.io/duriantaco/fyn:latest /fyn /fynx /bin/
 
 WORKDIR /app
 
@@ -467,7 +468,7 @@ For example:
 ```dockerfile title="Dockerfile"
 # Install fyn
 FROM python:3.12-slim AS builder
-COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
+COPY --from=ghcr.io/duriantaco/fyn:latest /fyn /fynx /bin/
 
 # Use the system Python across both stages
 ENV UV_PYTHON_DOWNLOADS=0
@@ -502,7 +503,7 @@ CMD ["/app/.venv/bin/hello"]
 If fyn isn't needed in the final image, the binary can be mounted in each invocation:
 
 ```dockerfile title="Dockerfile"
-RUN --mount=from=ghcr.io/oha/fyn,source=/fyn,target=/bin/fyn \
+RUN --mount=from=ghcr.io/duriantaco/fyn,source=/fyn,target=/bin/fyn \
     fyn sync
 ```
 
@@ -570,8 +571,8 @@ For example, you can verify the attestations with the
 [GitHub CLI tool `gh`](https://cli.github.com/):
 
 ```console
-$ gh attestation verify --owner <repo-owner> oci://ghcr.io/oha/fyn:latest
-Loaded digest sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx for oci://ghcr.io/oha/fyn:latest
+$ gh attestation verify --owner <repo-owner> oci://ghcr.io/duriantaco/fyn:latest
+Loaded digest sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx for oci://ghcr.io/duriantaco/fyn:latest
 Loaded 1 attestation from GitHub API
 
 The following policy criteria will be enforced:
@@ -596,12 +597,12 @@ attestation blob against the (multi-platform) manifest for `fyn`:
 
 ```console
 $ REPO=<repo-owner>/fyn
-$ gh attestation download --repo $REPO oci://ghcr.io/oha/fyn:latest
+$ gh attestation download --repo $REPO oci://ghcr.io/duriantaco/fyn:latest
 Wrote attestations to file sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jsonl.
 Any previous content has been overwritten
 
 The trusted metadata is now available at sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jsonl
-$ docker buildx imagetools inspect ghcr.io/oha/fyn:latest --format "{{json .Manifest}}" > manifest.json
+$ docker buildx imagetools inspect ghcr.io/duriantaco/fyn:latest --format "{{json .Manifest}}" > manifest.json
 $ cosign verify-blob-attestation \
     --new-bundle-format \
     --bundle "$(jq -r .digest manifest.json).jsonl"  \
@@ -614,5 +615,5 @@ Verified OK
 !!! tip
 
     These examples use `latest`, but best practice is to verify the attestation for a specific
-    version tag, e.g., `ghcr.io/oha/fyn:0.10.14`, or (even better) the specific image digest,
-    such as `ghcr.io/oha/fyn:0.5.27@sha256:5adf09a5a526f380237408032a9308000d14d5947eafa687ad6c6a2476787b4f`.
+    version tag, e.g., `ghcr.io/duriantaco/fyn:0.10.14`, or (even better) the specific image digest,
+    such as `ghcr.io/duriantaco/fyn:0.5.27@sha256:5adf09a5a526f380237408032a9308000d14d5947eafa687ad6c6a2476787b4f`.

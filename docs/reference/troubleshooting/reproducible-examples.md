@@ -51,7 +51,7 @@ When writing a Docker MRE with fyn, it's best to start with one of
 to pin to a specific version of fyn.
 
 ```Dockerfile
-FROM ghcr.io/oha/fyn:0.5.24-debian-slim
+FROM ghcr.io/duriantaco/fyn:0.5.24-debian-slim
 ```
 
 While Docker images are isolated from the system, the build will use your system's architecture by
@@ -60,13 +60,13 @@ gets the expected behavior. fyn publishes images for `linux/amd64` (e.g., Intel 
 `linux/arm64` (e.g., Apple M Series or ARM)
 
 ```Dockerfile
-FROM --platform=linux/amd64 ghcr.io/oha/fyn:0.5.24-debian-slim
+FROM --platform=linux/amd64 ghcr.io/duriantaco/fyn:0.5.24-debian-slim
 ```
 
 Docker images are best for reproducing issues that can be constructed with commands, e.g.:
 
 ```Dockerfile
-FROM --platform=linux/amd64 ghcr.io/oha/fyn:0.5.24-debian-slim
+FROM --platform=linux/amd64 ghcr.io/duriantaco/fyn:0.5.24-debian-slim
 
 RUN fyn init /mre
 WORKDIR /mre
@@ -78,7 +78,7 @@ RUN fyn run -v python -c "import pydantic"
 However, you can also write files into the image inline:
 
 ```Dockerfile
-FROM --platform=linux/amd64 ghcr.io/oha/fyn:0.5.24-debian-slim
+FROM --platform=linux/amd64 ghcr.io/duriantaco/fyn:0.5.24-debian-slim
 
 COPY <<EOF /mre/pyproject.toml
 [project]

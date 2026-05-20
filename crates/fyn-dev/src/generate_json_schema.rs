@@ -86,7 +86,7 @@ const REPLACEMENTS: &[(&str, &str)] = &[
     // Use the fully-resolved URL rather than the relative Markdown path.
     (
         "(../concepts/projects/dependencies.md)",
-        "(https://github.com/oha/fyn)",
+        "(https://duriantaco.github.io/fyn/concepts/projects/dependencies/)",
     ),
 ];
 

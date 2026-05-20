@@ -103,7 +103,7 @@ To deploy the FastAPI application with Docker, you can use the following `Docker
 FROM python:3.12-slim
 
 # Install fyn.
-COPY --from=ghcr.io/oha/fyn:latest /fyn /fynx /bin/
+COPY --from=ghcr.io/duriantaco/fyn:latest /fyn /fynx /bin/
 
 # Copy the application into the container.
 COPY . /app

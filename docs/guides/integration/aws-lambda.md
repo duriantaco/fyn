@@ -93,7 +93,7 @@ the second stage, we'll copy this directory over to the final image, omitting th
 other unnecessary files.
 
 ```dockerfile title="Dockerfile"
-FROM ghcr.io/oha/fyn:0.10.14 AS fyn
+FROM ghcr.io/duriantaco/fyn:0.10.14 AS fyn
 
 # First, bundle the dependencies into the task root.
 FROM public.ecr.aws/lambda/python:3.13 AS builder
@@ -157,10 +157,10 @@ layers, resulting in millisecond builds:
  => [internal] load build definition from Dockerfile                                                                 0.0s
  => => transferring dockerfile: 1.31kB                                                                               0.0s
  => [internal] load metadata for public.ecr.aws/lambda/python:3.13                                                   0.3s
- => [internal] load metadata for ghcr.io/oha/fyn:latest                                                         0.3s
+ => [internal] load metadata for ghcr.io/duriantaco/fyn:latest                                                         0.3s
  => [internal] load .dockerignore                                                                                    0.0s
  => => transferring context: 106B                                                                                    0.0s
- => [fyn 1/1] FROM ghcr.io/oha/fyn:latest@sha256:ea61e006cfec0e8d81fae901ad703e09d2c6cf1aa58abcb6507d124b50286f  0.0s
+ => [fyn 1/1] FROM ghcr.io/duriantaco/fyn:latest@sha256:ea61e006cfec0e8d81fae901ad703e09d2c6cf1aa58abcb6507d124b50286f  0.0s
  => [builder 1/2] FROM public.ecr.aws/lambda/python:3.13@sha256:f5b51b377b80bd303fe8055084e2763336ea8920d12955b23ef  0.0s
  => [internal] load build context                                                                                    0.0s
  => => transferring context: 185B                                                                                    0.0s
@@ -335,7 +335,7 @@ And confirm that opening http://127.0.0.1:8000/ in a web browser displays, "Hell
 Finally, we'll update the Dockerfile to include the local library in the deployment package:
 
 ```dockerfile title="Dockerfile"
-FROM ghcr.io/oha/fyn:0.10.14 AS fyn
+FROM ghcr.io/duriantaco/fyn:0.10.14 AS fyn
 
 # First, bundle the dependencies into the task root.
 FROM public.ecr.aws/lambda/python:3.13 AS builder

@@ -69,44 +69,6 @@ $ pip install fyn
     [contributing setup guide](https://github.com/duriantaco/fyn/blob/main/CONTRIBUTING.md#setup)
     for details on building fyn from source.
 
-### Homebrew
-
-fyn is available in the core Homebrew packages.
-
-```console
-$ brew install fyn
-```
-
-### MacPorts
-
-fyn is available via [MacPorts](https://ports.macports.org/port/fyn/).
-
-```console
-$ sudo port install fyn
-```
-
-### WinGet
-
-fyn is available via [WinGet](https://winstall.app/apps/oha.fyn).
-
-```console
-$ winget install --id=oha.fyn  -e
-```
-
-### Scoop
-
-fyn is available via [Scoop](https://scoop.sh/#/apps?q=fyn).
-
-```console
-$ scoop install main/fyn
-```
-
-### Docker
-
-fyn provides a Docker image at [`ghcr.io/oha/fyn`](https://github.com/oha/fyn/pkgs/container/fyn).
-
-See our guide on [using fyn in Docker](../guides/integration/docker.md) for more details.
-
 ### GitHub Releases
 
 fyn release artifacts can be downloaded directly from
@@ -114,14 +76,6 @@ fyn release artifacts can be downloaded directly from
 
 Each release page includes binaries for supported platforms, and may also include standalone
 installer scripts.
-
-### Cargo
-
-fyn is available via [crates.io](https://crates.io).
-
-```console
-$ cargo install --locked fyn
-```
 
 !!! note
 

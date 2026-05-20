@@ -21,7 +21,7 @@ variables:
   UV_LINK_MODE: copy
 
 fyn:
-  image: ghcr.io/oha/fyn:$UV_VERSION-python$PYTHON_VERSION-$BASE_LAYER
+  image: ghcr.io/duriantaco/fyn:$UV_VERSION-python$PYTHON_VERSION-$BASE_LAYER
   script:
     # your `fyn` commands
 ```
@@ -32,7 +32,7 @@ fyn:
     ```yaml
     fyn:
       image:
-        name: ghcr.io/oha/fyn:$UV_VERSION
+        name: ghcr.io/duriantaco/fyn:$UV_VERSION
         entrypoint: [""]
       # ...
     ```
