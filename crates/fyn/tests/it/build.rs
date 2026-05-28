@@ -1812,6 +1812,138 @@ fn build_fast_path() -> Result<()> {
     Ok(())
 }
 
+/// Reject path-shaped script entry point names before writing wheel metadata.
+#[test]
+fn build_unsafe_script_entry_point_name() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context.init().assert().success();
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+
+        [project.scripts]
+        "../script" = "project:main"
+
+        [build-system]
+        requires = ["fyn-build>=0.5.15,<10000"]
+        build-backend = "fyn_build"
+    "#})?;
+    context
+        .temp_dir
+        .child("src")
+        .child("project")
+        .child("__init__.py")
+        .touch()?;
+
+    fyn_snapshot!(context.filters(), context.build().arg("--wheel"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    Building wheel (fyn build backend)...
+      × Failed to build `[TEMP_DIR]/`
+      ├─▶ Invalid project metadata
+      ╰─▶ Script entry point name `../script` must include a non-dot character and consist only of letters, numbers, dots, underscores and dashes
+    ");
+
+    Ok(())
+}
+
+/// Reject dot-only script entry point names that do not resolve below the scripts directory.
+#[test]
+fn build_dot_script_entry_point_name() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context.init().assert().success();
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+
+        [project.scripts]
+        "." = "project:main"
+
+        [build-system]
+        requires = ["fyn-build>=0.5.15,<10000"]
+        build-backend = "fyn_build"
+    "#})?;
+    context
+        .temp_dir
+        .child("src")
+        .child("project")
+        .child("__init__.py")
+        .touch()?;
+
+    fyn_snapshot!(context.filters(), context.build().arg("--wheel"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    Building wheel (fyn build backend)...
+      × Failed to build `[TEMP_DIR]/`
+      ├─▶ Invalid project metadata
+      ╰─▶ Script entry point name `.` must include a non-dot character and consist only of letters, numbers, dots, underscores and dashes
+    ");
+
+    Ok(())
+}
+
+/// Reject script entry point names that PyPI rejects in uploaded wheels.
+#[test]
+fn build_nested_script_entry_point_name() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context.init().assert().success();
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+
+        [project.scripts]
+        "nested/script" = "project:main"
+
+        [build-system]
+        requires = ["fyn-build>=0.5.15,<10000"]
+        build-backend = "fyn_build"
+    "#})?;
+    context
+        .temp_dir
+        .child("src")
+        .child("project")
+        .child("__init__.py")
+        .touch()?;
+
+    fyn_snapshot!(context.filters(), context.build().arg("--wheel"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    Building wheel (fyn build backend)...
+      × Failed to build `[TEMP_DIR]/`
+      ├─▶ Invalid project metadata
+      ╰─▶ Script entry point name `nested/script` must include a non-dot character and consist only of letters, numbers, dots, underscores and dashes
+    ");
+
+    Ok(())
+}
+
 /// Test the `--list` option.
 #[test]
 fn build_list_files() -> Result<()> {
