@@ -2889,6 +2889,7 @@ pub(crate) struct AuditSettings {
     pub(crate) service_format: VulnerabilityServiceFormat,
     pub(crate) service_url: Option<String>,
     pub(crate) explain: bool,
+    pub(crate) direct_only: bool,
     pub(crate) ignore: Vec<VulnerabilityID>,
     pub(crate) ignore_until_fixed: Vec<VulnerabilityID>,
 }
@@ -2917,6 +2918,7 @@ impl AuditSettings {
             python_version,
             python_platform,
             explain,
+            direct_only,
             locked,
             frozen,
             build,
@@ -2977,6 +2979,7 @@ impl AuditSettings {
             service_format,
             service_url,
             explain,
+            direct_only,
             ignore: {
                 let AuditOptions {
                     ignore: config_ignore,

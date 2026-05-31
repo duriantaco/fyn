@@ -818,6 +818,7 @@ impl Lock {
         &'lock self,
         extras: &'lock ExtrasSpecificationWithDefaults,
         groups: &'lock DependencyGroupsWithDefaults,
+        direct_only: bool,
     ) -> Vec<(&'lock PackageName, &'lock Version)> {
         fn enqueue_dep<'lock>(
             lock: &'lock Lock,
@@ -939,8 +940,13 @@ impl Lock {
                 None => &package.dependencies,
             };
 
-            for dep in dependencies {
-                enqueue_dep(self, &mut seen, &mut queue, dep);
+            // When `direct_only` is set, expand only workspace members so that their first-hop
+            // (direct) dependencies are recorded, but stop before walking into the transitive
+            // dependencies of non-member packages.
+            if is_member || !direct_only {
+                for dep in dependencies {
+                    enqueue_dep(self, &mut seen, &mut queue, dep);
+                }
             }
         }
 
@@ -7118,7 +7124,7 @@ sdist = { url = "https://example.com/typing-extensions-4.10.0.tar.gz", hash = "s
         let groups = DependencyGroups::default().with_defaults(DefaultGroups::List(vec![]));
 
         assert_eq!(
-            audited_package_names(lock.packages_for_audit(&extras, &groups)),
+            audited_package_names(lock.packages_for_audit(&extras, &groups, false)),
             vec!["iniconfig".to_string(), "typing-extensions".to_string()]
         );
     }
@@ -7141,7 +7147,7 @@ sdist = { url = "https://example.com/typing-extensions-4.10.0.tar.gz", hash = "s
         .with_defaults(DefaultGroups::List(vec![]));
 
         assert_eq!(
-            audited_package_names(lock.packages_for_audit(&extras, &groups)),
+            audited_package_names(lock.packages_for_audit(&extras, &groups, false)),
             vec!["sniffio".to_string()]
         );
     }
@@ -7154,8 +7160,58 @@ sdist = { url = "https://example.com/typing-extensions-4.10.0.tar.gz", hash = "s
         let groups = DependencyGroups::default().with_defaults(DefaultGroups::List(vec![]));
 
         assert_eq!(
-            audited_package_names(lock.packages_for_audit(&extras, &groups)),
+            audited_package_names(lock.packages_for_audit(&extras, &groups, false)),
             vec!["base".to_string(), "typing-extensions".to_string()]
+        );
+    }
+
+    #[test]
+    fn packages_for_audit_direct_only_excludes_transitive_dependencies() {
+        let lock: Lock = toml::from_str(
+            r#"
+version = 1
+requires-python = ">=3.8"
+
+[options]
+exclude-newer = "2024-03-01T00:00:00Z"
+
+[[package]]
+name = "project"
+version = "0.1.0"
+source = { editable = "" }
+dependencies = [
+    { name = "direct-dep" },
+]
+
+[[package]]
+name = "direct-dep"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "transitive-dep" },
+]
+
+[[package]]
+name = "transitive-dep"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+"#,
+        )
+        .unwrap();
+
+        let extras = ExtrasSpecification::default().with_defaults(DefaultExtras::default());
+        let groups = DependencyGroups::default().with_defaults(DefaultGroups::List(vec![]));
+
+        // A full audit walks transitive dependencies.
+        assert_eq!(
+            audited_package_names(lock.packages_for_audit(&extras, &groups, false)),
+            vec!["direct-dep".to_string(), "transitive-dep".to_string()]
+        );
+
+        // `--direct-only` records direct dependencies but stops before transitive ones.
+        assert_eq!(
+            audited_package_names(lock.packages_for_audit(&extras, &groups, true)),
+            vec!["direct-dep".to_string()]
         );
     }
 
