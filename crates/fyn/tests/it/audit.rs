@@ -353,6 +353,60 @@ async fn audit_explain_direct_vulnerability() {
 }
 
 #[tokio::test]
+async fn audit_direct_only_direct_vulnerability() {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml
+        .write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["iniconfig==2.0.0"]
+    "#})
+        .unwrap();
+
+    context.lock().assert().success();
+
+    let server = MockServer::start().await;
+    mock_osv_vulnerability(
+        &server,
+        "iniconfig",
+        "PYSEC-2023-0001",
+        "A test vulnerability in iniconfig",
+        Some("2.1.0"),
+    )
+    .await;
+
+    fyn_snapshot!(context.filters(), context
+        .audit()
+        .arg("--frozen")
+        .arg("--preview")
+        .arg("--direct-only")
+        .arg("--service-url")
+        .arg(server.uri()), @"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+
+    Vulnerabilities:
+
+    iniconfig 2.0.0 has 1 known vulnerability:
+
+    - PYSEC-2023-0001: A test vulnerability in iniconfig
+
+      Fixed in: 2.1.0
+
+      Advisory information: https://osv.dev/vulnerability/PYSEC-2023-0001
+
+
+    ----- stderr -----
+    Found 1 known vulnerability and no adverse project statuses in 1 package
+    ");
+}
+
+#[tokio::test]
 async fn audit_explain_transitive_vulnerability() {
     let context = fyn_test::test_context!("3.12");
 
@@ -406,6 +460,49 @@ async fn audit_explain_transitive_vulnerability() {
 
     ----- stderr -----
     Found 1 known vulnerability and no adverse project statuses in 3 packages
+    ");
+}
+
+#[tokio::test]
+async fn audit_direct_only_excludes_transitive_vulnerability() {
+    let context = fyn_test::test_context!("3.12");
+
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml
+        .write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["anyio==4.3.0"]
+    "#})
+        .unwrap();
+
+    context.lock().assert().success();
+
+    let server = MockServer::start().await;
+    mock_osv_vulnerability(
+        &server,
+        "sniffio",
+        "PYSEC-2023-0002",
+        "A test vulnerability in sniffio",
+        None,
+    )
+    .await;
+
+    fyn_snapshot!(context.filters(), context
+        .audit()
+        .arg("--frozen")
+        .arg("--preview")
+        .arg("--direct-only")
+        .arg("--service-url")
+        .arg(server.uri()), @"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+
+    ----- stderr -----
+    Found no known vulnerabilities and no adverse project statuses in 1 package
     ");
 }
 

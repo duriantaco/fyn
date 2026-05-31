@@ -3326,6 +3326,7 @@ async fn run_project(
                 args.service_format,
                 args.service_url,
                 args.explain,
+                args.direct_only,
                 args.ignore,
                 args.ignore_until_fixed,
             ))

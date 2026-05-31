@@ -63,6 +63,7 @@ pub(crate) async fn audit(
     service: VulnerabilityServiceFormat,
     service_url: Option<String>,
     explain: bool,
+    direct_only: bool,
     ignore: Vec<VulnerabilityID>,
     ignore_until_fixed: Vec<VulnerabilityID>,
 ) -> Result<ExitStatus> {
@@ -219,7 +220,7 @@ pub(crate) async fn audit(
         )
     });
 
-    let auditable = lock.packages_for_audit(&extras, &groups);
+    let auditable = lock.packages_for_audit(&extras, &groups, direct_only);
 
     // Perform the audit.
     let reporter = AuditReporter::from(printer);

@@ -6588,6 +6588,13 @@ pub struct AuditArgs {
     #[arg(long)]
     pub explain: bool,
 
+    /// Only audit the project's direct dependencies.
+    ///
+    /// Transitive dependencies are excluded, so only vulnerabilities in packages that the project
+    /// (or the selected groups and extras) depends on directly are reported.
+    #[arg(long)]
+    pub direct_only: bool,
+
     /// A vulnerability ID to ignore during auditing.
     ///
     /// May be provided multiple times.
