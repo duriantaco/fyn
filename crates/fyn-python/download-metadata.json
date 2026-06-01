@@ -81288,10 +81288,10 @@
     "minor": 11,
     "patch": 15,
     "prerelease": "",
-    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.22-macos_arm64.tar.bz2",
-    "sha256": "5de96e2b68a8b347fb24f8b3f5345ce0724605d4122ce194e1decce4dab8d5a0",
+    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.23-macos_arm64.tar.bz2",
+    "sha256": "4747b3aceba4c1c6104cddc0fe5ea302101d32955f0957347b9ecc4fbd7aed05",
     "variant": null,
-    "build": "7.3.22"
+    "build": "7.3.23"
   },
   "pypy-3.11.15-darwin-x86_64-none": {
     "name": "pypy",
@@ -81305,10 +81305,10 @@
     "minor": 11,
     "patch": 15,
     "prerelease": "",
-    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.22-macos_x86_64.tar.bz2",
-    "sha256": "26adf960b6f57cacb39a9f0e8fd87e9de7986762b467c75b3aaf94177aa7af87",
+    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.23-macos_x86_64.tar.bz2",
+    "sha256": "c95363c4e87235d11a6cec8128239c291b1eb67a752778fbcfe029a71da82b5e",
     "variant": null,
-    "build": "7.3.22"
+    "build": "7.3.23"
   },
   "pypy-3.11.15-linux-aarch64-gnu": {
     "name": "pypy",
@@ -81322,10 +81322,10 @@
     "minor": 11,
     "patch": 15,
     "prerelease": "",
-    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.22-aarch64.tar.bz2",
-    "sha256": "c29a8933e2084f52df74c829aa0d8f5652b9d5919f68e9fb89cab3afe35dd884",
+    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.23-aarch64.tar.bz2",
+    "sha256": "5433ac0ad526aeb35025ef8509bed65cd62ea35cb9e21ac649c69a5eff4eecb6",
     "variant": null,
-    "build": "7.3.22"
+    "build": "7.3.23"
   },
   "pypy-3.11.15-linux-i686-gnu": {
     "name": "pypy",
@@ -81339,10 +81339,10 @@
     "minor": 11,
     "patch": 15,
     "prerelease": "",
-    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.22-linux32.tar.bz2",
-    "sha256": "6fdad58d6d376810cf6291be1d396032f4da8109517357de0091adc3874f04c9",
+    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.23-linux32.tar.bz2",
+    "sha256": "c7e2ffb173dcadbe4708a2e606e0b705474c1c33f25a09a4084f265d538172e4",
     "variant": null,
-    "build": "7.3.22"
+    "build": "7.3.23"
   },
   "pypy-3.11.15-linux-x86_64-gnu": {
     "name": "pypy",
@@ -81356,10 +81356,10 @@
     "minor": 11,
     "patch": 15,
     "prerelease": "",
-    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.22-linux64.tar.bz2",
-    "sha256": "c0c239a6b0d381338bcccf852d0690b9daca632e0216389a3796f8817fd66e0e",
+    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.23-linux64.tar.bz2",
+    "sha256": "16f9f56e82d1f4ec95a324c1a8cacfd78afc7f0656c0a809a18725ef4391453a",
     "variant": null,
-    "build": "7.3.22"
+    "build": "7.3.23"
   },
   "pypy-3.11.15-windows-x86_64-none": {
     "name": "pypy",
@@ -81373,10 +81373,10 @@
     "minor": 11,
     "patch": 15,
     "prerelease": "",
-    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.22-win64.zip",
-    "sha256": "748f393e69726f32c908bfd8d778dda267482c0b15b2d4957c97f0842f37d33f",
+    "url": "https://downloads.python.org/pypy/pypy3.11-v7.3.23-win64.zip",
+    "sha256": "948b8ea58dea5b9917210fe4afd242c788fbfaba1c3f1a25e696a404f703389a",
     "variant": null,
-    "build": "7.3.22"
+    "build": "7.3.23"
   },
   "pypy-3.11.13-darwin-aarch64-none": {
     "name": "pypy",
@@ -83294,10 +83294,10 @@
     "minor": 12,
     "patch": 0,
     "prerelease": "",
-    "url": "https://github.com/oracle/graalpython/releases/download/graal-25.0.2/graalpy-25.0.2-macos-aarch64.tar.gz",
-    "sha256": "c771688b8636932026180bdd9b5e3d6116316fa868faf7e602a60ba020c7bade",
+    "url": "https://github.com/oracle/graalpython/releases/download/graal-25.0.3/graalpy-25.0.3-macos-aarch64.tar.gz",
+    "sha256": "387d9f5b376860842bea4d55aae5820974f3f3b68fc36c77ae863a061a888857",
     "variant": null,
-    "build": "25.0.2"
+    "build": "25.0.3"
   },
   "graalpy-3.12.0-darwin-x86_64-none": {
     "name": "graalpy",
@@ -83328,10 +83328,10 @@
     "minor": 12,
     "patch": 0,
     "prerelease": "",
-    "url": "https://github.com/oracle/graalpython/releases/download/graal-25.0.2/graalpy-25.0.2-linux-aarch64.tar.gz",
-    "sha256": "805f3526296e04692b27ca001ba97674e53d0f036412d9ffc29aeb8b51517ab6",
+    "url": "https://github.com/oracle/graalpython/releases/download/graal-25.0.3/graalpy-25.0.3-linux-aarch64.tar.gz",
+    "sha256": "f889a02425b0b55a0f070d63324f3d08e0975ea0b33aa69041c14418cf6cdeec",
     "variant": null,
-    "build": "25.0.2"
+    "build": "25.0.3"
   },
   "graalpy-3.12.0-linux-x86_64-gnu": {
     "name": "graalpy",
@@ -83345,10 +83345,10 @@
     "minor": 12,
     "patch": 0,
     "prerelease": "",
-    "url": "https://github.com/oracle/graalpython/releases/download/graal-25.0.2/graalpy-25.0.2-linux-amd64.tar.gz",
-    "sha256": "8967e4bae1c5040d62dbc98976f2099d5c36c00a79944e99b848d455e618ecdf",
+    "url": "https://github.com/oracle/graalpython/releases/download/graal-25.0.3/graalpy-25.0.3-linux-amd64.tar.gz",
+    "sha256": "c351b503d212519ad5e7e835fd9eb56b557ca9d5b6ef59e32b40435603f90bf8",
     "variant": null,
-    "build": "25.0.2"
+    "build": "25.0.3"
   },
   "graalpy-3.12.0-windows-x86_64-none": {
     "name": "graalpy",
@@ -83362,10 +83362,10 @@
     "minor": 12,
     "patch": 0,
     "prerelease": "",
-    "url": "https://github.com/oracle/graalpython/releases/download/graal-25.0.2/graalpy-25.0.2-windows-amd64.zip",
-    "sha256": "93b72dac049e649002640914eba43b091e113c4be679bf24f7e4210ee3fbd101",
+    "url": "https://github.com/oracle/graalpython/releases/download/graal-25.0.3/graalpy-25.0.3-windows-amd64.zip",
+    "sha256": "2ae5c42b93e08d9e106a017634a3442b272ccae6d08ace157244de0449e937d4",
     "variant": null,
-    "build": "25.0.2"
+    "build": "25.0.3"
   },
   "graalpy-3.11.0-darwin-aarch64-none": {
     "name": "graalpy",
@@ -83604,39 +83604,5 @@
     "sha256": "9ef3885c8a498a70de53bc71409f3e60f36e9ce5d3d745b173fedcca1f4abd12",
     "variant": null,
     "build": "22.3.1"
-  },
-  "graalpy-3.8.2-darwin-x86_64-none": {
-    "name": "graalpy",
-    "arch": {
-      "family": "x86_64",
-      "variant": null
-    },
-    "os": "darwin",
-    "libc": "none",
-    "major": 3,
-    "minor": 8,
-    "patch": 2,
-    "prerelease": "",
-    "url": "https://github.com/oracle/graalpython/releases/download/vm-20.2.0/graalpython-20.2.0-macos-amd64.tar.gz",
-    "sha256": null,
-    "variant": null,
-    "build": "20.2.0"
-  },
-  "graalpy-3.8.2-linux-x86_64-gnu": {
-    "name": "graalpy",
-    "arch": {
-      "family": "x86_64",
-      "variant": null
-    },
-    "os": "linux",
-    "libc": "gnu",
-    "major": 3,
-    "minor": 8,
-    "patch": 2,
-    "prerelease": "",
-    "url": "https://github.com/oracle/graalpython/releases/download/vm-20.2.0/graalpython-20.2.0-linux-amd64.tar.gz",
-    "sha256": null,
-    "variant": null,
-    "build": "20.2.0"
   }
 }
