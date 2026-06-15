@@ -163,7 +163,7 @@ pub mod test {
 }
 
 #[bitflags]
-#[repr(u32)]
+#[repr(u64)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PreviewFeature {
     PythonInstallDefault = 1 << 0,
@@ -195,6 +195,8 @@ pub enum PreviewFeature {
     Audit = 1 << 26,
     ProjectDirectoryMustExist = 1 << 27,
     IndexExcludeNewer = 1 << 28,
+    VenvSafeClear = 1 << 29,
+    MalwareCheck = 1 << 30,
 }
 
 impl PreviewFeature {
@@ -230,6 +232,8 @@ impl PreviewFeature {
             Self::Audit => "audit",
             Self::ProjectDirectoryMustExist => "project-directory-must-exist",
             Self::IndexExcludeNewer => "index-exclude-newer",
+            Self::VenvSafeClear => "venv-safe-clear",
+            Self::MalwareCheck => "malware-check",
         }
     }
 }
@@ -278,6 +282,8 @@ impl FromStr for PreviewFeature {
             "audit" => Self::Audit,
             "project-directory-must-exist" => Self::ProjectDirectoryMustExist,
             "index-exclude-newer" => Self::IndexExcludeNewer,
+            "venv-safe-clear" => Self::VenvSafeClear,
+            "malware-check" => Self::MalwareCheck,
             _ => return Err(PreviewFeatureParseError),
         })
     }
@@ -532,6 +538,8 @@ mod tests {
             PreviewFeature::IndexExcludeNewer.as_str(),
             "index-exclude-newer"
         );
+        assert_eq!(PreviewFeature::VenvSafeClear.as_str(), "venv-safe-clear");
+        assert_eq!(PreviewFeature::MalwareCheck.as_str(), "malware-check");
     }
 
     #[test]

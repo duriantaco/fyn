@@ -24,7 +24,7 @@ use anyhow::{Result, anyhow};
 use fyn_audit::service::{VulnerabilityServiceFormat, osv};
 use fyn_audit::types::{Dependency, Finding, VulnerabilityID};
 use fyn_cache::Cache;
-use fyn_client::BaseClientBuilder;
+use fyn_client::{BaseClientBuilder, CachedClient};
 use fyn_configuration::{
     Concurrency, DependencyGroups, DependencyGroupsWithDefaults, ExtrasSpecification, TargetTriple,
 };
@@ -32,7 +32,6 @@ use fyn_normalize::{DefaultExtras, DefaultGroups, PackageName};
 use fyn_pep440::Version;
 use fyn_preview::{Preview, PreviewFeature};
 use fyn_python::{PythonDownloads, PythonPreference, PythonVersion};
-use fyn_redacted::DisplaySafeUrl;
 use fyn_resolver::{Lock, WhyDisplay};
 use fyn_scripts::Pep723Script;
 use fyn_settings::PythonInstallMirrors;
@@ -237,10 +236,10 @@ pub(crate) async fn audit(
                     .parse()
                     .map_err(|err| anyhow!("Invalid OSV service base URL `{service_url}`: {err}"))?
             } else {
-                DisplaySafeUrl::parse(osv::API_BASE).expect("impossible: embedded URL is invalid")
+                osv::API_BASE.clone()
             };
-            let client = base_client.for_host(&osv_url).raw_client().clone();
-            let service = osv::Osv::new(client, Some(osv_url), concurrency);
+            let client = CachedClient::new(base_client);
+            let service = osv::Osv::new(client, Some(osv_url), concurrency, cache);
             trace!("Auditing {n} dependencies against OSV", n = auditable.len());
             service.query_batch(&dependencies, osv::Filter::All).await?
         }

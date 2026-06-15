@@ -3,9 +3,11 @@ use std::ops::Deref;
 use std::path::Path;
 
 use anyhow::Result;
+use fyn_audit::service::osv::{self, Filter};
+use fyn_audit::types::Dependency;
 use fyn_cache::Cache;
 use fyn_cli::SyncFormat;
-use fyn_client::{BaseClientBuilder, FlatIndexClient, RegistryClientBuilder};
+use fyn_client::{BaseClientBuilder, CachedClient, FlatIndexClient, RegistryClientBuilder};
 use fyn_configuration::{
     Concurrency, Constraints, DependencyGroups, DependencyGroupsWithDefaults, DryRun, EditableMode,
     ExtrasSpecification, ExtrasSpecificationWithDefaults, HashCheckingMode, InstallOptions,
@@ -23,9 +25,10 @@ use fyn_pep508::{MarkerTree, VersionOrUrl};
 use fyn_preview::{Preview, PreviewFeature};
 use fyn_pypi_types::{ParsedArchiveUrl, ParsedGitUrl, ParsedUrl};
 use fyn_python::{PythonDownloads, PythonEnvironment, PythonPreference, PythonRequest};
+use fyn_redacted::DisplaySafeUrl;
 use fyn_resolver::{FlatIndex, ForkStrategy, Installable, Lock, PrereleaseMode, ResolutionMode};
 use fyn_scripts::Pep723Script;
-use fyn_settings::PythonInstallMirrors;
+use fyn_settings::{MalwareCheckSettings, PythonInstallMirrors};
 use fyn_types::{BuildIsolation, HashStrategy};
 use fyn_warnings::warn_user;
 use fyn_workspace::pyproject::Source;
@@ -34,7 +37,7 @@ use itertools::Itertools;
 use owo_colors::OwoColorize;
 use rustc_hash::FxHashSet;
 use serde::Serialize;
-use tracing::warn;
+use tracing::{trace, warn};
 
 use crate::commands::editable::apply_editable_mode;
 use crate::commands::pip::loggers::{DefaultInstallLogger, DefaultResolveLogger, InstallLogger};
@@ -45,9 +48,9 @@ use crate::commands::project::install_target::InstallTarget;
 use crate::commands::project::lock::{LockMode, LockOperation, LockResult};
 use crate::commands::project::lock_target::LockTarget;
 use crate::commands::project::{
-    EnvironmentUpdate, PlatformState, ProjectEnvironment, ProjectError, ScriptEnvironment,
-    UniversalState, default_dependency_groups, detect_conflicts, script_extra_build_requires,
-    script_specification, update_environment,
+    EnvironmentUpdate, MalwareFindings, PlatformState, ProjectEnvironment, ProjectError,
+    ScriptEnvironment, UniversalState, default_dependency_groups, detect_conflicts,
+    script_extra_build_requires, script_specification, update_environment,
 };
 use crate::commands::{ExitStatus, diagnostics};
 use crate::printer::Printer;
@@ -86,6 +89,7 @@ pub(crate) async fn sync(
     printer: Printer,
     preview: Preview,
     output_format: SyncFormat,
+    malware_settings: MalwareCheckSettings,
 ) -> Result<ExitStatus> {
     if preview.is_enabled(PreviewFeature::JsonOutput) && matches!(output_format, SyncFormat::Json) {
         warn_user!(
@@ -433,6 +437,7 @@ pub(crate) async fn sync(
         dry_run,
         printer,
         preview,
+        &malware_settings,
     )
     .await
     {
@@ -643,6 +648,7 @@ pub(super) async fn do_sync(
     dry_run: DryRun,
     printer: Printer,
     preview: Preview,
+    malware_settings: &MalwareCheckSettings,
 ) -> Result<Changelog, ProjectError> {
     // Extract the project settings.
     let InstallerSettingsRef {
@@ -709,6 +715,9 @@ pub(super) async fn do_sync(
     .into_inner();
 
     let client_builder = client_builder.clone().keyring(keyring_provider);
+    // Save an authenticated builder for the malware check before moving the
+    // primary builder into the registry client below.
+    let malware_check_client_builder = client_builder.clone();
 
     // Validate that the Python version is supported by the lockfile.
     if !target
@@ -843,6 +852,25 @@ pub(super) async fn do_sync(
         preview,
     );
 
+    // Run a malware check against OSV before installing.
+    if malware_settings.enabled {
+        if !preview.is_enabled(PreviewFeature::MalwareCheck) {
+            warn_user!(
+                "Malware checks are experimental and may change without warning. Pass `--preview-features {}` to disable this warning.",
+                PreviewFeature::MalwareCheck
+            );
+        }
+        check_malware(
+            &target,
+            &resolution,
+            &malware_check_client_builder,
+            concurrency,
+            malware_settings.malware_check_url.clone(),
+            cache,
+        )
+        .await?;
+    }
+
     let site_packages = SitePackages::from_environment(venv)?;
 
     // Sync the environment.
@@ -872,6 +900,96 @@ pub(super) async fn do_sync(
     .await?;
 
     Ok(changelog)
+}
+
+/// Run a malware check against OSV before installing dependencies.
+///
+/// This queries the OSV batch endpoint with [`Filter::Malware`] to detect only `MAL-`-prefixed
+/// advisories. All lockfile malware findings are emitted as warnings, but installation is only
+/// aborted if malware is found in a dependency that would actually be installed.
+async fn check_malware(
+    target: &InstallTarget<'_>,
+    resolution: &Resolution,
+    client_builder: &BaseClientBuilder<'_>,
+    concurrency: &Concurrency,
+    malware_check_url: Option<DisplaySafeUrl>,
+    cache: &Cache,
+) -> Result<(), ProjectError> {
+    let installed_dependencies: FxHashSet<_> = resolution
+        .distributions()
+        .filter_map(|dist| dist.version().map(|version| (dist.name(), version)))
+        .collect();
+
+    let all_extras = ExtrasSpecification::from_all_extras().with_defaults(DefaultExtras::All);
+    let all_groups =
+        DependencyGroups::from_args(false, false, false, vec![], vec![], false, vec![], true)
+            .with_defaults(DefaultGroups::All);
+
+    // NOTE: For now, we only check locked packages that indicate a source from
+    // PyPI. The rationale behind this is that private (i.e. non-PyPI) packages
+    // are almost certainly not going to be included in the OSV DB, and scanning
+    // for them against a remote service is both wasteful and arguably a small
+    // information leak (of potentially private package names).
+    // This effectively excludes public packages that are mirrored onto private
+    // indices, which is a tradeoff we'll need to reconsider.
+    let auditable = target.lock().packages_for_audit_filtered(
+        &all_extras,
+        &all_groups,
+        false,
+        fyn_resolver::Package::is_from_pypi_registry,
+    );
+    if auditable.is_empty() {
+        return Ok(());
+    }
+
+    let dependencies: Vec<Dependency> = auditable
+        .iter()
+        .map(|(name, version)| Dependency::new((*name).clone(), (*version).clone()))
+        .collect();
+
+    let osv_url = malware_check_url.unwrap_or_else(|| osv::API_BASE.clone());
+
+    let base_client = client_builder.build()?;
+    let client = CachedClient::new(base_client);
+    let service = osv::Osv::new(client, Some(osv_url), concurrency.clone(), cache.clone());
+
+    trace!(
+        "Running malware check for {} locked dependencies",
+        dependencies.len()
+    );
+
+    // NOTE: For now, we produce a hard failure if the OSV request fails.
+    // In the future we may want to relax this to a warning, but a hard failure
+    // seems fine while we're in preview since it'll help us shake out
+    // any reliability risks with OSV.
+    let identifiers = service
+        .query_identifiers(&dependencies, Filter::Malware)
+        .await?;
+
+    let malware_findings: Vec<_> = identifiers
+        .into_iter()
+        .filter(|(_, vuln_ids)| !vuln_ids.is_empty())
+        .map(|(dependency, vuln_ids)| ((*dependency).clone(), vuln_ids.into_iter().collect()))
+        .collect();
+
+    if malware_findings.is_empty() {
+        Ok(())
+    } else {
+        warn_user!(
+            "Malware detected in locked dependencies:\n{}",
+            MalwareFindings(malware_findings.clone())
+        );
+
+        let has_installed_malware = malware_findings.iter().any(|(dependency, _)| {
+            installed_dependencies.contains(&(dependency.name(), dependency.version()))
+        });
+
+        if has_installed_malware {
+            Err(ProjectError::MalwareFound)
+        } else {
+            Ok(())
+        }
+    }
 }
 
 /// Filter out any virtual workspace members.

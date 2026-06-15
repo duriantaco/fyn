@@ -8140,6 +8140,9 @@ fn preview_features() {
                 PublishRequireNormalized,
                 Audit,
                 ProjectDirectoryMustExist,
+                IndexExcludeNewer,
+                VenvSafeClear,
+                MalwareCheck,
             ],
         },
         python_preference: Managed,
@@ -8226,6 +8229,10 @@ fn preview_features() {
             },
             compile_bytecode: false,
             reinstall: None,
+        },
+        malware_settings: MalwareCheckSettings {
+            enabled: false,
+            malware_check_url: None,
         },
     }
 
@@ -8348,6 +8355,10 @@ fn preview_features() {
             compile_bytecode: false,
             reinstall: None,
         },
+        malware_settings: MalwareCheckSettings {
+            enabled: false,
+            malware_check_url: None,
+        },
     }
 
     ----- stderr -----
@@ -8411,6 +8422,9 @@ fn preview_features() {
                 PublishRequireNormalized,
                 Audit,
                 ProjectDirectoryMustExist,
+                IndexExcludeNewer,
+                VenvSafeClear,
+                MalwareCheck,
             ],
         },
         python_preference: Managed,
@@ -8497,6 +8511,10 @@ fn preview_features() {
             },
             compile_bytecode: false,
             reinstall: None,
+        },
+        malware_settings: MalwareCheckSettings {
+            enabled: false,
+            malware_check_url: None,
         },
     }
 
@@ -8622,6 +8640,10 @@ fn preview_features() {
             compile_bytecode: false,
             reinstall: None,
         },
+        malware_settings: MalwareCheckSettings {
+            enabled: false,
+            malware_check_url: None,
+        },
     }
 
     ----- stderr -----
@@ -8746,6 +8768,10 @@ fn preview_features() {
             compile_bytecode: false,
             reinstall: None,
         },
+        malware_settings: MalwareCheckSettings {
+            enabled: false,
+            malware_check_url: None,
+        },
     }
 
     ----- stderr -----
@@ -8868,6 +8894,10 @@ fn preview_features() {
             },
             compile_bytecode: false,
             reinstall: None,
+        },
+        malware_settings: MalwareCheckSettings {
+            enabled: false,
+            malware_check_url: None,
         },
     }
 

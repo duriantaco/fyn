@@ -37,7 +37,7 @@ use fyn_redacted::DisplaySafeUrl;
 use fyn_requirements::{NamedRequirementsResolver, RequirementsSource, RequirementsSpecification};
 use fyn_resolver::FlatIndex;
 use fyn_scripts::{Pep723Metadata, Pep723Script};
-use fyn_settings::PythonInstallMirrors;
+use fyn_settings::{MalwareCheckSettings, PythonInstallMirrors};
 use fyn_types::{BuildIsolation, HashStrategy};
 use fyn_warnings::warn_user_once;
 use fyn_workspace::pyproject::{DependencyType, Source, SourceError, Sources, ToolfynSources};
@@ -104,6 +104,7 @@ pub(crate) async fn add(
     cache: &Cache,
     printer: Printer,
     preview: Preview,
+    malware_settings: &MalwareCheckSettings,
 ) -> Result<ExitStatus> {
     for source in &requirements {
         match source {
@@ -757,6 +758,7 @@ pub(crate) async fn add(
         cache,
         printer,
         preview,
+        malware_settings,
     ))
     .await
     {
@@ -999,6 +1001,7 @@ async fn lock_and_sync(
     cache: &Cache,
     printer: Printer,
     preview: Preview,
+    malware_settings: &MalwareCheckSettings,
 ) -> Result<(), ProjectError> {
     let mut lock = Box::pin(
         project::lock::LockOperation::new(
@@ -1203,6 +1206,7 @@ async fn lock_and_sync(
         DryRun::Disabled,
         printer,
         preview,
+        malware_settings,
     )
     .await?;
 

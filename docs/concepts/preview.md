@@ -67,6 +67,8 @@ The following preview features are available:
 - `workspace-metadata`: Allows using `fyn workspace metadata`.
 - `workspace-dir`: Allows using `fyn workspace dir`.
 - `workspace-list`: Allows using `fyn workspace list`.
+- `malware-check`: Allows `fyn sync` and other commands to check for malware using
+  [OSV](https://osv.dev) before installing packages.
 
 ## Disabling preview features
 

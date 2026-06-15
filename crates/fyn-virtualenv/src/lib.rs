@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use fyn_python::{Interpreter, PythonEnvironment};
 
-pub use virtualenv::{OnExisting, RemovalReason, remove_virtualenv};
+pub use virtualenv::{ClearNonVirtualenv, OnExisting, RemovalReason, remove_virtualenv};
 
 mod virtualenv;
 
@@ -24,6 +24,13 @@ pub enum Error {
         /// The type of environment (e.g., "virtual environment").
         name: &'static str,
         /// The path to the existing environment.
+        path: PathBuf,
+    },
+    #[error(
+        "fyn will not clear a directory that is not a virtual environment\n\nhint: Use the `--force` flag to remove the existing directory anyway"
+    )]
+    ClearNonVirtualenv {
+        /// The non-virtual environment directory that would have been cleared.
         path: PathBuf,
     },
 }
