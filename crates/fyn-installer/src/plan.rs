@@ -216,20 +216,18 @@ impl<'a> Planner<'a> {
                 }
                 Dist::Built(BuiltDist::DirectUrl(wheel)) => {
                     if !wheel.filename.is_compatible(tags) {
+                        let url = wheel.url.to_url();
                         let hint = generate_wheel_compatibility_hint(&wheel.filename, tags);
                         if let Some(hint) = hint {
                             bail!(
                                 "A URL dependency is incompatible with the current platform: {}\n\n{}{} {}",
-                                wheel.url,
+                                url,
                                 "hint".bold().cyan(),
                                 ":".bold(),
                                 hint
                             );
                         }
-                        bail!(
-                            "A URL dependency is incompatible with the current platform: {}",
-                            wheel.url
-                        );
+                        bail!("A URL dependency is incompatible with the current platform: {url}");
                     }
 
                     if no_binary {
