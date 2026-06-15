@@ -8676,6 +8676,11 @@ pub struct ResolverArgs {
     #[arg(long, short = 'P', help_heading = "Resolver options")]
     pub upgrade_package: Vec<Requirement<VerbatimParsedUrl>>,
 
+    /// Allow upgrades for specific packages, ignoring pinned versions in any existing output file.
+    /// Implies `--refresh-package`.
+    #[arg(long, num_args = 1.., help_heading = "Resolver options", value_hint = ValueHint::Other)]
+    pub upgrade_packages: Vec<Requirement<VerbatimParsedUrl>>,
+
     /// The strategy to use when resolving against multiple index URLs.
     ///
     /// By default, fyn will stop at the first index on which a given package is available, and limit
@@ -9069,6 +9074,11 @@ pub struct ResolverInstallerArgs {
     /// Implies `--refresh-package`.
     #[arg(long, short = 'P', help_heading = "Resolver options", value_hint = ValueHint::Other)]
     pub upgrade_package: Vec<Requirement<VerbatimParsedUrl>>,
+
+    /// Allow upgrades for specific packages, ignoring pinned versions in any existing output file.
+    /// Implies `--refresh-package`.
+    #[arg(long, num_args = 1.., help_heading = "Resolver options", value_hint = ValueHint::Other)]
+    pub upgrade_packages: Vec<Requirement<VerbatimParsedUrl>>,
 
     /// Reinstall all packages, regardless of whether they're already installed. Implies
     /// `--refresh`.
@@ -9609,7 +9619,7 @@ pub enum BuildBackendCommand {
 
 #[cfg(test)]
 mod tests {
-    use super::Cli;
+    use super::{Cli, Commands, ProjectCommand};
     use clap::Parser;
 
     #[test]
@@ -9626,5 +9636,35 @@ mod tests {
 
         assert!(!cli.top_level.global_args.native_tls);
         assert!(cli.top_level.global_args.no_native_tls);
+    }
+
+    #[test]
+    fn parses_sync_upgrade_packages() {
+        let cli = Cli::try_parse_from([
+            "fyn",
+            "sync",
+            "--upgrade-packages",
+            "hvplot",
+            "marimo",
+            "polars",
+        ])
+        .unwrap();
+
+        let Commands::Project(project) = *cli.command else {
+            panic!("expected project command");
+        };
+        let ProjectCommand::Sync(args) = *project else {
+            panic!("expected sync command");
+        };
+
+        let packages = args
+            .installer
+            .upgrade_packages
+            .iter()
+            .map(|requirement| requirement.name.to_string())
+            .collect::<Vec<_>>();
+
+        assert!(args.installer.upgrade_package.is_empty());
+        assert_eq!(packages, ["hvplot", "marimo", "polars"]);
     }
 }
