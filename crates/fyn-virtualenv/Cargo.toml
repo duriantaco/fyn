@@ -25,6 +25,7 @@ fyn-pypi-types = { workspace = true }
 fyn-python = { workspace = true }
 fyn-shell = { workspace = true }
 fyn-version = { workspace = true }
+fyn-warnings = { workspace = true }
 
 console = { workspace = true }
 fs-err = { workspace = true }

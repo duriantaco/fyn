@@ -4,6 +4,8 @@ use std::fmt::Write;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use fyn_audit::service::osv;
+use fyn_audit::types::{Dependency, VulnerabilityID};
 use fyn_auth::CredentialsCache;
 use fyn_cache::{Cache, CacheBucket};
 use fyn_cache_key::cache_digest;
@@ -275,6 +277,14 @@ pub(crate) enum ProjectError {
     #[error("Failed to parse PEP 723 script metadata")]
     Pep723ScriptTomlParse(#[source] toml::de::Error),
 
+    #[error(
+        "Malware detected in one or more dependencies that would be installed; aborting sync. Set `UV_MALWARE_CHECK=0` to bypass this check."
+    )]
+    MalwareFound,
+
+    #[error("Malware check failed due to an error from OSV")]
+    Osv(#[from] osv::Error),
+
     #[error("Failed to find `site-packages` directory for environment")]
     NoSitePackages,
 
@@ -357,6 +367,33 @@ pub(crate) enum ProjectError {
 impl From<fyn_client::ClientBuildError> for ProjectError {
     fn from(value: fyn_client::ClientBuildError) -> Self {
         Self::ClientBuild(Box::new(value))
+    }
+}
+
+/// Vulnerability identifiers grouped by dependency.
+#[derive(Debug)]
+pub(crate) struct MalwareFindings(pub(crate) Vec<(Dependency, Vec<VulnerabilityID>)>);
+
+impl std::fmt::Display for MalwareFindings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut first = true;
+        for (dependency, vuln_ids) in &self.0 {
+            for vuln_id in vuln_ids {
+                if !first {
+                    writeln!(f)?;
+                }
+                first = false;
+                write!(
+                    f,
+                    "  - `{}=={}`: {} (https://osv.dev/vulnerability/{})",
+                    dependency.name(),
+                    dependency.version(),
+                    vuln_id.as_str(),
+                    vuln_id.as_str(),
+                )?;
+            }
+        }
+        Ok(())
     }
 }
 

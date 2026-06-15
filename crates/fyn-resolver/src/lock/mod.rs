@@ -30,8 +30,8 @@ use fyn_distribution_filename::{
 use fyn_distribution_types::{
     BuiltDist, DependencyMetadata, DirectUrlBuiltDist, DirectUrlSourceDist, DirectorySourceDist,
     Dist, FileLocation, GitSourceDist, Identifier, IndexLocations, IndexMetadata, IndexUrl, Name,
-    PathBuiltDist, PathSourceDist, RegistryBuiltDist, RegistryBuiltWheel, RegistrySourceDist,
-    RemoteSource, Requirement, RequirementSource, RequiresPython, ResolvedDist,
+    PYPI_URL, PathBuiltDist, PathSourceDist, RegistryBuiltDist, RegistryBuiltWheel,
+    RegistrySourceDist, RemoteSource, Requirement, RequirementSource, RequiresPython, ResolvedDist,
     SimplifiedMarkerTree, StaticMetadata, ToUrlError, UrlString,
 };
 use fyn_fs::{PortablePath, PortablePathBuf, Simplified, try_relative_to_if};
@@ -820,6 +820,17 @@ impl Lock {
         groups: &'lock DependencyGroupsWithDefaults,
         direct_only: bool,
     ) -> Vec<(&'lock PackageName, &'lock Version)> {
+        self.packages_for_audit_filtered(extras, groups, direct_only, |_| true)
+    }
+
+    /// Returns the set of packages that should be audited, filtered by package.
+    pub fn packages_for_audit_filtered<'lock>(
+        &'lock self,
+        extras: &'lock ExtrasSpecificationWithDefaults,
+        groups: &'lock DependencyGroupsWithDefaults,
+        direct_only: bool,
+        collect_filter: impl Fn(&Package) -> bool,
+    ) -> Vec<(&'lock PackageName, &'lock Version)> {
         fn enqueue_dep<'lock>(
             lock: &'lock Lock,
             seen: &mut FxHashSet<(&'lock PackageId, Option<&'lock ExtraName>)>,
@@ -908,7 +919,9 @@ impl Lock {
         while let Some((package, extra)) = queue.pop_front() {
             let is_member = workspace_member_ids.contains(&package.id);
 
-            if !is_member {
+            // Collect non-workspace packages that have version information
+            // and pass the caller's filter.
+            if !is_member && collect_filter(package) {
                 if let Some(version) = package.version() {
                     auditable.insert((package.name(), version));
                 } else {
@@ -2670,6 +2683,10 @@ pub struct Package {
 }
 
 impl Package {
+    pub fn is_from_pypi_registry(&self) -> bool {
+        self.id.source.is_pypi_registry()
+    }
+
     fn from_annotated_dist(
         annotated_dist: &AnnotatedDist,
         fork_markers: Vec<UniversalMarker>,
@@ -3958,6 +3975,14 @@ impl Source {
                 subdirectory: git_dist.subdirectory.clone(),
                 lfs: git_dist.git.lfs(),
             },
+        )
+    }
+
+    /// Returns `true` if the source is a registry entry pointing at PyPI (`https://pypi.org/simple`).
+    fn is_pypi_registry(&self) -> bool {
+        matches!(
+            self,
+            Self::Registry(RegistrySource::Url(url)) if url.as_ref() == PYPI_URL.as_str()
         )
     }
 

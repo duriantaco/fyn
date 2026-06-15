@@ -1714,6 +1714,13 @@ async fn run(
                 args.allow_existing,
                 args.clear,
                 args.no_clear,
+                if args.force {
+                    fyn_virtualenv::ClearNonVirtualenv::Allow
+                } else if globals.preview.is_enabled(PreviewFeature::VenvSafeClear) {
+                    fyn_virtualenv::ClearNonVirtualenv::Error
+                } else {
+                    fyn_virtualenv::ClearNonVirtualenv::Warn
+                },
             );
 
             commands::venv(
@@ -2693,6 +2700,7 @@ async fn run_project(
                 args.env_file,
                 globals.preview,
                 args.max_recursion_depth,
+                args.malware_settings,
             ))
             .await
         }
@@ -2749,6 +2757,7 @@ async fn run_project(
                 printer,
                 globals.preview,
                 args.output_format,
+                args.malware_settings,
             ))
             .await
         }
@@ -3031,6 +3040,7 @@ async fn run_project(
                 &cache,
                 printer,
                 globals.preview,
+                &args.malware_settings,
             ))
             .await
         }
@@ -3082,6 +3092,7 @@ async fn run_project(
                 &cache,
                 printer,
                 globals.preview,
+                args.malware_settings,
             ))
             .await
         }
@@ -3128,6 +3139,7 @@ async fn run_project(
                 workspace_cache,
                 printer,
                 globals.preview,
+                args.malware_settings,
             ))
             .await
         }

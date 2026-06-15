@@ -39,7 +39,7 @@ use fyn_redacted::DisplaySafeUrl;
 use fyn_requirements::{RequirementsSource, RequirementsSpecification};
 use fyn_resolver::{Installable, Lock, Preference};
 use fyn_scripts::Pep723Item;
-use fyn_settings::PythonInstallMirrors;
+use fyn_settings::{MalwareCheckSettings, PythonInstallMirrors};
 use fyn_shell::runnable::WindowsRunnable;
 use fyn_static::EnvVars;
 use fyn_warnings::warn_user;
@@ -160,6 +160,7 @@ pub(crate) async fn run(
     env_file: EnvFile,
     preview: Preview,
     max_recursion_depth: u32,
+    malware_settings: MalwareCheckSettings,
 ) -> anyhow::Result<ExitStatus> {
     // Check if max recursion depth was exceeded. This most commonly happens
     // for scripts with a shebang line like `#!/usr/bin/env -S fyn run`, so try
@@ -352,6 +353,7 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
                 DryRun::Disabled,
                 printer,
                 preview,
+                &malware_settings,
             )
             .await
             {
@@ -893,6 +895,7 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
                     DryRun::Disabled,
                     printer,
                     preview,
+                    &malware_settings,
                 )
                 .await
                 {

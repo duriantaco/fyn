@@ -18,7 +18,7 @@ use fyn_normalize::{DEV_DEPENDENCIES, DefaultExtras, DefaultGroups};
 use fyn_preview::Preview;
 use fyn_python::{PythonDownloads, PythonPreference, PythonRequest};
 use fyn_scripts::{Pep723Metadata, Pep723Script};
-use fyn_settings::PythonInstallMirrors;
+use fyn_settings::{MalwareCheckSettings, PythonInstallMirrors};
 use fyn_warnings::warn_user_once;
 use fyn_workspace::pyproject::DependencyType;
 use fyn_workspace::pyproject_mut::{DependencyTarget, PyProjectTomlMut};
@@ -61,6 +61,7 @@ pub(crate) async fn remove(
     cache: &Cache,
     printer: Printer,
     preview: Preview,
+    malware_settings: MalwareCheckSettings,
 ) -> Result<ExitStatus> {
     let target = if let Some(script) = script {
         // If we found a PEP 723 script and the user provided a project-only setting, warn.
@@ -380,6 +381,7 @@ pub(crate) async fn remove(
         DryRun::Disabled,
         printer,
         preview,
+        &malware_settings,
     )
     .await
     {
