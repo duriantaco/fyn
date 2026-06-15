@@ -3,6 +3,7 @@ use std::fmt::Display;
 use std::path::{Component, Path, PathBuf};
 
 use fyn_fs::write_atomic_sync;
+use fyn_pypi_types::Identifier;
 use fyn_warnings::warn_user;
 use std::sync::{LazyLock, Mutex, OnceLock};
 use tracing::trace;
@@ -200,7 +201,7 @@ fn is_path_in_scheme(
 /// egg's base location, not arbitrary paths. Treating them as paths can make uninstall delete
 /// directories outside `site-packages`.
 fn is_valid_top_level_entry(entry: &str, distribution: impl Display) -> bool {
-    if is_safe_top_level_entry(entry) {
+    if entry.parse::<Identifier>().is_ok() {
         true
     } else {
         if WARNED_FOR_EGG_TOP_LEVEL_PACKAGE
@@ -217,10 +218,6 @@ fn is_valid_top_level_entry(entry: &str, distribution: impl Display) -> bool {
         }
         false
     }
-}
-
-fn is_safe_top_level_entry(entry: &str) -> bool {
-    !entry.is_empty() && entry != "." && entry != ".." && !entry.contains(['/', '\\'])
 }
 
 /// Uninstall the egg represented by the `.egg-info` directory.
@@ -444,18 +441,27 @@ mod tests {
     use fyn_pypi_types::Scheme;
 
     use crate::Layout;
-    use crate::uninstall::{is_safe_top_level_entry, uninstall_egg, uninstall_wheel};
+    use crate::uninstall::{is_valid_top_level_entry, uninstall_egg, uninstall_wheel};
 
     #[test]
     fn test_top_level_entry_safe_name() {
-        assert!(is_safe_top_level_entry("package"));
+        let is_valid = |entry| is_valid_top_level_entry(entry, "package");
 
-        assert!(!is_safe_top_level_entry(""));
-        assert!(!is_safe_top_level_entry("."));
-        assert!(!is_safe_top_level_entry(".."));
-        assert!(!is_safe_top_level_entry("../package"));
-        assert!(!is_safe_top_level_entry("package/name"));
-        assert!(!is_safe_top_level_entry(r"package\name"));
+        assert!(is_valid("package"));
+        assert!(is_valid("_package2"));
+
+        assert!(!is_valid(""));
+        assert!(!is_valid("."));
+        assert!(!is_valid(".."));
+        assert!(!is_valid("1package"));
+        assert!(!is_valid("package-name"));
+        assert!(!is_valid("package.name"));
+        assert!(!is_valid("../package"));
+        assert!(!is_valid("package/name"));
+        assert!(!is_valid(r"package\name"));
+        assert!(!is_valid("C:target"));
+        assert!(!is_valid("C:."));
+        assert!(!is_valid("C:.."));
     }
 
     #[test]
