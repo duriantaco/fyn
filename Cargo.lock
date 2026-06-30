@@ -1763,7 +1763,7 @@ dependencies = [
 
 [[package]]
 name = "fyn"
-version = "0.10.14"
+version = "0.10.15"
 dependencies = [
  "anstream 1.0.0",
  "anyhow",
@@ -1890,7 +1890,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-audit"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "astral-reqwest-middleware",
  "clap",
@@ -1917,7 +1917,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-auth"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "arcstr",
@@ -1960,7 +1960,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-bench"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "codspeed-criterion-compat",
@@ -1987,7 +1987,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-bin-install"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "astral-reqwest-middleware",
  "astral-reqwest-retry",
@@ -2013,7 +2013,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-build"
-version = "0.10.14"
+version = "0.10.15"
 dependencies = [
  "anstream 1.0.0",
  "anyhow",
@@ -2028,7 +2028,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-build-backend"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "astral-version-ranges",
  "base64 0.22.1",
@@ -2071,7 +2071,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-build-frontend"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anstream 1.0.0",
  "fs-err",
@@ -2108,7 +2108,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-cache"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "clap",
  "fs-err",
@@ -2134,7 +2134,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-cache-info"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "fs-err",
@@ -2151,7 +2151,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-cache-key"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "fyn-redacted",
  "hex",
@@ -2163,7 +2163,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-cli"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anstream 1.0.0",
  "anyhow",
@@ -2196,7 +2196,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-client"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "astral-reqwest-middleware",
@@ -2265,7 +2265,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-configuration"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "clap",
@@ -2299,14 +2299,14 @@ dependencies = [
 
 [[package]]
 name = "fyn-console"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "console 0.16.2",
 ]
 
 [[package]]
 name = "fyn-dev"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anstream 1.0.0",
  "anyhow",
@@ -2355,7 +2355,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-dirs"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "assert_fs",
  "etcetera",
@@ -2367,7 +2367,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-dispatch"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "futures",
@@ -2399,7 +2399,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-distribution"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "astral-reqwest-middleware",
@@ -2451,7 +2451,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-distribution-filename"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "fyn-cache-key",
  "fyn-normalize",
@@ -2468,7 +2468,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-distribution-types"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "arcstr",
  "astral-version-ranges",
@@ -2509,7 +2509,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-extract"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "astral-tokio-tar",
  "astral_async_zip",
@@ -2540,14 +2540,14 @@ dependencies = [
 
 [[package]]
 name = "fyn-flags"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "bitflags 2.11.0",
 ]
 
 [[package]]
 name = "fyn-fs"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "backon",
  "clap",
@@ -2577,7 +2577,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-git"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "astral-reqwest-middleware",
@@ -2602,7 +2602,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-git-types"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "fyn-redacted",
  "fyn-static",
@@ -2615,7 +2615,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-globfilter"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anstream 1.0.0",
  "fs-err",
@@ -2632,7 +2632,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-install-wheel"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "assert_fs",
@@ -2669,7 +2669,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-installer"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anstream 1.0.0",
  "anyhow",
@@ -2712,7 +2712,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-keyring"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "async-trait",
  "byteorder",
@@ -2729,7 +2729,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-logging"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anstream 1.0.0",
  "jiff",
@@ -2740,7 +2740,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-macros"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2750,7 +2750,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-metadata"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "astral_async_zip",
  "fs-err",
@@ -2767,7 +2767,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-normalize"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "fyn-small-str",
  "rkyv",
@@ -2777,7 +2777,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-once-map"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "dashmap",
  "futures",
@@ -2786,14 +2786,14 @@ dependencies = [
 
 [[package]]
 name = "fyn-options-metadata"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "fyn-pep440"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "astral-version-ranges",
  "fyn-cache-key",
@@ -2807,7 +2807,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-pep508"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "arcstr",
  "astral-version-ranges",
@@ -2836,7 +2836,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-performance-memory-allocator"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "mimalloc",
  "tikv-jemalloc-ctl",
@@ -2845,7 +2845,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-platform"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "fs-err",
  "fyn-fs",
@@ -2866,7 +2866,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-platform-tags"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "bitflags 2.11.0",
  "fyn-small-str",
@@ -2880,7 +2880,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-preview"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "enumflags2",
  "fyn-preview",
@@ -2891,7 +2891,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-publish"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "ambient-id",
  "anstream 1.0.0",
@@ -2933,7 +2933,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-pypi-types"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "fyn-cache-key",
@@ -2966,7 +2966,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-python"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "assert_fs",
@@ -3029,7 +3029,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-redacted"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "ref-cast",
  "schemars",
@@ -3040,7 +3040,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-requirements"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "configparser",
@@ -3074,7 +3074,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-requirements-txt"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "assert_fs",
@@ -3107,7 +3107,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-resolver"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "arcstr",
  "astral-pubgrub",
@@ -3172,7 +3172,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-scripts"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "fs-err",
  "fyn-configuration",
@@ -3197,7 +3197,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-settings"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "clap",
  "configparser",
@@ -3236,7 +3236,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-shell"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "fs-err",
@@ -3253,7 +3253,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-small-str"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "arcstr",
  "rkyv",
@@ -3263,7 +3263,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-state"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "fs-err",
  "fyn-dirs",
@@ -3272,7 +3272,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-static"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "fyn-macros",
  "thiserror 2.0.18",
@@ -3280,7 +3280,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-test"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3310,7 +3310,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-tool"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "fs-err",
  "fyn-cache",
@@ -3339,7 +3339,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-torch"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "clap",
  "either",
@@ -3359,7 +3359,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-trampoline-builder"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3376,7 +3376,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-types"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "dashmap",
@@ -3398,7 +3398,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-unix"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "nix 0.31.2",
  "thiserror 2.0.18",
@@ -3406,11 +3406,11 @@ dependencies = [
 
 [[package]]
 name = "fyn-version"
-version = "0.10.14"
+version = "0.10.15"
 
 [[package]]
 name = "fyn-virtualenv"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "console 0.16.2",
  "fs-err",
@@ -3432,7 +3432,7 @@ dependencies = [
 
 [[package]]
 name = "fyn-warnings"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anstream 1.0.0",
  "anyhow",
@@ -3444,14 +3444,14 @@ dependencies = [
 
 [[package]]
 name = "fyn-windows"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "windows",
 ]
 
 [[package]]
 name = "fyn-workspace"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "anyhow",
  "assert_fs",

@@ -93,7 +93,7 @@ the second stage, we'll copy this directory over to the final image, omitting th
 other unnecessary files.
 
 ```dockerfile title="Dockerfile"
-FROM ghcr.io/duriantaco/fyn:0.10.14 AS fyn
+FROM ghcr.io/duriantaco/fyn:0.10.15 AS fyn
 
 # First, bundle the dependencies into the task root.
 FROM public.ecr.aws/lambda/python:3.13 AS builder
@@ -335,7 +335,7 @@ And confirm that opening http://127.0.0.1:8000/ in a web browser displays, "Hell
 Finally, we'll update the Dockerfile to include the local library in the deployment package:
 
 ```dockerfile title="Dockerfile"
-FROM ghcr.io/duriantaco/fyn:0.10.14 AS fyn
+FROM ghcr.io/duriantaco/fyn:0.10.15 AS fyn
 
 # First, bundle the dependencies into the task root.
 FROM public.ecr.aws/lambda/python:3.13 AS builder

@@ -1,6 +1,6 @@
 [package]
 name = "fyn"
-version = "0.10.14"
+version = "0.10.15"
 description = "A Python package and project manager"
 edition = { workspace = true }
 rust-version = { workspace = true }

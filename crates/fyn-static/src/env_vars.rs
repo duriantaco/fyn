@@ -524,13 +524,13 @@ impl EnvVars {
     ///
     /// When enabled, uv performs a lightweight check against the OSV database for known
     /// malware advisories after every lockfile sync. Set this variable to `0` to opt out.
-    #[attr_added_in("next release")]
+    #[attr_added_in("0.10.15")]
     pub const UV_MALWARE_CHECK: &'static str = "UV_MALWARE_CHECK";
 
     /// Override the vulnerability service URL for the automatic malware check.
     ///
     /// Defaults to the OSV API endpoint (`https://api.osv.dev/`).
-    #[attr_added_in("next release")]
+    #[attr_added_in("0.10.15")]
     pub const UV_MALWARE_CHECK_URL: &'static str = "UV_MALWARE_CHECK_URL";
 
     /// Provides the HTTP Basic authentication username for a named index.
@@ -1186,7 +1186,7 @@ impl EnvVars {
     ///
     /// Should be set to an RFC 3339 timestamp (e.g., `2024-03-25T00:00:00Z`).
     #[attr_hidden]
-    #[attr_added_in("next release")]
+    #[attr_added_in("0.10.15")]
     pub const UV_TEST_AVAILABLE_VERSION_CUTOFF: &'static str = "UV_TEST_AVAILABLE_VERSION_CUTOFF";
 
     /// `.env` files from which to load environment variables when executing `fyn run` commands.
