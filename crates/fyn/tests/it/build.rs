@@ -129,6 +129,72 @@ fn build_basic() -> Result<()> {
 }
 
 #[test]
+fn build_rejects_cache_dir_inside_source() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let source = context.temp_dir.path().parent().unwrap();
+
+    fs_err::write(
+        source.join("pyproject.toml"),
+        indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+
+        [build-system]
+        requires = ["hatchling"]
+        build-backend = "hatchling.build"
+    "#},
+    )?;
+    fs_err::create_dir_all(source.join("src/project"))?;
+    fs_err::write(source.join("src/project/__init__.py"), "")?;
+
+    context
+        .build()
+        .arg(source)
+        .assert()
+        .failure()
+        .code(2)
+        .stderr(predicate::str::contains("The cache directory"))
+        .stderr(predicate::str::contains(
+            "is inside the build source directory",
+        ));
+
+    Ok(())
+}
+
+#[test]
+fn build_rejects_missing_backend_path() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+    let project = context.temp_dir.child("project");
+
+    project.child("pyproject.toml").write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+
+        [build-system]
+        requires = []
+        backend-path = ["backend"]
+        build-backend = "backend"
+    "#})?;
+    project.child("src/project/__init__.py").touch()?;
+
+    context
+        .build()
+        .arg(project.path())
+        .assert()
+        .failure()
+        .code(2)
+        .stderr(predicate::str::contains(
+            "`backend-path` entry `backend` does not exist or is not a directory",
+        ));
+
+    Ok(())
+}
+
+#[test]
 fn build_sdist() -> Result<()> {
     let context = fyn_test::test_context!("3.12");
     let filters = context
