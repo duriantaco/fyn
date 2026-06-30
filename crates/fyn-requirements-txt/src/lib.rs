@@ -52,7 +52,7 @@ use fyn_configuration::{NoBinary, NoBuild, PackageNameSpecifier};
 use fyn_distribution_types::{
     Requirement, UnresolvedRequirement, UnresolvedRequirementSpecification,
 };
-use fyn_fs::Simplified;
+use fyn_fs::{Simplified, normalize_path};
 use fyn_pep508::{Pep508Error, RequirementOrigin, VerbatimUrl, expand_env_vars};
 use fyn_pypi_types::VerbatimParsedUrl;
 #[cfg(feature = "http")]
@@ -400,7 +400,7 @@ impl RequirementsTxt {
                         };
                     match visited {
                         VisitedFiles::Requirements { requirements, .. } => {
-                            if !requirements.insert(sub_file.clone()) {
+                            if !requirements.insert(visited_file(&sub_file)) {
                                 continue;
                             }
                         }
@@ -408,7 +408,7 @@ impl RequirementsTxt {
                         // from `pip`, which seems to treat `-r` requirements in constraints files as
                         // _requirements_, but we don't want to support that.
                         VisitedFiles::Constraints { constraints } => {
-                            if !constraints.insert(sub_file.clone()) {
+                            if !constraints.insert(visited_file(&sub_file)) {
                                 continue;
                             }
                         }
@@ -477,13 +477,13 @@ impl RequirementsTxt {
                     // Switch to constraints mode, if we aren't in it already.
                     let mut visited = match visited {
                         VisitedFiles::Requirements { constraints, .. } => {
-                            if !constraints.insert(sub_file.clone()) {
+                            if !constraints.insert(visited_file(&sub_file)) {
                                 continue;
                             }
                             VisitedFiles::Constraints { constraints }
                         }
                         VisitedFiles::Constraints { constraints } => {
-                            if !constraints.insert(sub_file.clone()) {
+                            if !constraints.insert(visited_file(&sub_file)) {
                                 continue;
                             }
                             VisitedFiles::Constraints { constraints }
@@ -1517,6 +1517,15 @@ enum VisitedFiles<'a> {
     Constraints {
         constraints: &'a mut FxHashSet<PathBuf>,
     },
+}
+
+/// Return a stable identity for a requirements file without changing the path used to read it.
+fn visited_file(path: &Path) -> PathBuf {
+    if path.starts_with("http://") || path.starts_with("https://") {
+        path.to_path_buf()
+    } else {
+        normalize_path(path).into_owned()
+    }
 }
 
 /// Calculates the column and line offset of a given cursor based on the
@@ -2994,6 +3003,32 @@ mod test {
             "pkg-constraints-only",
             "pkg-constraints-only-recursive",
             "pkg-requirements-in-constraints",
+        }
+        "#);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn recursive_inclusion_path_alias() -> Result<()> {
+        let temp_dir = assert_fs::TempDir::new()?;
+        temp_dir.child("nested").create_dir_all()?;
+        let requirements = temp_dir.child("requirements.txt");
+        requirements.write_str(indoc! {"
+            pkg
+            -r nested/../requirements.txt
+        "})?;
+
+        let parsed = RequirementsTxt::parse(&requirements, temp_dir.path()).await?;
+        let requirements: BTreeSet<String> = parsed
+            .requirements
+            .iter()
+            .map(|entry| entry.requirement.to_string())
+            .collect();
+
+        assert_debug_snapshot!(requirements, @r#"
+        {
+            "pkg",
         }
         "#);
 
