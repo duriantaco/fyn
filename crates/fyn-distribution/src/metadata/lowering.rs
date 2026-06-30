@@ -6,7 +6,8 @@ use either::Either;
 use fyn_auth::CredentialsCache;
 use fyn_distribution_filename::DistExtension;
 use fyn_distribution_types::{
-    Index, IndexLocations, IndexMetadata, IndexName, Origin, Requirement, RequirementSource,
+    Index, IndexCredentialsError, IndexLocations, IndexMetadata, IndexName, Origin, Requirement,
+    RequirementSource,
 };
 use fyn_fs::{Simplified, normalize_absolute_path};
 use fyn_git_types::{GitLfs, GitReference, GitUrl, GitUrlParseError};
@@ -232,7 +233,7 @@ impl LoweredRequirement {
                                     hint,
                                 });
                             };
-                            if let Some(credentials) = index.credentials() {
+                            if let Some(credentials) = index.credentials()? {
                                 credentials_cache.store_credentials(index.raw_url(), credentials);
                             }
                             let index = IndexMetadata {
@@ -465,7 +466,7 @@ impl LoweredRequirement {
                                     hint,
                                 });
                             };
-                            if let Some(credentials) = index.credentials() {
+                            if let Some(credentials) = index.credentials()? {
                                 credentials_cache.store_credentials(index.raw_url(), credentials);
                             }
                             let index = IndexMetadata {
@@ -570,6 +571,8 @@ pub enum LoweringError {
     WorkspaceMember,
     #[error(transparent)]
     InvalidUrl(#[from] DisplaySafeUrlError),
+    #[error(transparent)]
+    IndexCredentials(#[from] IndexCredentialsError),
     #[error(transparent)]
     InvalidVerbatimUrl(#[from] fyn_pep508::VerbatimUrlError),
     #[error("Fragments are not allowed in URLs: `{0}`")]

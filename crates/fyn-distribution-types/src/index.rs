@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use url::Url;
 
-use fyn_auth::{AuthPolicy, Credentials};
+use fyn_auth::{AuthPolicy, Credentials, CredentialsFromUrlError};
 use fyn_normalize::PackageName;
 use fyn_redacted::DisplaySafeUrl;
 use fyn_small_str::SmallString;
@@ -25,6 +25,14 @@ pub struct IndexCacheControl {
     pub api: Option<SmallString>,
     /// Cache control header for file downloads.
     pub files: Option<SmallString>,
+}
+
+#[derive(Debug, Error)]
+#[error("Failed to parse credentials in index URL: {url}")]
+pub struct IndexCredentialsError {
+    url: DisplaySafeUrl,
+    #[source]
+    source: CredentialsFromUrlError,
 }
 
 /// A glob pattern matched against normalized package names.
@@ -516,23 +524,37 @@ impl Index {
     /// are stripped from the stored URL.
     #[must_use]
     pub fn with_promoted_auth_policy(mut self) -> Self {
-        if matches!(self.authenticate, AuthPolicy::Auto) && self.credentials().is_some() {
+        if matches!(self.authenticate, AuthPolicy::Auto) && self.has_credentials() {
             self.authenticate = AuthPolicy::Always;
         }
         self
     }
 
+    /// Return whether credentials are present for the index, either via the environment or URL.
+    pub fn has_credentials(&self) -> bool {
+        if let Some(name) = self.name.as_ref() {
+            if Credentials::from_env(name.to_env_var()).is_some() {
+                return true;
+            }
+        }
+
+        !self.url.url().username().is_empty() || self.url.url().password().is_some()
+    }
+
     /// Retrieve the credentials for the index, either from the environment, or from the URL itself.
-    pub fn credentials(&self) -> Option<Credentials> {
+    pub fn credentials(&self) -> Result<Option<Credentials>, IndexCredentialsError> {
         // If the index is named, and credentials are provided via the environment, prefer those.
         if let Some(name) = self.name.as_ref() {
             if let Some(credentials) = Credentials::from_env(name.to_env_var()) {
-                return Some(credentials);
+                return Ok(Some(credentials));
             }
         }
 
         // Otherwise, extract the credentials from the URL.
-        Credentials::from_url(self.url.url())
+        Credentials::from_url(self.url.url()).map_err(|source| IndexCredentialsError {
+            url: self.url.url().clone(),
+            source,
+        })
     }
 
     /// Resolve the index relative to the given root directory.
@@ -824,6 +846,8 @@ pub enum IndexSourceError {
 
 #[cfg(test)]
 mod tests {
+    use std::error::Error as _;
+
     use super::*;
 
     #[test]
@@ -854,6 +878,28 @@ mod tests {
         let index: Index = toml::from_str(toml_str).unwrap();
         assert_eq!(index.name.as_ref().unwrap().as_ref(), "test-index");
         assert_eq!(index.cache_control, None);
+    }
+
+    #[test]
+    fn invalid_url_credentials_report_index_context() {
+        let index = Index::from_index_url(
+            IndexUrl::parse("https://user:%FF@example.com/simple", None).unwrap(),
+        );
+
+        assert!(index.has_credentials());
+        assert_eq!(
+            index.clone().with_promoted_auth_policy().authenticate,
+            AuthPolicy::Always
+        );
+
+        let error = index.credentials().unwrap_err();
+        assert!(error.to_string().starts_with(
+            "Failed to parse credentials in index URL: https://user:****@example.com/simple"
+        ));
+        assert_eq!(
+            error.source().map(ToString::to_string).as_deref(),
+            Some("URL password contains invalid UTF-8")
+        );
     }
 
     #[test]

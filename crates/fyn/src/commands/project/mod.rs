@@ -346,6 +346,12 @@ pub(crate) enum ProjectError {
     ExtraBuildRequires(#[from] fyn_distribution_types::ExtraBuildRequiresError),
 
     #[error(transparent)]
+    IndexCredentials(#[from] fyn_distribution_types::IndexCredentialsError),
+
+    #[error(transparent)]
+    Credentials(#[from] fyn_auth::CredentialsFromUrlError),
+
+    #[error(transparent)]
     Fmt(#[from] std::fmt::Error),
 
     #[error(transparent)]

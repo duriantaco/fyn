@@ -334,7 +334,9 @@ impl Middleware for AuthMiddleware {
         next: Next<'_>,
     ) -> reqwest_middleware::Result<Response> {
         // Check for credentials attached to the request already
-        let request_credentials = Credentials::from_request(&request).map(Authentication::from);
+        let request_credentials = Credentials::from_request(&request)
+            .map_err(Error::middleware)?
+            .map(Authentication::from);
 
         // In the middleware, existing credentials are already moved from the URL
         // to the headers so for display purposes we restore some information
