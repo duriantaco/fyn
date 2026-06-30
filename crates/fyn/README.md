@@ -4,13 +4,13 @@
 
 fyn is a Python package and project manager.
 
-See the [repository](https://github.com/oha/fyn) for more information.
+See the [repository](https://github.com/duriantaco/fyn) for more information.
 
 This crate is the entry point to the fyn command-line interface. The Rust API exposed here is not
 considered public interface.
 
-This is version 0.10.14. The source can be found
-[here](https://github.com/oha/fyn/blob/0.10.14/crates/fyn).
+This is version 0.10.15. The source can be found
+[here](https://github.com/duriantaco/fyn/blob/0.10.15/crates/fyn).
 
 The following fyn workspace members are also available:
 
