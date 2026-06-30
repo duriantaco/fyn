@@ -118,7 +118,7 @@ impl KeyringProvider {
     }
 
     /// Store credentials to the system keyring.
-    #[instrument(skip(self))]
+    #[instrument(skip_all, fields(service = ?service, username = ?username))]
     async fn store_native(
         &self,
         service: &str,
