@@ -866,7 +866,7 @@ fn edits(
                 extra,
                 group,
             }) => {
-                let credentials = fyn_auth::Credentials::from_url(&git);
+                let credentials = fyn_auth::Credentials::from_url(&git)?;
                 if let Some(credentials) = credentials {
                     debug!("Caching credentials for: {git}");
                     GIT_STORE.insert(RepositoryUrl::new(&git), credentials);

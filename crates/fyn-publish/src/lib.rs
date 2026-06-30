@@ -26,8 +26,8 @@ use url::Url;
 use fyn_auth::{Credentials, PyxTokenStore, Realm};
 use fyn_cache::{Cache, Refresh};
 use fyn_client::{
-    BaseClient, DEFAULT_MAX_REDIRECTS, MetadataFormat, OwnedArchive, RegistryClientBuilder,
-    RequestBuilder, RetryParsingError, RetryState,
+    BaseClient, ClientBuildError, DEFAULT_MAX_REDIRECTS, MetadataFormat, OwnedArchive,
+    RegistryClientBuilder, RequestBuilder, RetryParsingError, RetryState,
 };
 use fyn_configuration::{KeyringProviderType, TrustedPublishing};
 use fyn_distribution_filename::{DistFilename, SourceDistExtension, SourceDistFilename};
@@ -78,6 +78,8 @@ pub enum PublishError {
     MixedCredentials(String),
     #[error("Failed to query check URL")]
     CheckUrlIndex(#[source] fyn_client::Error),
+    #[error(transparent)]
+    ClientBuild(#[from] ClientBuildError),
     #[error(
         "Local file and index file do not match for {filename}. \
         Local: {hash_algorithm}={local}, Remote: {hash_algorithm}={remote}"
@@ -957,7 +959,7 @@ pub async fn check_url(
     let registry_client = registry_client_builder
         .clone()
         .cache(cache_refresh)
-        .wrap_existing(client);
+        .wrap_existing(client)?;
 
     debug!("Checking for {filename} in the registry");
     let response = match registry_client
