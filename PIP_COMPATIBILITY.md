@@ -1,1 +1,2 @@
-This reference document has moved to the [documentation website](https://github.com/oha/fyn).
+This reference document has moved to the
+[documentation website](https://duriantaco.github.io/fyn/pip/compatibility/).
