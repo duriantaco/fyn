@@ -1201,9 +1201,9 @@ impl FormMetadata {
         ];
 
         if let DistFilename::WheelFilename(wheel) = filename {
-            form_metadata.push(("fynersion", wheel.python_tags().iter().join(".")));
+            form_metadata.push(("pyversion", wheel.python_tags().iter().join(".")));
         } else {
-            form_metadata.push(("fynersion", "source".to_string()));
+            form_metadata.push(("pyversion", "source".to_string()));
         }
 
         let mut add_option = |name, value: Option<String>| {
@@ -1860,12 +1860,12 @@ mod tests {
         name: tqdm
         version: 999.0.0
         filetype: sdist
-        fynersion: source
+        pyversion: source
         author_email: Charlie Marsh <charlie.r.marsh@gmail.com>
         description: # tqdm
 
         [![PyPI - Version](https://img.shields.io/pypi/v/tqdm.svg)](https://pypi.org/project/tqdm)
-        [![PyPI - Python Version](https://img.shields.io/pypi/fynersions/tqdm.svg)](https://pypi.org/project/tqdm)
+        [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/tqdm.svg)](https://pypi.org/project/tqdm)
 
         -----
 
@@ -1984,7 +1984,7 @@ mod tests {
         name: tqdm
         version: 4.66.1
         filetype: bdist_wheel
-        fynersion: py3
+        pyversion: py3
         description_content_type: text/x-rst
         keywords: progressbar,progressmeter,progress,bar,meter,rate,eta,console,terminal,time
         license: MPL-2.0 AND MIT
