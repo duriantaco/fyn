@@ -20,12 +20,11 @@ env:
   RUSTUP_MAX_RETRIES: 10
 
 jobs:
-  # We use the large GitHub actions runners
-  # For Ubuntu and Windows, this requires Organization-level configuration
-  # See: https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/about-larger-runners#about-ubuntu-and-windows-larger-runners
+  # These jobs run on standard GitHub-hosted runners (4 cores), so timeouts are
+  # sized for a cold Rust cache rather than the large runners upstream uses.
 
   cargo-test-linux:
-    timeout-minutes: 10
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     name: "cargo test on linux"
     steps:
@@ -47,8 +46,13 @@ jobs:
         with:
           version: "0.10.10"
 
+      # Bootstrap the test Pythons with uv, into the directory the fyn test
+      # suite discovers via `UV_PYTHON_INSTALL_DIR` (fyn's default managed
+      # directory differs from uv's).
       - name: "Install required Python versions"
-        run: fyn python install
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/test-pythons
+        run: uv python install
 
       - name: "Install secret service"
         run: |
@@ -94,6 +98,7 @@ jobs:
           # Retry more than default to reduce flakes in CI
           UV_HTTP_RETRIES: 5
           RUST_BACKTRACE: 1
+          UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/test-pythons
           UV_INTERNAL__TEST_COW_FS: /btrfs
           UV_INTERNAL__TEST_NOCOW_FS: /tmpfs
           UV_INTERNAL__TEST_ALT_FS: /tmpfs
@@ -119,7 +124,7 @@ jobs:
           retention-days: 14
 
   cargo-test-macos:
-    timeout-minutes: 20
+    timeout-minutes: 60
     # Only run macOS tests on main without opt-in
     if: ${{ inputs.test-macos == 'true' }}
     runs-on: macos-14
@@ -146,8 +151,13 @@ jobs:
         with:
           version: "0.10.10"
 
+      # Bootstrap the test Pythons with uv, into the directory the fyn test
+      # suite discovers via `UV_PYTHON_INSTALL_DIR` (fyn's default managed
+      # directory differs from uv's).
       - name: "Install required Python versions"
-        run: fyn python install
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/test-pythons
+        run: uv python install
 
       - name: "Install cargo nextest"
         uses: taiki-e/install-action@a37010ded18ff788be4440302bd6830b1ae50d8b # v2.68.25
@@ -159,6 +169,7 @@ jobs:
           # Retry more than default to reduce flakes in CI
           UV_HTTP_RETRIES: 5
           RUST_BACKTRACE: 1
+          UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/test-pythons
           # macOS tmpdir is on APFS which supports reflink
           UV_INTERNAL__TEST_COW_FS: ${{ runner.temp }}
           # HFS+ RAM disk does not support copy-on-write and is on a different device
@@ -186,8 +197,8 @@ jobs:
           retention-days: 14
 
   cargo-test-windows:
-    timeout-minutes: 15
-    runs-on: github-windows-2025-x86_64-16
+    timeout-minutes: 90
+    runs-on: windows-latest
     name: "cargo test on windows ${{ matrix.partition }} of 3"
     strategy:
       fail-fast: false
@@ -210,8 +221,13 @@ jobs:
         with:
           version: "0.10.10"
 
+      # Bootstrap the test Pythons with uv, into the directory the fyn test
+      # suite discovers via `UV_PYTHON_INSTALL_DIR` (fyn's default managed
+      # directory differs from uv's).
       - name: "Install required Python versions"
-        run: fyn python install
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/test-pythons
+        run: uv python install
 
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
@@ -241,6 +257,7 @@ jobs:
           # See https://github.com/astral-sh/uv/issues/6940
           UV_LINK_MODE: copy
           RUST_BACKTRACE: 1
+          UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/test-pythons
           UV_INTERNAL__TEST_LOWLINKS_FS: "C:\\uv"
           # Write pending snapshots to a separate directory for artifact upload
           INSTA_UPDATE: new
