@@ -82,6 +82,10 @@ jobs:
 
       - name: "Create minix filesystem (low hardlink limit)"
         run: |
+          # The Azure kernel on GitHub-hosted runners does not ship the minix
+          # module by default
+          sudo apt-get install -y "linux-modules-extra-$(uname -r)"
+          sudo modprobe minix
           truncate -s 16M /tmp/minix.img
           mkfs.minix /tmp/minix.img
           sudo mkdir /minix
