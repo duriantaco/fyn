@@ -5,7 +5,7 @@
 
 ## 0.10.15
 
-Released on 2026-06-30.
+Released on 2026-07-08.
 
 ### Other changes
 
