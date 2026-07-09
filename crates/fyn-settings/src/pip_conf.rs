@@ -314,6 +314,10 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
 
+    fn test_config_path(name: &str) -> PathBuf {
+        std::env::current_dir().unwrap().join(name)
+    }
+
     #[test]
     fn parse_global_pip_config() {
         let options = parse_config(
@@ -330,7 +334,7 @@ trusted-host =
     example.com
     https://extra.example.com:8443
 ",
-            Path::new("/tmp/pip.conf"),
+            &test_config_path("pip.conf"),
         )
         .unwrap()
         .unwrap();
@@ -349,7 +353,7 @@ trusted-host =
             r"[install]
 index-url = https://example.com/simple
 ",
-            Path::new("/tmp/pip.conf"),
+            &test_config_path("pip.conf"),
         )
         .unwrap();
 
@@ -362,7 +366,7 @@ index-url = https://example.com/simple
             r"[global]
 no-index
 ",
-            Path::new("/tmp/pip.conf"),
+            &test_config_path("pip.conf"),
         )
         .unwrap()
         .unwrap();
@@ -444,7 +448,7 @@ no-index = false
 index-url = https://native.example/simple
 no-index = false
 ",
-            Path::new("/tmp/fyn.toml"),
+            &test_config_path("fyn.toml"),
         )
         .unwrap();
         let pip_config_options = parse_config(
@@ -452,7 +456,7 @@ no-index = false
 index-url = https://pip.example/simple
 no-index = true
 ",
-            Path::new("/tmp/pip.conf"),
+            &test_config_path("pip.conf"),
         )
         .unwrap();
 
@@ -468,7 +472,7 @@ no-index = true
             r"[global]
 index-url = https://[::1
 ",
-            Path::new("/tmp/pip.conf"),
+            &test_config_path("pip.conf"),
         )
         .unwrap_err();
         assert!(
@@ -480,7 +484,7 @@ index-url = https://[::1
             r"[global]
 trusted-host = example.com:notaport
 ",
-            Path::new("/tmp/pip.conf"),
+            &test_config_path("pip.conf"),
         )
         .unwrap_err();
         assert_eq!(
@@ -492,7 +496,7 @@ trusted-host = example.com:notaport
             r"[global]
 no-index = maybe
 ",
-            Path::new("/tmp/pip.conf"),
+            &test_config_path("pip.conf"),
         )
         .unwrap_err();
         assert_eq!(

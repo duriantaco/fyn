@@ -853,9 +853,10 @@ mod tests {
     #[cfg(feature = "non-pep508-extensions")]
     #[test]
     fn pep508_expanded_project_root_path_is_not_given_absolute() {
+        let base_dir = std::env::current_dir().unwrap();
         let url = <VerbatimUrl as Pep508Url>::parse_url(
             "${PROJECT_ROOT}/wheel-0.1.0-py3-none-any.whl",
-            Some(Path::new("/tmp")),
+            Some(base_dir.as_path()),
         )
         .unwrap();
 
@@ -875,9 +876,10 @@ mod tests {
     #[cfg(feature = "non-pep508-extensions")]
     #[test]
     fn pep508_expanded_project_root_file_url_is_not_given_absolute() {
+        let base_dir = std::env::current_dir().unwrap();
         let url = <VerbatimUrl as Pep508Url>::parse_url(
             "file://${PROJECT_ROOT}/wheel-0.1.0-py3-none-any.whl",
-            Some(Path::new("/tmp")),
+            Some(base_dir.as_path()),
         )
         .unwrap();
 

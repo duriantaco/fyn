@@ -54,17 +54,17 @@ mod tests {
 
     #[test]
     fn test_parse_valid_url() {
-        let url = Url::parse("https://github.com/astral-sh/uv").unwrap();
+        let url = Url::parse("https://github.com/duriantaco/fyn").unwrap();
         let repo = GitHubRepository::parse(&url).unwrap();
-        assert_eq!(repo.owner, "astral-sh");
+        assert_eq!(repo.owner, "duriantaco");
         assert_eq!(repo.repo, "fyn");
     }
 
     #[test]
     fn test_parse_with_git_suffix() {
-        let url = Url::parse("https://github.com/astral-sh/uv.git").unwrap();
+        let url = Url::parse("https://github.com/duriantaco/fyn.git").unwrap();
         let repo = GitHubRepository::parse(&url).unwrap();
-        assert_eq!(repo.owner, "astral-sh");
+        assert_eq!(repo.owner, "duriantaco");
         assert_eq!(repo.repo, "fyn");
     }
 

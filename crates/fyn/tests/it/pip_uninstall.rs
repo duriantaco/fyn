@@ -719,14 +719,18 @@ fn yes_flag() {
     fyn_snapshot!(context.filters(), context.pip_uninstall()
         .arg("--yes")
         .arg("flask"), @"
-    success: true
-    exit_code: 0
+    success: false
+    exit_code: 2
     ----- stdout -----
 
     ----- stderr -----
-    warning: `--yes` has no effect (fyn never asks for confirmation)
-    warning: Skipping flask as it is not installed
-    warning: No packages to uninstall
+    error: unexpected argument '--yes' found
+
+      tip: to pass '--yes' as a value, use '-- --yes'
+
+    Usage: fyn pip uninstall --cache-dir [CACHE_DIR] <PACKAGE|--requirements <REQUIREMENTS>>
+
+    For more information, try '--help'.
     "
     );
 }
@@ -739,14 +743,18 @@ fn yes_short_flag() {
     fyn_snapshot!(context.filters(), context.pip_uninstall()
         .arg("-y")
         .arg("flask"), @"
-    success: true
-    exit_code: 0
+    success: false
+    exit_code: 2
     ----- stdout -----
 
     ----- stderr -----
-    warning: `--yes` has no effect (fyn never asks for confirmation)
-    warning: Skipping flask as it is not installed
-    warning: No packages to uninstall
+    error: unexpected argument '-y' found
+
+      tip: to pass '-y' as a value, use '-- -y'
+
+    Usage: fyn pip uninstall [OPTIONS] <PACKAGE|--requirements <REQUIREMENTS>>
+
+    For more information, try '--help'.
     "
     );
 }

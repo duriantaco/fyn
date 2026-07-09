@@ -15819,7 +15819,7 @@ fn lock_add_member_without_build_system() -> Result<()> {
       ╰─▶ Because anyio was not found in the cache and leaf depends on anyio>3, we can conclude that leaf's requirements are unsatisfiable.
           And because your workspace requires leaf, we can conclude that your workspace's requirements are unsatisfiable.
 
-          hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+          Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
     ");
 
     // Re-run without `--locked`.
@@ -19756,14 +19756,14 @@ fn lock_unnamed_explicit_index() -> Result<()> {
       TOML parse error at line 8, column 9
         |
       8 |         [[tool.fyn.index]]
-        |         ^^^^^^^^^^^^^^^^^
+        |         ^^^^^^^^^^^^^^^^^^
       An index with `explicit = true` requires a `name`: https://test.pypi.org/simple
 
     error: Failed to parse: `pyproject.toml`
       Caused by: TOML parse error at line 8, column 9
       |
     8 |         [[tool.fyn.index]]
-      |         ^^^^^^^^^^^^^^^^^
+      |         ^^^^^^^^^^^^^^^^^^
     An index with `explicit = true` requires a `name`: https://test.pypi.org/simple
     ");
 
@@ -20315,7 +20315,7 @@ fn lock_multiple_default_indexes() -> Result<()> {
       Caused by: TOML parse error at line 8, column 9
       |
     8 |         [[tool.fyn.index]]
-      |         ^^^^^^^^^^^^^^^^^
+      |         ^^^^^^^^^^^^^^^^^^
     found multiple indexes with `default = true`; only one index may be marked as default
     ");
 
@@ -21422,12 +21422,13 @@ fn lock_split_python_environment() -> Result<()> {
     )?;
 
     fyn_snapshot!(context.filters(), context.lock(), @"
-    success: true
-    exit_code: 0
+    success: false
+    exit_code: 1
     ----- stdout -----
 
     ----- stderr -----
-    Resolved 2 packages in [TIME]
+      × No solution found when resolving dependencies for split (markers: python_full_version >= '3.8'):
+      ╰─▶ Because there are no versions of fyn{python_full_version >= '3.8'} and your project depends on fyn{python_full_version >= '3.8'}, we can conclude that your project's requirements are unsatisfiable.
     ");
 
     let lock = context.read("fyn.lock");
@@ -28574,7 +28575,7 @@ fn lock_self_incompatible() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because your project depends on itself at an incompatible version (project==0.2.0), we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
+          The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
     ");
 
     Ok(())
@@ -28711,7 +28712,7 @@ fn lock_self_extra_to_same_extra_incompatible() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because project[foo] depends on itself at an incompatible version (project==0.2.0) and your project requires project[foo], we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
+          The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
     ");
 
     Ok(())
@@ -29012,7 +29013,7 @@ fn lock_self_marker_incompatible() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because your project depends on itself at an incompatible version (project{sys_platform == 'win32'}>0.1), we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
+          The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
     ");
 
     Ok(())
@@ -32361,7 +32362,7 @@ fn lock_conflict_for_disjoint_python_version() -> Result<()> {
       ╰─▶ Because pandas==1.5.3 depends on numpy{python_full_version >= '3.10'}>=1.21.0 and your project depends on numpy==1.20.3, we can conclude that your project and pandas==1.5.3 are incompatible.
           And because your project depends on pandas==1.5.3, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: While the active Python version is 3.9, the resolution failed for other Python versions supported by your project. Consider limiting your project's supported Python versions using `requires-python`.
+          While the active Python version is 3.9, the resolution failed for other Python versions supported by your project. Consider limiting your project's supported Python versions using `requires-python`.
     ");
 
     // Check that the resolution passes on the restricted Python environment.
@@ -33532,7 +33533,7 @@ fn lock_exclude_newer_hint_pinned_version() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because there is no version of iniconfig==2.0.0 and your project depends on iniconfig==2.0.0, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: `iniconfig` was filtered by `exclude-newer` to only include packages uploaded before 2022-01-01T00:00:00Z. The requested version, v2.0.0, was published at 2023-01-07T11:08:09.864Z. Consider using `exclude-newer-package` to override the cutoff for this package.
+          `iniconfig` was filtered by `exclude-newer` to only include packages uploaded before 2022-01-01T00:00:00Z. The requested version, v2.0.0, was published at 2023-01-07T11:08:09.864Z. Consider using `exclude-newer-package` to override the cutoff for this package.
     ");
 
     Ok(())
@@ -33569,7 +33570,7 @@ fn lock_exclude_newer_hint_compatible_release() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because only iniconfig<=1.1.1 is available and your project depends on iniconfig>=2.0,<3.dev0, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: `iniconfig` was filtered by `exclude-newer` to only include packages uploaded before 2022-01-01T00:00:00Z. The latest version satisfying the requirement is v2.0.0, published at 2023-01-07T11:08:09.864Z. Consider using `exclude-newer-package` to override the cutoff for this package.
+          `iniconfig` was filtered by `exclude-newer` to only include packages uploaded before 2022-01-01T00:00:00Z. The latest version satisfying the requirement is v2.0.0, published at 2023-01-07T11:08:09.864Z. Consider using `exclude-newer-package` to override the cutoff for this package.
     ");
 
     Ok(())
@@ -33619,7 +33620,7 @@ async fn lock_exclude_newer_index_disable() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because there are no versions of iniconfig and your project depends on iniconfig>=2, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: `iniconfig` was filtered by `exclude-newer` to only include packages uploaded before 2024-03-25T00:00:00Z. The latest version satisfying the requirement is v2.0.0. Consider using `exclude-newer-package` to override the cutoff for this package.
+          `iniconfig` was filtered by `exclude-newer` to only include packages uploaded before 2024-03-25T00:00:00Z. The latest version satisfying the requirement is v2.0.0. Consider using `exclude-newer-package` to override the cutoff for this package.
     ");
 
     pyproject_toml.write_str(&format!(
@@ -34770,7 +34771,7 @@ fn collapsed_error_with_marker_packages() -> Result<()> {
       × No solution found when resolving dependencies for split (markers: python_full_version < '3.14' and sys_platform == 'other'):
       ╰─▶ Because your project depends on anyio{sys_platform == 'other'} and anyio{python_full_version < '3.14'}>=4.4.0, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The resolution failed for an environment that is not the current one, consider limiting the environments with `tool.fyn.environments`.
+          The resolution failed for an environment that is not the current one, consider limiting the environments with `tool.fyn.environments`.
     ");
 
     Ok(())

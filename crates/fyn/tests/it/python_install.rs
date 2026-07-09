@@ -3833,8 +3833,8 @@ fn python_install_pyodide() {
     ----- stdout -----
 
     ----- stderr -----
-    Installed Python 3.13.2 in [TIME]
-     + pyodide-3.13.2-emscripten-wasm32-musl (pyodide3.13)
+    Installed Python 3.14.2 in [TIME]
+     + pyodide-3.14.2-emscripten-wasm32-musl (pyodide3.14)
     ");
 
     context.python_uninstall().arg("--all").assert().success();

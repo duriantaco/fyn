@@ -880,7 +880,7 @@ fn group_requires_python_useful_defaults() -> Result<()> {
           And because only sphinx<=7.2.6 is available, we can conclude that sphinx>=7.2.6 cannot be used.
           And because pharaohs-tomp:dev depends on sphinx>=7.2.6 and your project requires pharaohs-tomp:dev, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
+          The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
     ");
 
     // Running `fyn sync` should always fail, as now sphinx is involved
@@ -1024,7 +1024,7 @@ fn group_requires_python_useful_non_defaults() -> Result<()> {
           And because only sphinx<=7.2.6 is available, we can conclude that sphinx>=7.2.6 cannot be used.
           And because pharaohs-tomp:mygroup depends on sphinx>=7.2.6 and your project requires pharaohs-tomp:mygroup, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
+          The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
     ");
 
     // Running `fyn sync --group mygroup` should definitely fail, as now sphinx is involved
@@ -14851,15 +14851,17 @@ fn sync_git_lfs() -> Result<()> {
     )?;
 
     fyn_snapshot!(context.filters(), context.sync(), @"
-    success: true
-    exit_code: 0
+    success: false
+    exit_code: 1
     ----- stdout -----
 
     ----- stderr -----
     Resolved 2 packages in [TIME]
-    Prepared 1 package in [TIME]
-    Installed 1 package in [TIME]
-     + test-lfs-repo==0.1.0 (from git+https://github.com/astral-sh/test-lfs-repo.git@0fe88f7c2e2883521bf065c108d9ee8eb115674b#lfs=true)
+      × Failed to download and build `test-lfs-repo @ git+https://github.com/astral-sh/test-lfs-repo.git@0fe88f7c2e2883521bf065c108d9ee8eb115674b#lfs=true`
+      ├─▶ Failed to resolve requirements from `build-system.requires`
+      ├─▶ No solution found when resolving: `uv-build>=0.9.0, <0.11`
+      ╰─▶ Because there are no versions of uv-build and you require uv-build>=0.9.0,<0.11, we can conclude that your requirements are unsatisfiable.
+      help: `test-lfs-repo` was included because `test-project` (v0.1.0) depends on `test-lfs-repo`
     ");
 
     // Verify that we can import the module and access LFS content

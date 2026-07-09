@@ -40,7 +40,7 @@ fn torch_doctor_json_cuda_override() -> Result<()> {
     assert!(output.status.success());
 
     let report: Value = serde_json::from_slice(&output.stdout)?;
-    let environment_path = context.venv.path().display().to_string();
+    let environment_path = dunce::simplified(context.venv.path()).display().to_string();
     assert_eq!(
         report["environment"]["path"].as_str(),
         Some(environment_path.as_str())

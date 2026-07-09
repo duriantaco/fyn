@@ -34,6 +34,8 @@ fn prune_no_op() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     Pruning cache at: [CACHE_DIR]/
@@ -74,6 +76,8 @@ fn prune_stale_directory() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     Pruning cache at: [CACHE_DIR]/
@@ -135,6 +139,8 @@ fn prune_cached_env() {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     Pruning cache at: [CACHE_DIR]/
@@ -181,6 +187,8 @@ fn prune_stale_symlink() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     Pruning cache at: [CACHE_DIR]/
@@ -212,6 +220,8 @@ async fn prune_force() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     Pruning cache at: [CACHE_DIR]/
@@ -315,9 +325,9 @@ fn prune_unzipped() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because all versions of iniconfig need to be downloaded from a registry and you require iniconfig, we can conclude that your requirements are unsatisfiable.
 
-          hint: Pre-releases are available for `iniconfig` in the requested range (e.g., 0.2.dev0), but pre-releases weren't enabled (try: `--prerelease=allow`)
+          Pre-releases are available for `iniconfig` in the requested range (e.g., 0.2.dev0), but pre-releases weren't enabled (try: `--prerelease=allow`)
 
-          hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+          Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
     ");
 
     Ok(())
@@ -423,6 +433,8 @@ fn prune_stale_revision() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Found workspace root: `[TEMP_DIR]/`
     DEBUG Adding root workspace member: `[TEMP_DIR]/`
     DEBUG Skipping `pyproject.toml` in `[TEMP_DIR]/` (no `[tool]` section)

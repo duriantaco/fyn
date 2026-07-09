@@ -28,6 +28,8 @@ fn clean_all() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     Clearing cache at: [CACHE_DIR]/
@@ -61,6 +63,8 @@ fn clear_all_alias() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     Clearing cache at: [CACHE_DIR]/
@@ -91,6 +95,8 @@ async fn clean_force() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     Clearing cache at: [CACHE_DIR]/
@@ -171,6 +177,8 @@ fn clean_package_pypi() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     DEBUG Removing dangling cache entry: [CACHE_DIR]/archive-v0/[ENTRY]
@@ -248,6 +256,8 @@ fn clean_package_index() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    DEBUG Reading pip configuration from: `/etc/pip.conf`
+    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     DEBUG Removing dangling cache entry: [CACHE_DIR]/archive-v0/[ENTRY]

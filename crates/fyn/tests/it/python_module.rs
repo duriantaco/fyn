@@ -461,7 +461,7 @@ fn find_uv_bin_error_message() {
     ----- stderr -----
     Traceback (most recent call last):
       File "<string>", line 6, in <module>
-      File "[SITE_PACKAGES]/fyn/_find_uv.py", line 50, in find_fyn_bin
+      File "[SITE_PACKAGES]/fyn/_find_uv.py", line 51, in find_fyn_bin
         raise fynNotFound(
     fyn._find_uv.fynNotFound: Could not find the fyn binary in any of the following locations:
      - [VENV]/[BIN]
