@@ -1434,7 +1434,7 @@ fn mismatched_name() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because foo has an invalid package format and you require foo, we can conclude that your requirements are unsatisfiable.
 
-          hint: The structure of `foo` was invalid
+          The structure of `foo` was invalid
             Caused by: The .dist-info directory tomli-2.0.1 does not start with the normalized package name: foo
     "
     );
@@ -2925,7 +2925,7 @@ fn find_links_offline_no_match() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because numpy was not found in the cache and you require numpy, we can conclude that your requirements are unsatisfiable.
 
-          hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+          Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
     "
     );
 

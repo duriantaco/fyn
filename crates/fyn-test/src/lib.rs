@@ -1033,6 +1033,10 @@ impl TestContext {
                 .into_iter()
                 .map(|pattern| (pattern, "[WORKSPACE]/".to_string())),
         );
+        filters.push((
+            r"\[VENV\]/Scripts(\\|/|\\/)python\.exe".to_string(),
+            "[VENV]/bin/python3".to_string(),
+        ));
 
         // Make virtual environment activation cross-platform and shell-agnostic
         filters.push((
@@ -1854,7 +1858,8 @@ impl TestContext {
             regex::escape(&path.as_ref().simplified_display().to_string())
                 // Make separators platform agnostic because on Windows we will display
                 // paths with Unix-style separators sometimes
-                .replace(r"\\", r"(\\|\/)")
+                // and JSON output can escape those separators as `\/`.
+                .replace(r"\\", r"(\\|/|\\/)")
         )
     }
 

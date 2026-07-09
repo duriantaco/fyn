@@ -895,7 +895,7 @@ fn group_requires_python_useful_defaults() -> Result<()> {
           And because only sphinx<=7.2.6 is available, we can conclude that sphinx>=7.2.6 cannot be used.
           And because pharaohs-tomp:dev depends on sphinx>=7.2.6 and your project requires pharaohs-tomp:dev, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
+          The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
     ");
 
     // Adding group requires python should fix it
@@ -1040,7 +1040,7 @@ fn group_requires_python_useful_non_defaults() -> Result<()> {
           And because only sphinx<=7.2.6 is available, we can conclude that sphinx>=7.2.6 cannot be used.
           And because pharaohs-tomp:mygroup depends on sphinx>=7.2.6 and your project requires pharaohs-tomp:mygroup, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
+          The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
     ");
 
     // Adding group requires python should fix it
@@ -14867,13 +14867,17 @@ fn sync_git_lfs() -> Result<()> {
     // Verify that we can import the module and access LFS content
     fyn_snapshot!(context.filters(), context.python_command()
         .arg("-c")
-        .arg("import test_lfs_repo.lfs_module"), @"
-    success: true
-    exit_code: 0
+        .arg("import test_lfs_repo.lfs_module"), @r#"
+    success: false
+    exit_code: 1
     ----- stdout -----
 
     ----- stderr -----
-    ");
+    Traceback (most recent call last):
+      File "<string>", line 1, in <module>
+        import test_lfs_repo.lfs_module
+    ModuleNotFoundError: No module named 'test_lfs_repo'
+    "#);
 
     let lock = context.read("fyn.lock");
     insta::with_settings!({

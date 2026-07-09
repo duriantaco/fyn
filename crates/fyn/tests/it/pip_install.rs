@@ -1634,6 +1634,14 @@ dependencies = ["anyio==3.7.0"]
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 3 packages in [TIME]
     Prepared 3 packages in [TIME]
     Installed 3 packages in [TIME]
@@ -2304,7 +2312,7 @@ fn install_no_index() {
       × No solution found when resolving dependencies:
       ╰─▶ Because flask was not found in the provided package locations and you require flask, we can conclude that your requirements are unsatisfiable.
 
-          hint: Packages were unavailable because index lookups were disabled and no additional package locations were provided (try: `--find-links <uri>`)
+          Packages were unavailable because index lookups were disabled and no additional package locations were provided (try: `--find-links <uri>`)
     "
     );
 
@@ -3384,9 +3392,9 @@ fn install_only_binary_all_and_no_binary_all() {
       × No solution found when resolving dependencies:
       ╰─▶ Because all versions of anyio have no usable wheels and you require anyio, we can conclude that your requirements are unsatisfiable.
 
-          hint: Pre-releases are available for `anyio` in the requested range (e.g., 4.0.0rc1), but pre-releases weren't enabled (try: `--prerelease=allow`)
+          Pre-releases are available for `anyio` in the requested range (e.g., 4.0.0rc1), but pre-releases weren't enabled (try: `--prerelease=allow`)
 
-          hint: Wheels are required for `anyio` because building from source is disabled for all packages (i.e., with `--no-build`)
+          Wheels are required for `anyio` because building from source is disabled for all packages (i.e., with `--no-build`)
     "
     );
 
@@ -10124,6 +10132,14 @@ fn resolve_derivation_chain() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
       × Failed to build `wsgiref==0.1.2`
       ├─▶ The build backend returned an error
       ╰─▶ Call to `setuptools.build_meta:__legacy__.build_wheel` failed (exit status: 1)
@@ -11285,6 +11301,14 @@ fn suspicious_group() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 2 packages in [TIME]
     Prepared 2 packages in [TIME]
     Installed 2 packages in [TIME]
@@ -11731,6 +11755,14 @@ fn no_sources_workspace_discovery() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 2 packages in [TIME]
     Prepared 2 packages in [TIME]
     Installed 2 packages in [TIME]
@@ -12095,6 +12127,14 @@ fn change_layout_src() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 2 packages in [TIME]
     Prepared 2 packages in [TIME]
     Installed 2 packages in [TIME]
@@ -12192,6 +12232,14 @@ fn change_layout_custom_directory() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 2 packages in [TIME]
     Prepared 2 packages in [TIME]
     Installed 2 packages in [TIME]

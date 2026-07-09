@@ -6594,12 +6594,8 @@ fn add_group_normalize() -> Result<()> {
 
     ----- stderr -----
     Resolved 5 packages in [TIME]
-    Uninstalled 5 packages in [TIME]
-     - anyio==3.7.0
-     - idna==3.6
+    Uninstalled 1 package in [TIME]
      - iniconfig==2.0.0
-     - sniffio==1.3.1
-     - typing-extensions==4.10.0
     ");
 
     let pyproject_toml = context.read("pyproject.toml");
@@ -9818,7 +9814,7 @@ fn add_shadowed_name() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because dagster-webserver==1.6.13 depends on your project and your project depends on dagster-webserver==1.6.13, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The package `dagster-webserver` depends on the package `dagster` but the name is shadowed by your project. Consider changing the name of the project.
+          The package `dagster-webserver` depends on the package `dagster` but the name is shadowed by your project. Consider changing the name of the project.
       help: If you want to add the package regardless of the failed resolution, provide the `--frozen` flag to skip locking and syncing.
     ");
 

@@ -1996,7 +1996,7 @@ fn compile_python_37() -> Result<()> {
       ╰─▶ Because the requested Python version (>=3.7) does not satisfy Python>=3.8 and black==23.10.1 depends on Python>=3.8, we can conclude that black==23.10.1 cannot be used.
           And because you require black==23.10.1, we can conclude that your requirements are unsatisfiable.
 
-          hint: The `--python-version` value (>=3.7) includes Python versions that are not supported by your dependencies (e.g., black==23.10.1 only supports >=3.8). Consider using a higher `--python-version` value.
+          The `--python-version` value (>=3.7) includes Python versions that are not supported by your dependencies (e.g., black==23.10.1 only supports >=3.8). Consider using a higher `--python-version` value.
     ");
 
     Ok(())
@@ -6943,7 +6943,7 @@ fn no_index_requirements_txt() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because tqdm was not found in the provided package locations and you require tqdm, we can conclude that your requirements are unsatisfiable.
 
-          hint: Packages were unavailable because index lookups were disabled and no additional package locations were provided (try: `--find-links <uri>`)
+          Packages were unavailable because index lookups were disabled and no additional package locations were provided (try: `--find-links <uri>`)
     "
     );
 
@@ -7183,7 +7183,7 @@ fn offline_find_links() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because tqdm was not found in the cache and you require tqdm, we can conclude that your requirements are unsatisfiable.
 
-          hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+          Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
     "
     );
 

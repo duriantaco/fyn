@@ -1507,6 +1507,14 @@ fn tool_fyn_build_backend_without_build_backend() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Uninstalled 1 package in [TIME]

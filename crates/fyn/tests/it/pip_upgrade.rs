@@ -38,7 +38,7 @@ fn upgrade_all_empty_target() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    Using CPython 3.12.[X] interpreter at: .venv/Scripts/python.exe
+    Using CPython 3.12.[X] interpreter at: .venv/bin/python3
     Nothing to upgrade
     "
     );

@@ -31,7 +31,7 @@ fn status_in_managed_project() -> Result<()> {
     pip-in-project: warn
     project environment: [VENV]/
     environment: [VENV]/
-    python: [VENV]/Scripts/python.exe (3.12.[X])
+    python: [VENV]/bin/python3 (3.12.[X])
 
     ----- stderr -----
     "
@@ -56,7 +56,7 @@ fn status_in_unmanaged_directory() {
     fyn.lock: no
     pip-in-project: warn
     environment: [VENV]/
-    python: [VENV]/Scripts/python.exe (3.12.[X])
+    python: [VENV]/bin/python3 (3.12.[X])
 
     ----- stderr -----
     "
@@ -242,7 +242,7 @@ fn status_check_missing_lock() -> Result<()> {
     pip-in-project: warn
     project environment: [VENV]/
     environment: [VENV]/
-    python: [VENV]/Scripts/python.exe (3.12.[X])
+    python: [VENV]/bin/python3 (3.12.[X])
     check: failed
     issue: fyn.lock not found in workspace root
     hint: Run `fyn sync` or `fyn lock` to create `fyn.lock`.

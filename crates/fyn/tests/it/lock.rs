@@ -11135,7 +11135,7 @@ async fn lock_env_credentials() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because iniconfig was not found in the package registry and your project depends on iniconfig, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: An index URL (http://[LOCALHOST]/basic-auth/simple) could not be queried due to a lack of valid authentication credentials (401 Unauthorized).
+          An index URL (http://[LOCALHOST]/basic-auth/simple) could not be queried due to a lack of valid authentication credentials (401 Unauthorized)
     ");
 
     // Provide credentials via environment variables.
@@ -15611,7 +15611,7 @@ fn lock_add_member_with_build_system() -> Result<()> {
       ╰─▶ Because anyio was not found in the cache and leaf depends on anyio>3, we can conclude that leaf's requirements are unsatisfiable.
           And because your workspace requires leaf, we can conclude that your workspace's requirements are unsatisfiable.
 
-          hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+          Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
     ");
 
     // Re-run without `--locked`.
@@ -19666,11 +19666,13 @@ fn lock_explicit_default_index() -> Result<()> {
     DEBUG Checking for Python environment at: `.venv`
     DEBUG The project environment's Python version satisfies the request: `Python >=3.12`
     DEBUG Using request connect timeout of [TIME] and read timeout of [TIME]
-    DEBUG Found static `pyproject.toml` for: project @ file://[TEMP_DIR]/
+    DEBUG Found static `requires-dist` for: [TEMP_DIR]/
     DEBUG No workspace root found, using project root
     DEBUG Resolving despite existing lockfile due to mismatched requirements for: `project==0.1.0`
       Requested: {Requirement { name: PackageName("anyio"), extras: [], groups: [], marker: true, source: Registry { specifier: VersionSpecifiers([]), index: None, conflict: None }, origin: None }}
       Existing: {Requirement { name: PackageName("iniconfig"), extras: [], groups: [], marker: true, source: Registry { specifier: VersionSpecifiers([VersionSpecifier { operator: Equal, version: "2.0.0" }]), index: Some(IndexMetadata { url: Url(VerbatimUrl { url: DisplaySafeUrl { scheme: "https", cannot_be_a_base: false, username: "", password: None, host: Some(Domain("test.pypi.org")), port: None, path: "/simple", query: None, fragment: None }, given: None, expanded: false }), format: Simple }), conflict: None }, origin: None }}
+    DEBUG Found static `pyproject.toml` for: project @ file://[TEMP_DIR]/
+    DEBUG No workspace root found, using project root
     DEBUG Solving with installed Python version: 3.12.[X]
     DEBUG Solving with target Python version: >=3.12
     DEBUG Solving with exclude-newer: global: 2024-03-25T00:00:00Z
@@ -20272,7 +20274,7 @@ fn lock_repeat_named_index() -> Result<()> {
       Caused by: TOML parse error at line 8, column 9
       |
     8 |         [[tool.fyn.index]]
-      |         ^^^^^^^^^^^^^^^^^
+      |         ^^^^^^^^^^^^^^^^^^
     duplicate index name `pytorch`
     ");
 
@@ -22546,7 +22548,7 @@ fn lock_duplicate_sources() -> Result<()> {
       Caused by: TOML parse error at line 7, column 9
       |
     7 |         [tool.fyn.sources]
-      |         ^^^^^^^^^^^^^^^^^
+      |         ^^^^^^^^^^^^^^^^^^
     duplicate sources for package `python-multipart`
     ");
 
@@ -28746,7 +28748,7 @@ fn lock_self_extra_to_other_extra_incompatible() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because project[foo] depends on itself at an incompatible version (project==0.2.0) and your project requires project[foo], we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
+          The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
     ");
 
     Ok(())
@@ -28883,7 +28885,7 @@ fn lock_self_extra_incompatible() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because project[foo] depends on itself at an incompatible version (project==0.2.0) and your project requires project[foo], we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
+          The project `project` depends on itself at an incompatible version. This is likely a mistake. If you intended to depend on a third-party package named `project`, consider renaming the project `project` to avoid creating a conflict.
     ");
 
     Ok(())
@@ -32583,7 +32585,7 @@ fn lock_conflict_for_disjoint_platform() -> Result<()> {
       × No solution found when resolving dependencies for split (markers: sys_platform == 'exotic'):
       ╰─▶ Because your project depends on numpy{sys_platform == 'exotic'}>=1.24,<1.26 and numpy>=1.26, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The resolution failed for an environment that is not the current one, consider limiting the environments with `tool.fyn.environments`.
+          The resolution failed for an environment that is not the current one, consider limiting the environments with `tool.fyn.environments`.
     ");
 
     // Check that the resolution passes on the restricted environment.
@@ -33704,7 +33706,7 @@ async fn lock_exclude_newer_index_value() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because there are no versions of iniconfig and your project depends on iniconfig>=2, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: `iniconfig` was filtered by the index-specific `exclude-newer` setting to only include packages uploaded before 2025-01-01T00:00:00Z. The latest version satisfying the requirement is v2.0.0. Consider updating that index's cutoff, setting it to `false`, or using `exclude-newer-package` to override the cutoff for this package.
+          `iniconfig` was filtered by the index-specific `exclude-newer` setting to only include packages uploaded before 2025-01-01T00:00:00Z. The latest version satisfying the requirement is v2.0.0. Consider updating that index's cutoff, setting it to `false`, or using `exclude-newer-package` to override the cutoff for this package.
     ");
 
     fyn_snapshot!(context.filters(), context
@@ -35052,7 +35054,9 @@ fn lock_supported_environment_wheel_only_package_requires_compatible_wheels() ->
           and pywin32<=305 has no wheels with a matching Python version tag (e.g., `cp312`), we can conclude that pywin32<=305 cannot be used.
           And because pywin32>=306 has no Linux-compatible wheels and your project depends on pywin32, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: Wheels are available for `pywin32` (v305) with the following Python ABI tags: `cp36m`, `cp37m`, `cp38`, `cp39`, `cp310`, `cp311`
+          The resolution failed for an environment that is not the current one, consider limiting the environments with `tool.fyn.environments`.
+
+          Wheels are available for `pywin32` (v305) with the following Python ABI tags: `cp36m`, `cp37m`, `cp38`, `cp39`, `cp310`, `cp311`
     ");
 
     Ok(())
