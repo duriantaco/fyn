@@ -1055,6 +1055,24 @@ impl TestContext {
         // Filter non-deterministic temporary directory names
         // Note we apply this _after_ all the full paths to avoid breaking their matching
         filters.push((r"(\\|\/)\.tmp.*(\\|\/)".to_string(), "/[TMP]/".to_string()));
+        // If a Windows JSON-escaped path was only partially normalized by the `.tmp` filter,
+        // collapse the remaining drive-prefixed test root path.
+        filters.push((
+            r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/temp"#.to_string(),
+            "[TEMP_DIR]/".to_string(),
+        ));
+        filters.push((
+            r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/\.venv"#.to_string(),
+            "[VENV]/".to_string(),
+        ));
+        filters.push((
+            r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/python\.exe"#.to_string(),
+            "[VENV]/bin/python3".to_string(),
+        ));
+        filters.push((
+            r"\.venv/Scripts(\\|/|\\/)python\.exe".to_string(),
+            ".venv/bin/python3".to_string(),
+        ));
 
         // Account for platform prefix differences `file://` (Unix) vs `file:///` (Windows)
         filters.push((r"file:///".to_string(), "file://".to_string()));

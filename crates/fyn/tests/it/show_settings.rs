@@ -541,6 +541,9 @@ fn resolve_uv_toml() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -578,6 +581,8 @@ fn resolve_uv_toml() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: true,
                         origin: Some(
                             Project,
@@ -1195,6 +1200,9 @@ fn resolve_pyproject_toml() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -1232,6 +1240,8 @@ fn resolve_pyproject_toml() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: true,
                         origin: None,
                         format: Simple,
@@ -2684,6 +2694,9 @@ fn resolve_top_level() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -2721,6 +2734,8 @@ fn resolve_top_level() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: false,
                         origin: None,
                         format: Simple,
@@ -2755,6 +2770,8 @@ fn resolve_top_level() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: false,
                         origin: None,
                         format: Simple,
@@ -3321,6 +3338,9 @@ fn resolve_user_configuration() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -3503,6 +3523,9 @@ fn resolve_user_configuration() -> anyhow::Result<()> {
         excludes_from_workspace: [],
         build_constraints_from_workspace: [],
         environments: SupportedEnvironments(
+            [],
+        ),
+        required_environments: SupportedEnvironments(
             [],
         ),
         refresh: None(
@@ -6155,6 +6178,9 @@ fn index_priority() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -6192,6 +6218,8 @@ fn index_priority() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: true,
                         origin: Some(
                             Cli,
@@ -6228,6 +6256,8 @@ fn index_priority() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: true,
                         origin: Some(
                             Project,
@@ -6404,6 +6434,9 @@ fn index_priority() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -6441,6 +6474,8 @@ fn index_priority() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: false,
                         origin: Some(
                             Cli,
@@ -6477,6 +6512,8 @@ fn index_priority() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: true,
                         origin: Some(
                             Project,
@@ -6660,6 +6697,9 @@ fn index_priority() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -6697,6 +6737,8 @@ fn index_priority() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: true,
                         origin: Some(
                             Cli,
@@ -6733,6 +6775,8 @@ fn index_priority() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: true,
                         origin: Some(
                             Project,
@@ -6909,6 +6953,9 @@ fn index_priority() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -6946,6 +6993,8 @@ fn index_priority() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: false,
                         origin: Some(
                             Cli,
@@ -6982,6 +7031,8 @@ fn index_priority() -> anyhow::Result<()> {
                             },
                         ),
                         explicit: false,
+                        include_packages: [],
+                        exclude_packages: [],
                         default: true,
                         origin: Some(
                             Project,
@@ -9457,6 +9508,9 @@ fn upgrade_pip_cli_config_interaction() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -9636,6 +9690,9 @@ fn upgrade_pip_cli_config_interaction() -> anyhow::Result<()> {
         excludes_from_workspace: [],
         build_constraints_from_workspace: [],
         environments: SupportedEnvironments(
+            [],
+        ),
+        required_environments: SupportedEnvironments(
             [],
         ),
         refresh: None(
@@ -9819,6 +9876,9 @@ fn upgrade_pip_cli_config_interaction() -> anyhow::Result<()> {
         environments: SupportedEnvironments(
             [],
         ),
+        required_environments: SupportedEnvironments(
+            [],
+        ),
         refresh: None(
             Timestamp(
                 SystemTime {
@@ -9999,6 +10059,9 @@ fn upgrade_pip_cli_config_interaction() -> anyhow::Result<()> {
         excludes_from_workspace: [],
         build_constraints_from_workspace: [],
         environments: SupportedEnvironments(
+            [],
+        ),
+        required_environments: SupportedEnvironments(
             [],
         ),
         refresh: None(

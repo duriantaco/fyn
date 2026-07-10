@@ -5649,9 +5649,9 @@ fn lock_requires_python() -> Result<()> {
           And because we know from (1) that pygls>=1.1.0,<1.3.0 cannot be used, we can conclude that pygls>=1.1.0 cannot be used.
           And because your project depends on pygls>=1.1.0, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: While the active Python version is 3.12, the resolution failed for other Python versions supported by your project. Consider limiting your project's supported Python versions using `requires-python`.
+          While the active Python version is 3.12, the resolution failed for other Python versions supported by your project. Consider limiting your project's supported Python versions using `requires-python`.
 
-          hint: The `requires-python` value (>=3.7) includes Python versions that are not supported by your dependencies (e.g., pygls>=1.1.0,<=1.2.1 only supports >=3.7.9, <4). Consider using a more restrictive `requires-python` value (like >=3.7.9, <4).
+          The `requires-python` value (>=3.7) includes Python versions that are not supported by your dependencies (e.g., pygls>=1.1.0,<=1.2.1 only supports >=3.7.9, <4). Consider using a more restrictive `requires-python` value (like >=3.7.9, <4).
     ");
 
     // Require >=3.7, and allow locking to a version of `pygls` that is compatible (==1.0.1).
@@ -6578,7 +6578,7 @@ fn lock_requires_python_fork() -> Result<()> {
         name = "warehouse"
         version = "1.0.0"
         requires-python = ">=3.9"
-        dependencies = ["fyn ; python_version>='3.8'"]
+        dependencies = ["uv ; python_version>='3.8'"]
         "#,
     )?;
 
@@ -6606,7 +6606,7 @@ fn lock_requires_python_fork() -> Result<()> {
         exclude-newer = "2024-08-29T00:00:00Z"
 
         [[package]]
-        name = "fyn"
+        name = "uv"
         version = "0.4.0"
         source = { registry = "https://pypi.org/simple" }
         sdist = { url = "https://files.pythonhosted.org/packages/0f/dc/94b6609d89693be22119f8ff7f586f6125de6d6ff096daa06b5250760563/uv-0.4.0.tar.gz", hash = "sha256:1658a17b7c4c0ad750fc44a7ef1196e058fb0c18873f54420c17f3ce807bfc24", size = 1807995, upload-time = "2024-08-28T18:01:27.556Z" }
@@ -6635,11 +6635,11 @@ fn lock_requires_python_fork() -> Result<()> {
         version = "1.0.0"
         source = { virtual = "." }
         dependencies = [
-            { name = "fyn" },
+            { name = "uv" },
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "fyn", marker = "python_full_version >= '3.8'" }]
+        requires-dist = [{ name = "uv", marker = "python_full_version >= '3.8'" }]
         "#
         );
     });
@@ -9427,7 +9427,7 @@ fn lock_requires_python_no_wheels() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because dearpygui==1.9.1 has no wheels with a matching Python version tag (e.g., `cp312`) and your project depends on dearpygui==1.9.1, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: Wheels are available for `dearpygui` (v1.9.1) with the following Python ABI tags: `cp37m`, `cp38`, `cp39`, `cp310`, `cp311`
+          Wheels are available for `dearpygui` (v1.9.1) with the following Python ABI tags: `cp37m`, `cp38`, `cp39`, `cp310`, `cp311`
     ");
 
     Ok(())
@@ -19649,7 +19649,22 @@ fn lock_explicit_default_index() -> Result<()> {
         "#,
     )?;
 
-    fyn_snapshot!(context.filters(), context.lock().arg("--verbose"), @r#"
+    let filters: Vec<_> = context
+        .filters()
+        .into_iter()
+        .chain([
+            (
+                r"\nDEBUG Reading pip configuration from: `/etc/pip\.conf`",
+                "",
+            ),
+            (
+                r"\nDEBUG Ignoring pip configuration with no supported settings: `/etc/pip\.conf`",
+                "",
+            ),
+        ])
+        .collect();
+
+    fyn_snapshot!(filters, context.lock().arg("--verbose"), @r#"
     success: false
     exit_code: 1
     ----- stdout -----
@@ -21412,7 +21427,7 @@ fn lock_split_python_environment() -> Result<()> {
         name = "foo"
         version = "0.1.0"
         requires-python = ">=3.7"
-        dependencies = ["fyn ; python_version >= '3.8'"]
+        dependencies = ["uv ; python_version >= '3.8'"]
 
         [build-system]
         requires = ["hatchling"]
@@ -21424,13 +21439,12 @@ fn lock_split_python_environment() -> Result<()> {
     )?;
 
     fyn_snapshot!(context.filters(), context.lock(), @"
-    success: false
-    exit_code: 1
+    success: true
+    exit_code: 0
     ----- stdout -----
 
     ----- stderr -----
-      × No solution found when resolving dependencies for split (markers: python_full_version >= '3.8'):
-      ╰─▶ Because there are no versions of fyn{python_full_version >= '3.8'} and your project depends on fyn{python_full_version >= '3.8'}, we can conclude that your project's requirements are unsatisfiable.
+    Resolved 2 packages in [TIME]
     ");
 
     let lock = context.read("fyn.lock");
@@ -21460,14 +21474,14 @@ fn lock_split_python_environment() -> Result<()> {
         version = "0.1.0"
         source = { editable = "." }
         dependencies = [
-            { name = "fyn", marker = "python_full_version >= '3.8'" },
+            { name = "uv", marker = "python_full_version >= '3.8'" },
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "fyn", marker = "python_full_version >= '3.8'" }]
+        requires-dist = [{ name = "uv", marker = "python_full_version >= '3.8'" }]
 
         [[package]]
-        name = "fyn"
+        name = "uv"
         version = "0.1.24"
         source = { registry = "https://pypi.org/simple" }
         sdist = { url = "https://files.pythonhosted.org/packages/da/dc/73cc9792f5e5362612bb9fadd1b158f941b7bc9d47016416f36d077b995b/uv-0.1.24.tar.gz", hash = "sha256:1f8abf3330570acbf6188da635c4fe9cc936f9f36b49ce4992a2df56b2155421", size = 598670, upload-time = "2024-03-22T20:15:51.059Z" }
@@ -23143,7 +23157,7 @@ async fn lock_keyring_explicit_always() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because iniconfig was not found in the package registry and your project depends on iniconfig, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: An index URL (http://[LOCALHOST]/basic-auth/simple) could not be queried due to a lack of valid authentication credentials (401 Unauthorized).
+          An index URL (http://[LOCALHOST]/basic-auth/simple) could not be queried due to a lack of valid authentication credentials (401 Unauthorized)
     ");
 
     // With valid credentials, we should succeed
@@ -33286,11 +33300,11 @@ fn lock_exclude_newer_package_disable() -> Result<()> {
 
         [[package]]
         name = "idna"
-        version = "3.11"
+        version = "3.18"
         source = { registry = "https://pypi.org/simple" }
-        sdist = { url = "https://files.pythonhosted.org/packages/6f/6d/0703ccc57f3a7233505399edb88de3cbd678da106337b9fcde432b65ed60/idna-3.11.tar.gz", hash = "sha256:795dafcc9c04ed0c1fb032c2aa73654d8e8c5023a7df64a53f39190ada629902", size = 194582, upload-time = "2025-10-12T14:55:20.501Z" }
+        sdist = { url = "https://files.pythonhosted.org/packages/cd/63/9496c57188a2ee585e0f1db071d75089a11e98aa86eb99d9d7618fc1edce/idna-3.18.tar.gz", hash = "sha256:ffb385a7e039654cef1ab9ef32c6fafe283c0c0467bba1d9029738ce4a14a848", size = 196711, upload-time = "2026-06-02T14:34:07.794Z" }
         wheels = [
-            { url = "https://files.pythonhosted.org/packages/0e/61/66938bbb5fc52dbdf84594873d5b51fb1f7c7794e9c0f5bd885f30bc507b/idna-3.11-py3-none-any.whl", hash = "sha256:771a87f49d9defaf64091e6e6fe9c18d4833f140bd19464795bc32d966ca37ea", size = 71008, upload-time = "2025-10-12T14:55:18.883Z" },
+            { url = "https://files.pythonhosted.org/packages/1e/5e/d4e9f1a599fb8e573b7b87160658329fbf28d19eac2718f51fc3def3aa5a/idna-3.18-py3-none-any.whl", hash = "sha256:7f952cbe720b688055e3f87de14f5c3e5fdaa8bc3928985c4077ca689de849a2", size = 65455, upload-time = "2026-06-02T14:34:06.319Z" },
         ]
 
         [[package]]
@@ -33496,7 +33510,7 @@ fn lock_exclude_newer_hint() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because there are no versions of iniconfig and your project depends on iniconfig, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: `iniconfig` was filtered by `exclude-newer` to only include packages uploaded before 2000-01-01T00:00:00Z. The latest version satisfying the requirement is v2.0.0, published at 2023-01-07T11:08:09.864Z. Consider using `exclude-newer-package` to override the cutoff for this package.
+          `iniconfig` was filtered by `exclude-newer` to only include packages uploaded before 2000-01-01T00:00:00Z. The latest version satisfying the requirement is v2.0.0, published at 2023-01-07T11:08:09.864Z. Consider using `exclude-newer-package` to override the cutoff for this package.
     ");
 
     Ok(())
@@ -33723,7 +33737,7 @@ async fn lock_exclude_newer_index_value() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because there are no versions of iniconfig and your project depends on iniconfig>=2, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: `iniconfig` was filtered by the index-specific `exclude-newer` setting to only include packages uploaded before 2025-01-01T00:00:00Z. The latest version satisfying the requirement is v2.0.0. Consider updating that index's cutoff, setting it to `false`, or using `exclude-newer-package` to override the cutoff for this package.
+          `iniconfig` was filtered by the index-specific `exclude-newer` setting to only include packages uploaded before 2025-01-01T00:00:00Z. The latest version satisfying the requirement is v2.0.0. Consider updating that index's cutoff, setting it to `false`, or using `exclude-newer-package` to override the cutoff for this package.
     ");
 
     pyproject_toml.write_str(&format!(
@@ -34862,7 +34876,7 @@ fn lock_unsupported_wheel_url_supported_platform() -> Result<()> {
         .into_iter()
         .chain([(
             // This hint is only shown when the current platform doesn't match the target.
-            r"\n\n\s+hint: The resolution failed for an environment that is not the current one[^\n]*",
+            r"\n\n\s+(?:hint: )?The resolution failed for an environment that is not the current one[^\n]*",
             "",
         )])
         .collect();
@@ -34976,7 +34990,7 @@ fn lock_required_environment_cycle_reports_resolution_error() -> Result<()> {
         .filters()
         .into_iter()
         .chain([(
-            r"\n\n\s+hint: The resolution failed for an environment that is not the current one[^\n]*",
+            r"\n\n\s+(?:hint: )?The resolution failed for an environment that is not the current one[^\n]*",
             "",
         )])
         .collect();
@@ -35022,7 +35036,7 @@ fn lock_supported_environment_wheel_only_package_requires_compatible_wheels() ->
         .into_iter()
         .chain([(
             // This hint is only shown when the current platform doesn't match the target.
-            r"\n\n\s+hint: The resolution failed for an environment that is not the current one[^\n]*",
+            r"\n\n\s+(?:hint: )?The resolution failed for an environment that is not the current one[^\n]*",
             "",
         )])
         .collect();
@@ -35053,8 +35067,6 @@ fn lock_supported_environment_wheel_only_package_requires_compatible_wheels() ->
               pywin32==308
           and pywin32<=305 has no wheels with a matching Python version tag (e.g., `cp312`), we can conclude that pywin32<=305 cannot be used.
           And because pywin32>=306 has no Linux-compatible wheels and your project depends on pywin32, we can conclude that your project's requirements are unsatisfiable.
-
-          The resolution failed for an environment that is not the current one, consider limiting the environments with `tool.fyn.environments`.
 
           Wheels are available for `pywin32` (v305) with the following Python ABI tags: `cp36m`, `cp37m`, `cp38`, `cp39`, `cp310`, `cp311`
     ");
@@ -35224,7 +35236,7 @@ async fn lock_check_multiple_default_indexes_explicit_assignment_dependency_grou
       Caused by: TOML parse error at line 13, column 9
        |
     13 |         [[tool.fyn.index]]
-       |         ^^^^^^^^^^^^^^^^^
+       |         ^^^^^^^^^^^^^^^^^^
     found multiple indexes with `default = true`; only one index may be marked as default
     ");
 

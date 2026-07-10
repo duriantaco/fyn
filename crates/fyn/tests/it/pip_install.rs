@@ -1686,6 +1686,14 @@ fn install_editable() {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 4 packages in [TIME]
     Prepared 1 package in [TIME]
     Uninstalled 1 package in [TIME]
@@ -5475,6 +5483,14 @@ fn invalidate_path_on_env_var() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Checked 1 package in [TIME]
     "
     );
@@ -5489,6 +5505,14 @@ fn invalidate_path_on_env_var() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 4 packages in [TIME]
     Prepared 1 package in [TIME]
     Uninstalled 1 package in [TIME]
@@ -11040,6 +11064,14 @@ fn recursive_dependency_group() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     error: Failed to read dependency groups from: [TEMP_DIR]/pyproject.toml
       Caused by: Project `myproject` has malformed dependency groups
       Caused by: Detected a cycle in `dependency-groups`: `dev` -> `test` -> `dev`
@@ -11237,6 +11269,14 @@ fn other_sources_group() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 5 packages in [TIME]
     Prepared 5 packages in [TIME]
     Installed 5 packages in [TIME]
@@ -14540,6 +14580,14 @@ fn pip_install_build_dependencies_respect_locked_versions() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved [N] packages in [TIME]
     Prepared [N] packages in [TIME]
     Installed [N] packages in [TIME]
@@ -14573,6 +14621,14 @@ fn pip_install_build_dependencies_respect_locked_versions() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved [N] packages in [TIME]
       × Failed to build `child @ file://[TEMP_DIR]/child`
       ├─▶ The build backend returned an error
@@ -14592,6 +14648,14 @@ fn pip_install_build_dependencies_respect_locked_versions() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved [N] packages in [TIME]
     Prepared [N] packages in [TIME]
     Uninstalled [N] packages in [TIME]
@@ -15517,6 +15581,14 @@ fn build_backend_wrong_wheel_platform() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 1 package in [TIME]
       × Failed to build `parent @ file://[TEMP_DIR]/`
       ├─▶ Failed to install requirements from `build-system.requires`

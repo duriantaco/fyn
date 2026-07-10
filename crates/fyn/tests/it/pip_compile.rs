@@ -7202,7 +7202,7 @@ fn offline_find_links() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because tqdm was not found in the cache and you require tqdm, we can conclude that your requirements are unsatisfiable.
 
-          hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+          Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
     "
     );
 
@@ -7288,7 +7288,7 @@ fn invalid_metadata_requires_python() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because validation==2.0.0 has invalid metadata and you require validation==2.0.0, we can conclude that your requirements are unsatisfiable.
 
-          hint: Metadata for `validation` (v2.0.0) could not be parsed:
+          Metadata for `validation` (v2.0.0) could not be parsed:
             Failed to parse version: Unexpected end of version specifier, expected operator. Did you mean `==12`?:
             12
             ^^
@@ -7319,7 +7319,7 @@ fn invalid_metadata_multiple_dist_info() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because validation==3.0.0 has an invalid package format and you require validation==3.0.0, we can conclude that your requirements are unsatisfiable.
 
-          hint: The structure of `validation` (v3.0.0) was invalid:
+          The structure of `validation` (v3.0.0) was invalid:
             Multiple .dist-info directories found: validation-2.0.0, validation-3.0.0
     "
     );
@@ -12780,7 +12780,7 @@ fn compile_index_url_first_match_base() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because there is no version of jinja2==3.1.0 and you require jinja2==3.1.0, we can conclude that your requirements are unsatisfiable.
 
-          hint: `jinja2` was found on https://astral-sh.github.io/pytorch-mirror/whl/cpu, but not at the requested version (jinja2==3.1.0). A compatible version may be available on a subsequent index (e.g., https://pypi.org/simple). By default, fyn will only consider versions that are published on the first index that contains a given package, to avoid dependency confusion attacks. If all indexes are equally trusted, use `--index-strategy unsafe-best-match` to consider all versions from all indexes, regardless of the order in which they were defined.
+          `jinja2` was found on https://astral-sh.github.io/pytorch-mirror/whl/cpu, but not at the requested version (jinja2==3.1.0). A compatible version may be available on a subsequent index (e.g., https://pypi.org/simple). By default, fyn will only consider versions that are published on the first index that contains a given package, to avoid dependency confusion attacks. If all indexes are equally trusted, use `--index-strategy unsafe-best-match` to consider all versions from all indexes, regardless of the order in which they were defined.
     "
     );
 
@@ -13868,7 +13868,7 @@ fn no_binary_only_binary() -> Result<()> {
       ╰─▶ Because only source-distribution>=0.0.1 is available and source-distribution==0.0.1 has no usable wheels, we can conclude that source-distribution<=0.0.1 cannot be used.
           And because you require source-distribution<=0.0.1, we can conclude that your requirements are unsatisfiable.
 
-          hint: Wheels are required for `source-distribution` because building from source is disabled for all packages (i.e., with `--no-build`)
+          Wheels are required for `source-distribution` because building from source is disabled for all packages (i.e., with `--no-build`)
     "
     );
 
@@ -14446,7 +14446,7 @@ fn universal_required_environment() -> Result<()> {
         .into_iter()
         .chain([(
             // This hint is only shown when the current platform doesn't match the target.
-            r"\n\n\s+hint: The resolution failed for an environment that is not the current one[^\n]*",
+            r"\n\n\s+(?:hint: )?The resolution failed for an environment that is not the current one[^\n]*",
             "",
         )])
         .collect();
@@ -14935,9 +14935,9 @@ fn unsupported_requires_python_dynamic_metadata() -> Result<()> {
       × No solution found when resolving dependencies for split (markers: python_full_version >= '3.10'):
       ╰─▶ Because source-distribution==0.0.3 requires Python >=3.10 and you require source-distribution{python_full_version >= '3.10'}==0.0.3, we can conclude that your requirements are unsatisfiable.
 
-          hint: While the active Python version is 3.8, the resolution failed for other Python versions supported by your project. Consider limiting your project's supported Python versions using `requires-python`.
+          While the active Python version is 3.8, the resolution failed for other Python versions supported by your project. Consider limiting your project's supported Python versions using `requires-python`.
 
-          hint: The source distribution for `source-distribution` (v0.0.3) does not include static metadata. Generating metadata for this package requires Python >=3.10, but Python 3.8.[X] is installed.
+          The source distribution for `source-distribution` (v0.0.3) does not include static metadata. Generating metadata for this package requires Python >=3.10, but Python 3.8.[X] is installed.
     ");
 
     Ok(())

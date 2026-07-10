@@ -666,7 +666,9 @@ fn add_git_branch() -> Result<()> {
 #[test]
 #[cfg(feature = "test-git-lfs")]
 fn add_git_lfs() -> Result<()> {
-    let context = fyn_test::test_context!("3.13").with_git_lfs_config();
+    let context = fyn_test::test_context!("3.13")
+        .with_exclude_newer("2025-11-01T00:00:00Z")
+        .with_git_lfs_config();
 
     let pyproject_toml = context.temp_dir.child("pyproject.toml");
     pyproject_toml.write_str(indoc! {r#"
@@ -740,7 +742,7 @@ fn add_git_lfs() -> Result<()> {
         requires-python = ">=3.13"
 
         [options]
-        exclude-newer = "2024-03-25T00:00:00Z"
+        exclude-newer = "2025-11-01T00:00:00Z"
 
         [[package]]
         name = "project"
@@ -9933,7 +9935,7 @@ fn add_warn_index_url() -> Result<()> {
       × No solution found when resolving dependencies:
       ╰─▶ Because only idna==2.7 is available and your project depends on idna>=3.6, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: `idna` was found on https://test.pypi.org/simple, but not at the requested version (idna>=3.6). A compatible version may be available on a subsequent index (e.g., https://pypi.org/simple). By default, fyn will only consider versions that are published on the first index that contains a given package, to avoid dependency confusion attacks. If all indexes are equally trusted, use `--index-strategy unsafe-best-match` to consider all versions from all indexes, regardless of the order in which they were defined.
+          `idna` was found on https://test.pypi.org/simple, but not at the requested version (idna>=3.6). A compatible version may be available on a subsequent index (e.g., https://pypi.org/simple). By default, fyn will only consider versions that are published on the first index that contains a given package, to avoid dependency confusion attacks. If all indexes are equally trusted, use `--index-strategy unsafe-best-match` to consider all versions from all indexes, regardless of the order in which they were defined.
       help: If you want to add the package regardless of the failed resolution, provide the `--frozen` flag to skip locking and syncing.
     ");
 
