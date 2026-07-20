@@ -1075,12 +1075,12 @@ impl TestContext {
         ));
         filters.push((
             r"\nDEBUG Reading pip configuration from: `/etc/pip\.conf`".to_string(),
-            "".to_string(),
+            String::new(),
         ));
         filters.push((
             r"\nDEBUG Ignoring pip configuration with no supported settings: `/etc/pip\.conf`"
                 .to_string(),
-            "".to_string(),
+            String::new(),
         ));
 
         // Account for platform prefix differences `file://` (Unix) vs `file:///` (Windows)
