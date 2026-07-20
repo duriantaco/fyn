@@ -212,8 +212,6 @@ async fn prune_force() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    DEBUG Reading pip configuration from: `/etc/pip.conf`
-    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Searching for user configuration in: `[UV_USER_CONFIG_DIR]/fyn.toml`
     DEBUG fyn [VERSION] ([COMMIT] DATE)
     Pruning cache at: [CACHE_DIR]/
@@ -425,8 +423,6 @@ fn prune_stale_revision() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    DEBUG Reading pip configuration from: `/etc/pip.conf`
-    DEBUG Ignoring pip configuration with no supported settings: `/etc/pip.conf`
     DEBUG Found workspace root: `[TEMP_DIR]/`
     DEBUG Adding root workspace member: `[TEMP_DIR]/`
     DEBUG Skipping `pyproject.toml` in `[TEMP_DIR]/` (no `[tool]` section)

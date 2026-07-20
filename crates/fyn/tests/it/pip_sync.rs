@@ -50,7 +50,7 @@ fn missing_venv() -> Result<()> {
 
     ----- stderr -----
     error: Failed to inspect Python interpreter from active virtual environment at `.venv/[BIN]/[PYTHON]`
-      Caused by: Python interpreter not found at `[VENV]/[BIN]/[PYTHON]`
+      Caused by: Python interpreter not found at `[VENV]/bin/python3`
     ");
 
     assert!(predicates::path::missing().eval(&context.venv));

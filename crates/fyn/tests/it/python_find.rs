@@ -861,7 +861,7 @@ fn python_find_venv_invalid() {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     ");
@@ -1082,7 +1082,7 @@ fn python_find_script_no_environment() {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     ");

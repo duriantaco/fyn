@@ -3777,7 +3777,7 @@ fn virtual_empty() -> Result<()> {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     warning: No `requires-python` value found in the workspace. Defaulting to `>=3.12`.
@@ -4269,7 +4269,7 @@ fn run_missing_command_with_tasks_shows_task_hint() -> Result<()> {
     Resolved 1 package in [TIME]
     Checked in [TIME]
     error: Failed to spawn: `tesst`
-      Caused by: No such file or directory (os error 2)
+      Caused by: program not found
 
     hint: If you meant to run a task, use `fyn run --list-tasks` to inspect available tasks.
 

@@ -1073,6 +1073,15 @@ impl TestContext {
             r"\.venv/Scripts(\\|/|\\/)python\.exe".to_string(),
             ".venv/bin/python3".to_string(),
         ));
+        filters.push((
+            r"\nDEBUG Reading pip configuration from: `/etc/pip\.conf`".to_string(),
+            "".to_string(),
+        ));
+        filters.push((
+            r"\nDEBUG Ignoring pip configuration with no supported settings: `/etc/pip\.conf`"
+                .to_string(),
+            "".to_string(),
+        ));
 
         // Account for platform prefix differences `file://` (Unix) vs `file:///` (Windows)
         filters.push((r"file:///".to_string(), "file://".to_string()));
