@@ -127,16 +127,16 @@ fn status_json_in_unmanaged_directory() {
     exit_code: 0
     ----- stdout -----
     {
-      "current_directory": "D:\/uv-tmp\/fyn\/tests\/[TMP]/temp",
-      "project_directory": "D:\/uv-tmp\/fyn\/tests\/[TMP]/temp",
+      "current_directory": "[TEMP_DIR]/",
+      "project_directory": "[TEMP_DIR]/",
       "managed_project": false,
       "workspace_root": null,
       "pyproject_toml": false,
       "fyn_lock": false,
       "pip_in_project": "warn",
       "environment": {
-        "path": "D:\/uv-tmp\/fyn\/tests\/[TMP]/.venv",
-        "python": "D:\/uv-tmp\/fyn\/tests\/[TMP]/python.exe",
+        "path": "[VENV]/",
+        "python": "[VENV]/bin/python3",
         "version": "3.12.[X]"
       }
     }
@@ -551,20 +551,20 @@ fn status_json_check_incompatible_python_pin() -> Result<()> {
     exit_code: 1
     ----- stdout -----
     {
-      "current_directory": "D:\/uv-tmp\/fyn\/tests\/[TMP]/temp",
-      "project_directory": "D:\/uv-tmp\/fyn\/tests\/[TMP]/temp",
+      "current_directory": "[TEMP_DIR]/",
+      "project_directory": "[TEMP_DIR]/",
       "managed_project": true,
-      "workspace_root": "D:\/uv-tmp\/fyn\/tests\/[TMP]/temp",
+      "workspace_root": "[TEMP_DIR]/",
       "pyproject_toml": true,
       "fyn_lock": true,
       "pip_in_project": "warn",
       "project_environment": {
-        "path": "D:\/uv-tmp\/fyn\/tests\/[TMP]/.venv",
+        "path": "[VENV]/",
         "found": true
       },
       "environment": {
-        "path": "D:\/uv-tmp\/fyn\/tests\/[TMP]/.venv",
-        "python": "D:\/uv-tmp\/fyn\/tests\/[TMP]/python.exe",
+        "path": "[VENV]/",
+        "python": "[VENV]/bin/python3",
         "version": "3.11.[X]"
       },
       "check": {

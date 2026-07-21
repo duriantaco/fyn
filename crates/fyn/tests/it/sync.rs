@@ -428,7 +428,7 @@ fn sync_json() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }
@@ -479,7 +479,7 @@ fn sync_json() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }
@@ -519,7 +519,7 @@ fn sync_json() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }
@@ -586,7 +586,7 @@ fn sync_json() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }

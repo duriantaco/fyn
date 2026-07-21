@@ -122,6 +122,23 @@ pub const INSTA_FILTERS: &[(&str, &str)] = &[
     (r"tv_nsec: \d+", "tv_nsec: [TIME]"),
     // Rewrite Windows output to Unix output
     (r"\\([\w\d]|\.)", "/$1"),
+    // Normalize JSON-escaped Windows paths after the separator rewrite above.
+    (
+        r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/temp"#,
+        "[TEMP_DIR]/",
+    ),
+    (
+        r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/\.venv"#,
+        "[VENV]/",
+    ),
+    (
+        r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/python\.exe"#,
+        "[VENV]/bin/python3",
+    ),
+    // Use the Unix virtualenv interpreter spelling as the cross-platform canonical form.
+    (r"\[VENV\]/Scripts/python\.exe", "[VENV]/bin/python3"),
+    (r"\.venv/Scripts/python\.exe", ".venv/bin/python3"),
+    (r"\[VENV\]/\[BIN\]/\[PYTHON\]", "[VENV]/bin/python3"),
     (r"fyn\.exe", "fyn"),
     // fyn version display
     (
@@ -1055,20 +1072,6 @@ impl TestContext {
         // Filter non-deterministic temporary directory names
         // Note we apply this _after_ all the full paths to avoid breaking their matching
         filters.push((r"(\\|\/)\.tmp.*(\\|\/)".to_string(), "/[TMP]/".to_string()));
-        // If a Windows JSON-escaped path was only partially normalized by the `.tmp` filter,
-        // collapse the remaining drive-prefixed test root path.
-        filters.push((
-            r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/temp"#.to_string(),
-            "[TEMP_DIR]/".to_string(),
-        ));
-        filters.push((
-            r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/\.venv"#.to_string(),
-            "[VENV]/".to_string(),
-        ));
-        filters.push((
-            r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/python\.exe"#.to_string(),
-            "[VENV]/bin/python3".to_string(),
-        ));
         filters.push((
             r"\.venv/Scripts(\\|/|\\/)python\.exe".to_string(),
             ".venv/bin/python3".to_string(),
@@ -1881,12 +1884,12 @@ impl TestContext {
     fn path_pattern(path: impl AsRef<Path>) -> String {
         format!(
             // Trim the trailing separator for cross-platform directories filters
-            r"{}\\?/?",
+            r"{}(?:\\\\|\\|/|\\/)?",
             regex::escape(&path.as_ref().simplified_display().to_string())
                 // Make separators platform agnostic because on Windows we will display
                 // paths with Unix-style separators sometimes
-                // and JSON output can escape those separators as `\/`.
-                .replace(r"\\", r"(\\|/|\\/)")
+                // and JSON output can double or slash-escape those separators.
+                .replace(r"\\", r"(\\\\|\\|/|\\/)")
         )
     }
 
@@ -2546,4 +2549,43 @@ macro_rules! fyn_snapshot {
         ::insta::assert_snapshot!(snapshot, @$snapshot);
         output
     }};
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{INSTA_FILTERS, TestContext, apply_filters};
+
+    #[test]
+    fn path_pattern_matches_json_escaped_windows_separators() {
+        let pattern = TestContext::path_pattern(r"D:\uv-tmp\fyn\tests\.tmp123\temp");
+        let snapshot = r#""path": "D:\\uv-tmp\\fyn\\tests\\.tmp123\\temp""#.to_string();
+
+        assert_eq!(
+            apply_filters(snapshot, [(pattern, "[TEMP_DIR]/".to_string())]),
+            r#""path": "[TEMP_DIR]/""#,
+        );
+    }
+
+    #[test]
+    fn standard_filters_normalize_windows_snapshot_paths() {
+        let snapshot = concat!(
+            r#""current_directory": "D:\/uv-tmp\/fyn\/tests\/[TMP]/temp""#,
+            "\n",
+            r#""python": "D:\/uv-tmp\/fyn\/tests\/[TMP]/python.exe""#,
+            "\n",
+            r#""venv_python": "[VENV]/[BIN]/[PYTHON]""#,
+        )
+        .to_string();
+
+        assert_eq!(
+            apply_filters(snapshot, INSTA_FILTERS),
+            concat!(
+                r#""current_directory": "[TEMP_DIR]/""#,
+                "\n",
+                r#""python": "[VENV]/bin/python3""#,
+                "\n",
+                r#""venv_python": "[VENV]/bin/python3""#,
+            ),
+        );
+    }
 }
