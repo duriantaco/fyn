@@ -136,8 +136,14 @@ pub const INSTA_FILTERS: &[(&str, &str)] = &[
         "[VENV]/bin/python3",
     ),
     // Use the Unix virtualenv interpreter spelling as the cross-platform canonical form.
-    (r"\[VENV\]/Scripts/python\.exe", "[VENV]/bin/python3"),
-    (r"\.venv/Scripts/python\.exe", ".venv/bin/python3"),
+    (
+        r"\[VENV\]/Scripts(?:\\\\|\\|/|\\/)python\.exe",
+        "[VENV]/bin/python3",
+    ),
+    (
+        r"\.venv/Scripts(?:\\\\|\\|/|\\/)python\.exe",
+        ".venv/bin/python3",
+    ),
     (r"\[VENV\]/\[BIN\]/\[PYTHON\]", "[VENV]/bin/python3"),
     (r"fyn\.exe", "fyn"),
     // fyn version display
@@ -1051,7 +1057,7 @@ impl TestContext {
                 .map(|pattern| (pattern, "[WORKSPACE]/".to_string())),
         );
         filters.push((
-            r"\[VENV\]/Scripts(\\|/|\\/)python\.exe".to_string(),
+            r"\[VENV\]/Scripts(?:\\\\|\\|/|\\/)python\.exe".to_string(),
             "[VENV]/bin/python3".to_string(),
         ));
 
@@ -1073,7 +1079,7 @@ impl TestContext {
         // Note we apply this _after_ all the full paths to avoid breaking their matching
         filters.push((r"(\\|\/)\.tmp.*(\\|\/)".to_string(), "/[TMP]/".to_string()));
         filters.push((
-            r"\.venv/Scripts(\\|/|\\/)python\.exe".to_string(),
+            r"\.venv/Scripts(?:\\\\|\\|/|\\/)python\.exe".to_string(),
             ".venv/bin/python3".to_string(),
         ));
         filters.push((
@@ -2584,6 +2590,10 @@ mod tests {
             r#""python": "D:\/uv-tmp\/fyn\/tests\/[TMP]/python.exe""#,
             "\n",
             r#""venv_python": "[VENV]/[BIN]/[PYTHON]""#,
+            "\n",
+            r#""escaped_venv_python": "[VENV]/Scripts\/python.exe""#,
+            "\n",
+            r#""escaped_relative_python": ".venv/Scripts\/python.exe""#,
         )
         .to_string();
 
@@ -2595,6 +2605,10 @@ mod tests {
                 r#""python": "[VENV]/bin/python3""#,
                 "\n",
                 r#""venv_python": "[VENV]/bin/python3""#,
+                "\n",
+                r#""escaped_venv_python": "[VENV]/bin/python3""#,
+                "\n",
+                r#""escaped_relative_python": ".venv/bin/python3""#,
             ),
         );
     }
