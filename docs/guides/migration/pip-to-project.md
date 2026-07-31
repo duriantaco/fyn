@@ -71,7 +71,7 @@ file:
 
 ```python title="requirements.in"
 fastapi
-pydantic>2
+pydantic > 2
 ```
 
 Notice there's a version constraint on `pydantic` — this means only `pydantic` versions later than
