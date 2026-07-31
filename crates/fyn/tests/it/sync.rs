@@ -428,7 +428,7 @@ fn sync_json() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }
@@ -479,7 +479,7 @@ fn sync_json() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }
@@ -519,7 +519,7 @@ fn sync_json() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }
@@ -586,7 +586,7 @@ fn sync_json() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }
@@ -645,7 +645,7 @@ fn sync_json_check_outdated_environment() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }
@@ -717,7 +717,7 @@ fn sync_dry_json() -> Result<()> {
         "environment": {
           "path": "[VENV]/",
           "python": {
-            "path": "[VENV]/[BIN]/[PYTHON]",
+            "path": "[VENV]/bin/python3",
             "version": "3.12.[X]",
             "implementation": "cpython"
           }
@@ -880,7 +880,7 @@ fn group_requires_python_useful_defaults() -> Result<()> {
           And because only sphinx<=7.2.6 is available, we can conclude that sphinx>=7.2.6 cannot be used.
           And because pharaohs-tomp:dev depends on sphinx>=7.2.6 and your project requires pharaohs-tomp:dev, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
+          The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
     ");
 
     // Running `fyn sync` should always fail, as now sphinx is involved
@@ -895,7 +895,7 @@ fn group_requires_python_useful_defaults() -> Result<()> {
           And because only sphinx<=7.2.6 is available, we can conclude that sphinx>=7.2.6 cannot be used.
           And because pharaohs-tomp:dev depends on sphinx>=7.2.6 and your project requires pharaohs-tomp:dev, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
+          The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
     ");
 
     // Adding group requires python should fix it
@@ -1024,7 +1024,7 @@ fn group_requires_python_useful_non_defaults() -> Result<()> {
           And because only sphinx<=7.2.6 is available, we can conclude that sphinx>=7.2.6 cannot be used.
           And because pharaohs-tomp:mygroup depends on sphinx>=7.2.6 and your project requires pharaohs-tomp:mygroup, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
+          The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
     ");
 
     // Running `fyn sync --group mygroup` should definitely fail, as now sphinx is involved
@@ -1040,7 +1040,7 @@ fn group_requires_python_useful_non_defaults() -> Result<()> {
           And because only sphinx<=7.2.6 is available, we can conclude that sphinx>=7.2.6 cannot be used.
           And because pharaohs-tomp:mygroup depends on sphinx>=7.2.6 and your project requires pharaohs-tomp:mygroup, we can conclude that your project's requirements are unsatisfiable.
 
-          hint: The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
+          The `requires-python` value (>=3.8) includes Python versions that are not supported by your dependencies (e.g., sphinx==7.2.6 only supports >=3.9). Consider using a more restrictive `requires-python` value (like >=3.9).
     ");
 
     // Adding group requires python should fix it
@@ -14833,7 +14833,9 @@ fn reject_unmatched_runtime() -> Result<()> {
 #[test]
 #[cfg(feature = "test-git-lfs")]
 fn sync_git_lfs() -> Result<()> {
-    let context = fyn_test::test_context!("3.13").with_git_lfs_config();
+    let context = fyn_test::test_context!("3.13")
+        .with_exclude_newer("2025-11-01T00:00:00Z")
+        .with_git_lfs_config();
     let pyproject_toml = context.temp_dir.child("pyproject.toml");
 
     // Set `lfs = true` in the source
@@ -14884,7 +14886,7 @@ fn sync_git_lfs() -> Result<()> {
         requires-python = ">=3.13"
 
         [options]
-        exclude-newer = "2024-03-25T00:00:00Z"
+        exclude-newer = "2025-11-01T00:00:00Z"
 
         [[package]]
         name = "test-lfs-repo"
@@ -15017,7 +15019,7 @@ fn sync_git_lfs() -> Result<()> {
         requires-python = ">=3.13"
 
         [options]
-        exclude-newer = "2024-03-25T00:00:00Z"
+        exclude-newer = "2025-11-01T00:00:00Z"
 
         [[package]]
         name = "test-lfs-repo"
@@ -15179,7 +15181,7 @@ fn sync_git_lfs() -> Result<()> {
         requires-python = ">=3.13"
 
         [options]
-        exclude-newer = "2024-03-25T00:00:00Z"
+        exclude-newer = "2025-11-01T00:00:00Z"
 
         [[package]]
         name = "test-lfs-repo"
@@ -15237,7 +15239,7 @@ fn sync_git_lfs() -> Result<()> {
         requires-python = ">=3.13"
 
         [options]
-        exclude-newer = "2024-03-25T00:00:00Z"
+        exclude-newer = "2025-11-01T00:00:00Z"
 
         [[package]]
         name = "test-lfs-repo"

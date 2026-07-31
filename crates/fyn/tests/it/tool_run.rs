@@ -1033,6 +1033,7 @@ fn tool_run_git() {
 #[cfg(feature = "test-git-lfs")]
 fn tool_run_git_lfs() {
     let context = fyn_test::test_context!("3.13")
+        .with_exclude_newer("2025-11-01T00:00:00Z")
         .with_filtered_counts()
         .with_filtered_exe_suffix()
         .with_git_lfs_config();

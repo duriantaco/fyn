@@ -1479,12 +1479,20 @@ fn tool_fyn_build_backend_without_build_backend() -> Result<()> {
     Successfully built dist/project-0.1.0-py3-none-any.whl
     ");
 
-    fyn_snapshot!(context.filters(), context.pip_install().arg("."), @r"
+    fyn_snapshot!(context.filters(), context.pip_install().arg("."), @"
     success: true
     exit_code: 0
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 1 package in [TIME]
     warning: `project` defines settings for `fyn_build` in `tool.fyn.build-backend`, but the `build-system` table is missing
     Prepared 1 package in [TIME]
@@ -1499,6 +1507,14 @@ fn tool_fyn_build_backend_without_build_backend() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Uninstalled 1 package in [TIME]

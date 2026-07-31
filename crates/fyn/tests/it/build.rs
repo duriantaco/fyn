@@ -2318,6 +2318,14 @@ fn build_unconfigured_setuptools() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: `fyn pip install` modifies the active environment directly and will not update `pyproject.toml` or `fyn.lock`.
+
+    State impact:
+      environment: direct changes only
+      pyproject.toml: unchanged
+      fyn.lock: unchanged
+
+    Because the current directory is inside a fyn-managed project, use `fyn add`, `fyn remove`, `fyn sync`, or `fyn upgrade` instead.
     Resolved 1 package in [TIME]
     Prepared 1 package in [TIME]
     Installed 1 package in [TIME]
@@ -2496,8 +2504,6 @@ fn force_pep517() -> Result<()> {
       ├─▶ Failed to resolve requirements from `build-system.requires`
       ├─▶ No solution found when resolving: `fyn-build>=0.5.15, <10000`
       ╰─▶ Because there are no versions of fyn-build and you require fyn-build>=0.5.15,<10000, we can conclude that your requirements are unsatisfiable.
-
-          hint: `fyn-build` was filtered by `exclude-newer` to only include packages uploaded before 2025-05-27T00:00:00Z. Consider using `exclude-newer-package` to override the cutoff for this package.
     ");
 
     Ok(())

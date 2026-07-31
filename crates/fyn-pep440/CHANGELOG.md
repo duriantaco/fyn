@@ -84,11 +84,11 @@ The crate has been completely rewritten by [burntsushi](https://github.com/Burnt
 
 ## 0.3.1
 
-- Expose `Version` from `fynersion`
+- Expose `Version` from `PyVersion`
 
 ## 0.3.0
 
-- Introduced a `fynersion` wrapper specifically for the Python bindings to work around
+- Introduced a `PyVersion` wrapper specifically for the Python bindings to work around
   https://github.com/PyO3/pyo3/pull/2786
 - Added `VersionSpecifiers::contains`
 - Added `Version::from_release`, a constructor for a version that is just a release such as `3.8`.

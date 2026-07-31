@@ -3728,14 +3728,14 @@ fn uninstall_last_patch() {
     );
 
     #[cfg(windows)]
-    fyn_snapshot!(context.filters(), context.run().arg("python").arg("--version"), @r"
+    fyn_snapshot!(context.filters(), context.run().arg("python").arg("--version"), @"
     success: false
     exit_code: 2
     ----- stdout -----
 
     ----- stderr -----
     error: Failed to inspect Python interpreter from active virtual environment at `.venv/[BIN]/python`
-      Caused by: Python interpreter not found at `[VENV]/[BIN]/python`
+      Caused by: Python interpreter not found at `[VENV]/bin/python`
     "
     );
 }
@@ -3833,8 +3833,8 @@ fn python_install_pyodide() {
     ----- stdout -----
 
     ----- stderr -----
-    Installed Python 3.13.2 in [TIME]
-     + pyodide-3.13.2-emscripten-wasm32-musl (pyodide3.13)
+    Installed Python 3.14.2 in [TIME]
+     + pyodide-3.14.2-emscripten-wasm32-musl (pyodide3.14)
     ");
 
     context.python_uninstall().arg("--all").assert().success();

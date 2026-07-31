@@ -3,7 +3,9 @@ source: crates/fyn-requirements-txt/src/lib.rs
 expression: actual
 ---
 RequirementsTxt {
-    requirements: [
+    requirements: [],
+    constraints: [],
+    editables: [
         RequirementEntry {
             requirement: Unnamed(
                 UnnamedRequirement {
@@ -17,12 +19,14 @@ RequirementsTxt {
                                     password: None,
                                     host: None,
                                     port: None,
-                                    path: "<REQUIREMENTS_DIR>/test/packages/black_editable",
+                                    path: "/<REQUIREMENTS_DIR>/editable",
                                     query: None,
                                     fragment: None,
                                 },
-                                install_path: "<REQUIREMENTS_DIR>/test/packages/black_editable",
-                                editable: None,
+                                install_path: "<REQUIREMENTS_DIR>/editable",
+                                editable: Some(
+                                    true,
+                                ),
                                 virtual: None,
                             },
                         ),
@@ -34,66 +38,20 @@ RequirementsTxt {
                                 password: None,
                                 host: None,
                                 port: None,
-                                path: "<REQUIREMENTS_DIR>/test/packages/black_editable",
+                                path: "/<REQUIREMENTS_DIR>/editable",
                                 query: None,
                                 fragment: None,
                             },
                             given: Some(
-                                "./test/packages/black_editable",
+                                "./editable",
                             ),
-                        },
-                    },
-                    extras: [],
-                    marker: true,
-                    origin: Some(
-                        File(
-                            "<REQUIREMENTS_DIR>/bare-url.txt",
-                        ),
-                    ),
-                },
-            ),
-            hashes: [],
-        },
-        RequirementEntry {
-            requirement: Unnamed(
-                UnnamedRequirement {
-                    url: VerbatimParsedUrl {
-                        parsed_url: Directory(
-                            ParsedDirectoryUrl {
-                                url: DisplaySafeUrl {
-                                    scheme: "file",
-                                    cannot_be_a_base: false,
-                                    username: "",
-                                    password: None,
-                                    host: None,
-                                    port: None,
-                                    path: "<REQUIREMENTS_DIR>/test/packages/black_editable",
-                                    query: None,
-                                    fragment: None,
-                                },
-                                install_path: "<REQUIREMENTS_DIR>/test/packages/black_editable",
-                                editable: None,
-                                virtual: None,
-                            },
-                        ),
-                        verbatim: VerbatimUrl {
-                            url: DisplaySafeUrl {
-                                scheme: "file",
-                                cannot_be_a_base: false,
-                                username: "",
-                                password: None,
-                                host: None,
-                                port: None,
-                                path: "<REQUIREMENTS_DIR>/test/packages/black_editable",
-                                query: None,
-                                fragment: None,
-                            },
-                            given: Some(
-                                "./test/packages/black_editable",
-                            ),
+                            expanded: false,
                         },
                     },
                     extras: [
+                        ExtraName(
+                            "d",
+                        ),
                         ExtraName(
                             "dev",
                         ),
@@ -101,7 +59,7 @@ RequirementsTxt {
                     marker: true,
                     origin: Some(
                         File(
-                            "<REQUIREMENTS_DIR>/bare-url.txt",
+                            "<REQUIREMENTS_DIR>/editable.txt",
                         ),
                     ),
                 },
@@ -121,12 +79,14 @@ RequirementsTxt {
                                     password: None,
                                     host: None,
                                     port: None,
-                                    path: "/test/packages/black_editable",
+                                    path: "/<REQUIREMENTS_DIR>/editable",
                                     query: None,
                                     fragment: None,
                                 },
-                                install_path: "/test/packages/black_editable",
-                                editable: None,
+                                install_path: "<REQUIREMENTS_DIR>/editable",
+                                editable: Some(
+                                    true,
+                                ),
                                 virtual: None,
                             },
                         ),
@@ -138,20 +98,254 @@ RequirementsTxt {
                                 password: None,
                                 host: None,
                                 port: None,
-                                path: "/test/packages/black_editable",
+                                path: "/<REQUIREMENTS_DIR>/editable",
                                 query: None,
                                 fragment: None,
                             },
                             given: Some(
-                                "file:///test/packages/black_editable",
+                                "./editable",
                             ),
+                            expanded: false,
+                        },
+                    },
+                    extras: [
+                        ExtraName(
+                            "d",
+                        ),
+                        ExtraName(
+                            "dev",
+                        ),
+                    ],
+                    marker: true,
+                    origin: Some(
+                        File(
+                            "<REQUIREMENTS_DIR>/editable.txt",
+                        ),
+                    ),
+                },
+            ),
+            hashes: [],
+        },
+        RequirementEntry {
+            requirement: Unnamed(
+                UnnamedRequirement {
+                    url: VerbatimParsedUrl {
+                        parsed_url: Directory(
+                            ParsedDirectoryUrl {
+                                url: DisplaySafeUrl {
+                                    scheme: "file",
+                                    cannot_be_a_base: false,
+                                    username: "",
+                                    password: None,
+                                    host: None,
+                                    port: None,
+                                    path: "/<REQUIREMENTS_DIR>/editable",
+                                    query: None,
+                                    fragment: None,
+                                },
+                                install_path: "<REQUIREMENTS_DIR>/editable",
+                                editable: Some(
+                                    true,
+                                ),
+                                virtual: None,
+                            },
+                        ),
+                        verbatim: VerbatimUrl {
+                            url: DisplaySafeUrl {
+                                scheme: "file",
+                                cannot_be_a_base: false,
+                                username: "",
+                                password: None,
+                                host: None,
+                                port: None,
+                                path: "/<REQUIREMENTS_DIR>/editable",
+                                query: None,
+                                fragment: None,
+                            },
+                            given: Some(
+                                "./editable",
+                            ),
+                            expanded: false,
+                        },
+                    },
+                    extras: [
+                        ExtraName(
+                            "d",
+                        ),
+                        ExtraName(
+                            "dev",
+                        ),
+                    ],
+                    marker: python_full_version >= '3.9' and os_name == 'posix',
+                    origin: Some(
+                        File(
+                            "<REQUIREMENTS_DIR>/editable.txt",
+                        ),
+                    ),
+                },
+            ),
+            hashes: [],
+        },
+        RequirementEntry {
+            requirement: Unnamed(
+                UnnamedRequirement {
+                    url: VerbatimParsedUrl {
+                        parsed_url: Directory(
+                            ParsedDirectoryUrl {
+                                url: DisplaySafeUrl {
+                                    scheme: "file",
+                                    cannot_be_a_base: false,
+                                    username: "",
+                                    password: None,
+                                    host: None,
+                                    port: None,
+                                    path: "/<REQUIREMENTS_DIR>/editable",
+                                    query: None,
+                                    fragment: None,
+                                },
+                                install_path: "<REQUIREMENTS_DIR>/editable",
+                                editable: Some(
+                                    true,
+                                ),
+                                virtual: None,
+                            },
+                        ),
+                        verbatim: VerbatimUrl {
+                            url: DisplaySafeUrl {
+                                scheme: "file",
+                                cannot_be_a_base: false,
+                                username: "",
+                                password: None,
+                                host: None,
+                                port: None,
+                                path: "/<REQUIREMENTS_DIR>/editable",
+                                query: None,
+                                fragment: None,
+                            },
+                            given: Some(
+                                "./editable",
+                            ),
+                            expanded: false,
+                        },
+                    },
+                    extras: [
+                        ExtraName(
+                            "d",
+                        ),
+                        ExtraName(
+                            "dev",
+                        ),
+                    ],
+                    marker: python_full_version >= '3.9' and os_name == 'posix',
+                    origin: Some(
+                        File(
+                            "<REQUIREMENTS_DIR>/editable.txt",
+                        ),
+                    ),
+                },
+            ),
+            hashes: [],
+        },
+        RequirementEntry {
+            requirement: Unnamed(
+                UnnamedRequirement {
+                    url: VerbatimParsedUrl {
+                        parsed_url: Directory(
+                            ParsedDirectoryUrl {
+                                url: DisplaySafeUrl {
+                                    scheme: "file",
+                                    cannot_be_a_base: false,
+                                    username: "",
+                                    password: None,
+                                    host: None,
+                                    port: None,
+                                    path: "/<REQUIREMENTS_DIR>/editable",
+                                    query: None,
+                                    fragment: None,
+                                },
+                                install_path: "<REQUIREMENTS_DIR>/editable",
+                                editable: Some(
+                                    true,
+                                ),
+                                virtual: None,
+                            },
+                        ),
+                        verbatim: VerbatimUrl {
+                            url: DisplaySafeUrl {
+                                scheme: "file",
+                                cannot_be_a_base: false,
+                                username: "",
+                                password: None,
+                                host: None,
+                                port: None,
+                                path: "/<REQUIREMENTS_DIR>/editable",
+                                query: None,
+                                fragment: None,
+                            },
+                            given: Some(
+                                "./editable",
+                            ),
+                            expanded: false,
+                        },
+                    },
+                    extras: [],
+                    marker: python_full_version >= '3.9' and os_name == 'posix',
+                    origin: Some(
+                        File(
+                            "<REQUIREMENTS_DIR>/editable.txt",
+                        ),
+                    ),
+                },
+            ),
+            hashes: [],
+        },
+        RequirementEntry {
+            requirement: Unnamed(
+                UnnamedRequirement {
+                    url: VerbatimParsedUrl {
+                        parsed_url: Directory(
+                            ParsedDirectoryUrl {
+                                url: DisplaySafeUrl {
+                                    scheme: "file",
+                                    cannot_be_a_base: false,
+                                    username: "",
+                                    password: None,
+                                    host: None,
+                                    port: None,
+                                    path: "/<REQUIREMENTS_DIR>/editable[d",
+                                    query: None,
+                                    fragment: None,
+                                },
+                                install_path: "<REQUIREMENTS_DIR>/editable[d",
+                                editable: Some(
+                                    true,
+                                ),
+                                virtual: None,
+                            },
+                        ),
+                        verbatim: VerbatimUrl {
+                            url: DisplaySafeUrl {
+                                scheme: "file",
+                                cannot_be_a_base: false,
+                                username: "",
+                                password: None,
+                                host: None,
+                                port: None,
+                                path: "/<REQUIREMENTS_DIR>/editable[d",
+                                query: None,
+                                fragment: None,
+                            },
+                            given: Some(
+                                "./editable[d",
+                            ),
+                            expanded: false,
                         },
                     },
                     extras: [],
                     marker: true,
                     origin: Some(
                         File(
-                            "<REQUIREMENTS_DIR>/bare-url.txt",
+                            "<REQUIREMENTS_DIR>/editable.txt",
                         ),
                     ),
                 },
@@ -171,12 +365,14 @@ RequirementsTxt {
                                     password: None,
                                     host: None,
                                     port: None,
-                                    path: "<REQUIREMENTS_DIR>/test/packages/black%20editable",
+                                    path: "/<REQUIREMENTS_DIR>/editable",
                                     query: None,
                                     fragment: None,
                                 },
-                                install_path: "<REQUIREMENTS_DIR>/test/packages/black editable",
-                                editable: None,
+                                install_path: "<REQUIREMENTS_DIR>/editable",
+                                editable: Some(
+                                    true,
+                                ),
                                 virtual: None,
                             },
                         ),
@@ -188,20 +384,21 @@ RequirementsTxt {
                                 password: None,
                                 host: None,
                                 port: None,
-                                path: "<REQUIREMENTS_DIR>/test/packages/black%20editable",
+                                path: "/<REQUIREMENTS_DIR>/editable",
                                 query: None,
                                 fragment: None,
                             },
                             given: Some(
-                                "./test/packages/black editable",
+                                "./editable",
                             ),
+                            expanded: false,
                         },
                     },
                     extras: [],
                     marker: true,
                     origin: Some(
                         File(
-                            "<REQUIREMENTS_DIR>/bare-url.txt",
+                            "<REQUIREMENTS_DIR>/editable.txt",
                         ),
                     ),
                 },
@@ -221,12 +418,14 @@ RequirementsTxt {
                                     password: None,
                                     host: None,
                                     port: None,
-                                    path: "<REQUIREMENTS_DIR>/test/packages/black%20editable",
+                                    path: "/<REQUIREMENTS_DIR>/editable",
                                     query: None,
                                     fragment: None,
                                 },
-                                install_path: "<REQUIREMENTS_DIR>/test/packages/black editable",
-                                editable: None,
+                                install_path: "<REQUIREMENTS_DIR>/editable",
+                                editable: Some(
+                                    true,
+                                ),
                                 virtual: None,
                             },
                         ),
@@ -238,70 +437,21 @@ RequirementsTxt {
                                 password: None,
                                 host: None,
                                 port: None,
-                                path: "<REQUIREMENTS_DIR>/test/packages/black%20editable",
+                                path: "/<REQUIREMENTS_DIR>/editable",
                                 query: None,
                                 fragment: None,
                             },
                             given: Some(
-                                "./test/packages/black editable",
+                                "./editable",
                             ),
-                        },
-                    },
-                    extras: [],
-                    marker: python_full_version >= '3.9',
-                    origin: Some(
-                        File(
-                            "<REQUIREMENTS_DIR>/bare-url.txt",
-                        ),
-                    ),
-                },
-            ),
-            hashes: [],
-        },
-        RequirementEntry {
-            requirement: Unnamed(
-                UnnamedRequirement {
-                    url: VerbatimParsedUrl {
-                        parsed_url: Directory(
-                            ParsedDirectoryUrl {
-                                url: DisplaySafeUrl {
-                                    scheme: "file",
-                                    cannot_be_a_base: false,
-                                    username: "",
-                                    password: None,
-                                    host: None,
-                                    port: None,
-                                    path: "<REQUIREMENTS_DIR>/test/packages/black%20editable",
-                                    query: None,
-                                    fragment: None,
-                                },
-                                install_path: "<REQUIREMENTS_DIR>/test/packages/black editable",
-                                editable: None,
-                                virtual: None,
-                            },
-                        ),
-                        verbatim: VerbatimUrl {
-                            url: DisplaySafeUrl {
-                                scheme: "file",
-                                cannot_be_a_base: false,
-                                username: "",
-                                password: None,
-                                host: None,
-                                port: None,
-                                path: "<REQUIREMENTS_DIR>/test/packages/black%20editable",
-                                query: None,
-                                fragment: None,
-                            },
-                            given: Some(
-                                "./test/packages/black editable",
-                            ),
+                            expanded: false,
                         },
                     },
                     extras: [],
                     marker: true,
                     origin: Some(
                         File(
-                            "<REQUIREMENTS_DIR>/bare-url.txt",
+                            "<REQUIREMENTS_DIR>/editable.txt",
                         ),
                     ),
                 },
@@ -309,8 +459,6 @@ RequirementsTxt {
             hashes: [],
         },
     ],
-    constraints: [],
-    editables: [],
     index_url: None,
     extra_index_urls: [],
     find_links: [],

@@ -1561,7 +1561,7 @@ fn create_venv_apostrophe() {
     fyn_snapshot!(context.filters(), context.venv()
         .arg(&venv_dir)
         .arg("--python")
-        .arg("3.12"), @"
+        .arg("3.12"), @r#"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -1569,8 +1569,8 @@ fn create_venv_apostrophe() {
     ----- stderr -----
     Using CPython 3.12.[X] interpreter at: [PYTHON-3.12]
     Creating virtual environment at: Testing's
-    Activate with: source Testing's/[BIN]/activate
-    "
+    Activate with: source 'Testing'"'"'s/[BIN]/activate'
+    "#
     );
 
     // One of them should be commonly available on a linux developer machine, if not, we have to

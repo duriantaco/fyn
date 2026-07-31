@@ -77,8 +77,8 @@ def main(target: str) -> None:
             f"https://img.shields.io/pypi/l/fyn/{version}.svg",
         ),
         (
-            "https://img.shields.io/pypi/fynersions/fyn.svg",
-            f"https://img.shields.io/pypi/fynersions/fyn/{version}.svg",
+            "https://img.shields.io/pypi/pyversions/fyn.svg",
+            f"https://img.shields.io/pypi/pyversions/fyn/{version}.svg",
         ),
     ]:
         if existing in content:

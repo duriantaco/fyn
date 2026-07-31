@@ -21,6 +21,8 @@ test-threads = 12
 
 [profile.ci-windows]
 inherits = "ci"
+# The Windows suite is process- and I/O-heavy, so scale parallelism with the runner.
+test-threads = "num-cpus"
 
 [test-groups]
 serial = { max-threads = 1 }
@@ -36,9 +38,24 @@ test-group = 'serial'
 
 [[profile.ci-windows.overrides]]
 platform = 'cfg(target_os = "windows")'
-filter = 'test(/^python_install::/) + test(/^python_update::/) + test(/^python_find::/)'
+filter = 'test(/^python_install::/) + test(/^python_update::/) + test(/^python_find::/) + test(/^python_upgrade::/)'
 test-group = 'io-bound'
 priority = 1 # Start earlier so these can complete before the end
+
+[[profile.ci-windows.overrides]]
+platform = 'cfg(target_os = "windows")'
+filter = 'test(/^network::connect_timeout_index$/) + test(/^network::connect_timeout_stream$/)'
+# These tests assert a one-second timeout against wall-clock time, so run them without contention.
+threads-required = "num-test-threads"
+priority = 100
+
+[[profile.ci-windows.overrides]]
+platform = 'cfg(target_os = "windows")'
+filter = 'test(/^python_upgrade::python_upgrade$/) + test(/^python_find::python_find_prerelease_version_specifiers$/)'
+# Each test installs several complete Python distributions and routinely exceeds
+# the general deadlock guard on standard Windows runners.
+threads-required = "num-test-threads"
+slow-timeout = { period = "30s", terminate-after = 10 }
 
 [scripts.setup.setup-hook-unix]
 command = "scripts/nextest-setup-hook-unix.sh"

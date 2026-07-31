@@ -614,7 +614,7 @@ fn python_find_venv() {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     ");
@@ -663,7 +663,7 @@ fn python_find_venv() {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     ");
@@ -861,7 +861,7 @@ fn python_find_venv_invalid() {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     ");
@@ -876,7 +876,7 @@ fn python_find_venv_invalid() {
 
     ----- stderr -----
     error: Failed to inspect Python interpreter from active virtual environment at `.venv/[BIN]/[PYTHON]`
-      Caused by: Python interpreter not found at `[VENV]/[BIN]/[PYTHON]`
+      Caused by: Python interpreter not found at `[VENV]/bin/python3`
     ");
 
     // Unless the virtual environment is not active
@@ -1082,7 +1082,7 @@ fn python_find_script_no_environment() {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     ");

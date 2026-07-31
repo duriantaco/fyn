@@ -122,6 +122,29 @@ pub const INSTA_FILTERS: &[(&str, &str)] = &[
     (r"tv_nsec: \d+", "tv_nsec: [TIME]"),
     // Rewrite Windows output to Unix output
     (r"\\([\w\d]|\.)", "/$1"),
+    // Normalize JSON-escaped Windows paths after the separator rewrite above.
+    (
+        r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/temp"#,
+        "[TEMP_DIR]/",
+    ),
+    (
+        r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/\.venv"#,
+        "[VENV]/",
+    ),
+    (
+        r#"[A-Z]:\\?/(?:[^\\/\"\n]+\\?/)*\[TMP\]\\?/python\.exe"#,
+        "[VENV]/bin/python3",
+    ),
+    // Use the Unix virtualenv interpreter spelling as the cross-platform canonical form.
+    (
+        r"\[VENV\]/Scripts(?:\\\\|\\|/|\\/)python\.exe",
+        "[VENV]/bin/python3",
+    ),
+    (
+        r"\.venv/Scripts(?:\\\\|\\|/|\\/)python\.exe",
+        ".venv/bin/python3",
+    ),
+    (r"\[VENV\]/\[BIN\]/\[PYTHON\]", "[VENV]/bin/python3"),
     (r"fyn\.exe", "fyn"),
     // fyn version display
     (
@@ -1033,6 +1056,10 @@ impl TestContext {
                 .into_iter()
                 .map(|pattern| (pattern, "[WORKSPACE]/".to_string())),
         );
+        filters.push((
+            r"\[VENV\]/Scripts(?:\\\\|\\|/|\\/)python\.exe".to_string(),
+            "[VENV]/bin/python3".to_string(),
+        ));
 
         // Make virtual environment activation cross-platform and shell-agnostic
         filters.push((
@@ -1051,6 +1078,19 @@ impl TestContext {
         // Filter non-deterministic temporary directory names
         // Note we apply this _after_ all the full paths to avoid breaking their matching
         filters.push((r"(\\|\/)\.tmp.*(\\|\/)".to_string(), "/[TMP]/".to_string()));
+        filters.push((
+            r"\.venv/Scripts(?:\\\\|\\|/|\\/)python\.exe".to_string(),
+            ".venv/bin/python3".to_string(),
+        ));
+        filters.push((
+            r"\nDEBUG Reading pip configuration from: `/etc/pip\.conf`".to_string(),
+            String::new(),
+        ));
+        filters.push((
+            r"\nDEBUG Ignoring pip configuration with no supported settings: `/etc/pip\.conf`"
+                .to_string(),
+            String::new(),
+        ));
 
         // Account for platform prefix differences `file://` (Unix) vs `file:///` (Windows)
         filters.push((r"file:///".to_string(), "file://".to_string()));
@@ -1850,11 +1890,12 @@ impl TestContext {
     fn path_pattern(path: impl AsRef<Path>) -> String {
         format!(
             // Trim the trailing separator for cross-platform directories filters
-            r"{}\\?/?",
+            r"{}(?:\\\\|\\|/|\\/)?",
             regex::escape(&path.as_ref().simplified_display().to_string())
                 // Make separators platform agnostic because on Windows we will display
                 // paths with Unix-style separators sometimes
-                .replace(r"\\", r"(\\|\/)")
+                // and JSON output can double or slash-escape those separators.
+                .replace(r"\\", r"(\\\\|\\|/|\\/)")
         )
     }
 
@@ -2375,7 +2416,7 @@ pub const READ_ONLY_GITHUB_TOKEN_2: &[&str] = &[
     "MTFBQlVDUjZBMDJTOFYwMTM4YmQ0bV9uTXpueWhxZDBrcllROTQ5SERTeTI0dENKZ2lmdzIybDFSR2s1SE04QW8xTUVYQ1I0Q1YxYUdPRGpvZQo=",
 ];
 
-pub const READ_ONLY_GITHUB_SSH_DEPLOY_KEY: &str = "LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNBeTF1SnNZK1JXcWp1NkdIY3Z6a3AwS21yWDEwdmo3RUZqTkpNTkRqSGZPZ0FBQUpqWUpwVnAyQ2FWCmFRQUFBQXR6YzJndFpXUXlOVfyn4T1FBQUFDQXkxdUpzWStSV3FqdTZHSGN2emtwMEttclgxMHZqN0VGak5KTU5EakhmT2cKQUFBRUMwbzBnd1BxbGl6TFBJOEFXWDVaS2dVZHJyQ2ptMDhIQm9FenB4VDg3MXBqTFc0bXhqNUZhcU83b1lkeS9PU25RcQphdGZYUytQc1FXTTBrdzBPTWQ4NkFBQUFFR3R2Ym5OMGfynQmhjM1J5WVd3dWMyZ0JBZ01FQlE9PQotLS0tfynORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K";
+pub const READ_ONLY_GITHUB_SSH_DEPLOY_KEY: &str = "LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNBeTF1SnNZK1JXcWp1NkdIY3Z6a3AwS21yWDEwdmo3RUZqTkpNTkRqSGZPZ0FBQUpqWUpwVnAyQ2FWCmFRQUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQXkxdUpzWStSV3FqdTZHSGN2emtwMEttclgxMHZqN0VGak5KTU5EakhmT2cKQUFBRUMwbzBnd1BxbGl6TFBJOEFXWDVaS2dVZHJyQ2ptMDhIQm9FenB4VDg3MXBqTFc0bXhqNUZhcU83b1lkeS9PU25RcQphdGZYUytQc1FXTTBrdzBPTWQ4NkFBQUFFR3R2Ym5OMGFVQmhjM1J5WVd3dWMyZ0JBZ01FQlE9PQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K";
 
 /// Decode a split, base64 encoded authentication token.
 /// We split and encode the token to bypass revoke by GitHub's secret scanning
@@ -2514,4 +2555,61 @@ macro_rules! fyn_snapshot {
         ::insta::assert_snapshot!(snapshot, @$snapshot);
         output
     }};
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        INSTA_FILTERS, READ_ONLY_GITHUB_SSH_DEPLOY_KEY, TestContext, apply_filters, decode_token,
+    };
+
+    #[test]
+    fn github_ssh_deploy_key_decodes() {
+        let key = decode_token(&[READ_ONLY_GITHUB_SSH_DEPLOY_KEY]);
+
+        assert!(key.starts_with("-----BEGIN OPENSSH PRIVATE KEY-----\n"));
+        assert!(key.ends_with("\n-----END OPENSSH PRIVATE KEY-----"));
+    }
+
+    #[test]
+    fn path_pattern_matches_json_escaped_windows_separators() {
+        let pattern = TestContext::path_pattern(r"D:\uv-tmp\fyn\tests\.tmp123\temp");
+        let snapshot = r#""path": "D:\\uv-tmp\\fyn\\tests\\.tmp123\\temp""#.to_string();
+
+        assert_eq!(
+            apply_filters(snapshot, [(pattern, "[TEMP_DIR]/".to_string())]),
+            r#""path": "[TEMP_DIR]/""#,
+        );
+    }
+
+    #[test]
+    fn standard_filters_normalize_windows_snapshot_paths() {
+        let snapshot = concat!(
+            r#""current_directory": "D:\/uv-tmp\/fyn\/tests\/[TMP]/temp""#,
+            "\n",
+            r#""python": "D:\/uv-tmp\/fyn\/tests\/[TMP]/python.exe""#,
+            "\n",
+            r#""venv_python": "[VENV]/[BIN]/[PYTHON]""#,
+            "\n",
+            r#""escaped_venv_python": "[VENV]/Scripts\/python.exe""#,
+            "\n",
+            r#""escaped_relative_python": ".venv/Scripts\/python.exe""#,
+        )
+        .to_string();
+
+        assert_eq!(
+            apply_filters(snapshot, INSTA_FILTERS),
+            concat!(
+                r#""current_directory": "[TEMP_DIR]/""#,
+                "\n",
+                r#""python": "[VENV]/bin/python3""#,
+                "\n",
+                r#""venv_python": "[VENV]/bin/python3""#,
+                "\n",
+                r#""escaped_venv_python": "[VENV]/bin/python3""#,
+                "\n",
+                r#""escaped_relative_python": ".venv/bin/python3""#,
+            ),
+        );
+    }
 }

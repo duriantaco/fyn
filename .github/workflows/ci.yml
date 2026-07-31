@@ -158,6 +158,91 @@ jobs:
       schema-changed: ${{ needs.plan.outputs.check-schema }}
       save-rust-cache: ${{ needs.plan.outputs.save-rust-cache }}
 
+  check-zizmor:
+    needs: plan
+    if: ${{ needs.plan.outputs.run-checks == 'true' }}
+    uses: ./.github/workflows/check-zizmor.yml
+    permissions:
+      contents: read
+      security-events: write
+
+  check-release:
+    needs: plan
+    if: ${{ needs.plan.outputs.run-checks == 'true' }}
+    uses: ./.github/workflows/check-release.yml
+
+  test:
+    needs: plan
+    if: ${{ needs.plan.outputs.test-code == 'true' }}
+    uses: ./.github/workflows/test.yml
+    with:
+      save-rust-cache: ${{ needs.plan.outputs.save-rust-cache }}
+      test-macos: ${{ needs.plan.outputs.test-macos }}
+
+  test-windows-trampolines:
+    needs: plan
+    if: ${{ needs.plan.outputs.test-windows-trampoline == 'true' }}
+    uses: ./.github/workflows/test-windows-trampolines.yml
+
+  build-dev-binaries:
+    needs: plan
+    if: ${{ needs.plan.outputs.test-code == 'true' }}
+    uses: ./.github/workflows/build-dev-binaries.yml
+    with:
+      save-rust-cache: ${{ needs.plan.outputs.save-rust-cache }}
+
+  test-smoke:
+    needs:
+      - plan
+      - build-dev-binaries
+    if: ${{ needs.plan.outputs.test-smoke == 'true' }}
+    uses: ./.github/workflows/test-smoke.yml
+    with:
+      sha: ${{ github.sha }}
+
+  test-system:
+    needs:
+      - plan
+      - build-dev-binaries
+    if: ${{ needs.plan.outputs.test-system == 'true' }}
+    uses: ./.github/workflows/test-system.yml
+    with:
+      sha: ${{ github.sha }}
+
+  test-ecosystem:
+    needs:
+      - plan
+      - build-dev-binaries
+    if: ${{ needs.plan.outputs.test-ecosystem == 'true' }}
+    uses: ./.github/workflows/test-ecosystem.yml
+    with:
+      sha: ${{ github.sha }}
+
+  build-release-binaries:
+    needs: plan
+    if: ${{ needs.plan.outputs.build-release-binaries == 'true' }}
+    uses: ./.github/workflows/build-release-binaries.yml
+    secrets: inherit
+
+  build-docker:
+    needs: plan
+    if: ${{ needs.plan.outputs.build-docker == 'true' }}
+    uses: ./.github/workflows/build-docker.yml
+    with:
+      push-dev: ${{ needs.plan.outputs.push-docker == 'true' }}
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+      attestations: write
+
+  # Intentionally not wired up (relative to upstream uv's CI):
+  # - bench: requires a CodSpeed token and runners this fork does not have.
+  # - test-integration: requires credentials for external package registries.
+  # - test-publish: requires Astral's test-publish secrets and trusted publishing.
+  # - check-publish: crates.io publishing is disabled for fyn (#165).
+
   required-checks-passed:
     name: "all required jobs passed"
     if: always()
@@ -166,6 +251,16 @@ jobs:
       - check-lint
       - check-docs
       - check-generated-files
+      - check-zizmor
+      - check-release
+      - test
+      - test-windows-trampolines
+      - build-dev-binaries
+      - test-smoke
+      - test-system
+      - test-ecosystem
+      - build-release-binaries
+      - build-docker
     runs-on: ubuntu-latest
     steps:
       - name: "Check required jobs passed"

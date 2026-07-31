@@ -3546,7 +3546,7 @@ fn run_no_project() -> Result<()> {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     Resolved 6 packages in [TIME]
@@ -3564,7 +3564,7 @@ fn run_no_project() -> Result<()> {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     ");
@@ -3585,7 +3585,7 @@ fn run_no_project() -> Result<()> {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     ");
@@ -3595,7 +3595,7 @@ fn run_no_project() -> Result<()> {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     warning: `--locked` has no effect when used alongside `--no-project`
@@ -3777,7 +3777,7 @@ fn virtual_empty() -> Result<()> {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     warning: No `requires-python` value found in the workspace. Defaulting to `>=3.12`.
@@ -3790,7 +3790,7 @@ fn virtual_empty() -> Result<()> {
     success: true
     exit_code: 0
     ----- stdout -----
-    [VENV]/[BIN]/[PYTHON]
+    [VENV]/bin/python3
 
     ----- stderr -----
     ");
@@ -4260,7 +4260,16 @@ fn run_missing_command_with_tasks_shows_task_hint() -> Result<()> {
         "#
     })?;
 
-    fyn_snapshot!(context.filters(), context.run().arg("tesst"), @"
+    let filters = context
+        .filters()
+        .into_iter()
+        .chain([(
+            "Caused by: program not found",
+            "Caused by: No such file or directory (os error 2)",
+        )])
+        .collect::<Vec<_>>();
+
+    fyn_snapshot!(filters, context.run().arg("tesst"), @"
     success: false
     exit_code: 2
     ----- stdout -----

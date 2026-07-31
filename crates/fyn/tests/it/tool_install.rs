@@ -2184,6 +2184,7 @@ fn tool_install_git() {
 #[cfg(feature = "test-git-lfs")]
 fn tool_install_git_lfs() {
     let context = fyn_test::test_context!("3.13")
+        .with_exclude_newer("2025-11-01T00:00:00Z")
         .with_filtered_exe_suffix()
         .with_git_lfs_config();
     let tool_dir = context.temp_dir.child("tools");
@@ -2262,7 +2263,7 @@ fn tool_install_git_lfs() {
         ]
 
         [tool.options]
-        exclude-newer = "2024-03-25T00:00:00Z"
+        exclude-newer = "2025-11-01T00:00:00Z"
         "#);
     });
 
@@ -4762,7 +4763,7 @@ fn tool_install_find_links() {
       ╰─▶ Because only basic-app==0.1 is available and basic-app==0.1 needs to be downloaded from a registry, we can conclude that all versions of basic-app cannot be used.
           And because you require basic-app, we can conclude that your requirements are unsatisfiable.
 
-          hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+          Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
     ");
 }
 
