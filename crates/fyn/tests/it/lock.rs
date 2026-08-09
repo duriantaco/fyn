@@ -34396,7 +34396,7 @@ fn lock_android() -> Result<()> {
         version = "0.1.0"
         source = { virtual = "." }
         dependencies = [
-            { name = "deltachat-rpc-server", marker = "sys_platform == 'android'" },
+            { name = "deltachat-rpc-server" },
         ]
 
         [package.metadata]
