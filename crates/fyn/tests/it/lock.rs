@@ -34334,23 +34334,43 @@ async fn lock_circular_path_dependency_explicit_index() -> Result<()> {
 
 #[test]
 fn lock_android() -> Result<()> {
-    let context = fyn_test::test_context!("3.12").with_exclude_newer("2025-06-01T00:00:00Z");
+    let context = fyn_test::test_context!("3.13").with_exclude_newer("2025-06-01T00:00:00Z");
+
+    // Use local wheels so the test does not depend on historical releases remaining on PyPI.
+    let links = context.temp_dir.child("links");
+    fs_err::create_dir_all(&links)?;
+    let wheel = context
+        .workspace_root
+        .join("test/links/basic_package-0.1.0-py3-none-any.whl");
+    fs_err::copy(
+        context
+            .workspace_root
+            .join("test/links/basic_package-0.1.0.tar.gz"),
+        links.child("basic_package-0.1.0.tar.gz"),
+    )?;
+    for tag in ["android_21_arm64_v8a", "android_21_armeabi_v7a"] {
+        fs_err::copy(
+            &wheel,
+            links.child(format!("basic_package-0.1.0-py3-none-{tag}.whl")),
+        )?;
+    }
 
     let pyproject_toml = context.temp_dir.child("pyproject.toml");
-    pyproject_toml.write_str(
-        r#"
+    pyproject_toml.write_str(&formatdoc! { r#"
         [project]
         name = "project"
         version = "0.1.0"
-        requires-python = ">=3.12"
+        requires-python = ">=3.13"
         dependencies = [
-            "deltachat-rpc-server",
+            "basic-package",
         ]
 
         [tool.fyn]
         environments = ["sys_platform == 'android'"]
+        find-links = ["{}"]
         "#,
-    )?;
+        links.portable_display(),
+    })?;
 
     fyn_snapshot!(context.filters(), context.lock(), @"
     success: true
@@ -34370,7 +34390,7 @@ fn lock_android() -> Result<()> {
             lock, @r#"
         version = 1
         revision = 3
-        requires-python = ">=3.12"
+        requires-python = ">=3.13"
         resolution-markers = [
             "sys_platform == 'android'",
         ]
@@ -34382,13 +34402,13 @@ fn lock_android() -> Result<()> {
         exclude-newer = "2025-06-01T00:00:00Z"
 
         [[package]]
-        name = "deltachat-rpc-server"
-        version = "1.159.5"
-        source = { registry = "https://pypi.org/simple" }
-        sdist = { url = "https://files.pythonhosted.org/packages/c4/59/fd0dee6b1c950ba5c93e02ed6692990bffd6e843710f0c1b547de661534b/deltachat_rpc_server-1.159.5.tar.gz", hash = "sha256:7e015f9f8a8400133648971049032851c560729c6e9807f865a3f026b74b13a0", size = 1471, upload-time = "2025-05-14T17:35:33.428Z" }
+        name = "basic-package"
+        version = "0.1.0"
+        source = { registry = "[TEMP_DIR]/links" }
+        sdist = { path = "[TEMP_DIR]/links/basic_package-0.1.0.tar.gz" }
         wheels = [
-            { url = "https://files.pythonhosted.org/packages/c0/47/97e67319025afedb8cc5fc4e8e3779ef407836dbe2c111eeb403a7a83e8c/deltachat_rpc_server-1.159.5-py3-none-android_21_arm64_v8a.whl", hash = "sha256:3fb08568e12984cb2fc85409d6bc5bfa5b965b834c5d45fecd2f63ad3893396c", size = 10495646, upload-time = "2025-05-14T17:35:07.189Z" },
-            { url = "https://files.pythonhosted.org/packages/1d/93/d470afef50ddd4b101d78401f8aaf5adbaa7c27a984a151017bc3c449171/deltachat_rpc_server-1.159.5-py3-none-android_21_armeabi_v7a.whl", hash = "sha256:560178de3f61dc9ef1c69b7d9bd238b45b07b98331d85d074d8652babac9de49", size = 8821626, upload-time = "2025-05-14T17:35:09.645Z" },
+            { path = "[TEMP_DIR]/links/basic_package-0.1.0-py3-none-android_21_armeabi_v7a.whl" },
+            { path = "[TEMP_DIR]/links/basic_package-0.1.0-py3-none-android_21_arm64_v8a.whl" },
         ]
 
         [[package]]
@@ -34396,11 +34416,11 @@ fn lock_android() -> Result<()> {
         version = "0.1.0"
         source = { virtual = "." }
         dependencies = [
-            { name = "deltachat-rpc-server" },
+            { name = "basic-package", marker = "sys_platform == 'android'" },
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "deltachat-rpc-server" }]
+        requires-dist = [{ name = "basic-package" }]
         "#
         );
     });

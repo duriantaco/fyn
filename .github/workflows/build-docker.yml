@@ -131,7 +131,7 @@ jobs:
     needs:
       - docker-plan
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     permissions:
       contents: read
       id-token: write # for Depot OIDC and GHCR signing
@@ -165,6 +165,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: depot/setup-action@b0b1ea4f69e92ebf5dea3f8713a1b0c37b2126a5
+        if: ${{ needs.docker-plan.outputs.push == 'true' }}
+
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+        if: ${{ needs.docker-plan.outputs.push == 'false' }}
 
       - name: Check tag consistency
         if: ${{ needs.docker-plan.outputs.push == 'true' }}
@@ -202,7 +206,23 @@ jobs:
             type=pep440,pattern={{ major }}.{{ minor }},value=${{ needs.docker-plan.outputs.tag }},enable=${{ needs.docker-plan.outputs.push-version == 'true' }}
             type=sha,enable=${{ inputs.push-dev }}
 
+      - name: Build
+        if: ${{ needs.docker-plan.outputs.push == 'false' }}
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+          annotations: ${{ steps.meta.outputs.annotations }}
+          cache-from: type=gha,scope=fyn-docker-base
+          cache-to: type=gha,mode=max,scope=fyn-docker-base
+
       - name: Build and push by digest
+        if: ${{ needs.docker-plan.outputs.push == 'true' }}
         id: build
         uses: depot/build-push-action@5f3b3c2e5a00f0093de47f657aeaefcedff27d18 # v1.17.0
         with:
@@ -262,6 +282,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: depot/setup-action@b0b1ea4f69e92ebf5dea3f8713a1b0c37b2126a5
+        if: ${{ needs.docker-plan.outputs.push == 'true' }}
+
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+        if: ${{ needs.docker-plan.outputs.push == 'false' }}
 
       - name: Generate Dynamic Dockerfile Tags
         shell: bash
@@ -327,7 +351,21 @@ jobs:
           tags: |
             ${{ env.TAG_PATTERNS }}
 
+      - name: Build
+        if: ${{ needs.docker-plan.outputs.push == 'false' }}
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+          annotations: ${{ steps.meta.outputs.annotations }}
+
       - name: Build and push
+        if: ${{ needs.docker-plan.outputs.push == 'true' }}
         id: build-and-push
         uses: depot/build-push-action@5f3b3c2e5a00f0093de47f657aeaefcedff27d18 # v1.17.0
         with:

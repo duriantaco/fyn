@@ -4,6 +4,7 @@ exclude = [
   "scripts",
   # Needs nightly
   "crates/fyn-trampoline",
+  "vendor/astral_async_http_range_reader",
 ]
 resolver = "2"
 
@@ -104,7 +105,7 @@ async-compression = { version = "0.4.12", features = [
   "zstd",
 ] }
 async-trait = { version = "0.1.82" }
-async_http_range_reader = { version = "0.11.0", package = "astral_async_http_range_reader" }
+async_http_range_reader = { version = "0.11.0", path = "vendor/astral_async_http_range_reader", package = "astral_async_http_range_reader" }
 async_zip = { version = "0.0.17", package = "astral_async_zip", features = [
   "bzip2",
   "deflate",
@@ -337,9 +338,6 @@ test-log = { version = "0.2.16", features = [
   "trace",
 ], default-features = false }
 tokio-rustls = { version = "0.26.2", default-features = false }
-
-[patch.crates-io]
-astral_async_http_range_reader = { path = "vendor/astral_async_http_range_reader" }
 
 [workspace.lints.rust]
 unsafe_code = "warn"

@@ -47,6 +47,7 @@ RUN rustup target add $(cat rust_target.txt)
 
 # Build
 COPY crates crates
+COPY vendor vendor
 COPY ./Cargo.toml Cargo.toml
 COPY ./Cargo.lock Cargo.lock
 
