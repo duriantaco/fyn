@@ -36,6 +36,13 @@ test-group = 'serial'
 filter = 'package(fyn-keyring)'
 test-group = 'serial'
 
+[[profile.ci-macos.overrides]]
+filter = 'test(/^python_install::python_install_pyodide$/)'
+# This test downloads and installs multiple Pyodide distributions plus CPython.
+# Slow network or disk I/O on macOS CI can legitimately push it past the
+# general 120s deadlock guard.
+slow-timeout = { period = "30s", terminate-after = 10 }
+
 [[profile.ci-windows.overrides]]
 platform = 'cfg(target_os = "windows")'
 filter = 'test(/^python_install::/) + test(/^python_update::/) + test(/^python_find::/) + test(/^python_upgrade::/)'
