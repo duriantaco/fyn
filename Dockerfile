@@ -1,3 +1,5 @@
+FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:latest AS uv
+
 FROM --platform=$BUILDPLATFORM ubuntu:24.04@sha256:d1e2e92c075e5ca139d51a140fff46f84315c0fdce203eab2807c7e495eff4f9 AS build
 
 ARG UBUNTU_SNAPSHOT=20260301T000000Z
@@ -18,7 +20,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
   curl
 
 # Install uv to bootstrap the build (using upstream uv for build tooling)
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=uv /uv /usr/local/bin/uv
 
 # Setup zig as cross compiling linker
 COPY pyproject.toml uv.lock ./

@@ -27,6 +27,7 @@ test-threads = "num-cpus"
 [test-groups]
 serial = { max-threads = 1 }
 io-bound = { max-threads = 1 }
+managed-python = { max-threads = 4 }
 
 [[profile.default.overrides]]
 filter = 'test(native_auth)'
@@ -37,10 +38,12 @@ filter = 'package(fyn-keyring)'
 test-group = 'serial'
 
 [[profile.ci-macos.overrides]]
-filter = 'test(/^python_install::python_install_pyodide$/)'
-# This test downloads and installs multiple Pyodide distributions plus CPython.
-# Slow network or disk I/O on macOS CI can legitimately push it past the
-# general 120s deadlock guard.
+platform = 'cfg(target_os = "macos")'
+filter = 'test(/^python_install::/) + test(/^python_update::/) + test(/^python_find::/) + test(/^python_upgrade::/)'
+# These tests download and unpack several managed Python distributions. Limit
+# I/O contention on standard macOS runners and allow slow network transfers.
+test-group = 'managed-python'
+priority = 1
 slow-timeout = { period = "30s", terminate-after = 10 }
 
 [[profile.ci-windows.overrides]]
