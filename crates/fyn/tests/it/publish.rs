@@ -21,9 +21,21 @@ fn dummy_wheel() -> PathBuf {
         .join("test/links/ok-1.0.0-py3-none-any.whl")
 }
 
-#[test]
-fn username_password_no_longer_supported() {
+#[tokio::test]
+async fn username_password_no_longer_supported() {
     let context = fyn_test::test_context!("3.12");
+    let server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path("/legacy/"))
+        .and(basic_auth("dummy", "dummy"))
+        .respond_with(ResponseTemplate::new(403).set_body_raw(
+            "403 Username/Password authentication is no longer supported. Migrate to API Tokens or Trusted Publishers instead. See https://test.pypi.org/help/#apitoken and https://test.pypi.org/help/#trusted-publishers",
+            "text/plain",
+        ))
+        .expect(1)
+        .mount(&server)
+        .await;
 
     fyn_snapshot!(context.filters(), context.publish()
         .arg("-u")
@@ -31,24 +43,36 @@ fn username_password_no_longer_supported() {
         .arg("-p")
         .arg("dummy")
         .arg("--publish-url")
-        .arg("https://test.pypi.org/legacy/")
+        .arg(format!("{}/legacy/", server.uri()))
         .arg(dummy_wheel()), @"
     success: false
     exit_code: 2
     ----- stdout -----
 
     ----- stderr -----
-    Publishing 1 file to https://test.pypi.org/legacy/
+    Publishing 1 file to http://[LOCALHOST]/legacy/
     Uploading ok-1.0.0-py3-none-any.whl ([SIZE])
-    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to https://test.pypi.org/legacy/
+    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to http://[LOCALHOST]/legacy/
       Caused by: Server returned status code 403 Forbidden. Server says: 403 Username/Password authentication is no longer supported. Migrate to API Tokens or Trusted Publishers instead. See https://test.pypi.org/help/#apitoken and https://test.pypi.org/help/#trusted-publishers
     "
     );
 }
 
-#[test]
-fn invalid_token() {
+#[tokio::test]
+async fn invalid_token() {
     let context = fyn_test::test_context!("3.12");
+    let server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path("/legacy/"))
+        .and(basic_auth("__token__", "dummy"))
+        .respond_with(ResponseTemplate::new(403).set_body_raw(
+            "403 Invalid or non-existent authentication information. See https://test.pypi.org/help/#invalid-auth for more information.",
+            "text/plain",
+        ))
+        .expect(1)
+        .mount(&server)
+        .await;
 
     fyn_snapshot!(context.filters(), context.publish()
         .arg("-u")
@@ -56,16 +80,16 @@ fn invalid_token() {
         .arg("-p")
         .arg("dummy")
         .arg("--publish-url")
-        .arg("https://test.pypi.org/legacy/")
+        .arg(format!("{}/legacy/", server.uri()))
         .arg(dummy_wheel()), @"
     success: false
     exit_code: 2
     ----- stdout -----
 
     ----- stderr -----
-    Publishing 1 file to https://test.pypi.org/legacy/
+    Publishing 1 file to http://[LOCALHOST]/legacy/
     Uploading ok-1.0.0-py3-none-any.whl ([SIZE])
-    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to https://test.pypi.org/legacy/
+    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to http://[LOCALHOST]/legacy/
       Caused by: Server returned status code 403 Forbidden. Server says: 403 Invalid or non-existent authentication information. See https://test.pypi.org/help/#invalid-auth for more information.
     "
     );
@@ -211,9 +235,28 @@ fn dubious_filenames() {
 }
 
 /// Check that we (don't) use the keyring and warn for missing keyring behaviors correctly.
-#[test]
-fn check_keyring_behaviours() {
+#[tokio::test]
+async fn check_keyring_behaviours() {
     let context = fyn_test::test_context!("3.12");
+    let server = MockServer::start().await;
+    let check_url = format!("{}/simple/", server.uri());
+    let publish_url = format!("{}/legacy/?ok", server.uri());
+
+    Mock::given(method("GET"))
+        .and(path("/simple/ok/"))
+        .respond_with(ResponseTemplate::new(404))
+        .expect(4)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/legacy/"))
+        .respond_with(ResponseTemplate::new(403).set_body_raw(
+            "403 Username/Password authentication is no longer supported. Migrate to API Tokens or Trusted Publishers instead. See https://test.pypi.org/help/#apitoken and https://test.pypi.org/help/#trusted-publishers",
+            "text/plain",
+        ))
+        .expect(4)
+        .mount(&server)
+        .await;
 
     // Install our keyring plugin
     context
@@ -237,9 +280,9 @@ fn check_keyring_behaviours() {
         .arg("--keyring-provider")
         .arg("subprocess")
         .arg("--check-url")
-        .arg("https://test.pypi.org/simple/")
+        .arg(&check_url)
         .arg("--publish-url")
-        .arg("https://test.pypi.org/legacy/?ok")
+        .arg(&publish_url)
         .arg(dummy_wheel())
         .env(EnvVars::PATH, venv_bin_path(&context.venv)), @"
     success: false
@@ -247,9 +290,9 @@ fn check_keyring_behaviours() {
     ----- stdout -----
 
     ----- stderr -----
-    Publishing 1 file to https://test.pypi.org/legacy/?ok
+    Publishing 1 file to http://[LOCALHOST]/legacy/?ok
     Uploading ok-1.0.0-py3-none-any.whl ([SIZE])
-    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to https://test.pypi.org/legacy/?ok
+    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to http://[LOCALHOST]/legacy/?ok
       Caused by: Server returned status code 403 Forbidden. Server says: 403 Username/Password authentication is no longer supported. Migrate to API Tokens or Trusted Publishers instead. See https://test.pypi.org/help/#apitoken and https://test.pypi.org/help/#trusted-publishers
     "
     );
@@ -263,7 +306,7 @@ fn check_keyring_behaviours() {
         .arg("--keyring-provider")
         .arg("subprocess")
         .arg("--publish-url")
-        .arg("https://test.pypi.org/legacy/?ok")
+        .arg(&publish_url)
         .arg(dummy_wheel())
         .env(EnvVars::PATH, venv_bin_path(&context.venv)),  @"
     success: false
@@ -271,10 +314,10 @@ fn check_keyring_behaviours() {
     ----- stdout -----
 
     ----- stderr -----
-    Publishing 1 file to https://test.pypi.org/legacy/?ok
+    Publishing 1 file to http://[LOCALHOST]/legacy/?ok
     warning: Using `--keyring-provider` with a password or token and no check URL has no effect
     Uploading ok-1.0.0-py3-none-any.whl ([SIZE])
-    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to https://test.pypi.org/legacy/?ok
+    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to http://[LOCALHOST]/legacy/?ok
       Caused by: Server returned status code 403 Forbidden. Server says: 403 Username/Password authentication is no longer supported. Migrate to API Tokens or Trusted Publishers instead. See https://test.pypi.org/help/#apitoken and https://test.pypi.org/help/#trusted-publishers
     "
     );
@@ -287,9 +330,9 @@ fn check_keyring_behaviours() {
         .arg("--keyring-provider")
         .arg("subprocess")
         .arg("--check-url")
-        .arg("https://test.pypi.org/simple/")
+        .arg(&check_url)
         .arg("--publish-url")
-        .arg("https://test.pypi.org/legacy/?ok")
+        .arg(&publish_url)
         .arg(dummy_wheel())
         .env(EnvVars::PATH, venv_bin_path(&context.venv)), @"
     success: false
@@ -297,14 +340,16 @@ fn check_keyring_behaviours() {
     ----- stdout -----
 
     ----- stderr -----
-    Publishing 1 file to https://test.pypi.org/legacy/?ok
-    Keyring request for dummy@https://test.pypi.org/legacy/?ok
-    Keyring request for dummy@test.pypi.org
-    warning: Keyring has no password for URL `https://test.pypi.org/legacy/?ok` and username `dummy`
+    Publishing 1 file to http://[LOCALHOST]/legacy/?ok
+    Keyring request for dummy@http://[LOCALHOST]/legacy/?ok
+    Keyring request for dummy@[LOCALHOST]
+    Keyring request for dummy@http://[LOCALHOST]
+    warning: Keyring has no password for URL `http://[LOCALHOST]/legacy/?ok` and username `dummy`
     Uploading ok-1.0.0-py3-none-any.whl ([SIZE])
-    Keyring request for dummy@https://test.pypi.org/legacy/?ok
-    Keyring request for dummy@test.pypi.org
-    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to https://test.pypi.org/legacy/?ok
+    Keyring request for dummy@http://[LOCALHOST]/legacy/?ok
+    Keyring request for dummy@[LOCALHOST]
+    Keyring request for dummy@http://[LOCALHOST]
+    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to http://[LOCALHOST]/legacy/?ok
       Caused by: Server returned status code 403 Forbidden. Server says: 403 Username/Password authentication is no longer supported. Migrate to API Tokens or Trusted Publishers instead. See https://test.pypi.org/help/#apitoken and https://test.pypi.org/help/#trusted-publishers
     "
     );
@@ -317,19 +362,19 @@ fn check_keyring_behaviours() {
         .arg("--keyring-provider")
         .arg("subprocess")
         .arg("--publish-url")
-        .arg("https://test.pypi.org/legacy/?ok")
+        .arg(&publish_url)
         .arg(dummy_wheel())
-        .env(EnvVars::KEYRING_TEST_CREDENTIALS, r#"{"https://test.pypi.org/legacy/?ok": {"dummy": "dummy"}}"#)
+        .env(EnvVars::KEYRING_TEST_CREDENTIALS, format!(r#"{{"{publish_url}": {{"dummy": "dummy"}}}}"#))
         .env(EnvVars::PATH, venv_bin_path(&context.venv)), @"
     success: false
     exit_code: 2
     ----- stdout -----
 
     ----- stderr -----
-    Publishing 1 file to https://test.pypi.org/legacy/?ok
-    Keyring request for dummy@https://test.pypi.org/legacy/?ok
+    Publishing 1 file to http://[LOCALHOST]/legacy/?ok
+    Keyring request for dummy@http://[LOCALHOST]/legacy/?ok
     Uploading ok-1.0.0-py3-none-any.whl ([SIZE])
-    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to https://test.pypi.org/legacy/?ok
+    error: Failed to publish `[WORKSPACE]/test/links/ok-1.0.0-py3-none-any.whl` to http://[LOCALHOST]/legacy/?ok
       Caused by: Server returned status code 403 Forbidden. Server says: 403 Username/Password authentication is no longer supported. Migrate to API Tokens or Trusted Publishers instead. See https://test.pypi.org/help/#apitoken and https://test.pypi.org/help/#trusted-publishers
     "
     );

@@ -23,7 +23,9 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
 COPY --from=uv /uv /usr/local/bin/uv
 
 # Setup zig as cross compiling linker
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml ./
+# Upstream uv expects `uv.lock`; use fyn's current lockfile under that name.
+COPY fyn.lock uv.lock
 RUN uv sync --only-group docker --locked
 ENV PATH="$HOME/.venv/bin:$PATH"
 
