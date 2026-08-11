@@ -52,6 +52,8 @@ include = [
     # this one isn't discovered by maturin because it's behind a feature flag
     { path = "crates/fyn-performance-memory-allocator/**/*", format = "sdist" },
     { path = "crates/fyn-trampoline-builder/trampolines/*", format = "sdist" },
+    # This workspace dependency uses a local path, so it must ship in the sdist.
+    { path = "vendor/astral_async_http_range_reader/**/*", format = "sdist" },
     # https://github.com/rust-lang/cargo/issues/5933
     { path = "LICENSE-APACHE", format = "sdist" },
     { path = "LICENSE-MIT", format = "sdist" },
@@ -110,5 +112,11 @@ docker = [
 ]
 
 [tool.fyn.dependency-groups]
+docs = { requires-python = ">=3.12" }
+docker = { requires-python = ">=3.12" }
+
+# The Docker build uses upstream uv to bootstrap cargo-zigbuild. Mirror the
+# group constraints here so upstream uv can validate fyn's universal lockfile.
+[tool.uv.dependency-groups]
 docs = { requires-python = ">=3.12" }
 docker = { requires-python = ">=3.12" }

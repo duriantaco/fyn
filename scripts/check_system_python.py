@@ -43,7 +43,13 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     parser = argparse.ArgumentParser(description="Check a Python interpreter.")
-    parser.add_argument("--uv", help="Path to a fyn binary.")
+    parser.add_argument(
+        "--fyn",
+        "--uv",
+        dest="uv",
+        metavar="FYN",
+        help="Path to a fyn binary.",
+    )
     parser.add_argument(
         "--externally-managed",
         action="store_true",
