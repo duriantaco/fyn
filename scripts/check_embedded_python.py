@@ -15,7 +15,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Check an embedded Python interpreter."
     )
-    parser.add_argument("--uv", help="Path to a fyn binary.")
+    parser.add_argument(
+        "--fyn",
+        "--uv",
+        dest="uv",
+        metavar="FYN",
+        help="Path to a fyn binary.",
+    )
     args = parser.parse_args()
 
     uv: str = os.path.abspath(args.uv) if args.uv else "fyn"
