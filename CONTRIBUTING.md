@@ -293,5 +293,7 @@ Then, open a pull request, e.g., `Bump version to ...`.
 
 Binary builds will automatically be tested for the release.
 
-After merging the pull request, run the release workflow with the version tag. **Do not include a
-leading `v`**. The release will automatically be created on GitHub after everything else publishes.
+After merging the pull request, run the release workflow with `dry-run` and wait for every required
+build to pass. Then run it again with the version tag. **Do not include a leading `v`**. Stable
+releases publish to PyPI before GitHub is announced, and a final verification job checks the GitHub
+assets, installer URLs, and both PyPI projects.

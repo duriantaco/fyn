@@ -1,0 +1,55 @@
+name: "Verify release"
+
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  verify-release:
+    name: Verify published release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Download final release manifest
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: artifacts-dist-manifest
+          path: release-manifest
+
+      - name: Verify GitHub and PyPI publications
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_COMMIT: ${{ github.sha }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+          RELEASE_RUN_ID: ${{ github.run_id }}
+          RELEASE_TAG: ${{ fromJson(inputs.plan).announcement_tag }}
+          VERIFY_PYPI: ${{ (!fromJson(inputs.plan).announcement_is_prerelease || fromJson(inputs.plan).publish_prereleases) && 'true' || 'false' }}
+        run: |
+          args=(
+            --repo "$RELEASE_REPOSITORY"
+            --tag "$RELEASE_TAG"
+            --commit "$RELEASE_COMMIT"
+            --run-id "$RELEASE_RUN_ID"
+            --manifest release-manifest/dist-manifest.json
+          )
+
+          if [[ "$VERIFY_PYPI" == "true" ]]; then
+            args+=(
+              --pypi-package "fyn=wheels_fyn-"
+              --pypi-package "fyn-build=wheels_fyn_build-"
+            )
+          fi
+
+          python3 scripts/verify-release.py "${args[@]}"
