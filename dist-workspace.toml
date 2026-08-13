@@ -55,14 +55,16 @@ github-attestations-phase = "announce"
 github-attestations-filters = ["*.json", "*.sh", "*.ps1", "*.zip", "*.tar.gz"]
 # Whether CI should include auto-generated code to build local artifacts
 build-local-artifacts = false
-# Local artifacts jobs to run in CI
-local-artifacts-jobs = ["./build-release-binaries", "./build-docker"]
+# Local artifacts jobs to run in release CI. Docker publishing is intentionally
+# kept separate until fyn has its own registry configuration.
+local-artifacts-jobs = ["./build-release-binaries"]
 # Publish jobs to run in CI
 publish-jobs = ["./publish-pypi"]
-# Post-announce jobs to run in CI
-post-announce-jobs = ["./publish-docs", "./publish-versions", "./publish-mirror"]
+# Post-announce jobs to run in CI. The upstream versions repository and R2
+# mirror require Astral-owned credentials, so they are not fyn release targets.
+post-announce-jobs = ["./publish-docs", "./verify-release"]
 # Custom permissions for GitHub Jobs
-github-custom-job-permissions = { "build-docker" = { packages = "write", contents = "read", id-token = "write", attestations = "write" }, "publish-mirror" = { contents = "read" } }
+github-custom-job-permissions = { "publish-docs" = { contents = "write" }, "verify-release" = { actions = "read", contents = "read" } }
 # Whether to install an updater program
 install-updater = false
 # Path that installers should place binaries in

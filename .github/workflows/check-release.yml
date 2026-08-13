@@ -28,5 +28,8 @@ jobs:
       - name: Run dist plan
         run: |
           dist plan --output-format=json > plan-dist-manifest.json
+          python3 scripts/validate-release.py plan \
+            --manifest plan-dist-manifest.json \
+            --repo "${GITHUB_REPOSITORY}"
           echo "dist plan completed successfully"
           cat plan-dist-manifest.json

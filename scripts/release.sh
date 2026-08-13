@@ -103,6 +103,10 @@ pushd crates/fyn-trampoline; cargo update; popd
 echo "Generating JSON schema..."
 cargo dev generate-json-schema
 
+release_version="$("${fyn_cmd[@]}" version --short)"
+echo "Validating release metadata..."
+python3 scripts/validate-release.py metadata --tag "$release_version"
+
 echo "Creating release branch..."
-git checkout -b "release/$("${fyn_cmd[@]}" version --short)"
-git commit -am "Bump version to $("${fyn_cmd[@]}" version --short)"
+git checkout -b "release/$release_version"
+git commit -am "Bump version to $release_version"
