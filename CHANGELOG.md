@@ -3,6 +3,15 @@
 <!-- prettier-ignore-start -->
 
 
+## 0.10.16
+
+Released on 2026-08-14.
+
+### Other changes
+
+- ci: harden release publishing ([#188](https://github.com/duriantaco/fyn/pull/188))
+- feat: upgrade project dependency constraints ([#189](https://github.com/duriantaco/fyn/pull/189))
+
 ## 0.10.15
 
 Released on 2026-08-12.

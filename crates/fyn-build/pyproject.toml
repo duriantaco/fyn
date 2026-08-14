@@ -1,6 +1,6 @@
 [project]
 name = "fyn-build"
-version = "0.10.15"
+version = "0.10.16"
 description = "The fyn build backend"
 authors = [{ name = "fyn contributors" }]
 requires-python = ">=3.8"
