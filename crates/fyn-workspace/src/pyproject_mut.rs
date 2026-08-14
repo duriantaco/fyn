@@ -357,6 +357,50 @@ impl PyProjectTomlMut {
         Ok(edit)
     }
 
+    /// Replaces a dependency in `project.dependencies` without modifying its source.
+    ///
+    /// Returns `Some` if the dependency was replaced, or `None` if it was not found.
+    pub fn replace_dependency(
+        &mut self,
+        req: &Requirement,
+        raw: bool,
+    ) -> Result<Option<ArrayEdit>, Error> {
+        let Some(dependencies) = self
+            .project_mut()?
+            .and_then(|project| project.get_mut("dependencies"))
+            .map(|dependencies| {
+                dependencies
+                    .as_array_mut()
+                    .ok_or(Error::MalformedDependencies)
+            })
+            .transpose()?
+        else {
+            return Ok(None);
+        };
+        let mut to_replace = find_dependencies(&req.name, Some(&req.marker), dependencies);
+
+        match to_replace.as_slice() {
+            [] => Ok(None),
+            [_] => {
+                let (index, _) = to_replace.remove(0);
+                let req_string = if raw {
+                    req.displayable_with_credentials().to_string()
+                } else {
+                    req.to_string()
+                };
+                dependencies.replace(index, req_string);
+                Ok(Some(ArrayEdit::Update(index)))
+            }
+            _ => Err(Error::Ambiguous {
+                package_name: req.name.clone(),
+                requirements: to_replace
+                    .into_iter()
+                    .map(|(_, requirement)| requirement)
+                    .collect(),
+            }),
+        }
+    }
+
     /// Adds a development dependency to `tool.fyn.dev-dependencies`.
     ///
     /// Returns `true` if the dependency was added, `false` if it was updated.
@@ -1790,9 +1834,13 @@ fn split_specifiers(req: &str) -> (&str, &str) {
 
 #[cfg(test)]
 mod test {
-    use super::{AddBoundsKind, reformat_array_multiline, remove_dependency, split_specifiers};
+    use super::{
+        AddBoundsKind, DependencyTarget, PyProjectTomlMut, reformat_array_multiline,
+        remove_dependency, split_specifiers,
+    };
     use fyn_normalize::PackageName;
     use fyn_pep440::Version;
+    use fyn_pep508::Requirement;
     use insta::assert_snapshot;
     use std::str::FromStr;
     use toml_edit::DocumentMut;
@@ -1814,6 +1862,39 @@ mod test {
                 "flask",
                 "@ https://files.pythonhosted.org/packages/af/47/93213ee66ef8fae3b93b3e29206f6b251e65c97bd91d8e1c5596ef15af0a/flask-3.1.0-py3-none-any.whl"
             )
+        );
+    }
+
+    #[test]
+    fn replace_dependency_preserves_source() {
+        let mut pyproject = PyProjectTomlMut::from_toml(
+            r#"[project]
+dependencies = ["anyio<=2"]
+
+[tool.fyn.sources]
+anyio = { index = "internal" }
+"#,
+            DependencyTarget::PyProjectToml,
+        )
+        .unwrap();
+        let requirement = Requirement::from_str("anyio<5").unwrap();
+
+        assert!(
+            pyproject
+                .replace_dependency(&requirement, false)
+                .unwrap()
+                .is_some()
+        );
+
+        assert_snapshot!(
+            pyproject.to_string(),
+            @r#"
+[project]
+dependencies = ["anyio<5"]
+
+[tool.fyn.sources]
+anyio = { index = "internal" }
+"#
         );
     }
 

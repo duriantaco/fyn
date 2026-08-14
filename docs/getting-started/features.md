@@ -37,7 +37,8 @@ Creating and working on Python projects, i.e., with a `pyproject.toml`.
 - `fyn remove`: Remove a dependency from the project.
 - `fyn sync`: Sync the project's dependencies with the environment.
 - `fyn lock`: Create a lockfile for the project's dependencies.
-- `fyn upgrade`: Upgrade all or selected project dependencies.
+- `fyn upgrade`: Upgrade all or selected project dependencies across `pyproject.toml`, `fyn.lock`,
+  and the project environment.
 - `fyn run`: Run a command in the project environment, with task- and tool-aware missing-command
   hints.
 - `fyn shell`: Open a shell with the project environment activated.

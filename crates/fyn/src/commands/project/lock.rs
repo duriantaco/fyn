@@ -1554,7 +1554,7 @@ impl ValidatedLock {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct LockEventVersion<'lock> {
+pub(super) struct LockEventVersion<'lock> {
     /// The version of the package, or `None` if the package has a dynamic version.
     version: Option<&'lock Version>,
     /// The short Git SHA of the package, if it was installed from a Git repository.
@@ -1583,7 +1583,7 @@ impl std::fmt::Display for LockEventVersion<'_> {
 
 /// A modification to a lockfile.
 #[derive(Debug, Clone)]
-enum LockEvent<'lock> {
+pub(super) enum LockEvent<'lock> {
     Update(
         DryRun,
         PackageName,
@@ -1596,7 +1596,7 @@ enum LockEvent<'lock> {
 
 impl<'lock> LockEvent<'lock> {
     /// Detect the change events between an (optional) existing and updated lockfile.
-    fn detect_changes(
+    pub(super) fn detect_changes(
         existing_lock: Option<&'lock Lock>,
         new_lock: &'lock Lock,
         dry_run: DryRun,
@@ -1656,6 +1656,14 @@ impl<'lock> LockEvent<'lock> {
                 }
             }
         })
+    }
+
+    pub(super) fn package(&self) -> &PackageName {
+        match self {
+            Self::Update(_, package, ..)
+            | Self::Add(_, package, ..)
+            | Self::Remove(_, package, ..) => package,
+        }
     }
 }
 

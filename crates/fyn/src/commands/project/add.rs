@@ -973,7 +973,7 @@ fn edits(
 
 /// Re-lock and re-sync the project after a series of edits.
 #[expect(clippy::fn_params_excessive_bools)]
-async fn lock_and_sync(
+pub(super) async fn lock_and_sync(
     mut target: AddTarget,
     toml: &mut PyProjectTomlMut,
     edits: &[DependencyEdit],
@@ -1268,7 +1268,7 @@ pub(super) enum PythonTarget {
 
 impl PythonTarget {
     /// Return the [`Interpreter`] for the project.
-    fn interpreter(&self) -> &Interpreter {
+    pub(super) fn interpreter(&self) -> &Interpreter {
         match self {
             Self::Interpreter(interpreter) => interpreter,
             Self::Environment(venv) => venv.interpreter(),
@@ -1317,7 +1317,7 @@ impl AddTarget {
     /// Write the updated content to the target.
     ///
     /// Returns `true` if the content was modified.
-    fn write(&self, content: &str) -> Result<bool, io::Error> {
+    pub(super) fn write(&self, content: &str) -> Result<bool, io::Error> {
         match self {
             Self::Script(script, _) => {
                 if content == script.metadata.raw {
@@ -1342,7 +1342,7 @@ impl AddTarget {
     }
 
     /// Update the target in-memory to incorporate the new content.
-    fn update(self, content: &str) -> Result<Self, ProjectError> {
+    pub(super) fn update(self, content: &str) -> Result<Self, ProjectError> {
         match self {
             Self::Script(mut script, interpreter) => {
                 script.metadata = Pep723Metadata::from_str(content)
@@ -1361,7 +1361,7 @@ impl AddTarget {
     }
 
     /// Take a snapshot of the target.
-    async fn snapshot(&self) -> Result<AddTargetSnapshot, io::Error> {
+    pub(super) async fn snapshot(&self) -> Result<AddTargetSnapshot, io::Error> {
         // Read the lockfile into memory.
         let target = match self {
             Self::Script(script, _) => LockTarget::from(script),
@@ -1379,14 +1379,14 @@ impl AddTarget {
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
-enum AddTargetSnapshot {
+pub(super) enum AddTargetSnapshot {
     Script(Pep723Script, Option<Vec<u8>>),
     Project(VirtualProject, Option<Vec<u8>>),
 }
 
 impl AddTargetSnapshot {
     /// Write the snapshot back to disk (e.g., to a `pyproject.toml` and `fyn.lock`).
-    fn revert(&self) -> Result<(), io::Error> {
+    pub(super) fn revert(&self) -> Result<(), io::Error> {
         match self {
             Self::Script(script, lock) => {
                 // Write the PEP 723 script back to disk.
@@ -1438,7 +1438,7 @@ impl AddTargetSnapshot {
 }
 
 #[derive(Debug, Clone)]
-struct DependencyEdit {
+pub(super) struct DependencyEdit {
     dependency_type: DependencyType,
     requirement: fyn_pep508::Requirement,
     source: Option<Source>,

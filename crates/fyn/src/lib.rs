@@ -2907,7 +2907,42 @@ async fn run_project(
             .await
         }
         ProjectCommand::Upgrade(args) => {
-            commands::upgrade(args.packages, args.dry_run, args.no_sync, printer).await
+            // Resolve the settings from the command-line arguments and workspace configuration.
+            let args = settings::UpgradeSettings::resolve(args, filesystem, environment);
+            show_settings!(args);
+
+            // Check for conflicts between offline and refresh.
+            globals
+                .network_settings
+                .check_refresh_conflict(&args.refresh);
+
+            // Initialize the cache. The command further narrows refreshes to the selected direct
+            // dependencies after discovering the project manifest.
+            let cache = cache.init().await?;
+
+            Box::pin(commands::upgrade(
+                project_dir,
+                args.packages,
+                args.exclude,
+                fyn_configuration::DryRun::from_args(args.dry_run),
+                args.no_sync,
+                args.python,
+                args.install_mirrors,
+                args.refresh,
+                args.settings,
+                client_builder.subcommand(vec!["upgrade".to_owned()]),
+                globals.python_preference,
+                globals.python_downloads,
+                globals.installer_metadata,
+                globals.concurrency,
+                no_config,
+                &cache,
+                workspace_cache,
+                printer,
+                globals.preview,
+                args.malware_settings,
+            ))
+            .await
         }
         ProjectCommand::Add(args) => {
             // Resolve the settings from the command-line arguments and workspace configuration.
