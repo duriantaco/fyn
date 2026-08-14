@@ -114,6 +114,10 @@ $ fyn upgrade
 $ fyn upgrade requests flask
 ```
 
+The command also updates blocking constraints in `pyproject.toml`; use `--dry-run` to preview the
+manifest and lock changes, `--no-sync` to skip the environment update, or `--exclude` to omit a
+package from an all-dependency upgrade.
+
 Use `fyn why` to explain the dependency paths that include a package:
 
 ```console

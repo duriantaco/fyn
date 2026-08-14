@@ -5354,7 +5354,12 @@ pub struct UpgradeArgs {
     ///
     /// If not provided, all packages in the project will be upgraded to
     /// their latest compatible versions.
-    pub packages: Vec<String>,
+    #[arg(value_hint = ValueHint::Other)]
+    pub packages: Vec<PackageName>,
+
+    /// Exclude the named package from upgrades.
+    #[arg(long, value_hint = ValueHint::Other)]
+    pub exclude: Vec<PackageName>,
 
     /// Perform a dry run, showing what would be upgraded without making changes.
     #[arg(long)]
@@ -5363,6 +5368,15 @@ pub struct UpgradeArgs {
     /// Do not sync the environment after upgrading the lockfile.
     #[arg(long)]
     pub no_sync: bool,
+
+    #[command(flatten)]
+    pub installer: ResolverInstallerArgs,
+
+    #[command(flatten)]
+    pub build: BuildOptionsArgs,
+
+    #[command(flatten)]
+    pub refresh: RefreshArgs,
 
     /// The Python interpreter to use during resolution.
     #[arg(

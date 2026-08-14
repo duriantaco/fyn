@@ -21,8 +21,8 @@ use fyn_cli::{
     PipSyncArgs, PipTreeArgs, PipUninstallArgs, PipUpgradeArgs, PipWheelArgs, PythonFindArgs,
     PythonInstallArgs, PythonListArgs, PythonListFormat, PythonPinArgs, PythonUninstallArgs,
     PythonUpgradeArgs, RemoveArgs, RunArgs, SyncArgs, SyncFormat, ToolDirArgs, ToolInstallArgs,
-    ToolListArgs, ToolRunArgs, ToolUninstallArgs, TreeArgs, VenvArgs, VersionArgs, VersionBumpSpec,
-    VersionFormat, WhyArgs,
+    ToolListArgs, ToolRunArgs, ToolUninstallArgs, TreeArgs, UpgradeArgs, VenvArgs, VersionArgs,
+    VersionBumpSpec, VersionFormat, WhyArgs,
 };
 use fyn_cli::{
     AuthorFrom, BuildArgs, ExportArgs, FormatArgs, PublishArgs, PythonDirArgs,
@@ -1868,6 +1868,62 @@ impl LockSettings {
             install_mirrors: environment
                 .install_mirrors
                 .combine(filesystem_install_mirrors),
+        }
+    }
+}
+
+/// The resolved settings to use for an `upgrade` invocation.
+#[derive(Debug, Clone)]
+pub(crate) struct UpgradeSettings {
+    pub(crate) packages: Vec<PackageName>,
+    pub(crate) exclude: Vec<PackageName>,
+    pub(crate) dry_run: bool,
+    pub(crate) no_sync: bool,
+    pub(crate) python: Option<String>,
+    pub(crate) install_mirrors: PythonInstallMirrors,
+    pub(crate) refresh: Refresh,
+    pub(crate) settings: ResolverInstallerSettings,
+    pub(crate) malware_settings: MalwareCheckSettings,
+}
+
+impl UpgradeSettings {
+    /// Resolve the [`UpgradeSettings`] from the CLI and filesystem configuration.
+    pub(crate) fn resolve(
+        args: UpgradeArgs,
+        filesystem: Option<FilesystemOptions>,
+        environment: EnvironmentOptions,
+    ) -> Self {
+        let UpgradeArgs {
+            packages,
+            exclude,
+            dry_run,
+            no_sync,
+            installer,
+            build,
+            refresh,
+            python,
+        } = args;
+        let filesystem_install_mirrors = filesystem
+            .clone()
+            .map(|fs| fs.install_mirrors.clone())
+            .unwrap_or_default();
+        let malware_settings = MalwareCheckSettings::from(&environment);
+
+        Self {
+            packages,
+            exclude,
+            dry_run,
+            no_sync,
+            python: python.and_then(Maybe::into_option),
+            install_mirrors: environment
+                .install_mirrors
+                .combine(filesystem_install_mirrors),
+            settings: ResolverInstallerSettings::combine(
+                resolver_installer_options(installer, build),
+                filesystem,
+            ),
+            refresh: Refresh::from(refresh),
+            malware_settings,
         }
     }
 }

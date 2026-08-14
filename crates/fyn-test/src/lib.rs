@@ -1477,6 +1477,14 @@ impl TestContext {
         command
     }
 
+    /// Create a `fyn upgrade` command with options shared across scenarios.
+    pub fn upgrade(&self) -> Command {
+        let mut command = self.new_command();
+        command.arg("upgrade");
+        self.add_shared_options(&mut command, false);
+        command
+    }
+
     /// Create a `fyn workspace metadata` command with options shared across scenarios.
     pub fn workspace_metadata(&self) -> Command {
         let mut command = self.new_command();

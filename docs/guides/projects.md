@@ -154,13 +154,23 @@ To upgrade a package, run `fyn upgrade` with the package name:
 $ fyn upgrade requests
 ```
 
-`fyn upgrade` is a convenience command that re-locks with upgrade semantics and then syncs the
-environment. If you want to preview the change first, use `--dry-run`. If you want to update the
-lockfile without syncing the environment yet, use `--no-sync`.
+`fyn upgrade` resolves the newest version of each selected direct dependency, updates any blocking
+version constraint in `pyproject.toml`, writes the matching `fyn.lock`, and syncs the environment.
+It preserves lower bounds, exclusions, extras, markers, and the existing constraint style where
+possible. If locking or syncing fails, the manifest and lockfile are restored.
+
+If you want to preview the manifest and lock changes first, use `--dry-run`. If you want to update
+the manifest and lockfile without syncing the environment yet, use `--no-sync`. When upgrading all
+direct dependencies, use `--exclude` to leave specific packages alone.
+
+The command currently upgrades declarations in `[project].dependencies` for single-project
+workspaces. Optional dependencies, dependency groups, and multi-member workspaces are not yet
+supported.
 
 ```console
 $ fyn upgrade --dry-run
 $ fyn upgrade --no-sync requests
+$ fyn upgrade --exclude django
 ```
 
 If you want the lower-level equivalent, run `fyn lock` with the `--upgrade-package` flag:

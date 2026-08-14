@@ -164,17 +164,24 @@ Upgrade all or specific dependencies in one command:
 
 ```console
 $ fyn upgrade
-info: Upgrading all dependencies...
 success: Dependencies upgraded successfully.
 
 $ fyn upgrade requests flask
-info: Upgrading: requests, flask
+success: Dependencies upgraded successfully.
+
+$ fyn upgrade --exclude django
 success: Dependencies upgraded successfully.
 ```
 
-Supports `--dry-run` and `--no-sync`.
+`fyn upgrade` resolves the newest versions of the selected direct dependencies, widens only the
+version constraints that block those versions, updates `pyproject.toml` and `fyn.lock`, and syncs
+the environment. Lower bounds, exclusions, extras, markers, and the existing constraint style are
+preserved where possible.
 
-`fyn upgrade` is the convenience form of running `fyn lock --upgrade` and then `fyn sync`.
+Use `--dry-run` to preview both lock and requirement changes, `--no-sync` to update the manifest and
+lockfile without touching the environment, and `--exclude PACKAGE` to omit dependencies from an
+all-package upgrade. Manifest and lockfile changes are rolled back if locking or syncing fails. This
+first version upgrades `[project].dependencies` in single-project workspaces.
 
 ### Explain dependencies
 
@@ -430,19 +437,19 @@ behavior. Projects still need `[tool.uv]` renamed to `[tool.fyn]` and `uv.lock` 
 See [MANIFESTO.md](https://github.com/duriantaco/fyn/blob/main/MANIFESTO.md) for the fuller
 comparison, or the table below for some of the larger user-visible differences:
 
-| Area                          | uv                                    | fyn                                           |
-| ----------------------------- | ------------------------------------- | --------------------------------------------- |
-| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock`                      |
-| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`                       |
-| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                            |
-| `shell` command               | No `uv shell`                         | `fyn shell`                                   |
-| `upgrade` command             | No `uv upgrade`                       | `fyn upgrade`                                 |
-| `why` command                 | No `uv why`                           | `fyn why`                                     |
-| `status` command              | No `uv status`                        | `fyn status`                                  |
-| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`                            |
-| Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project`: `warn`, `error`, or `allow` |
-| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                           |
-| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`                                 |
+| Area                          | uv                                    | fyn                                             |
+| ----------------------------- | ------------------------------------- | ----------------------------------------------- |
+| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock`                        |
+| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`                         |
+| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                              |
+| `shell` command               | No `uv shell`                         | `fyn shell`                                     |
+| `upgrade` command             | Hidden, manifest-only experiment      | Public; updates manifest, lock, and environment |
+| `why` command                 | No `uv why`                           | `fyn why`                                       |
+| `status` command              | No `uv status`                        | `fyn status`                                    |
+| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`                              |
+| Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project`: `warn`, `error`, or `allow`   |
+| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                             |
+| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`                                   |
 
 ## Acknowledgements
 
