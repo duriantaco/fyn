@@ -33254,6 +33254,8 @@ fn test_tilde_equals_python_version() -> Result<()> {
 fn lock_exclude_newer_package_disable() -> Result<()> {
     let context = fyn_test::test_context!("3.12");
 
+    // Pin a release newer than the global cutoff so the snapshot remains stable while still
+    // requiring the per-package override.
     let pyproject_toml = context.temp_dir.child("pyproject.toml");
     pyproject_toml.write_str(
         r#"
@@ -33261,7 +33263,7 @@ fn lock_exclude_newer_package_disable() -> Result<()> {
         name = "project"
         version = "0.1.0"
         requires-python = ">=3.12"
-        dependencies = ["idna", "iniconfig"]
+        dependencies = ["idna==3.6", "iniconfig"]
         "#,
     )?;
 
@@ -33300,11 +33302,11 @@ fn lock_exclude_newer_package_disable() -> Result<()> {
 
         [[package]]
         name = "idna"
-        version = "3.18"
+        version = "3.6"
         source = { registry = "https://pypi.org/simple" }
-        sdist = { url = "https://files.pythonhosted.org/packages/cd/63/9496c57188a2ee585e0f1db071d75089a11e98aa86eb99d9d7618fc1edce/idna-3.18.tar.gz", hash = "sha256:ffb385a7e039654cef1ab9ef32c6fafe283c0c0467bba1d9029738ce4a14a848", size = 196711, upload-time = "2026-06-02T14:34:07.794Z" }
+        sdist = { url = "https://files.pythonhosted.org/packages/bf/3f/ea4b9117521a1e9c50344b909be7886dd00a519552724809bb1f486986c2/idna-3.6.tar.gz", hash = "sha256:9ecdbbd083b06798ae1e86adcbfe8ab1479cf864e4ee30fe4e46a003d12491ca", size = 175426, upload-time = "2023-11-25T15:40:54.902Z" }
         wheels = [
-            { url = "https://files.pythonhosted.org/packages/1e/5e/d4e9f1a599fb8e573b7b87160658329fbf28d19eac2718f51fc3def3aa5a/idna-3.18-py3-none-any.whl", hash = "sha256:7f952cbe720b688055e3f87de14f5c3e5fdaa8bc3928985c4077ca689de849a2", size = 65455, upload-time = "2026-06-02T14:34:06.319Z" },
+            { url = "https://files.pythonhosted.org/packages/c2/e7/a82b05cf63a603df6e68d59ae6a68bf5064484a0718ea5033660af4b54a9/idna-3.6-py3-none-any.whl", hash = "sha256:c05567e9c24a6b9faaa835c4821bad0590fbb9d5779e7caa6e1cc4978e7eb24f", size = 61567, upload-time = "2023-11-25T15:40:52.604Z" },
         ]
 
         [[package]]
@@ -33327,7 +33329,7 @@ fn lock_exclude_newer_package_disable() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "idna" },
+            { name = "idna", specifier = "==3.6" },
             { name = "iniconfig" },
         ]
         "#
