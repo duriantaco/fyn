@@ -18,10 +18,12 @@ use futures::{StreamExt as _, TryStreamExt as _};
 use fyn_cache::{Cache, CacheBucket, CacheEntry};
 use fyn_client::{CacheControl, CachedClient, CachedClientError};
 use fyn_configuration::Concurrency;
+use fyn_normalize::PackageName;
 use fyn_pep440::Version;
 use fyn_redacted::{DisplaySafeUrl, DisplaySafeUrlError};
 use jiff::Timestamp;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 pub static API_BASE: LazyLock<DisplaySafeUrl> = LazyLock::new(|| {
     DisplaySafeUrl::parse("https://api.osv.dev/").expect("embedded OSV URL is a valid URL")
@@ -46,10 +48,26 @@ pub enum Error {
         #[source]
         err: reqwest_middleware::Error,
     },
+    /// The batch response did not contain exactly one result per query.
+    #[error("OSV returned {actual} batch results for {expected} queries")]
+    BatchCardinality { expected: usize, actual: usize },
+    /// OSV returned a pagination token that was already seen for this dependency.
+    #[error("OSV repeated a pagination token for `{package}=={version}`")]
+    RepeatedPageToken { package: String, version: String },
+    /// OSV returned more pages than the client permits for a single dependency.
+    #[error("OSV pagination exceeded the limit of {limit} pages for `{package}=={version}`")]
+    PaginationLimit {
+        package: String,
+        version: String,
+        limit: usize,
+    },
+    /// OSV returned an ID that cannot be represented as one URL path segment.
+    #[error("OSV returned an invalid vulnerability ID")]
+    InvalidVulnerabilityId,
 }
 
 /// Package specification for OSV queries.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Package {
     /// The package's name.
     name: String,
@@ -113,6 +131,7 @@ struct Range {
 /// Package affected by a vulnerability.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Affected {
+    package: Package,
     ranges: Option<Vec<Range>>,
     // TODO: Enable these fields if/when they contain information that's
     // useful to us, e.g. metadata that constrains a vulnerability to specific
@@ -223,6 +242,78 @@ impl Filter {
 /// We use a TTL of 10 minutes for alignment with PyPI.
 const VULN_CACHE_CONTROL: &str = "max-age=600";
 
+/// Maximum number of pages accepted for any single dependency query.
+///
+/// OSV page tokens are opaque and the service does not document a fixed upper bound. This generous
+/// limit prevents a faulty or malicious endpoint from keeping an audit in an unbounded request loop.
+const MAX_PAGES_PER_QUERY: usize = 100;
+
+/// A dependency query that still has an OSV page to fetch.
+struct PendingQuery<'a> {
+    dependency_index: usize,
+    dependency: &'a types::Dependency,
+    page_token: Option<String>,
+    pages_fetched: usize,
+}
+
+/// Return a deterministic, path-safe cache filename for an untrusted vulnerability ID.
+fn vulnerability_cache_filename(base_url: &DisplaySafeUrl, id: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(base_url.as_str().as_bytes());
+    hasher.update([0]);
+    hasher.update(id.as_bytes());
+    format!("{:x}.msgpack", hasher.finalize())
+}
+
+/// Build an OSV detail URL while treating the vulnerability ID as one opaque path segment.
+fn vulnerability_detail_url(base_url: &DisplaySafeUrl, id: &str) -> Result<DisplaySafeUrl, Error> {
+    if id.is_empty() || matches!(id, "." | "..") {
+        return Err(Error::InvalidVulnerabilityId);
+    }
+    let mut url = base_url
+        .join("v1/vulns/")
+        .map_err(|err| Error::Url(base_url.clone(), err))?;
+    url.path_segments_mut()
+        .expect("a URL that accepts a relative path must have path segments")
+        .pop_if_empty()
+        .push(id);
+    Ok(url)
+}
+
+/// Build the public advisory URL while treating the vulnerability ID as one opaque path segment.
+fn vulnerability_advisory_url(id: &str) -> DisplaySafeUrl {
+    let mut url =
+        DisplaySafeUrl::parse("https://osv.dev/vulnerability/").expect("embedded OSV URL is valid");
+    url.path_segments_mut()
+        .expect("embedded OSV URL has path segments")
+        .pop_if_empty()
+        .push(id);
+    url
+}
+
+/// Validate and record a pagination token before scheduling another page.
+fn validate_next_page_token(
+    dependency: &types::Dependency,
+    pages_fetched: usize,
+    token: &str,
+    seen_tokens: &mut FxHashSet<String>,
+) -> Result<(), Error> {
+    if pages_fetched >= MAX_PAGES_PER_QUERY {
+        return Err(Error::PaginationLimit {
+            package: dependency.name().to_string(),
+            version: dependency.version().to_string(),
+            limit: MAX_PAGES_PER_QUERY,
+        });
+    }
+    if !seen_tokens.insert(token.to_string()) {
+        return Err(Error::RepeatedPageToken {
+            package: dependency.name().to_string(),
+            version: dependency.version().to_string(),
+        });
+    }
+    Ok(())
+}
+
 /// Represents [OSV](https://osv.dev/), an open-source vulnerability database.
 pub struct Osv {
     base_url: DisplaySafeUrl,
@@ -254,7 +345,10 @@ impl Osv {
     /// Return a [`CacheEntry`] for a full vulnerability record.
     fn vuln_cache_entry(&self, id: &str) -> CacheEntry {
         let bucket = self.cache.bucket(CacheBucket::Osv);
-        CacheEntry::new(bucket.join("vulnerability"), format!("{id}.msgpack"))
+        CacheEntry::new(
+            bucket.join("vulnerability"),
+            vulnerability_cache_filename(&self.base_url, id),
+        )
     }
 
     /// Query OSV for vulnerabilities affecting the given dependencies, returning only vulnerability IDs.
@@ -272,21 +366,30 @@ impl Osv {
         let mut result_map: IndexMap<&types::Dependency, FxHashSet<VulnerabilityID>> =
             IndexMap::default();
 
-        // Pending queries: (dependency, page_token). Initially one per dependency with no token.
-        let mut pending: Vec<(&types::Dependency, Option<String>)> =
-            dependencies.iter().map(|dep| (dep, None)).collect();
+        // Initially, each dependency has one pending query with no page token.
+        let mut pending: Vec<PendingQuery<'_>> = dependencies
+            .iter()
+            .enumerate()
+            .map(|(dependency_index, dependency)| PendingQuery {
+                dependency_index,
+                dependency,
+                page_token: None,
+                pages_fetched: 1,
+            })
+            .collect();
+        let mut seen_page_tokens = vec![FxHashSet::default(); dependencies.len()];
 
         loop {
             let request = QueryBatchRequest {
                 queries: pending
                     .iter()
-                    .map(|(dep, page_token)| QueryRequest {
+                    .map(|pending| QueryRequest {
                         package: Package {
-                            name: dep.name().to_string(),
+                            name: pending.dependency.name().to_string(),
                             ecosystem: "PyPI".to_string(),
                         },
-                        version: dep.version().to_string(),
-                        page_token: page_token.clone(),
+                        version: pending.dependency.version().to_string(),
+                        page_token: pending.page_token.clone(),
                     })
                     .collect(),
             };
@@ -313,18 +416,36 @@ impl Osv {
                 .await
                 .map_err(reqwest_middleware::Error::Reqwest)?;
 
+            if batch_response.results.len() != pending.len() {
+                return Err(Error::BatchCardinality {
+                    expected: pending.len(),
+                    actual: batch_response.results.len(),
+                });
+            }
+
             let mut next_pending = Vec::new();
-            for ((dep, _), batch_result) in pending.iter().zip(batch_response.results.iter()) {
-                let ids = result_map.entry(dep).or_default();
+            for (pending, batch_result) in pending.into_iter().zip(batch_response.results) {
+                let ids = result_map.entry(pending.dependency).or_default();
                 ids.extend(
                     batch_result
                         .vulns
-                        .iter()
+                        .into_iter()
                         .filter(|v| filter.matches(&v.id))
-                        .map(|v| VulnerabilityID::new(v.id.clone())),
+                        .map(|v| VulnerabilityID::new(v.id)),
                 );
-                if let Some(token) = &batch_result.next_page_token {
-                    next_pending.push((*dep, Some(token.clone())));
+                if let Some(token) = batch_result.next_page_token {
+                    validate_next_page_token(
+                        pending.dependency,
+                        pending.pages_fetched,
+                        &token,
+                        &mut seen_page_tokens[pending.dependency_index],
+                    )?;
+                    next_pending.push(PendingQuery {
+                        dependency_index: pending.dependency_index,
+                        dependency: pending.dependency,
+                        page_token: Some(token),
+                        pages_fetched: pending.pages_fetched + 1,
+                    });
                 }
             }
 
@@ -383,10 +504,7 @@ impl Osv {
     /// a synthetic `Cache-Control: max-age=600` header, since OSV itself does
     /// not send caching headers.
     async fn fetch_vuln(&self, id: &str) -> Result<Vulnerability, Error> {
-        let url = self
-            .base_url
-            .join(&format!("v1/vulns/{id}"))
-            .map_err(|e| Error::Url(self.base_url.clone(), e))?;
+        let url = vulnerability_detail_url(&self.base_url, id)?;
 
         let cache_entry = self.vuln_cache_entry(id);
         let req = self
@@ -414,6 +532,9 @@ impl Osv {
                     err: reqwest_middleware::Error::Reqwest(err),
                 },
             })?;
+        if vuln.id.is_empty() || matches!(vuln.id.as_str(), "." | "..") {
+            return Err(Error::InvalidVulnerabilityId);
+        }
         Ok(vuln)
     }
 
@@ -440,16 +561,19 @@ impl Osv {
                     })
                     .map(|reference| reference.url.clone())
             })
-            .unwrap_or_else(|| {
-                DisplaySafeUrl::parse(&format!("https://osv.dev/vulnerability/{}", vuln.id))
-                    .expect("impossible: synthesized URL is invalid")
-            });
+            .unwrap_or_else(|| vulnerability_advisory_url(&vuln.id));
 
         // Extract fix versions from affected ranges
         let fix_versions = vuln
             .affected
             .iter()
             .flatten()
+            .filter(|affected| {
+                affected.package.ecosystem.eq_ignore_ascii_case("PyPI")
+                    && (affected.package.name == "*"
+                        || PackageName::from_str(&affected.package.name)
+                            .is_ok_and(|name| &name == dependency.name()))
+            })
             .flat_map(|affected| affected.ranges.iter().flatten())
             .filter(|range| matches!(range.range_type, RangeType::Ecosystem))
             .flat_map(|range| &range.events)
@@ -511,11 +635,13 @@ mod tests {
     use wiremock::matchers::{body_json, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
-    use crate::service::osv::{Filter, RangeType};
+    use crate::service::osv::{Error, Filter, RangeType};
     use crate::types::{Dependency, Finding};
 
-    use super::Event;
-    use super::Osv;
+    use super::{
+        Event, MAX_PAGES_PER_QUERY, Osv, Vulnerability, validate_next_page_token,
+        vulnerability_advisory_url, vulnerability_cache_filename, vulnerability_detail_url,
+    };
 
     /// Create a [`CachedClient`] suitable for tests (no retries, no cache).
     fn test_client() -> CachedClient {
@@ -565,6 +691,80 @@ mod tests {
             Other,
         ]
         ");
+    }
+
+    #[test]
+    fn test_vulnerability_cache_filename_is_deterministic_and_path_safe() {
+        let base_url = DisplaySafeUrl::parse("https://example.com/osv/").unwrap();
+        let malicious_id = "../../outside/../../../tmp/owned";
+        let filename = vulnerability_cache_filename(&base_url, malicious_id);
+        let digest = filename
+            .strip_suffix(".msgpack")
+            .expect("cache filename should have the expected extension");
+
+        assert_eq!(digest.len(), 64);
+        assert!(digest.bytes().all(|byte| byte.is_ascii_hexdigit()));
+        assert_eq!(
+            filename,
+            vulnerability_cache_filename(&base_url, malicious_id)
+        );
+        assert_ne!(
+            filename,
+            vulnerability_cache_filename(
+                &DisplaySafeUrl::parse("https://other.example/osv/").unwrap(),
+                malicious_id,
+            )
+        );
+
+        let osv = Osv::new(
+            test_client(),
+            Some(base_url),
+            Concurrency::default(),
+            Cache::temp().unwrap(),
+        );
+        let entry = osv.vuln_cache_entry(malicious_id);
+        let expected_dir = osv
+            .cache
+            .bucket(fyn_cache::CacheBucket::Osv)
+            .join("vulnerability");
+        assert_eq!(entry.dir(), expected_dir);
+    }
+
+    #[test]
+    fn test_vulnerability_urls_treat_ids_as_opaque_path_segments() {
+        let id = "../../outside?query=yes#fragment";
+        let detail = vulnerability_detail_url(
+            &DisplaySafeUrl::parse("https://example.com/osv/").unwrap(),
+            id,
+        )
+        .unwrap();
+        assert_eq!(detail.query(), None);
+        assert_eq!(detail.fragment(), None);
+        assert!(detail.path().starts_with("/osv/v1/vulns/"));
+        assert!(
+            detail
+                .path()
+                .ends_with("..%2F..%2Foutside%3Fquery=yes%23fragment")
+        );
+
+        let advisory = vulnerability_advisory_url(id);
+        assert_eq!(advisory.query(), None);
+        assert_eq!(advisory.fragment(), None);
+        assert!(
+            advisory
+                .path()
+                .ends_with("..%2F..%2Foutside%3Fquery=yes%23fragment")
+        );
+
+        for invalid in ["", ".", ".."] {
+            assert!(matches!(
+                vulnerability_detail_url(
+                    &DisplaySafeUrl::parse("https://example.com/osv/").unwrap(),
+                    invalid,
+                ),
+                Err(Error::InvalidVulnerabilityId)
+            ));
+        }
     }
 
     /// Ensure that `query_identifiers` returns the correct vulnerability ID mapping.
@@ -646,6 +846,126 @@ mod tests {
             1,
             "Expected one querybatch request"
         );
+    }
+
+    /// A short batch response must be rejected instead of silently dropping dependencies.
+    #[tokio::test]
+    async fn test_query_identifiers_rejects_batch_cardinality_mismatch() {
+        let server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/v1/querybatch"))
+            .and(body_json(json!({
+                "queries": [
+                    {
+                        "package": { "name": "package-a", "ecosystem": "PyPI" },
+                        "version": "1.0.0",
+                    }
+                ]
+            })))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "results": [] })))
+            .mount(&server)
+            .await;
+
+        let osv = Osv::new(
+            test_client(),
+            Some(DisplaySafeUrl::parse(&server.uri()).unwrap()),
+            Concurrency::default(),
+            Cache::temp().unwrap(),
+        );
+        let dependencies = vec![Dependency::new(
+            PackageName::from_str("package-a").unwrap(),
+            Version::from_str("1.0.0").unwrap(),
+        )];
+
+        let error = osv
+            .query_identifiers(&dependencies, Filter::All)
+            .await
+            .expect_err("a short batch response must fail");
+        assert!(matches!(
+            error,
+            Error::BatchCardinality {
+                expected: 1,
+                actual: 0
+            }
+        ));
+    }
+
+    /// A repeated token must terminate pagination instead of causing an unbounded request loop.
+    #[tokio::test]
+    async fn test_query_identifiers_rejects_repeated_page_token() {
+        let server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/v1/querybatch"))
+            .and(body_json(json!({
+                "queries": [
+                    {
+                        "package": { "name": "package-a", "ecosystem": "PyPI" },
+                        "version": "1.0.0",
+                    }
+                ]
+            })))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "results": [{ "next_page_token": "repeat" }]
+            })))
+            .mount(&server)
+            .await;
+
+        Mock::given(method("POST"))
+            .and(path("/v1/querybatch"))
+            .and(body_json(json!({
+                "queries": [
+                    {
+                        "package": { "name": "package-a", "ecosystem": "PyPI" },
+                        "version": "1.0.0",
+                        "page_token": "repeat",
+                    }
+                ]
+            })))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "results": [{ "next_page_token": "repeat" }]
+            })))
+            .mount(&server)
+            .await;
+
+        let osv = Osv::new(
+            test_client(),
+            Some(DisplaySafeUrl::parse(&server.uri()).unwrap()),
+            Concurrency::default(),
+            Cache::temp().unwrap(),
+        );
+        let dependencies = vec![Dependency::new(
+            PackageName::from_str("package-a").unwrap(),
+            Version::from_str("1.0.0").unwrap(),
+        )];
+
+        let error = osv
+            .query_identifiers(&dependencies, Filter::All)
+            .await
+            .expect_err("a repeated page token must fail");
+        assert!(matches!(error, Error::RepeatedPageToken { .. }));
+        assert_eq!(server.received_requests().await.unwrap().len(), 2);
+    }
+
+    #[test]
+    fn test_pagination_limit_rejects_another_page() {
+        let dependency = Dependency::new(
+            PackageName::from_str("package-a").unwrap(),
+            Version::from_str("1.0.0").unwrap(),
+        );
+        let mut seen_tokens = rustc_hash::FxHashSet::default();
+
+        let error =
+            validate_next_page_token(&dependency, MAX_PAGES_PER_QUERY, "next", &mut seen_tokens)
+                .expect_err("pagination beyond the configured bound must fail");
+        assert!(matches!(
+            error,
+            Error::PaginationLimit {
+                limit: MAX_PAGES_PER_QUERY,
+                ..
+            }
+        ));
     }
 
     /// Ensure that `query_batch` returns the correct findings for a batch of dependencies
@@ -1001,5 +1321,83 @@ mod tests {
             2,
             "Expected one querybatch request and one vulnerability detail request"
         );
+    }
+
+    #[test]
+    fn test_fix_versions_are_scoped_to_queried_pypi_package() {
+        let dependency = Dependency::new(
+            PackageName::from_str("package-a").unwrap(),
+            Version::from_str("1.0.0").unwrap(),
+        );
+        let vulnerability: Vulnerability = serde_json::from_value(json!({
+            "id": "VULN-1",
+            "modified": "2026-01-01T00:00:00Z",
+            "affected": [
+                {
+                    "package": { "name": "Package_A", "ecosystem": "PyPI" },
+                    "ranges": [{
+                        "type": "ECOSYSTEM",
+                        "events": [{ "introduced": "0" }, { "fixed": "2.0.0" }]
+                    }]
+                },
+                {
+                    "package": { "name": "*", "ecosystem": "PyPI" },
+                    "ranges": [{
+                        "type": "ECOSYSTEM",
+                        "events": [{ "fixed": "3.0.0" }]
+                    }]
+                },
+                {
+                    "package": { "name": "package-b", "ecosystem": "PyPI" },
+                    "ranges": [{
+                        "type": "ECOSYSTEM",
+                        "events": [{ "fixed": "99.0.0" }]
+                    }]
+                },
+                {
+                    "package": { "name": "package-a", "ecosystem": "npm" },
+                    "ranges": [{
+                        "type": "ECOSYSTEM",
+                        "events": [{ "fixed": "88.0.0" }]
+                    }]
+                },
+                {
+                    "package": { "name": "package-a", "ecosystem": "PyPI" },
+                    "ranges": [{
+                        "type": "SEMVER",
+                        "events": [{ "fixed": "77.0.0" }]
+                    }]
+                },
+            ]
+        }))
+        .expect("valid OSV vulnerability fixture");
+
+        let Finding::Vulnerability(finding) =
+            Osv::vulnerability_to_finding(&dependency, vulnerability)
+        else {
+            unreachable!();
+        };
+        assert_eq!(
+            finding.fix_versions,
+            vec![
+                Version::from_str("2.0.0").unwrap(),
+                Version::from_str("3.0.0").unwrap()
+            ]
+        );
+    }
+
+    #[test]
+    fn test_affected_entry_requires_package() {
+        let vulnerability = serde_json::from_value::<Vulnerability>(json!({
+            "id": "VULN-1",
+            "modified": "2026-01-01T00:00:00Z",
+            "affected": [{
+                "ranges": [{
+                    "type": "ECOSYSTEM",
+                    "events": [{ "fixed": "2.0.0" }]
+                }]
+            }]
+        }));
+        assert!(vulnerability.is_err());
     }
 }
