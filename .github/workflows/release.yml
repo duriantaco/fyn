@@ -63,6 +63,17 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: Validate release source
+        if: ${{ inputs.tag != 'dry-run' }}
+        env:
+          RELEASE_REF: ${{ github.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RELEASE_REF" != "refs/heads/main" ]]; then
+            echo "Publishing releases must run from refs/heads/main (got ${RELEASE_REF})."
+            exit 1
+          fi
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
