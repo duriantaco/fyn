@@ -570,9 +570,9 @@ impl Osv {
             .iter()
             .flatten()
             .filter(|affected| {
-                // The batch response already associated this vulnerability with the queried
-                // dependency, so preserve that association when the detail omits its package.
-                affected.package.as_ref().is_none_or(|package| {
+                // Without package metadata, we cannot know that an ecosystem range uses PyPI
+                // versions or belongs to the queried dependency.
+                affected.package.as_ref().is_some_and(|package| {
                     package.ecosystem.eq_ignore_ascii_case("PyPI")
                         && (package.name == "*"
                             || PackageName::from_str(&package.name)
@@ -1373,6 +1373,12 @@ mod tests {
                         "events": [{ "fixed": "77.0.0" }]
                     }]
                 },
+                {
+                    "ranges": [{
+                        "type": "ECOSYSTEM",
+                        "events": [{ "fixed": "66.0.0" }]
+                    }]
+                },
             ]
         }))
         .expect("valid OSV vulnerability fixture");
@@ -1392,7 +1398,7 @@ mod tests {
     }
 
     #[test]
-    fn test_affected_entry_without_package_uses_queried_dependency() {
+    fn test_affected_entry_without_package_is_accepted_but_has_no_pypi_fix() {
         let dependency = Dependency::new(
             PackageName::from_str("package-a").unwrap(),
             Version::from_str("1.0.0").unwrap(),
@@ -1414,9 +1420,6 @@ mod tests {
         else {
             unreachable!();
         };
-        assert_eq!(
-            finding.fix_versions,
-            vec![Version::from_str("2.0.0").unwrap()]
-        );
+        assert!(finding.fix_versions.is_empty());
     }
 }

@@ -45,6 +45,7 @@ async fn mock_osv_vulnerability(
 
     let affected = fixed.map(|fixed| {
         json!([{
+            "package": { "name": package, "ecosystem": "PyPI" },
             "ranges": [{
                 "type": "ECOSYSTEM",
                 "events": [
@@ -241,6 +242,7 @@ async fn audit_ignore_by_id() {
             "modified": "2026-01-01T00:00:00Z",
             "summary": "A test vulnerability in iniconfig",
             "affected": [{
+                "package": { "name": "iniconfig", "ecosystem": "PyPI" },
                 "ranges": [{
                     "type": "ECOSYSTEM",
                     "events": [
@@ -729,6 +731,7 @@ async fn audit_ignore_until_fixed_with_fix() {
             "modified": "2026-01-01T00:00:00Z",
             "summary": "A test vulnerability in iniconfig",
             "affected": [{
+                "package": { "name": "iniconfig", "ecosystem": "PyPI" },
                 "ranges": [{
                     "type": "ECOSYSTEM",
                     "events": [
@@ -806,6 +809,7 @@ async fn audit_ignore_config() {
             "modified": "2026-01-01T00:00:00Z",
             "summary": "A test vulnerability in iniconfig",
             "affected": [{
+                "package": { "name": "iniconfig", "ecosystem": "PyPI" },
                 "ranges": [{
                     "type": "ECOSYSTEM",
                     "events": [
@@ -1012,6 +1016,7 @@ async fn audit_ignore_mixed_matched_unmatched() {
             "modified": "2026-01-01T00:00:00Z",
             "summary": "A test vulnerability in iniconfig",
             "affected": [{
+                "package": { "name": "iniconfig", "ecosystem": "PyPI" },
                 "ranges": [{
                     "type": "ECOSYSTEM",
                     "events": [
@@ -1164,6 +1169,7 @@ async fn audit_script_vulnerability_found() {
             "modified": "2026-01-01T00:00:00Z",
             "summary": "A test vulnerability in iniconfig",
             "affected": [{
+                "package": { "name": "iniconfig", "ecosystem": "PyPI" },
                 "ranges": [{
                     "type": "ECOSYSTEM",
                     "events": [
