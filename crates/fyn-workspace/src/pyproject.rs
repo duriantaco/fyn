@@ -384,8 +384,8 @@ pub struct Toolfyn {
 
     /// Project tasks that can be run via `fyn run <name>`.
     ///
-    /// Each task is either a command string or a table with `cmd`, `chain`,
-    /// `description`, and `env` fields.
+    /// Each task is a command string, a sequence of command strings, or a table with `cmd`,
+    /// `chain`, `description`, and `env` fields.
     #[option(
         default = "{}",
         value_type = "dict",
@@ -393,6 +393,7 @@ pub struct Toolfyn {
             [tool.fyn.tasks]
             test = "pytest -xvs"
             lint = "ruff check ."
+            verify = ["ruff check .", "pytest -q"]
             format = { cmd = "ruff format .", description = "Format code" }
             check = { chain = ["lint", "test"], description = "Lint then test" }
         "#
@@ -805,14 +806,16 @@ impl<'de> serde::de::Deserialize<'de> for ToolfynTasks {
 
 /// A task that can be run via `fyn run <name>`.
 ///
-/// Supports both a simple string form (`"pytest -xvs"`) and a table form
-/// with optional fields like `description`, `chain`, and `env`.
+/// Supports a simple string (`"pytest -xvs"`), a command sequence, and a table with optional
+/// fields like `description`, `chain`, and `env`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(test, derive(Serialize))]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema), schemars(untagged))]
 pub enum TaskDefinition {
     /// A plain command string, e.g. `test = "pytest -xvs"`.
     Cmd(String),
+    /// A sequence of command strings, executed in order and stopped on the first failure.
+    Sequence(#[cfg_attr(feature = "schemars", schemars(length(min = 1)))] Vec<String>),
     /// A table with structured options.
     Detailed(DetailedTask),
 }
@@ -822,6 +825,7 @@ impl TaskDefinition {
     pub fn description(&self) -> &str {
         match self {
             Self::Cmd(cmd) => cmd.as_str(),
+            Self::Sequence(_) => "(command sequence)",
             Self::Detailed(task) => task
                 .description
                 .as_deref()
@@ -839,6 +843,23 @@ impl<'de> serde::de::Deserialize<'de> for TaskDefinition {
         let value = toml::Value::deserialize(deserializer)?;
         match value {
             toml::Value::String(s) => Ok(Self::Cmd(s)),
+            toml::Value::Array(values) => {
+                let commands = values
+                    .into_iter()
+                    .map(|value| match value {
+                        toml::Value::String(command) => Ok(command),
+                        _ => Err(serde::de::Error::custom(
+                            "expected every task sequence entry to be a string",
+                        )),
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
+                if commands.is_empty() {
+                    return Err(serde::de::Error::custom(
+                        "task command sequence must contain at least one command",
+                    ));
+                }
+                Ok(Self::Sequence(commands))
+            }
             toml::Value::Table(t) => {
                 let task: DetailedTask = toml::Value::Table(t)
                     .try_into()
@@ -846,7 +867,7 @@ impl<'de> serde::de::Deserialize<'de> for TaskDefinition {
                 Ok(Self::Detailed(task))
             }
             _ => Err(serde::de::Error::custom(
-                "expected a string or table for task definition",
+                "expected a string, array of strings, or table for task definition",
             )),
         }
     }

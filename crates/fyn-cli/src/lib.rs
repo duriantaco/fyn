@@ -4814,6 +4814,33 @@ pub struct RunArgs {
     #[arg(long, conflicts_with = "package")]
     pub all_packages: bool,
 
+    /// Run a named task in every child workspace member that defines it.
+    ///
+    /// Tasks are executed in dependency order. Independent tasks run in parallel by default, after
+    /// the workspace environment has been synchronized once with all packages installed.
+    #[arg(
+        long,
+        conflicts_with_all = ["all_packages", "package", "no_project", "module", "script", "gui_script"]
+    )]
+    pub workspace: bool,
+
+    /// Run workspace tasks one at a time.
+    ///
+    /// By default, independent workspace tasks run in parallel.
+    #[arg(long, requires = "workspace")]
+    pub sequential: bool,
+
+    /// Restrict a workspace task run to the named package.
+    ///
+    /// May be provided multiple times or as a comma-separated list.
+    #[arg(
+        long,
+        requires = "workspace",
+        value_delimiter = ',',
+        value_hint = ValueHint::Other
+    )]
+    pub filter: Vec<PackageName>,
+
     /// Run the command in a specific package in the workspace.
     ///
     /// If the workspace member does not exist, fyn will exit with an error.
