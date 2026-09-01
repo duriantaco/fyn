@@ -131,7 +131,8 @@ struct Range {
 /// Package affected by a vulnerability.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Affected {
-    package: Package,
+    /// Optional for records that identify affected code without package metadata.
+    package: Option<Package>,
     ranges: Option<Vec<Range>>,
     // TODO: Enable these fields if/when they contain information that's
     // useful to us, e.g. metadata that constrains a vulnerability to specific
@@ -569,10 +570,14 @@ impl Osv {
             .iter()
             .flatten()
             .filter(|affected| {
-                affected.package.ecosystem.eq_ignore_ascii_case("PyPI")
-                    && (affected.package.name == "*"
-                        || PackageName::from_str(&affected.package.name)
-                            .is_ok_and(|name| &name == dependency.name()))
+                // The batch response already associated this vulnerability with the queried
+                // dependency, so preserve that association when the detail omits its package.
+                affected.package.as_ref().is_none_or(|package| {
+                    package.ecosystem.eq_ignore_ascii_case("PyPI")
+                        && (package.name == "*"
+                            || PackageName::from_str(&package.name)
+                                .is_ok_and(|name| &name == dependency.name()))
+                })
             })
             .flat_map(|affected| affected.ranges.iter().flatten())
             .filter(|range| matches!(range.range_type, RangeType::Ecosystem))
@@ -1387,7 +1392,11 @@ mod tests {
     }
 
     #[test]
-    fn test_affected_entry_requires_package() {
+    fn test_affected_entry_without_package_uses_queried_dependency() {
+        let dependency = Dependency::new(
+            PackageName::from_str("package-a").unwrap(),
+            Version::from_str("1.0.0").unwrap(),
+        );
         let vulnerability = serde_json::from_value::<Vulnerability>(json!({
             "id": "VULN-1",
             "modified": "2026-01-01T00:00:00Z",
@@ -1397,7 +1406,17 @@ mod tests {
                     "events": [{ "fixed": "2.0.0" }]
                 }]
             }]
-        }));
-        assert!(vulnerability.is_err());
+        }))
+        .expect("OSV permits affected entries without package metadata");
+
+        let Finding::Vulnerability(finding) =
+            Osv::vulnerability_to_finding(&dependency, vulnerability)
+        else {
+            unreachable!();
+        };
+        assert_eq!(
+            finding.fix_versions,
+            vec![Version::from_str("2.0.0").unwrap()]
+        );
     }
 }
