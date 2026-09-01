@@ -222,6 +222,7 @@ jobs:
     needs: plan
     if: ${{ needs.plan.outputs.build-release-binaries == 'true' }}
     uses: ./.github/workflows/build-release-binaries.yml
+    secrets: inherit
 
   build-docker:
     needs: plan
@@ -229,9 +230,7 @@ jobs:
     uses: ./.github/workflows/build-docker.yml
     with:
       push-dev: ${{ needs.plan.outputs.push-docker == 'true' }}
-    secrets:
-      DOCKERHUB_TOKEN_RO: ${{ secrets.DOCKERHUB_TOKEN_RO }}
-      DOCKERHUB_TOKEN_RW: ${{ secrets.DOCKERHUB_TOKEN_RW }}
+    secrets: inherit
     permissions:
       contents: read
       id-token: write

@@ -140,7 +140,7 @@ pub(crate) async fn shell(
     if status.success() {
         Ok(ExitStatus::Success)
     } else {
-        let code = status.code().unwrap_or(1);
+        let code = u8::try_from(status.code().unwrap_or(1)).unwrap_or(1);
         Ok(ExitStatus::External(code))
     }
 }

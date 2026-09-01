@@ -51,7 +51,6 @@ use fyn_settings::PipInProjectPolicy;
 use fyn_settings::{Combine, EnvironmentOptions, FilesystemOptions, Options};
 use fyn_static::EnvVars;
 use fyn_warnings::{warn_user, warn_user_once};
-use fyn_workspace::pyproject::PyProjectToml;
 use fyn_workspace::{DiscoveryOptions, Workspace, WorkspaceCache};
 
 use crate::commands::{
@@ -283,9 +282,6 @@ async fn run(
             script,
             gui_script,
             no_project,
-            workspace,
-            sequential,
-            filter,
             ..
         }) = &mut **command
         {
@@ -315,9 +311,6 @@ async fn run(
                     *gui_script,
                     &project_dir,
                     *no_project,
-                    *workspace,
-                    *sequential,
-                    filter.clone(),
                 )
                 .await?,
             )
@@ -2616,54 +2609,7 @@ async fn run_project(
         ProjectCommand::Run(args) => {
             // Handle --list-tasks early, before full settings resolution.
             if args.list_tasks {
-                if args.workspace {
-                    let workspace = Workspace::discover(
-                        project_dir,
-                        &DiscoveryOptions::default(),
-                        workspace_cache,
-                    )
-                    .await?;
-                    for filter in &args.filter {
-                        let member = workspace.packages().get(filter).ok_or_else(|| {
-                            anyhow!("Package `{filter}` is not a member of the workspace")
-                        })?;
-                        if member.root() == workspace.install_path() {
-                            bail!(
-                                "Package `{filter}` is the workspace root; omit `--workspace` to list its tasks"
-                            );
-                        }
-                    }
-
-                    let mut found = false;
-                    for (name, member) in workspace.packages() {
-                        if member.root() == workspace.install_path()
-                            || (!args.filter.is_empty() && !args.filter.contains(name))
-                        {
-                            continue;
-                        }
-                        let Some(tasks) = member
-                            .pyproject_toml()
-                            .tool_fyn()
-                            .and_then(|tool| tool.tasks.as_ref())
-                            .filter(|tasks| !tasks.is_empty())
-                        else {
-                            continue;
-                        };
-                        if !found {
-                            eprintln!("Workspace tasks:");
-                            found = true;
-                        }
-                        eprintln!("  {name}:");
-                        for (task_name, task) in tasks.iter() {
-                            eprintln!("    {task_name:<14} {}", task.description());
-                        }
-                    }
-                    if !found {
-                        eprintln!("No tasks defined by child workspace members");
-                    }
-                    return Ok(ExitStatus::Success);
-                }
-
+                use fyn_workspace::pyproject::PyProjectToml;
                 if let Some(pyproject_path) = find_nearest_pyproject_path(project_dir) {
                     let content = fs_err::read_to_string(&pyproject_path)?;
                     if let Ok(pyproject) = toml::from_str::<PyProjectToml>(&content) {
@@ -2686,12 +2632,6 @@ async fn run_project(
                     eprintln!("No pyproject.toml found in {}", project_dir.display());
                 }
                 return Ok(ExitStatus::Success);
-            }
-
-            if args.workspace && args.command.is_none() {
-                bail!(
-                    "Workspace task execution requires a task name; use `fyn run --workspace --list-tasks` to inspect available tasks"
-                );
             }
 
             // Resolve the settings from the command-line arguments and workspace configuration.

@@ -122,7 +122,7 @@ pub(crate) enum ExitStatus {
     Error,
 
     /// The command's exit status is propagated from an external command.
-    External(i32),
+    External(u8),
 }
 
 impl From<ExitStatus> for ExitCode {
@@ -131,15 +131,7 @@ impl From<ExitStatus> for ExitCode {
             ExitStatus::Success => Self::from(0),
             ExitStatus::Failure => Self::from(1),
             ExitStatus::Error => Self::from(2),
-            ExitStatus::External(code) => match u8::try_from(code) {
-                Ok(code) => Self::from(code),
-                Err(_) => {
-                    // `std::process::ExitCode` only supports `u8`, while Windows child processes
-                    // can return any 32-bit status. Defer this direct exit until command cleanup
-                    // and reporting are complete.
-                    std::process::exit(code);
-                }
-            },
+            ExitStatus::External(code) => Self::from(code),
         }
     }
 }

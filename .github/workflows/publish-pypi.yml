@@ -3,7 +3,6 @@
 # Assumed to run as a subworkflow of .github/workflows/release.yml; specifically, as a publish job
 # within `cargo-dist`.
 name: "Publish to PyPI"
-permissions: {}
 
 on:
   workflow_dispatch:
@@ -19,154 +18,8 @@ on:
         type: string
 
 jobs:
-  validate-source:
-    name: Validate release source
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-    outputs:
-      run-id: ${{ steps.validate.outputs.run-id }}
-    steps:
-      - name: Validate workflow run and artifacts
-        id: validate
-        env:
-          CURRENT_REF: ${{ github.ref }}
-          GH_TOKEN: ${{ github.token }}
-          IS_MANUAL_PUBLISH: ${{ inputs.plan == '' }}
-          SOURCE_RUN_ID: ${{ inputs.plan != '' && github.run_id || inputs.run_id }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ "$CURRENT_REF" != "refs/heads/main" ]]; then
-            echo "PyPI publishing must run from refs/heads/main (got ${CURRENT_REF})."
-            exit 1
-          fi
-          if [[ ! "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]]; then
-            echo "Invalid release workflow run ID: ${SOURCE_RUN_ID}"
-            exit 1
-          fi
-
-          run_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}")"
-          workflow_path="$(jq -er '.path' <<< "$run_json")"
-          event="$(jq -er '.event' <<< "$run_json")"
-          status="$(jq -er '.status' <<< "$run_json")"
-          head_branch="$(jq -er '.head_branch' <<< "$run_json")"
-          head_sha="$(jq -er '.head_sha' <<< "$run_json")"
-          head_repo="$(jq -er '.head_repository.full_name' <<< "$run_json")"
-          run_repo="$(jq -er '.repository.full_name' <<< "$run_json")"
-
-          if [[ "$workflow_path" != ".github/workflows/release.yml" ]]; then
-            echo "Run ${SOURCE_RUN_ID} is from ${workflow_path}, not the release workflow."
-            exit 1
-          fi
-          if [[ "$event" != "workflow_dispatch" ]]; then
-            echo "Release run ${SOURCE_RUN_ID} was triggered by ${event}, not workflow_dispatch."
-            exit 1
-          fi
-          if [[ "$head_repo" != "$GITHUB_REPOSITORY" || "$run_repo" != "$GITHUB_REPOSITORY" ]]; then
-            echo "Release run ${SOURCE_RUN_ID} did not originate in ${GITHUB_REPOSITORY}."
-            exit 1
-          fi
-          if [[ "$head_branch" != "main" ]]; then
-            echo "Release run ${SOURCE_RUN_ID} used ${head_branch}, not main."
-            exit 1
-          fi
-          if [[ ! "$head_sha" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "Release run ${SOURCE_RUN_ID} has an invalid source SHA."
-            exit 1
-          fi
-
-          default_branch="$(gh api "repos/${GITHUB_REPOSITORY}" --jq '.default_branch')"
-          if [[ "$default_branch" != "main" ]]; then
-            echo "Expected main to be the repository default branch (got ${default_branch})."
-            exit 1
-          fi
-          comparison="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${head_sha}...main" --jq '.status')"
-          if [[ "$comparison" != "ahead" && "$comparison" != "identical" ]]; then
-            echo "Release SHA ${head_sha} is not an ancestor of the current main branch."
-            exit 1
-          fi
-
-          if [[ "$IS_MANUAL_PUBLISH" == "true" ]]; then
-            if [[ "$status" != "completed" ]]; then
-              echo "Release run ${SOURCE_RUN_ID} must be completed before recovery publishing."
-              exit 1
-            fi
-          elif [[ "$SOURCE_RUN_ID" != "$GITHUB_RUN_ID" ]]; then
-            echo "Reusable publishing must consume artifacts from its current workflow run."
-            exit 1
-          fi
-
-          host_conclusion="$(
-            gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/jobs" \
-              --paginate \
-              --jq '.jobs[] | select(.name == "host") | .conclusion'
-          )"
-          if [[ "$host_conclusion" != "success" ]]; then
-            echo "Release run ${SOURCE_RUN_ID} does not have a successful host job."
-            exit 1
-          fi
-
-          artifacts="$(
-            gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/artifacts" \
-              --paginate \
-              --jq '.artifacts[] | [.name, (.expired | tostring), (.size_in_bytes | tostring)] | @tsv'
-          )"
-          if [[ -z "$artifacts" ]]; then
-            echo "Release run ${SOURCE_RUN_ID} has no artifacts."
-            exit 1
-          fi
-
-          duplicate_names="$(cut -f1 <<< "$artifacts" | sort | uniq -d)"
-          if [[ -n "$duplicate_names" ]]; then
-            echo "Release run ${SOURCE_RUN_ID} has duplicate artifact names:"
-            printf '%s\n' "$duplicate_names"
-            exit 1
-          fi
-
-          validate_artifacts() {
-            local prefix="$1"
-            local package="$2"
-            local sdist_name="$3"
-            local count=0
-            local sdist_count=0
-            local wheel_count=0
-            local name expired size
-
-            while IFS=$'\t' read -r name expired size; do
-              [[ "$name" == "$prefix"* ]] || continue
-              count=$((count + 1))
-              if [[ "$expired" != "false" ]]; then
-                echo "Artifact ${name} has expired."
-                exit 1
-              fi
-              if [[ ! "$size" =~ ^[0-9]+$ || "$size" -eq 0 ]]; then
-                echo "Artifact ${name} is empty or has an invalid size."
-                exit 1
-              fi
-              if [[ "$name" == "$sdist_name" ]]; then
-                sdist_count=$((sdist_count + 1))
-              else
-                wheel_count=$((wheel_count + 1))
-              fi
-            done <<< "$artifacts"
-
-            if [[ "$count" -eq 0 || "$wheel_count" -eq 0 || "$sdist_count" -ne 1 ]]; then
-              echo "No ${package} artifacts found in release run ${SOURCE_RUN_ID}."
-              echo "Expected at least one wheel artifact and exactly one ${sdist_name} artifact."
-              exit 1
-            fi
-          }
-
-          validate_artifacts "wheels_fyn-" "fyn" "wheels_fyn-sdist"
-          validate_artifacts "wheels_fyn_build-" "fyn-build" "wheels_fyn_build-sdist"
-          echo "run-id=${SOURCE_RUN_ID}" >> "$GITHUB_OUTPUT"
-
   pypi-publish-fyn:
     name: Upload fyn to PyPI
-    needs: validate-source
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -179,34 +32,32 @@ jobs:
       - name: "Install uv"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: ${{ inputs.plan != '' }}
         with:
           pattern: wheels_fyn-*
           path: wheels_fyn
           merge-multiple: true
-          run-id: ${{ needs.validate-source.outputs.run-id }}
-          github-token: ${{ github.token }}
-      - name: Validate and publish distributions
-        shell: bash
+      - name: Download release artifacts
+        if: ${{ inputs.plan == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
         run: |
-          set -euo pipefail
-          shopt -s nullglob
-          wheels=(wheels_fyn/fyn-*.whl)
-          sdists=(wheels_fyn/fyn-*.tar.gz)
-          if (( ${#wheels[@]} == 0 || ${#sdists[@]} != 1 )); then
-            echo "Expected at least one fyn wheel and exactly one source distribution."
+          mkdir -p wheels_fyn
+          artifacts="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts" --paginate --jq '.artifacts[] | select(.name | startswith("wheels_fyn-")) | .name')"
+          if [ -z "$artifacts" ]; then
+            echo "No fyn wheel artifacts found for run ${RUN_ID}"
             exit 1
           fi
-          for distribution in "${wheels[@]}" "${sdists[@]}"; do
-            if [[ ! -s "$distribution" ]]; then
-              echo "Distribution ${distribution} is empty."
-              exit 1
-            fi
+
+          printf '%s\n' "$artifacts" | while read -r artifact; do
+            gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" -n "$artifact" -D wheels_fyn
           done
-          uv publish --trusted-publishing always -v "${wheels[@]}" "${sdists[@]}"
+      - name: Publish to PyPI
+        run: uv publish --trusted-publishing always -v wheels_fyn/*
 
   pypi-publish-fyn-build:
     name: Upload fyn-build to PyPI
-    needs: validate-source
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -219,27 +70,26 @@ jobs:
       - name: "Install uv"
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: ${{ inputs.plan != '' }}
         with:
           pattern: wheels_fyn_build-*
           path: wheels_fyn_build
           merge-multiple: true
-          run-id: ${{ needs.validate-source.outputs.run-id }}
-          github-token: ${{ github.token }}
-      - name: Validate and publish distributions
-        shell: bash
+      - name: Download release artifacts
+        if: ${{ inputs.plan == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
         run: |
-          set -euo pipefail
-          shopt -s nullglob
-          wheels=(wheels_fyn_build/fyn_build-*.whl)
-          sdists=(wheels_fyn_build/fyn_build-*.tar.gz)
-          if (( ${#wheels[@]} == 0 || ${#sdists[@]} != 1 )); then
-            echo "Expected at least one fyn-build wheel and exactly one source distribution."
+          mkdir -p wheels_fyn_build
+          artifacts="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts" --paginate --jq '.artifacts[] | select(.name | startswith("wheels_fyn_build-")) | .name')"
+          if [ -z "$artifacts" ]; then
+            echo "No fyn-build wheel artifacts found for run ${RUN_ID}"
             exit 1
           fi
-          for distribution in "${wheels[@]}" "${sdists[@]}"; do
-            if [[ ! -s "$distribution" ]]; then
-              echo "Distribution ${distribution} is empty."
-              exit 1
-            fi
+
+          printf '%s\n' "$artifacts" | while read -r artifact; do
+            gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" -n "$artifact" -D wheels_fyn_build
           done
-          uv publish --trusted-publishing always -v "${wheels[@]}" "${sdists[@]}"
+      - name: Publish to PyPI
+        run: uv publish --trusted-publishing always -v wheels_fyn_build/*
