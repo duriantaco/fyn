@@ -28,6 +28,11 @@ on:
         required: false
         type: boolean
         default: false
+    secrets:
+      DOCKERHUB_TOKEN_RO:
+        required: false
+      DOCKERHUB_TOKEN_RW:
+        required: false
 
 env:
   UV_GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ inputs.push-dev && 'fyn-dev' || 'fyn' }}
@@ -162,7 +167,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       - uses: depot/setup-action@b0b1ea4f69e92ebf5dea3f8713a1b0c37b2126a5
         if: ${{ needs.docker-plan.outputs.push == 'true' }}
@@ -283,7 +288,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       - uses: depot/setup-action@b0b1ea4f69e92ebf5dea3f8713a1b0c37b2126a5
         if: ${{ needs.docker-plan.outputs.push == 'true' }}
@@ -446,7 +451,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       # Depot doesn't support annotating images, so we need to do so manually
       # afterwards. Mutating the manifest is desirable regardless, because we
