@@ -1,34 +1,39 @@
 # fyn
 
-An extremely fast Python package and project manager, written in Rust.
+**Python projects, under control.**
 
-**fyn** is an independent community fork of [uv](https://github.com/astral-sh/uv). It started on
-uv's foundation, but it now has its own commands, settings, defaults, and behavior, alongside
-reduced package-index request metadata, added features, and long-standing bug fixes. See
-[MANIFESTO.md](https://github.com/duriantaco/fyn/blob/main/MANIFESTO.md) for the full story.
+**fyn** is an independent community fork of [uv](https://github.com/astral-sh/uv), built around
+reviewable, transactional dependency changes and a repository-local project workflow. It keeps a
+fast uv-derived packaging foundation, then focuses on the work around the resolver: previewing
+changes, keeping the manifest, lockfile, and environment aligned, explaining project state, and
+encoding team policy in `pyproject.toml`.
 
-## Highlights
+See [MANIFESTO.md](https://github.com/duriantaco/fyn/blob/main/MANIFESTO.md) for the product
+direction and the project's origins.
 
-- A single tool to replace `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`, `twine`, `virtualenv`, and
-  more.
-- 10-100x faster than `pip`.
-- Provides [comprehensive project management](#projects), with a universal lockfile.
-- Built-in [task runner](#task-runner) — define and run project tasks in `pyproject.toml`.
-- [Activates virtual environments](#shell-activation) with `fyn shell`.
-- [Upgrades dependencies](#upgrade-dependencies) in one command with `fyn upgrade`.
-- Explains dependency paths with `fyn why <package>`.
-- [Runs scripts](#scripts), with support for inline dependency metadata.
-- [Installs and manages](#python-versions) Python versions.
-- [Runs and installs](#tools) tools published as Python packages.
-- Includes a [pip-compatible interface](#the-pip-interface) for a performance boost with a familiar
-  CLI.
-- Supports Cargo-style workspaces for scalable projects.
-- Disk-space efficient, with a global cache for dependency deduplication.
-- Reduced package-index request metadata — compared with upstream uv, fyn sends a minimal
-  `fyn/<version>` `User-Agent` header to package indexes such as PyPI, instead of `uv/<version>`
-  plus the extra LineHaul environment metadata uv included. This reduces what is exposed in that
-  header, but package indexes still receive normal network and request information.
-- Supports macOS, Linux, and Windows.
+## Why fyn?
+
+- **Review before writing.** `fyn lock diff` resolves in dry-run mode and shows package and metadata
+  changes without touching `fyn.lock`.
+- **Change dependencies as one transaction.** `fyn upgrade --dry-run` previews manifest and lockfile
+  edits. A real upgrade updates `pyproject.toml`, `fyn.lock`, and the environment together, and
+  rolls back the files if locking or syncing fails.
+- **Explain the project.** `fyn why` shows why a package is present, `fyn audit --explain` includes
+  dependency paths for findings, and `fyn status --check` turns missing or misdirected project
+  environments and incompatible Python pins into actionable local or CI failures.
+- **Put the team's workflow in the repository.** Define tasks in `[tool.fyn.tasks]`, enforce the fyn
+  version, guard managed environments from direct `fyn pip` mutations, and run the same commands
+  locally and in CI.
+- **Keep package-source policy explicit.** Pin dependencies to named indexes in project metadata,
+  keep the dependency-confusion-resistant `first-index` default, and redirect a declared index name
+  to a local or CI mirror without changing the project policy.
+- **Use the broader Python toolchain from one binary.** Manage projects, scripts, tools, Python
+  versions, workspaces, builds, and publishing on macOS, Linux, and Windows.
+
+Current uv and fyn share a large foundation, including high-performance resolution, universal
+locking, Python and tool management, dependency auditing, cache controls, and PyTorch backend
+selection. fyn treats those as shared capabilities rather than product differentiators. Its focus is
+the inspectable, policy-aware workflow around them.
 
 ## Installation
 
@@ -113,7 +118,7 @@ Define tasks in your `pyproject.toml` and run them with `fyn run`:
 test = { cmd = "pytest -xvs", env = { PYTHONWARNINGS = "error" } }
 lint = "ruff check ."
 format = { cmd = "ruff format .", description = "Format code" }
-check = { chain = ["lint", "test"], description = "Lint then test" }
+check = ["ruff check .", "pytest -q"]
 ```
 
 ```console
@@ -121,22 +126,39 @@ $ fyn run test
 # runs pytest -xvs
 
 $ fyn run check
-# runs lint, then test
+# runs each command in order, stopping on the first failure
 
 $ fyn run test -- -k mytest
 # extra args are passed through
 
 $ fyn run --list-tasks
 Available tasks:
-  check    Lint then test
+  check    (command sequence)
   format   Format code
   lint     ruff check .
   test     pytest -xvs
 ```
 
-Task `env` values are applied to the spawned command. For chained tasks, parent `env` values are
-inherited by child tasks, and child task values take precedence. Extra arguments are supported for
-`cmd` tasks, but not for chained tasks.
+Direct command arrays run in order and stop on the first failure. Task `env` values are applied to
+the spawned command. For chained tasks, parent `env` values are inherited by child tasks, and child
+task values take precedence. Extra arguments are supported for `cmd` tasks, but not for direct
+command arrays or chained tasks.
+
+Run the same named task across child workspace members with `--workspace`:
+
+```console
+$ fyn run --workspace test
+$ fyn run --workspace --filter api,worker test
+$ fyn run --workspace --sequential test
+$ fyn run --workspace --list-tasks
+```
+
+Unless `--no-sync` is supplied, fyn syncs the shared workspace environment once with all packages
+installed, then runs the task only in child members that define it. Active, declared workspace
+dependencies run before their dependents, while independent members run in parallel unless
+`--sequential` is supplied. `--filter` accepts exact package names and can be repeated or given a
+comma-separated list. The workspace root is excluded, so it can define an aggregate task that
+invokes `fyn run --workspace` without recursively running itself.
 
 If `fyn run` cannot spawn a command, it tries to point you at the next step instead of stopping at a
 raw OS error: `fyn run --list-tasks` for likely task typos, `fyn tool run <command>` for missing
@@ -183,7 +205,7 @@ lockfile without touching the environment, and `--exclude PACKAGE` to omit depen
 all-package upgrade. Manifest and lockfile changes are rolled back if locking or syncing fails. This
 first version upgrades `[project].dependencies` in single-project workspaces.
 
-### Explain dependencies
+### Explain dependencies and audit findings
 
 Show the project dependency paths that include a package:
 
@@ -196,6 +218,17 @@ project v0.1.0 -> scikit-learn v1.4.1.post1 -> scipy v1.12.0 -> numpy v1.26.4
 
 Use `--universal` to ignore the current platform and Python version, or the dependency group flags
 such as `--group`, `--only-group`, and `--no-dev` to explain the selected project view.
+
+Audit the selected project dependencies for known vulnerabilities and adverse package statuses. Add
+`--explain` to include the dependency path for each finding:
+
+```console
+$ fyn audit --explain
+```
+
+Dependency auditing is also available in current uv. fyn's project workflow puts its results next to
+the same graph explanation, lockfile preview, and project-health commands used before and after a
+dependency change.
 
 ### Project status
 
@@ -331,7 +364,7 @@ fyn provides a fast, pip-compatible interface for common `pip`, `pip-tools`, and
 workflows.
 
 For many common workflows, you can switch to the `fyn pip` interface with minimal changes and keep
-the same overall workflow shape, while getting a 10-100x speedup.
+the same overall workflow shape.
 
 Compile requirements into a platform-independent requirements file:
 
@@ -382,36 +415,57 @@ UV_LOCKFILE=linux.lock fyn lock
 UV_LOCKFILE=macos.lock fyn lock
 ```
 
-### Private index support
+### Package index policy
 
-Environment variables work in index URLs — useful for private indexes with credentials:
+Keep source selection reviewable by declaring a named, explicit index and pinning packages to it in
+project metadata:
 
 ```toml
 [[tool.fyn.index]]
-name = "private"
-url = "https://${PYPI_TOKEN}@pypi.example.com/simple/"
+name = "internal"
+url = "https://packages.example.com/simple"
+explicit = true
+
+[tool.fyn.sources]
+acme = { index = "internal" }
 ```
 
-Explicit indexes are also respected for transitive dependencies, so you don't have to list every
-internal package as a direct dependency.
+fyn uses the dependency-confusion-resistant `first-index` strategy by default. A user- or
+system-level `fyn.toml` can replace the URL for the already-declared `internal` name, so developer
+machines and CI can use different mirrors without changing which logical source the project allows:
+
+```toml
+[[index]]
+name = "internal"
+url = "https://mirror.example.com/simple"
+explicit = true
+```
+
+Local configuration cannot introduce a new source pin: the index name and package association must
+remain declared in the project or workspace metadata.
 
 ## Migrating from uv
 
 fyn is close to uv, but not a zero-edit rename. Most command-line workflows and `UV_*` environment
-variables carry over, but project metadata and lockfile names differ.
+variables carry over. Within `pyproject.toml`, fyn reads `[tool.fyn]` and falls back to `[tool.uv]`
+when `[tool.fyn]` is absent, which makes it possible to evaluate existing project configuration
+before rewriting it. That fallback does not apply to standalone configuration files.
 
-```bash
-# 1. Rename your lockfile
-mv uv.lock fyn.lock
+fyn uses `fyn.lock` by default. For a dedicated migration, work on a branch, rename `uv.lock` to
+`fyn.lock`, rename a project-level `uv.toml` to `fyn.toml` if present, and rename every
+`[tool.uv...]` table header in `pyproject.toml` to its `[tool.fyn...]` equivalent. Copy any user- or
+system-level settings you still need into fyn's corresponding `fyn/fyn.toml`
+[configuration directory](https://duriantaco.github.io/fyn/concepts/configuration-files/). Then
+preview the result before syncing the environment:
 
-# 2. In pyproject.toml, rename [tool.uv] to [tool.fyn]
-sed -i 's/\[tool\.uv\]/[tool.fyn]/' pyproject.toml
-
-# 3. Use fyn instead of uv
-fyn sync
-fyn run pytest
-fynx ruff check .
+```console
+$ fyn lock diff
+$ fyn sync
+$ fyn status --check
 ```
+
+Review the resulting project metadata and lockfile as normal repository changes rather than treating
+migration as a blind search-and-replace.
 
 ## Contributing
 
@@ -429,27 +483,27 @@ The same ones as uv: macOS, Linux, and Windows, across x86_64 and aarch64.
 
 At the workflow level, often yes, but not as a drop-in replacement. Many commands and `UV_*`
 environment variables carry over, but fyn now has fork-specific commands, config, defaults, and
-behavior. Projects still need `[tool.uv]` renamed to `[tool.fyn]` and `uv.lock` renamed to
-`fyn.lock` unless you override the lockfile name.
+behavior. In `pyproject.toml`, fyn falls back to `[tool.uv]` configuration when `[tool.fyn]` is
+absent, but its canonical project namespace is `[tool.fyn]`, standalone configuration file is
+`fyn.toml`, and default lockfile is `fyn.lock`.
 
 #### What's different from uv?
 
 See [MANIFESTO.md](https://github.com/duriantaco/fyn/blob/main/MANIFESTO.md) for the fuller
-comparison, or the table below for some of the larger user-visible differences:
+comparison. Current uv and fyn share many individual capabilities, including auditing, cache
+controls, and PyTorch backend selection. fyn's distinction is the direction of the complete project
+workflow:
 
-| Area                          | uv                                    | fyn                                             |
-| ----------------------------- | ------------------------------------- | ----------------------------------------------- |
-| Config namespace and lockfile | `[tool.uv]`, `uv.lock`                | `[tool.fyn]`, `fyn.lock`                        |
-| Package index User-Agent      | `uv/<version>` plus LineHaul metadata | Minimal `fyn/<version>`                         |
-| Task runner                   | No `[tool.uv.tasks]`                  | `[tool.fyn.tasks]`                              |
-| `shell` command               | No `uv shell`                         | `fyn shell`                                     |
-| `upgrade` command             | Hidden, manifest-only experiment      | Public; updates manifest, lock, and environment |
-| `why` command                 | No `uv why`                           | `fyn why`                                       |
-| `status` command              | No `uv status`                        | `fyn status`                                    |
-| `torch doctor` command        | No `uv torch doctor`                  | `fyn torch doctor`                              |
-| Managed-project `pip` policy  | No `pip-in-project` setting           | `pip-in-project`: `warn`, `error`, or `allow`   |
-| Cache size limit              | No `UV_CACHE_MAX_SIZE`                | `UV_CACHE_MAX_SIZE`                             |
-| Custom lockfile name          | No `UV_LOCKFILE`                      | `UV_LOCKFILE`                                   |
+- dependency changes can be previewed and applied across the manifest, lockfile, and environment,
+  with manifest and lockfile edits rolled back if locking or syncing fails
+- `lock diff`, `why`, `audit --explain`, and `status --check` make change impact and project state
+  visible to people and CI
+- project policy covers repository commands, the required fyn version, managed-environment
+  guardrails, and named package sources
+- fyn uses its own `[tool.fyn]` namespace, `fyn.lock`, command surface, defaults, and release policy
+
+The goal is not to claim that uv lacks every underlying primitive. It is to make reviewability,
+transactional change, and repository-owned policy the center of fyn's product decisions.
 
 ## Acknowledgements
 
