@@ -8,7 +8,7 @@ use fyn_python::PYTHON_VERSION_FILENAME;
 use fyn_static::EnvVars;
 use indoc::{formatdoc, indoc};
 use insta::assert_snapshot;
-use predicates::prelude::PredicateBooleanExt;
+use predicates::prelude::{PredicateBooleanExt, PredicateStrExt};
 use predicates::{prelude::predicate, str::contains};
 use serde_json::json;
 use std::path::Path;
@@ -6971,7 +6971,10 @@ fn run_task_from_nested_directory_uses_project_root() -> Result<()> {
 
     let mut command = context.run();
     command.current_dir(nested.path()).arg("check-cwd");
-    command.assert().success().stdout("True\n");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("True\n").normalize());
 
     Ok(())
 }
@@ -7034,7 +7037,9 @@ fn run_task_package_uses_member_definition_and_root() -> Result<()> {
     let mut run = context.run();
     run.current_dir(caller.path());
     run.arg("--package").arg("api").arg("who");
-    run.assert().success().stdout("api\n");
+    run.assert()
+        .success()
+        .stdout(predicate::eq("api\n").normalize());
 
     let mut local_file = context.run();
     local_file
@@ -7042,7 +7047,10 @@ fn run_task_package_uses_member_definition_and_root() -> Result<()> {
         .arg("--package")
         .arg("api")
         .arg("main.py");
-    local_file.assert().success().stdout("caller script\n");
+    local_file
+        .assert()
+        .success()
+        .stdout(predicate::eq("caller script\n").normalize());
 
     let mut metadata_file = context.run();
     metadata_file
@@ -7104,10 +7112,14 @@ fn run_task_command_sequence() -> Result<()> {
 
     let mut command = context.run();
     command.arg("check");
-    command.assert().success().stdout("first\nsecond\n").stderr(
-        predicate::str::contains("Running task `check[1]`")
-            .and(predicate::str::contains("Running task `check[2]`")),
-    );
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("first\nsecond\n").normalize())
+        .stderr(
+            predicate::str::contains("Running task `check[1]`")
+                .and(predicate::str::contains("Running task `check[2]`")),
+        );
 
     Ok(())
 }
@@ -7227,13 +7239,17 @@ fn run_task_across_workspace_in_dependency_order() -> Result<()> {
 
     let mut command = context.run();
     command.arg("--workspace").arg("test");
-    command.assert().success().stdout("core\napp\n").stderr(
-        predicate::str::contains("[core] Running task `test`")
-            .and(predicate::str::contains("[app] Running task `test`"))
-            .and(predicate::str::contains(
-                "Finished workspace task `test` in 2 packages",
-            )),
-    );
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("core\napp\n").normalize())
+        .stderr(
+            predicate::str::contains("[core] Running task `test`")
+                .and(predicate::str::contains("[app] Running task `test`"))
+                .and(predicate::str::contains(
+                    "Finished workspace task `test` in 2 packages",
+                )),
+        );
 
     let mut filtered = context.run();
     filtered
@@ -7245,7 +7261,7 @@ fn run_task_across_workspace_in_dependency_order() -> Result<()> {
     filtered
         .assert()
         .success()
-        .stdout("app\n")
+        .stdout(predicate::eq("app\n").normalize())
         .stderr(predicate::str::contains(
             "Finished workspace task `test` in 1 package",
         ));
@@ -7258,7 +7274,10 @@ fn run_task_across_workspace_in_dependency_order() -> Result<()> {
         .arg("args")
         .arg("--")
         .arg("--");
-    passthrough.assert().success().stdout("[\"--\"]\n");
+    passthrough
+        .assert()
+        .success()
+        .stdout(predicate::eq("[\"--\"]\n").normalize());
 
     let mut list = context.run();
     list.arg("--workspace").arg("--list-tasks");
@@ -7334,7 +7353,10 @@ fn run_task_workspace_expands_dependency_graph_filters() -> Result<()> {
         .arg("app")
         .arg("--include-dependencies")
         .arg("check");
-    dependencies.assert().success().stdout("core\nlib\napp\n");
+    dependencies
+        .assert()
+        .success()
+        .stdout(predicate::eq("core\nlib\napp\n").normalize());
 
     let mut no_sync = context.run();
     no_sync
@@ -7345,7 +7367,10 @@ fn run_task_workspace_expands_dependency_graph_filters() -> Result<()> {
         .arg("app")
         .arg("--include-dependencies")
         .arg("check");
-    no_sync.assert().success().stdout("core\nlib\napp\n");
+    no_sync
+        .assert()
+        .success()
+        .stdout(predicate::eq("core\nlib\napp\n").normalize());
 
     let mut dependents = context.run();
     dependents
@@ -7355,7 +7380,10 @@ fn run_task_workspace_expands_dependency_graph_filters() -> Result<()> {
         .arg("core")
         .arg("--include-dependents")
         .arg("check");
-    dependents.assert().success().stdout("core\nlib\napp\n");
+    dependents
+        .assert()
+        .success()
+        .stdout(predicate::eq("core\nlib\napp\n").normalize());
 
     Ok(())
 }
@@ -7430,7 +7458,10 @@ fn run_task_workspace_expansion_allows_taskless_anchor() -> Result<()> {
         .arg("core")
         .arg("--include-dependents")
         .arg("check");
-    command.assert().success().stdout("app\n");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("app\n").normalize());
 
     Ok(())
 }
@@ -7548,7 +7579,10 @@ fn run_task_workspace_respects_dependency_markers() -> Result<()> {
 
     let mut command = context.run();
     command.arg("--workspace").arg("--sequential").arg("check");
-    command.assert().success().stdout("app\ncore\n");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("app\ncore\n").normalize());
 
     let mut filtered = context.run();
     filtered
@@ -7558,7 +7592,10 @@ fn run_task_workspace_respects_dependency_markers() -> Result<()> {
         .arg("app")
         .arg("--include-dependencies")
         .arg("check");
-    filtered.assert().success().stdout("app\n");
+    filtered
+        .assert()
+        .success()
+        .stdout(predicate::eq("app\n").normalize());
 
     Ok(())
 }
@@ -7652,7 +7689,10 @@ fn run_task_workspace_orders_transitively_activated_extras() -> Result<()> {
 
     let mut command = context.run();
     command.arg("--workspace").arg("--sequential").arg("check");
-    command.assert().success().stdout("zcore\nlib\napp\n");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("zcore\nlib\napp\n").normalize());
 
     Ok(())
 }
@@ -7729,7 +7769,10 @@ fn run_task_workspace_orders_self_extra_recursion() -> Result<()> {
 
     let mut command = context.run();
     command.arg("--workspace").arg("--sequential").arg("check");
-    command.assert().success().stdout("zcore\nframework\n");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("zcore\nframework\n").normalize());
 
     Ok(())
 }
@@ -7809,7 +7852,10 @@ fn run_task_workspace_filter_prunes_dependency_cycles() -> Result<()> {
         .arg("--filter")
         .arg("a")
         .arg("check");
-    command.assert().success().stdout("a\n");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("a\n").normalize());
 
     let mut cycle = context.run();
     cycle.arg("--workspace").arg("--sequential").arg("check");
@@ -7884,12 +7930,16 @@ fn run_task_workspace_stops_dependents_after_failure() -> Result<()> {
 
     let mut command = context.run();
     command.arg("--workspace").arg("--sequential").arg("check");
-    command.assert().code(7).stdout("base failed\n").stderr(
-        predicate::str::contains(
-            "Workspace task `check` failed in package `base`; remaining tasks were not started",
-        )
-        .and(predicate::str::contains("[dependent] Running task").not()),
-    );
+    command
+        .assert()
+        .code(7)
+        .stdout(predicate::eq("base failed\n").normalize())
+        .stderr(
+            predicate::str::contains(
+                "Workspace task `check` failed in package `base`; remaining tasks were not started",
+            )
+            .and(predicate::str::contains("[dependent] Running task").not()),
+        );
 
     Ok(())
 }
