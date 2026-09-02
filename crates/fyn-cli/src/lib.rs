@@ -4827,7 +4827,7 @@ pub struct RunArgs {
     /// Run workspace tasks one at a time.
     ///
     /// By default, independent workspace tasks run in parallel.
-    #[arg(long, requires = "workspace")]
+    #[arg(long, requires = "workspace", conflicts_with = "list_tasks")]
     pub sequential: bool,
 
     /// Restrict a workspace task run to the named package.
@@ -4840,6 +4840,22 @@ pub struct RunArgs {
         value_hint = ValueHint::Other
     )]
     pub filter: Vec<PackageName>,
+
+    /// Include active transitive workspace dependencies of filtered packages.
+    #[arg(
+        long,
+        requires = "filter",
+        conflicts_with_all = ["include_dependents", "list_tasks"]
+    )]
+    pub include_dependencies: bool,
+
+    /// Include active transitive workspace dependents of filtered packages.
+    #[arg(
+        long,
+        requires = "filter",
+        conflicts_with_all = ["include_dependencies", "list_tasks"]
+    )]
+    pub include_dependents: bool,
 
     /// Run the command in a specific package in the workspace.
     ///
@@ -4854,7 +4870,11 @@ pub struct RunArgs {
     ///
     /// If a virtual environment is active or found in a current or parent directory, it will be
     /// used as if there was no project or workspace.
-    #[arg(long, alias = "no_workspace", conflicts_with = "package")]
+    #[arg(
+        long,
+        alias = "no_workspace",
+        conflicts_with_all = ["package", "list_tasks"]
+    )]
     pub no_project: bool,
 
     /// The Python interpreter to use for the run environment.

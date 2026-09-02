@@ -619,6 +619,8 @@ impl RunSettings {
             workspace: _,
             sequential: _,
             filter: _,
+            include_dependencies: _,
+            include_dependents: _,
             package,
             no_project,
             python,

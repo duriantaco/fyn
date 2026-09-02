@@ -51,12 +51,9 @@ use fyn_settings::PipInProjectPolicy;
 use fyn_settings::{Combine, EnvironmentOptions, FilesystemOptions, Options};
 use fyn_static::EnvVars;
 use fyn_warnings::{warn_user, warn_user_once};
-use fyn_workspace::pyproject::PyProjectToml;
-use fyn_workspace::{DiscoveryOptions, Workspace, WorkspaceCache};
+use fyn_workspace::{DiscoveryOptions, VirtualProject, Workspace, WorkspaceCache, WorkspaceError};
 
-use crate::commands::{
-    ExitStatus, RunCommand, ScriptPath, ToolRunCommand, find_nearest_pyproject_path,
-};
+use crate::commands::{ExitStatus, RunCommand, ScriptPath, ToolRunCommand, resolve_task_candidate};
 use crate::printer::Printer;
 use crate::settings::{
     CacheSettings, GlobalSettings, PipCheckSettings, PipCompileSettings, PipDownloadSettings,
@@ -189,6 +186,19 @@ async fn run(
         }
     }
 
+    // Reject commands combined with task listing before loading project configuration, parsing
+    // remote scripts, or resolving tasks.
+    if let Commands::Project(command) = &*cli.command {
+        if let ProjectCommand::Run(fyn_cli::RunArgs {
+            command: Some(_),
+            list_tasks: true,
+            ..
+        }) = &**command
+        {
+            bail!("`--list-tasks` cannot be used with a command");
+        }
+    }
+
     // The `--isolated` argument is deprecated on preview APIs, and warns on non-preview APIs.
     let deprecated_isolated = if cli.top_level.global_args.isolated {
         match &*cli.command {
@@ -286,6 +296,9 @@ async fn run(
             workspace,
             sequential,
             filter,
+            include_dependencies,
+            include_dependents,
+            package,
             ..
         }) = &mut **command
         {
@@ -306,20 +319,23 @@ async fn run(
             .http_proxy(settings.network_settings.http_proxy)
             .https_proxy(settings.network_settings.https_proxy)
             .no_proxy(settings.network_settings.no_proxy);
+            let command = RunCommand::from_args(
+                command,
+                client_builder,
+                *module,
+                *script,
+                *gui_script,
+                *no_project,
+                *workspace,
+                *sequential,
+                filter.clone(),
+                *include_dependencies,
+                *include_dependents,
+            )
+            .await?;
             Some(
-                RunCommand::from_args(
-                    command,
-                    client_builder,
-                    *module,
-                    *script,
-                    *gui_script,
-                    &project_dir,
-                    *no_project,
-                    *workspace,
-                    *sequential,
-                    filter.clone(),
-                )
-                .await?,
+                resolve_task_candidate(command, &project_dir, package.as_ref(), &workspace_cache)
+                    .await?,
             )
         } else {
             None
@@ -2664,26 +2680,45 @@ async fn run_project(
                     return Ok(ExitStatus::Success);
                 }
 
-                if let Some(pyproject_path) = find_nearest_pyproject_path(project_dir) {
-                    let content = fs_err::read_to_string(&pyproject_path)?;
-                    if let Ok(pyproject) = toml::from_str::<PyProjectToml>(&content) {
-                        if let Some(tasks) =
-                            pyproject.tool.and_then(|t| t.fyn).and_then(|u| u.tasks)
-                        {
-                            if tasks.is_empty() {
-                                eprintln!("No tasks defined in [tool.fyn.tasks]");
-                            } else {
-                                eprintln!("Available tasks:");
-                                for (name, task) in tasks.iter() {
-                                    eprintln!("  {name:<16} {}", task.description());
-                                }
-                            }
-                        } else {
-                            eprintln!("No [tool.fyn.tasks] section found in pyproject.toml");
+                let project = if let Some(package) = args.package.as_ref() {
+                    VirtualProject::discover_with_package(
+                        project_dir,
+                        &DiscoveryOptions::default(),
+                        workspace_cache,
+                        package.clone(),
+                    )
+                    .await?
+                } else {
+                    match VirtualProject::discover(
+                        project_dir,
+                        &DiscoveryOptions::default(),
+                        workspace_cache,
+                    )
+                    .await
+                    {
+                        Ok(project) => project,
+                        Err(WorkspaceError::MissingPyprojectToml) => {
+                            eprintln!("No pyproject.toml found in {}", project_dir.display());
+                            return Ok(ExitStatus::Success);
+                        }
+                        Err(err) => return Err(err.into()),
+                    }
+                };
+                if let Some(tasks) = project
+                    .pyproject_toml()
+                    .tool_fyn()
+                    .and_then(|tool| tool.tasks.as_ref())
+                {
+                    if tasks.is_empty() {
+                        eprintln!("No tasks defined in [tool.fyn.tasks]");
+                    } else {
+                        eprintln!("Available tasks:");
+                        for (name, task) in tasks.iter() {
+                            eprintln!("  {name:<16} {}", task.description());
                         }
                     }
                 } else {
-                    eprintln!("No pyproject.toml found in {}", project_dir.display());
+                    eprintln!("No [tool.fyn.tasks] section found in pyproject.toml");
                 }
                 return Ok(ExitStatus::Success);
             }

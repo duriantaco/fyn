@@ -77,13 +77,17 @@ $ fyn run --workspace test
 Unless `--no-sync` is supplied, fyn synchronizes the workspace environment once with all workspace
 packages installed before executing the tasks. It does not perform a separate sync for each member.
 
-fyn derives execution order from active dependencies declared between workspace members. It honors
-environment markers, selected extras and dependency groups, extras activated transitively (such as
-`library[feature]`), member-over-root source overrides, and active `{ workspace = true }` sources.
-The selected target platform is used when evaluating markers. If an application declares a library
-member as a workspace dependency, the library's task finishes before the application's task starts.
-Members that are independent of one another run in parallel by default. Use `--sequential` when
-tasks must run only one at a time:
+Because every member uses that shared environment, console scripts with the same name are ambiguous
+when published by more than one workspace package. Prefer unique script names or explicit module
+commands such as `python -m package` in those tasks.
+
+fyn derives execution order from the same active resolution graph used to synchronize the workspace.
+It therefore honors environment markers, selected extras and dependency groups, extras activated
+transitively (such as `library[feature]`), source overrides, and active `{ workspace = true }`
+sources. The selected target platform is used when evaluating markers. If an application declares a
+library member as a workspace dependency, the library's task finishes before the application's task
+starts. Members that are independent of one another run in parallel by default. Use `--sequential`
+when tasks must run only one at a time:
 
 ```console
 $ fyn run --workspace --sequential test
@@ -115,9 +119,20 @@ $ fyn run --workspace --filter bird-feeder --filter web-api test
 Every filter must name a child workspace member, and every filtered member must define the requested
 task. Declared dependency ordering is applied among the selected members.
 
-Task definitions and ordering come from the current `pyproject.toml` files. `--frozen` and
-`--no-sync` can intentionally make the installed environment differ from those manifests; they do
-not replace the task graph with historical lock or environment state.
+Add `--include-dependencies` to include each filtered package's active transitive workspace
+dependencies, or `--include-dependents` to include packages that transitively depend on it:
+
+```console
+$ fyn run --workspace --filter web-api --include-dependencies test
+$ fyn run --workspace --filter shared-lib --include-dependents test
+```
+
+Only expanded members that define the requested task run. This means a filtered package can be a
+graph anchor without defining the task itself. The expansion flags are mutually exclusive.
+
+Task definitions come from each selected member's current `pyproject.toml`. Ordering and expansion
+come from the active resolved graph. `--no-sync` requires an existing `fyn.lock`, which lets fyn
+construct that graph without updating the lockfile or environment.
 
 ### Listing workspace tasks
 

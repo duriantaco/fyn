@@ -441,7 +441,7 @@ pub(crate) async fn sync(
     )
     .await
     {
-        Ok(changelog) => changelog,
+        Ok(result) => result.changelog,
         Err(ProjectError::Operation(operations::Error::OutdatedEnvironment(changelog))) => {
             write_sync_report(
                 &target,
@@ -627,6 +627,11 @@ impl Deref for SyncEnvironment {
     }
 }
 
+pub(super) struct SyncResult {
+    pub(super) changelog: Changelog,
+    pub(super) resolution: Resolution,
+}
+
 /// Sync a lockfile with an environment.
 pub(super) async fn do_sync(
     target: InstallTarget<'_>,
@@ -649,7 +654,7 @@ pub(super) async fn do_sync(
     printer: Printer,
     preview: Preview,
     malware_settings: &MalwareCheckSettings,
-) -> Result<Changelog, ProjectError> {
+) -> Result<SyncResult, ProjectError> {
     // Extract the project settings.
     let InstallerSettingsRef {
         index_locations,
@@ -899,7 +904,10 @@ pub(super) async fn do_sync(
     )
     .await?;
 
-    Ok(changelog)
+    Ok(SyncResult {
+        changelog,
+        resolution,
+    })
 }
 
 /// Run a malware check against OSV before installing dependencies.
