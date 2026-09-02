@@ -89,7 +89,8 @@ to construct the same graph without modifying the environment.
 
 All members execute in that one shared environment. If multiple members publish the same console
 script name, the environment cannot select a different script based on the member currently running.
-Use unique script names or an unambiguous module command such as `python -m package` for those tasks.
+Use unique script names or an unambiguous module command such as `python -m package` for those
+tasks.
 
 The workspace root is intentionally excluded. It can therefore define an aggregate task that invokes
 workspace mode without recursively selecting itself:
