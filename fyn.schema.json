@@ -531,7 +531,7 @@
       ]
     },
     "tasks": {
-      "description": "Project tasks that can be run via `fyn run <name>`.\n\nEach task is either a command string or a table with `cmd`, `chain`,\n`description`, and `env` fields.",
+      "description": "Project tasks that can be run via `fyn run <name>`.\n\nEach task is a command string, a sequence of command strings, or a table with `cmd`,\n`chain`, `description`, and `env` fields.",
       "anyOf": [
         {
           "$ref": "#/definitions/ToolfynTasks"
@@ -2345,29 +2345,27 @@
       ]
     },
     "TaskDefinition": {
-      "description": "A task that can be run via `fyn run <name>`.\n\nSupports both a simple string form (`\"pytest -xvs\"`) and a table form\nwith optional fields like `description`, `chain`, and `env`.",
-      "oneOf": [
+      "description": "A task that can be run via `fyn run <name>`.\n\nSupports a simple string (`\"pytest -xvs\"`), a command sequence, and a table with optional\nfields like `description`, `chain`, and `env`.",
+      "anyOf": [
         {
           "description": "A plain command string, e.g. `test = \"pytest -xvs\"`.",
-          "type": "object",
-          "properties": {
-            "Cmd": {
-              "type": "string"
-            }
+          "type": "string"
+        },
+        {
+          "description": "A sequence of command strings, executed in order and stopped on the first failure.",
+          "type": "array",
+          "items": {
+            "type": "string"
           },
-          "additionalProperties": false,
-          "required": ["Cmd"]
+          "minItems": 1
         },
         {
           "description": "A table with structured options.",
-          "type": "object",
-          "properties": {
-            "Detailed": {
+          "allOf": [
+            {
               "$ref": "#/definitions/DetailedTask"
             }
-          },
-          "additionalProperties": false,
-          "required": ["Detailed"]
+          ]
         }
       ]
     },

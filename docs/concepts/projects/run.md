@@ -31,23 +31,36 @@ Projects can define named tasks in `pyproject.toml` under `[tool.fyn.tasks]` and
 [tool.fyn.tasks]
 test = { cmd = "pytest -q", env = { PYTHONWARNINGS = "error" } }
 lint = "ruff check ."
-check = { chain = ["lint", "test"], description = "Run lint and tests" }
+check = ["ruff check .", "pytest -q"]
+ci = { chain = ["lint", "test"], description = "Run lint and tests" }
 ```
 
 ```console
 $ fyn run test
 $ fyn run check
+$ fyn run ci
 $ fyn run --list-tasks
 ```
 
-Tasks support two forms:
+Tasks support three forms:
 
 - a command string, such as `test = "pytest -q"`
+- a direct sequence of command strings, such as `check = ["ruff check .", "pytest -q"]`
 - a table with `cmd`, `chain`, `description`, and `env`
 
-Chained tasks run their child tasks in sequence and stop on the first failure. Task `env` values are
-applied to the spawned command. If a chained task defines `env`, those values are inherited by its
-child tasks, and any child task values override the parent values.
+Direct command sequences run each command in the listed order and stop on the first failure. Chained
+tasks resolve other named tasks, run them in sequence, and also stop on the first failure. Task
+`env` values are applied to the spawned command. If a chained task defines `env`, those values are
+inherited by its child tasks, and any child task values override the parent values.
+
+Task commands are split into an executable and arguments, then executed directly rather than through
+a shell. Shell operators such as `&&`, `|`, and redirects, along with glob and environment-variable
+expansion, are therefore not interpreted automatically. Invoke a shell explicitly when a task needs
+those features, for example `bash -c "ruff check . && pytest -q"` or the platform-equivalent
+`pwsh -Command "ruff check .; pytest -q"`.
+
+Tasks run from the directory containing the `pyproject.toml` that defines them. With `--package`,
+both task lookup and execution use the selected workspace member.
 
 Additional CLI arguments are supported for `cmd` tasks:
 
@@ -55,13 +68,80 @@ Additional CLI arguments are supported for `cmd` tasks:
 $ fyn run test -- -k my_test
 ```
 
-Additional CLI arguments are not supported for chained tasks; run the child task directly when you
-need to pass extra arguments.
+Additional CLI arguments are not supported for direct command sequences or chained tasks. Define a
+`cmd` task, or run the child task directly, when you need to pass extra arguments.
+
+## Running tasks across a workspace
+
+Use `--workspace` to run the same named task in every child workspace member that defines it:
+
+```console
+$ fyn run --workspace test
+```
+
+Unless `--no-sync` is supplied, fyn synchronizes the shared workspace environment once with all
+packages installed before starting any tasks. It schedules the selected child members from the same
+resolved dependency graph used for that synchronization: a dependency's task finishes before the
+tasks of members that depend on it. Markers, selected extras and dependency groups, transitively
+activated extras, source overrides, and `{ workspace = true }` are therefore taken into account.
+Independent members run in parallel by default. With `--no-sync`, an existing `fyn.lock` is required
+to construct the same graph without modifying the environment.
+
+All members execute in that one shared environment. If multiple members publish the same console
+script name, the environment cannot select a different script based on the member currently running.
+Use unique script names or an unambiguous module command such as `python -m package` for those
+tasks.
+
+The workspace root is intentionally excluded. It can therefore define an aggregate task that invokes
+workspace mode without recursively selecting itself:
+
+```toml title="pyproject.toml"
+[tool.fyn.tasks]
+test = "fyn run --workspace test"
+```
+
+Use `--sequential` to run only one member at a time:
+
+```console
+$ fyn run --workspace --sequential test
+```
+
+Use the repeatable `--filter` option to select exact package names. A single option can also contain
+a comma-separated list:
+
+```console
+$ fyn run --workspace --filter api --filter worker test
+$ fyn run --workspace --filter api,worker test
+```
+
+Filters must name child workspace members, and each filtered member must define the requested task.
+Without filters, child members that do not define the task are skipped.
+
+Expand a filter through the active workspace graph with `--include-dependencies` or
+`--include-dependents`:
+
+```console
+$ fyn run --workspace --filter web-api --include-dependencies test
+$ fyn run --workspace --filter shared-lib --include-dependents test
+```
+
+The first command includes the transitive workspace dependencies needed by `web-api`. The second
+includes packages transitively affected by `shared-lib`. Expanded members that do not define the
+task are skipped, so a filtered package can act only as a graph anchor.
+
+List tasks by child member with:
+
+```console
+$ fyn run --workspace --list-tasks
+```
+
+See [Using workspaces](./workspaces.md#running-tasks-across-workspace-members) for the full
+workspace execution model.
 
 ## Missing commands
 
-If task resolution succeeds but the external command still cannot be spawned, fyn augments the error
-with the most likely next step instead of only showing the raw OS error.
+If a bare command does not match a task and cannot be spawned, fyn augments the error with the most
+likely next step instead of only showing the raw OS error.
 
 - For projects with tasks, a missing bare command suggests `fyn run --list-tasks`.
 - For bare executables that may come from Python packages, it suggests `fyn tool run <command>`.

@@ -47,7 +47,7 @@ pub(crate) use project::format::format;
 pub(crate) use project::init::{InitKind, InitProjectKind, init};
 pub(crate) use project::lock::{diff as lock_diff, lock};
 pub(crate) use project::remove::remove;
-pub(crate) use project::run::{RunCommand, find_nearest_pyproject_path, run};
+pub(crate) use project::run::{RunCommand, resolve_task_candidate, run};
 pub(crate) use project::sync::sync;
 pub(crate) use project::tree::tree;
 pub(crate) use project::upgrade::upgrade;
@@ -122,7 +122,7 @@ pub(crate) enum ExitStatus {
     Error,
 
     /// The command's exit status is propagated from an external command.
-    External(u8),
+    External(i32),
 }
 
 impl From<ExitStatus> for ExitCode {
@@ -131,7 +131,15 @@ impl From<ExitStatus> for ExitCode {
             ExitStatus::Success => Self::from(0),
             ExitStatus::Failure => Self::from(1),
             ExitStatus::Error => Self::from(2),
-            ExitStatus::External(code) => Self::from(code),
+            ExitStatus::External(code) => match u8::try_from(code) {
+                Ok(code) => Self::from(code),
+                Err(_) => {
+                    // `std::process::ExitCode` only supports `u8`, while Windows child processes
+                    // can return any 32-bit status. Defer this direct exit until command cleanup
+                    // and reporting are complete.
+                    std::process::exit(code);
+                }
+            },
         }
     }
 }

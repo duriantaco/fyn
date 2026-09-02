@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::env::VarError;
 use std::ffi::OsString;
 use std::fmt::Write;
@@ -24,9 +24,9 @@ use fyn_configuration::{
     InstallOptions, TargetTriple,
 };
 use fyn_distribution::LoweredExtraBuildDependencies;
-use fyn_distribution_types::Requirement;
+use fyn_distribution_types::{Name, Node, Requirement, Resolution};
 use fyn_fs::which::is_executable;
-use fyn_fs::{PythonExt, Simplified, create_symlink};
+use fyn_fs::{PythonExt, Simplified, create_symlink, normalize_path};
 use fyn_installer::{InstallationStrategy, SatisfiesResult, SitePackages};
 use fyn_normalize::{DefaultExtras, DefaultGroups, PackageName};
 use fyn_preview::{Preview, PreviewFeature};
@@ -43,7 +43,7 @@ use fyn_settings::{MalwareCheckSettings, PythonInstallMirrors};
 use fyn_shell::runnable::WindowsRunnable;
 use fyn_static::EnvVars;
 use fyn_warnings::warn_user;
-use fyn_workspace::{DiscoveryOptions, VirtualProject, WorkspaceCache, WorkspaceError};
+use fyn_workspace::{DiscoveryOptions, VirtualProject, Workspace, WorkspaceCache, WorkspaceError};
 
 use crate::child::run_to_completion;
 
@@ -162,6 +162,9 @@ pub(crate) async fn run(
     max_recursion_depth: u32,
     malware_settings: MalwareCheckSettings,
 ) -> anyhow::Result<ExitStatus> {
+    let workspace_task_requested = matches!(command.as_ref(), Some(RunCommand::WorkspaceTask(..)));
+    let all_packages = all_packages || workspace_task_requested;
+
     // Check if max recursion depth was exceeded. This most commonly happens
     // for scripts with a shebang line like `#!/usr/bin/env -S fyn run`, so try
     // to provide guidance for that case.
@@ -212,6 +215,8 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
     // Initialize any shared state.
     let lock_state = UniversalState::default();
     let sync_state = lock_state.fork();
+    let mut workspace_task_plan: Option<WorkspaceTaskPlan> = None;
+    let mut command_project_dir = project_dir.to_path_buf();
 
     // Read from the `.env` file, if necessary.
     crate::commands::load_explicit_env_files(env_file.iter().map(PathBuf::as_path))?;
@@ -622,6 +627,10 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
             }
         };
 
+        if let Some(project) = project.as_ref() {
+            command_project_dir = project.root().to_path_buf();
+        }
+
         if no_project {
             // If the user ran with `--no-project` and provided a project-only setting, warn.
             for flag in extras.history().as_flags_pretty() {
@@ -667,6 +676,7 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
                     project.workspace().install_path().display()
                 );
             }
+
             // Determine the groups and extras to include.
             let default_groups = default_dependency_groups(project.pyproject_toml())?;
             let default_extras = DefaultExtras::default();
@@ -758,6 +768,52 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
 
             if no_sync {
                 debug!("Skipping environment synchronization due to `--no-sync`");
+
+                if let Some(RunCommand::WorkspaceTask(request)) = command.as_ref() {
+                    let lock = LockTarget::from(project.workspace())
+                        .read()
+                        .await?
+                        .ok_or_else(|| {
+                            anyhow!(
+                                "Workspace task execution with `--no-sync` requires an existing `fyn.lock`; run the task once without `--no-sync`"
+                            )
+                        })?;
+                    let target = match &project {
+                        VirtualProject::Project(project) => InstallTarget::Workspace {
+                            workspace: project.workspace(),
+                            lock: &lock,
+                        },
+                        VirtualProject::NonProject(workspace) => {
+                            InstallTarget::NonProjectWorkspace {
+                                workspace,
+                                lock: &lock,
+                            }
+                        }
+                    };
+                    let task_markers = crate::commands::pip::resolution_markers(
+                        None,
+                        python_platform.as_ref(),
+                        venv.interpreter(),
+                    );
+                    let task_tags = crate::commands::pip::resolution_tags(
+                        None,
+                        python_platform.as_ref(),
+                        venv.interpreter(),
+                    )?;
+                    let resolution = target.to_resolution(
+                        &task_markers,
+                        &task_tags,
+                        &extras,
+                        &groups,
+                        &settings.resolver.build_options,
+                        &InstallOptions::default(),
+                    )?;
+                    workspace_task_plan = Some(resolve_workspace_task_plan(
+                        request,
+                        project.workspace(),
+                        &resolution,
+                    )?);
+                }
 
                 // If we're not syncing, we should still attempt to respect the locked preferences
                 // in any `--with` requirements.
@@ -871,7 +927,7 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
                 target.validate_extras(&extras)?;
                 target.validate_groups(&groups)?;
 
-                match project::sync::do_sync(
+                let sync_result = match project::sync::do_sync(
                     target,
                     &venv,
                     &extras,
@@ -899,7 +955,7 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
                 )
                 .await
                 {
-                    Ok(_) => {}
+                    Ok(result) => result,
                     Err(ProjectError::Operation(err)) => {
                         return diagnostics::OperationDiagnostic::native_tls(
                             client_builder.is_native_tls(),
@@ -908,6 +964,14 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
                         .map_or(Ok(ExitStatus::Failure), |err| Err(err.into()));
                     }
                     Err(err) => return Err(err.into()),
+                };
+
+                if let Some(RunCommand::WorkspaceTask(request)) = command.as_ref() {
+                    workspace_task_plan = Some(resolve_workspace_task_plan(
+                        request,
+                        project.workspace(),
+                        &sync_result.resolution,
+                    )?);
                 }
 
                 base_lock = Some((
@@ -918,6 +982,9 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
 
             venv.into_interpreter()
         } else {
+            if workspace_task_requested {
+                bail!("Workspace task execution requires a discovered project workspace");
+            }
             debug!("No project found; searching for Python interpreter");
 
             let interpreter = {
@@ -1331,6 +1398,18 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
                     .flat_map(std::env::split_paths),
             ),
     )?;
+    if matches!(&command, RunCommand::WorkspaceTask(..)) {
+        return execute_workspace_task_plan(
+            workspace_task_plan
+                .as_ref()
+                .expect("workspace task plan is resolved during project discovery"),
+            interpreter,
+            &new_path,
+            recursion_depth,
+            printer,
+        )
+        .await;
+    }
     if let RunCommand::Task(plan) = &command {
         return execute_task_plan(plan, interpreter, &new_path, recursion_depth, printer).await;
     }
@@ -1347,7 +1426,7 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
             return Err(command_not_found_error(
                 &command,
                 &err,
-                project_dir,
+                &command_project_dir,
                 no_project,
             ));
         }
@@ -1383,10 +1462,197 @@ async fn execute_task_plan(
     recursion_depth: u32,
     printer: Printer,
 ) -> anyhow::Result<ExitStatus> {
+    execute_task_plan_in(
+        plan,
+        interpreter,
+        new_path,
+        recursion_depth,
+        printer,
+        Some(&plan.root),
+        None,
+    )
+    .await
+}
+
+async fn execute_workspace_task_plan(
+    plan: &WorkspaceTaskPlan,
+    interpreter: &Interpreter,
+    new_path: &OsString,
+    recursion_depth: u32,
+    printer: Printer,
+) -> anyhow::Result<ExitStatus> {
+    validate_workspace_task_graph(plan)?;
+
+    let mut pending = plan.tasks.keys().cloned().collect::<BTreeSet<_>>();
+    let mut completed = BTreeSet::new();
+    let mut running = futures::stream::FuturesUnordered::new();
+    let mut failure = None;
+    let mut error = None;
+    let limit = if plan.sequential {
+        1
+    } else {
+        Concurrency::threads()
+    };
+
+    loop {
+        if failure.is_none() && error.is_none() {
+            while running.len() < limit {
+                let Some(package) = pending
+                    .iter()
+                    .find(|name| {
+                        plan.tasks[*name]
+                            .dependencies
+                            .iter()
+                            .all(|dependency| completed.contains(dependency))
+                    })
+                    .cloned()
+                else {
+                    break;
+                };
+                pending.remove(&package);
+                let task = &plan.tasks[&package];
+                running.push(execute_workspace_member_task(
+                    package,
+                    task,
+                    interpreter,
+                    new_path,
+                    recursion_depth,
+                    printer,
+                ));
+            }
+        }
+
+        let Some((package, result)) = running.next().await else {
+            if let Some((package, err)) = error {
+                return Err(err).with_context(|| {
+                    format!(
+                        "Workspace task `{}` failed to run in package `{package}`",
+                        plan.name
+                    )
+                });
+            }
+            if let Some((package, status)) = failure {
+                writeln!(
+                    printer.stderr(),
+                    "Workspace task `{}` failed in package `{package}`; remaining tasks were not started",
+                    plan.name
+                )?;
+                return Ok(status);
+            }
+            if pending.is_empty() {
+                break;
+            }
+            bail!(
+                "Workspace task dependency cycle blocks the remaining packages: {}",
+                pending.iter().join(", ")
+            );
+        };
+
+        match result {
+            Ok(ExitStatus::Success | ExitStatus::External(0)) => {
+                completed.insert(package);
+            }
+            Ok(status) => {
+                if failure.is_none() {
+                    failure = Some((package, status));
+                }
+            }
+            Err(err) => {
+                if error.is_none() {
+                    error = Some((package, err));
+                }
+            }
+        }
+    }
+
+    writeln!(
+        printer.stderr(),
+        "Finished workspace task `{}` in {} package{}",
+        plan.name,
+        completed.len(),
+        if completed.len() == 1 { "" } else { "s" }
+    )?;
+    Ok(ExitStatus::Success)
+}
+
+fn validate_workspace_task_graph(plan: &WorkspaceTaskPlan) -> anyhow::Result<()> {
+    let mut pending = plan.tasks.keys().cloned().collect::<BTreeSet<_>>();
+    let mut completed = BTreeSet::new();
+    while !pending.is_empty() {
+        let ready = pending
+            .iter()
+            .filter(|name| {
+                plan.tasks[*name]
+                    .dependencies
+                    .iter()
+                    .all(|dependency| completed.contains(dependency))
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        if ready.is_empty() {
+            bail!(
+                "Workspace task dependency cycle blocks the remaining packages: {}",
+                pending.iter().join(", ")
+            );
+        }
+        for package in ready {
+            pending.remove(&package);
+            completed.insert(package);
+        }
+    }
+    Ok(())
+}
+
+async fn execute_workspace_member_task(
+    package: PackageName,
+    task: &WorkspaceMemberTask,
+    interpreter: &Interpreter,
+    new_path: &OsString,
+    recursion_depth: u32,
+    printer: Printer,
+) -> (PackageName, anyhow::Result<ExitStatus>) {
+    let result = async {
+        writeln!(
+            printer.stderr(),
+            "[{package}] Running task `{}`",
+            task.plan.name
+        )?;
+        execute_task_plan_in(
+            &task.plan,
+            interpreter,
+            new_path,
+            recursion_depth,
+            printer,
+            Some(&task.plan.root),
+            Some(&package),
+        )
+        .await
+    }
+    .await;
+    (package, result)
+}
+
+async fn execute_task_plan_in(
+    plan: &TaskPlan,
+    interpreter: &Interpreter,
+    new_path: &OsString,
+    recursion_depth: u32,
+    printer: Printer,
+    cwd: Option<&Path>,
+    package: Option<&PackageName>,
+) -> anyhow::Result<ExitStatus> {
     let show_step_names = plan.steps.len() > 1;
     for step in &plan.steps {
         if show_step_names {
-            writeln!(printer.stderr(), "Running task `{}`", step.name.cyan())?;
+            if let Some(package) = package {
+                writeln!(
+                    printer.stderr(),
+                    "[{package}] Running task `{}`",
+                    step.name.cyan()
+                )?;
+            } else {
+                writeln!(printer.stderr(), "Running task `{}`", step.name.cyan())?;
+            }
         }
 
         debug!("Running task step `{}` for task `{}`", step.name, plan.name);
@@ -1394,6 +1660,9 @@ async fn execute_task_plan(
         let mut process = step.command.as_command(interpreter);
         configure_run_process(&mut process, interpreter, new_path, recursion_depth);
         process.envs(step.env.iter());
+        if let Some(cwd) = cwd {
+            process.current_dir(cwd);
+        }
 
         let handle = process
             .spawn()
@@ -1487,7 +1756,39 @@ fn can_skip_ephemeral(
 #[derive(Debug)]
 pub(crate) struct TaskPlan {
     name: String,
+    root: PathBuf,
     steps: Vec<TaskStep>,
+}
+
+#[derive(Debug)]
+pub(crate) struct TaskCandidate {
+    name: String,
+    args: Vec<OsString>,
+    local_target_exists: bool,
+    fallback: Box<RunCommand>,
+}
+
+#[derive(Debug)]
+pub(crate) struct WorkspaceTaskRequest {
+    name: String,
+    args: Vec<OsString>,
+    sequential: bool,
+    filter: Vec<PackageName>,
+    include_dependencies: bool,
+    include_dependents: bool,
+}
+
+#[derive(Debug)]
+struct WorkspaceTaskPlan {
+    name: String,
+    sequential: bool,
+    tasks: BTreeMap<PackageName, WorkspaceMemberTask>,
+}
+
+#[derive(Debug)]
+struct WorkspaceMemberTask {
+    plan: TaskPlan,
+    dependencies: BTreeSet<PackageName>,
 }
 
 #[derive(Debug)]
@@ -1542,8 +1843,12 @@ pub(crate) enum RunCommand {
     PythonGuiStdin(Vec<u8>, Vec<OsString>),
     /// Execute a Python script provided via a remote URL.
     PythonRemote(DisplaySafeUrl, tempfile::NamedTempFile, Vec<OsString>),
+    /// Resolve a bare command as a project task, falling back to its normal command behavior.
+    TaskCandidate(TaskCandidate),
     /// Execute a resolved task plan.
     Task(TaskPlan),
+    /// Execute a named task across workspace members.
+    WorkspaceTask(WorkspaceTaskRequest),
     /// Execute an external command.
     External(OsString, Vec<OsString>),
     /// Execute an empty command (in practice, `python` with no arguments).
@@ -1578,7 +1883,9 @@ impl RunCommand {
                     Cow::Borrowed("python -c")
                 }
             }
+            Self::TaskCandidate(candidate) => Cow::Borrowed(candidate.name.as_str()),
             Self::Task(plan) => Cow::Borrowed(plan.name.as_str()),
+            Self::WorkspaceTask(request) => Cow::Borrowed(request.name.as_str()),
             Self::External(executable, _) => executable.to_string_lossy(),
         }
     }
@@ -1697,7 +2004,10 @@ impl RunCommand {
 
                 process
             }
-            Self::Task(..) => unreachable!("task plans are executed separately"),
+            Self::TaskCandidate(candidate) => candidate.fallback.as_command(interpreter),
+            Self::Task(..) | Self::WorkspaceTask(..) => {
+                unreachable!("task plans are executed separately")
+            }
             Self::External(executable, args) => {
                 let mut process = if cfg!(windows) {
                     WindowsRunnable::from_script_path(interpreter.scripts(), executable).into()
@@ -1723,7 +2033,9 @@ impl RunCommand {
             | Self::PythonStdin(..)
             | Self::PythonGuiStdin(..)
             | Self::PythonRemote(..)
+            | Self::TaskCandidate(..)
             | Self::Task(..)
+            | Self::WorkspaceTask(..)
             | Self::External(..)
             | Self::Empty => None,
         };
@@ -1779,7 +2091,9 @@ impl std::fmt::Display for RunCommand {
                 write!(f, "pythonw -c")?;
                 Ok(())
             }
+            Self::TaskCandidate(candidate) => write!(f, "{}", candidate.name),
             Self::Task(plan) => write!(f, "task {}", plan.name),
+            Self::WorkspaceTask(request) => write!(f, "workspace task {}", request.name),
             Self::External(executable, args) => {
                 write!(f, "{}", executable.to_string_lossy())?;
                 for arg in args {
@@ -1862,13 +2176,32 @@ impl RunCommand {
         module: bool,
         script: bool,
         gui_script: bool,
-        project_dir: &std::path::Path,
         no_project: bool,
+        workspace: bool,
+        sequential: bool,
+        filter: Vec<PackageName>,
+        include_dependencies: bool,
+        include_dependents: bool,
     ) -> anyhow::Result<Self> {
         let (target, args) = command.split();
         let Some(target) = target else {
             return Ok(Self::Empty);
         };
+
+        if workspace {
+            let name = target.to_string_lossy();
+            if name.contains(std::path::MAIN_SEPARATOR) || name.contains('/') {
+                bail!("Workspace task names cannot contain path separators: `{name}`");
+            }
+            return Ok(Self::WorkspaceTask(WorkspaceTaskRequest {
+                name: name.into_owned(),
+                args: args.to_vec(),
+                sequential,
+                filter,
+                include_dependencies,
+                include_dependents,
+            }));
+        }
 
         if target.eq_ignore_ascii_case("-") {
             let mut buf = Vec::with_capacity(1024);
@@ -1948,50 +2281,60 @@ impl RunCommand {
         let is_file = metadata.as_ref().is_ok_and(std::fs::Metadata::is_file);
         let is_dir = metadata.as_ref().is_ok_and(std::fs::Metadata::is_dir);
 
-        // Check if the target matches a task in [tool.fyn.tasks] before
-        // falling back to PATH lookup. Skip if the target looks like a file path.
+        // Bare commands may resolve to a project task after project and package discovery. Keep
+        // their ordinary behavior as a fallback when the selected project does not define the
+        // requested task.
         let target_str = target.to_string_lossy();
         if !no_project
             && !target_str.contains(std::path::MAIN_SEPARATOR)
             && !target_str.contains('/')
-            && !is_file
-            && !is_dir
         {
-            if let Some(tasks) = lookup_tasks(project_dir) {
-                if tasks.get(&target_str).is_some() {
-                    return Ok(Self::Task(resolve_task_plan(&target_str, &tasks, args)?));
-                }
-            }
+            let fallback = classify_run_target(target, target_path, args, is_file, is_dir);
+            return Ok(Self::TaskCandidate(TaskCandidate {
+                name: target_str.into_owned(),
+                args: args.to_vec(),
+                local_target_exists: is_file || is_dir,
+                fallback: Box::new(fallback),
+            }));
         }
 
-        if target.eq_ignore_ascii_case("python") {
-            Ok(Self::Python(args.to_vec()))
-        } else if target_path
-            .extension()
-            .is_some_and(|ext| ext.eq_ignore_ascii_case("py") || ext.eq_ignore_ascii_case("pyc"))
-            && is_file
-        {
-            Ok(Self::PythonScript(target_path, args.to_vec()))
-        } else if target_path
-            .extension()
-            .is_some_and(|ext| ext.eq_ignore_ascii_case("pyw"))
-            && is_file
-        {
-            Ok(Self::PythonGuiScript(target_path, args.to_vec()))
-        } else if is_dir && target_path.join("__main__.py").is_file() {
-            Ok(Self::PythonPackage(
-                target.clone(),
-                target_path,
-                args.to_vec(),
-            ))
-        } else if is_file && is_python_zipapp(&target_path) {
-            Ok(Self::PythonZipapp(target_path, args.to_vec()))
-        } else {
-            Ok(Self::External(
-                target.clone(),
-                args.iter().map(std::clone::Clone::clone).collect(),
-            ))
-        }
+        Ok(classify_run_target(
+            target,
+            target_path,
+            args,
+            is_file,
+            is_dir,
+        ))
+    }
+}
+
+fn classify_run_target(
+    target: &OsString,
+    target_path: PathBuf,
+    args: &[OsString],
+    is_file: bool,
+    is_dir: bool,
+) -> RunCommand {
+    if target.eq_ignore_ascii_case("python") {
+        RunCommand::Python(args.to_vec())
+    } else if target_path
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("py") || ext.eq_ignore_ascii_case("pyc"))
+        && is_file
+    {
+        RunCommand::PythonScript(target_path, args.to_vec())
+    } else if target_path
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("pyw"))
+        && is_file
+    {
+        RunCommand::PythonGuiScript(target_path, args.to_vec())
+    } else if is_dir && target_path.join("__main__.py").is_file() {
+        RunCommand::PythonPackage(target.clone(), target_path, args.to_vec())
+    } else if is_file && is_python_zipapp(&target_path) {
+        RunCommand::PythonZipapp(target_path, args.to_vec())
+    } else {
+        RunCommand::External(target.clone(), args.to_vec())
     }
 }
 
@@ -2028,10 +2371,280 @@ fn lookup_tasks(project_dir: &Path) -> Option<fyn_workspace::pyproject::ToolfynT
     None
 }
 
+pub(crate) async fn resolve_task_candidate(
+    command: RunCommand,
+    project_dir: &Path,
+    package: Option<&PackageName>,
+    workspace_cache: &WorkspaceCache,
+) -> anyhow::Result<RunCommand> {
+    let RunCommand::TaskCandidate(candidate) = command else {
+        return Ok(command);
+    };
+
+    // Preserve existing local file and directory behavior. In particular, resolve Python scripts
+    // before PEP 723 metadata is inspected by the caller. With `--package`, task lookup must use
+    // the chosen member even when the caller has a same-named local path, so discovery is required.
+    if package.is_none() && candidate.local_target_exists {
+        return Ok(*candidate.fallback);
+    }
+
+    let project = if let Some(package) = package {
+        Some(
+            VirtualProject::discover_with_package(
+                project_dir,
+                &DiscoveryOptions::default(),
+                workspace_cache,
+                package.clone(),
+            )
+            .await?,
+        )
+    } else {
+        match VirtualProject::discover(project_dir, &DiscoveryOptions::default(), workspace_cache)
+            .await
+        {
+            Ok(project) => Some(project),
+            Err(WorkspaceError::MissingPyprojectToml | WorkspaceError::NonWorkspace(_)) => None,
+            Err(err) => return Err(err.into()),
+        }
+    };
+    let Some(project) = project else {
+        return Ok(*candidate.fallback);
+    };
+
+    let Some(tasks) = project
+        .pyproject_toml()
+        .tool_fyn()
+        .and_then(|tool| tool.tasks.as_ref())
+    else {
+        return Ok(*candidate.fallback);
+    };
+    if tasks.get(&candidate.name).is_none() {
+        return Ok(*candidate.fallback);
+    }
+    Ok(RunCommand::Task(resolve_task_plan(
+        &candidate.name,
+        tasks,
+        &candidate.args,
+        project.root(),
+    )?))
+}
+
+fn workspace_dependency_graph(
+    workspace: &Workspace,
+    resolution: &Resolution,
+) -> anyhow::Result<BTreeMap<PackageName, BTreeSet<PackageName>>> {
+    let graph = resolution.graph();
+    let members = workspace.packages();
+    let mut node_members = BTreeMap::new();
+    let mut member_nodes = BTreeMap::<PackageName, Vec<_>>::new();
+
+    for index in graph.node_indices() {
+        let Node::Dist { dist, .. } = &graph[index] else {
+            continue;
+        };
+        let Some(member) = members.get(dist.name()) else {
+            continue;
+        };
+        if dist
+            .source_tree()
+            .is_none_or(|source| normalize_path(source) != normalize_path(member.root()))
+        {
+            continue;
+        }
+        node_members.insert(index, dist.name().clone());
+        member_nodes
+            .entry(dist.name().clone())
+            .or_default()
+            .push(index);
+    }
+
+    let missing = members
+        .keys()
+        .filter(|name| !member_nodes.contains_key(*name))
+        .cloned()
+        .collect::<Vec<_>>();
+    if !missing.is_empty() {
+        bail!(
+            "Workspace members are missing from the active resolution: {}; rerun without `--no-sync` to refresh `fyn.lock`",
+            missing.iter().format(", ")
+        );
+    }
+
+    Ok(members
+        .keys()
+        .cloned()
+        .map(|name| {
+            let mut dependencies = BTreeSet::new();
+            let mut visited = BTreeSet::new();
+            let mut stack = member_nodes.get(&name).cloned().unwrap_or_default();
+            while let Some(index) = stack.pop() {
+                if !visited.insert(index) {
+                    continue;
+                }
+                if let Some(dependency) = node_members.get(&index) {
+                    if dependency != &name {
+                        dependencies.insert(dependency.clone());
+                    }
+                }
+                stack.extend(graph.neighbors(index));
+            }
+            (name, dependencies)
+        })
+        .collect())
+}
+
+fn graph_closure(
+    seeds: &BTreeSet<PackageName>,
+    graph: &BTreeMap<PackageName, BTreeSet<PackageName>>,
+) -> BTreeSet<PackageName> {
+    let mut selected = seeds.clone();
+    let mut stack = seeds.iter().cloned().collect::<Vec<_>>();
+    while let Some(package) = stack.pop() {
+        for related in graph.get(&package).into_iter().flatten() {
+            if selected.insert(related.clone()) {
+                stack.push(related.clone());
+            }
+        }
+    }
+    selected
+}
+
+fn resolve_workspace_task_plan(
+    request: &WorkspaceTaskRequest,
+    workspace: &Workspace,
+    resolution: &Resolution,
+) -> anyhow::Result<WorkspaceTaskPlan> {
+    let root = workspace.install_path();
+    let members = workspace.packages();
+    let filters = request.filter.iter().cloned().collect::<BTreeSet<_>>();
+
+    for filter in &filters {
+        let member = members
+            .get(filter)
+            .ok_or_else(|| anyhow!("Package `{filter}` is not a member of the workspace"))?;
+        if member.root() == root {
+            bail!("Package `{filter}` is the workspace root; run its task without `--workspace`");
+        }
+    }
+
+    let dependency_graph = workspace_dependency_graph(workspace, resolution)?;
+    let scope = if request.include_dependencies {
+        Some(graph_closure(&filters, &dependency_graph))
+    } else if request.include_dependents {
+        let mut reverse_graph = members
+            .keys()
+            .cloned()
+            .map(|name| (name, BTreeSet::new()))
+            .collect::<BTreeMap<_, _>>();
+        for (package, dependencies) in &dependency_graph {
+            for dependency in dependencies {
+                reverse_graph
+                    .get_mut(dependency)
+                    .expect("workspace dependencies are workspace members")
+                    .insert(package.clone());
+            }
+        }
+        Some(graph_closure(&filters, &reverse_graph))
+    } else if filters.is_empty() {
+        None
+    } else {
+        Some(filters.clone())
+    };
+    let expands_filters = request.include_dependencies || request.include_dependents;
+
+    let mut tasks = BTreeMap::new();
+    for (name, member) in members {
+        // The workspace root can define an aggregate task which invokes `fyn run --workspace`.
+        // Excluding it here avoids recursive self-invocation and matches recursive workspace task
+        // runners such as pnpm and uv-tasks.
+        if member.root() == root || scope.as_ref().is_some_and(|scope| !scope.contains(name)) {
+            continue;
+        }
+
+        let task_table = member
+            .pyproject_toml()
+            .tool_fyn()
+            .and_then(|tool| tool.tasks.as_ref());
+        let Some(task_table) = task_table else {
+            if filters.contains(name) && !expands_filters {
+                bail!("Workspace member `{name}` does not define any tasks in `[tool.fyn.tasks]`");
+            }
+            continue;
+        };
+        if task_table.get(&request.name).is_none() {
+            if filters.contains(name) && !expands_filters {
+                bail!(
+                    "Task `{}` is not defined for workspace member `{name}`",
+                    request.name
+                );
+            }
+            continue;
+        }
+
+        tasks.insert(
+            name.clone(),
+            WorkspaceMemberTask {
+                plan: resolve_task_plan(&request.name, task_table, &request.args, member.root())?,
+                dependencies: BTreeSet::new(),
+            },
+        );
+    }
+
+    if tasks.is_empty() {
+        if members.values().all(|member| member.root() == root) {
+            bail!(
+                "No child workspace members were found; run `fyn run {}` without `--workspace`",
+                request.name
+            );
+        }
+        if expands_filters {
+            bail!(
+                "Task `{}` is not defined by any selected workspace member",
+                request.name
+            );
+        }
+        bail!(
+            "Task `{}` is not defined by any child workspace member",
+            request.name
+        );
+    }
+
+    let selected = tasks.keys().cloned().collect::<BTreeSet<_>>();
+    for (name, task) in &mut tasks {
+        let mut stack = dependency_graph
+            .get(name)
+            .into_iter()
+            .flatten()
+            .cloned()
+            .collect::<Vec<_>>();
+        let mut reachable = BTreeSet::new();
+        while let Some(dependency) = stack.pop() {
+            if !members.contains_key(&dependency) || !reachable.insert(dependency.clone()) {
+                continue;
+            }
+            if let Some(transitive) = dependency_graph.get(&dependency) {
+                stack.extend(transitive.iter().cloned());
+            }
+        }
+        task.dependencies = reachable
+            .intersection(&selected)
+            .filter(|dependency| *dependency != name)
+            .cloned()
+            .collect();
+    }
+
+    Ok(WorkspaceTaskPlan {
+        name: request.name.clone(),
+        sequential: request.sequential,
+        tasks,
+    })
+}
+
 fn resolve_task_plan(
     name: &str,
     tasks: &fyn_workspace::pyproject::ToolfynTasks,
     extra_args: &[OsString],
+    root: &Path,
 ) -> anyhow::Result<TaskPlan> {
     let extra_args = strip_task_passthrough_sentinel(extra_args);
     let mut stack = Vec::new();
@@ -2046,6 +2659,7 @@ fn resolve_task_plan(
     )?;
     Ok(TaskPlan {
         name: name.to_string(),
+        root: root.to_path_buf(),
         steps,
     })
 }
@@ -2086,6 +2700,23 @@ fn resolve_task_steps(
                 command: parse_task_command(cmd, extra_args)?,
                 env: inherited_env.clone(),
             });
+        }
+        TaskDefinition::Sequence(commands) => {
+            if !extra_args.is_empty() {
+                bail!(
+                    "Cannot pass additional arguments to command-sequence task `{name}`; define a `cmd` task instead"
+                );
+            }
+            if commands.is_empty() {
+                bail!("Task `{name}` defines an empty command sequence");
+            }
+            for (index, command) in commands.iter().enumerate() {
+                steps.push(TaskStep {
+                    name: format!("{name}[{}]", index + 1),
+                    command: parse_task_command(command, &[])?,
+                    env: inherited_env.clone(),
+                });
+            }
         }
         TaskDefinition::Detailed(detailed) => {
             let mut merged_env = inherited_env.clone();
@@ -2146,27 +2777,29 @@ fn parse_task_command(cmd_str: &str, extra_args: &[OsString]) -> anyhow::Result<
 /// Split a command string into tokens, respecting single and double quotes.
 ///
 /// This is intentionally shell-like rather than shell-complete: it supports
-/// quotes and backslash escapes, which covers common task forms like
+/// quotes and escapes for quoted characters and unquoted whitespace, which covers forms like
 /// `pytest -xvs`, `echo "hello world"`, and `python -c "print(\"ok\")"`.
 fn shell_split(s: &str) -> anyhow::Result<Vec<String>> {
     let mut tokens = Vec::new();
     let mut current = String::new();
     let mut in_single = false;
     let mut in_double = false;
-    let mut escaped = false;
     let mut token_started = false;
+    let mut chars = s.chars().peekable();
 
-    for c in s.chars() {
-        if escaped {
-            current.push(c);
-            escaped = false;
-            token_started = true;
-            continue;
-        }
-
+    while let Some(c) = chars.next() {
         match c {
             '\\' if !in_single => {
-                escaped = true;
+                let escapes_next = chars.peek().is_some_and(|next| {
+                    *next == '"' || (!in_double && (*next == '\'' || next.is_whitespace()))
+                });
+                if escapes_next {
+                    current.push(chars.next().expect("peeked character is present"));
+                } else {
+                    // Preserve ordinary backslashes so Windows paths and UNC paths survive task
+                    // parsing unchanged.
+                    current.push('\\');
+                }
                 token_started = true;
             }
             '\'' if !in_double => {
@@ -2188,10 +2821,6 @@ fn shell_split(s: &str) -> anyhow::Result<Vec<String>> {
                 token_started = true;
             }
         }
-    }
-
-    if escaped {
-        current.push('\\');
     }
 
     if in_single || in_double {
@@ -2228,6 +2857,18 @@ mod tests {
     #[test]
     fn shell_split_rejects_unterminated_quotes() {
         assert!(shell_split(r#"python -c "print("ok")"#).is_err());
+    }
+
+    #[test]
+    fn shell_split_preserves_windows_paths() {
+        assert_eq!(
+            shell_split(r"C:\Tools\ruff.exe check C:\src\project").unwrap(),
+            vec![r"C:\Tools\ruff.exe", "check", r"C:\src\project"],
+        );
+        assert_eq!(
+            shell_split(r#""C:\Program Files\ruff.exe" check \\server\share"#).unwrap(),
+            vec![r"C:\Program Files\ruff.exe", "check", r"\\server\share"],
+        );
     }
 }
 

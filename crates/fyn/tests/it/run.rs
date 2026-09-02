@@ -6,8 +6,9 @@ use assert_fs::{fixture::ChildPath, prelude::*};
 use fyn_fs::copy_dir_all;
 use fyn_python::PYTHON_VERSION_FILENAME;
 use fyn_static::EnvVars;
-use indoc::indoc;
+use indoc::{formatdoc, indoc};
 use insta::assert_snapshot;
+use predicates::prelude::{PredicateBooleanExt, PredicateStrExt};
 use predicates::{prelude::predicate, str::contains};
 use serde_json::json;
 use std::path::Path;
@@ -6939,6 +6940,1010 @@ fn run_task_simple() -> Result<()> {
     Ok(())
 }
 
+/// Tasks execute from the directory containing their defining pyproject.toml.
+#[test]
+fn run_task_from_nested_directory_uses_project_root() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check-cwd = "python task.py"
+        "#
+        })?;
+    context
+        .temp_dir
+        .child("task.py")
+        .write_str("from pathlib import Path\nprint(Path.cwd() == Path(__file__).parent)\n")?;
+    let nested = context.temp_dir.child("nested").child("deeper");
+    nested.create_dir_all()?;
+
+    let mut command = context.run();
+    command.current_dir(nested.path()).arg("check-cwd");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("True\n").normalize());
+
+    Ok(())
+}
+
+/// `--package` resolves and executes tasks from the selected workspace member.
+#[test]
+fn run_task_package_uses_member_definition_and_root() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "root"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.workspace]
+        members = ["packages/api"]
+
+        [tool.fyn.tasks]
+        who = "python -c \"print('root task')\""
+        root-only = "python -V"
+        "#
+        })?;
+
+    let api = context.temp_dir.child("packages").child("api");
+    api.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "api"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        who = "python task.py"
+        member-only = "python -V"
+        "#
+    })?;
+    api.child("task.py")
+        .write_str("from pathlib import Path\nprint(Path.cwd().name)\n")?;
+
+    let caller = context.temp_dir.child("caller");
+    caller.child("who").create_dir_all()?;
+    caller
+        .child("main.py")
+        .write_str("print('caller script')\n")?;
+    caller
+        .child("meta.py")
+        .write_str("# /// script\nprint('missing closing tag')\n")?;
+
+    let mut run = context.run();
+    run.current_dir(caller.path());
+    run.arg("--package").arg("api").arg("who");
+    run.assert()
+        .success()
+        .stdout(predicate::eq("api\n").normalize());
+
+    let mut local_file = context.run();
+    local_file
+        .current_dir(caller.path())
+        .arg("--package")
+        .arg("api")
+        .arg("main.py");
+    local_file
+        .assert()
+        .success()
+        .stdout(predicate::eq("caller script\n").normalize());
+
+    let mut metadata_file = context.run();
+    metadata_file
+        .current_dir(caller.path())
+        .arg("--package")
+        .arg("api")
+        .arg("meta.py");
+    metadata_file
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "An opening tag (`# /// script`) was found without a closing tag",
+        ));
+
+    let mut list = context.run();
+    list.arg("--package").arg("api").arg("--list-tasks");
+    list.assert().success().stderr(
+        predicate::str::contains("member-only").and(predicate::str::contains("root-only").not()),
+    );
+
+    let mut unknown = context.run();
+    unknown.arg("--package").arg("missing").arg("--list-tasks");
+    unknown
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("missing"));
+
+    Ok(())
+}
+
+/// Run a sequence of commands directly from an array task definition.
+#[test]
+fn run_task_command_sequence() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = ["python first.py", "python second.py"]
+        "#
+        })?;
+    context.temp_dir.child("first.py").write_str(
+        "from pathlib import Path\nPath('first.done').write_text('ready')\nprint('first')\n",
+    )?;
+    context.temp_dir.child("second.py").write_str(
+        "from pathlib import Path\nassert Path('first.done').read_text() == 'ready'\nprint('second')\n",
+    )?;
+
+    let mut command = context.run();
+    command.arg("check");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("first\nsecond\n").normalize())
+        .stderr(
+            predicate::str::contains("Running task `check[1]`")
+                .and(predicate::str::contains("Running task `check[2]`")),
+        );
+
+    Ok(())
+}
+
+/// Empty command sequences are rejected while loading project configuration.
+#[test]
+fn run_task_rejects_empty_command_sequence() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "foo"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        empty = []
+        "#
+        })?;
+
+    let mut command = context.run();
+    command.arg("empty");
+    command.assert().failure().stderr(predicate::str::contains(
+        "task command sequence must contain at least one command",
+    ));
+
+    Ok(())
+}
+
+#[test]
+fn run_task_workspace_requires_task_name() {
+    let context = fyn_test::test_context!("3.12");
+
+    let mut command = context.run();
+    command.arg("--workspace");
+    command.assert().code(2).stderr(predicate::str::contains(
+        "Workspace task execution requires a task name",
+    ));
+}
+
+/// Run workspace tasks in dependency order from each member's directory.
+#[test]
+fn run_task_across_workspace_in_dependency_order() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "root"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.workspace]
+        members = ["packages/*"]
+
+        [tool.fyn.sources]
+        core = { workspace = true }
+
+        [tool.fyn.tasks]
+        test = "python root-must-not-run.py"
+        "#
+        })?;
+
+    let core = context.temp_dir.child("packages").child("core");
+    core.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "core"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        test = "python task.py"
+        "#
+    })?;
+    core.child("task.py").write_str(
+        "from pathlib import Path\nPath('../core.done').write_text('ready')\nprint(Path.cwd().name)\n",
+    )?;
+
+    let app = context.temp_dir.child("packages").child("app");
+    app.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "app"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = ["core"]
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        test = "python task.py"
+        args = "python args.py"
+        "#
+    })?;
+    app.child("task.py").write_str(
+        "from pathlib import Path\nassert Path('../core.done').read_text() == 'ready'\nprint(Path.cwd().name)\n",
+    )?;
+    app.child("args.py")
+        .write_str("import json, sys\nprint(json.dumps(sys.argv[1:]))\n")?;
+
+    let mut command = context.run();
+    command.arg("--workspace").arg("test");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("core\napp\n").normalize())
+        .stderr(
+            predicate::str::contains("[core] Running task `test`")
+                .and(predicate::str::contains("[app] Running task `test`"))
+                .and(predicate::str::contains(
+                    "Finished workspace task `test` in 2 packages",
+                )),
+        );
+
+    let mut filtered = context.run();
+    filtered
+        .arg("--workspace")
+        .arg("--sequential")
+        .arg("--filter")
+        .arg("app")
+        .arg("test");
+    filtered
+        .assert()
+        .success()
+        .stdout(predicate::eq("app\n").normalize())
+        .stderr(predicate::str::contains(
+            "Finished workspace task `test` in 1 package",
+        ));
+
+    let mut passthrough = context.run();
+    passthrough
+        .arg("--workspace")
+        .arg("--filter")
+        .arg("app")
+        .arg("args")
+        .arg("--")
+        .arg("--");
+    passthrough
+        .assert()
+        .success()
+        .stdout(predicate::eq("[\"--\"]\n").normalize());
+
+    let mut list = context.run();
+    list.arg("--workspace").arg("--list-tasks");
+    list.assert().success().stderr(
+        predicate::str::contains("Workspace tasks:")
+            .and(predicate::str::contains("app:"))
+            .and(predicate::str::contains("core:"))
+            .and(predicate::str::contains("root-must-not-run").not()),
+    );
+
+    Ok(())
+}
+
+/// Filters can expand through fyn's active workspace dependency graph.
+#[test]
+fn run_task_workspace_expands_dependency_graph_filters() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "root"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.workspace]
+        members = ["packages/*"]
+
+        [tool.fyn.sources]
+        core = { workspace = true }
+        lib = { workspace = true }
+        "#
+        })?;
+
+    for (name, dependencies) in [
+        ("core", "[]"),
+        ("lib", "[\"core\"]"),
+        ("app", "[\"lib\"]"),
+        ("unrelated", "[]"),
+    ] {
+        context
+            .temp_dir
+            .child("packages")
+            .child(name)
+            .child("pyproject.toml")
+            .write_str(&formatdoc! { r#"
+                [project]
+                name = "{name}"
+                version = "1.0.0"
+                requires-python = ">=3.12"
+                dependencies = {dependencies}
+
+                [tool.fyn]
+                package = false
+
+                [tool.fyn.tasks]
+                check = "python -c \"print('{name}')\""
+                "#
+            })?;
+    }
+
+    let mut dependencies = context.run();
+    dependencies
+        .arg("--workspace")
+        .arg("--sequential")
+        .arg("--filter")
+        .arg("app")
+        .arg("--include-dependencies")
+        .arg("check");
+    dependencies
+        .assert()
+        .success()
+        .stdout(predicate::eq("core\nlib\napp\n").normalize());
+
+    let mut no_sync = context.run();
+    no_sync
+        .arg("--workspace")
+        .arg("--no-sync")
+        .arg("--sequential")
+        .arg("--filter")
+        .arg("app")
+        .arg("--include-dependencies")
+        .arg("check");
+    no_sync
+        .assert()
+        .success()
+        .stdout(predicate::eq("core\nlib\napp\n").normalize());
+
+    let mut dependents = context.run();
+    dependents
+        .arg("--workspace")
+        .arg("--sequential")
+        .arg("--filter")
+        .arg("core")
+        .arg("--include-dependents")
+        .arg("check");
+    dependents
+        .assert()
+        .success()
+        .stdout(predicate::eq("core\nlib\napp\n").normalize());
+
+    Ok(())
+}
+
+/// A graph-expansion anchor does not need to define the requested task itself.
+#[test]
+fn run_task_workspace_expansion_allows_taskless_anchor() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "root"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.workspace]
+        members = ["packages/*"]
+
+        [tool.fyn.sources]
+        core = { workspace = true }
+        "#
+        })?;
+
+    context
+        .temp_dir
+        .child("packages")
+        .child("core")
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "core"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+        "#
+        })?;
+
+    context
+        .temp_dir
+        .child("packages")
+        .child("app")
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "app"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = ["core"]
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python -c \"print('app')\""
+        "#
+        })?;
+
+    let mut command = context.run();
+    command
+        .arg("--workspace")
+        .arg("--filter")
+        .arg("core")
+        .arg("--include-dependents")
+        .arg("check");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("app\n").normalize());
+
+    Ok(())
+}
+
+/// Graph-expansion flags require filters and select a single traversal direction.
+#[test]
+fn run_task_workspace_expansion_cli_validation() {
+    let context = fyn_test::test_context!("3.12");
+
+    let mut missing_filter = context.run();
+    missing_filter
+        .arg("--workspace")
+        .arg("--include-dependencies")
+        .arg("check");
+    missing_filter.assert().code(2).stderr(
+        predicate::str::contains("--filter")
+            .and(predicate::str::contains("--include-dependencies")),
+    );
+
+    let mut conflicting = context.run();
+    conflicting
+        .arg("--workspace")
+        .arg("--filter")
+        .arg("app")
+        .arg("--include-dependencies")
+        .arg("--include-dependents")
+        .arg("check");
+    conflicting.assert().code(2).stderr(
+        predicate::str::contains("--include-dependencies")
+            .and(predicate::str::contains("--include-dependents")),
+    );
+
+    let mut no_project_list = context.run();
+    no_project_list.arg("--no-project").arg("--list-tasks");
+    no_project_list.assert().code(2).stderr(
+        predicate::str::contains("--no-project").and(predicate::str::contains("--list-tasks")),
+    );
+
+    let mut command_with_list = context.run();
+    command_with_list.arg("--list-tasks").arg("check");
+    command_with_list
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains(
+            "`--list-tasks` cannot be used with a command",
+        ));
+
+    let mut sequential_list = context.run();
+    sequential_list
+        .arg("--workspace")
+        .arg("--sequential")
+        .arg("--list-tasks");
+    sequential_list.assert().code(2).stderr(
+        predicate::str::contains("--sequential").and(predicate::str::contains("--list-tasks")),
+    );
+}
+
+/// Inactive dependency markers do not impose workspace task ordering.
+#[test]
+fn run_task_workspace_respects_dependency_markers() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "root"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.workspace]
+        members = ["packages/*"]
+
+        [tool.fyn.sources]
+        core = { workspace = true }
+        "#
+        })?;
+
+    let app = context.temp_dir.child("packages").child("app");
+    app.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "app"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = ["core; python_version < '1'"]
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python -c \"print('app')\""
+        "#
+    })?;
+
+    let core = context.temp_dir.child("packages").child("core");
+    core.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "core"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python -c \"print('core')\""
+        "#
+    })?;
+
+    let mut command = context.run();
+    command.arg("--workspace").arg("--sequential").arg("check");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("app\ncore\n").normalize());
+
+    let mut filtered = context.run();
+    filtered
+        .arg("--workspace")
+        .arg("--sequential")
+        .arg("--filter")
+        .arg("app")
+        .arg("--include-dependencies")
+        .arg("check");
+    filtered
+        .assert()
+        .success()
+        .stdout(predicate::eq("app\n").normalize());
+
+    Ok(())
+}
+
+/// Extras activated by workspace requirements contribute their own dependency edges.
+#[test]
+fn run_task_workspace_orders_transitively_activated_extras() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "root"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.workspace]
+        members = ["packages/*"]
+
+        [tool.fyn.sources]
+        lib = { workspace = true }
+        zcore = { workspace = true }
+        "#
+        })?;
+
+    let app = context.temp_dir.child("packages").child("app");
+    app.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "app"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = ["lib[feature]"]
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python task.py"
+        "#
+    })?;
+    app.child("task.py").write_str(
+        "from pathlib import Path\nassert Path('../lib.done').is_file()\nprint('app')\n",
+    )?;
+
+    let lib = context.temp_dir.child("packages").child("lib");
+    lib.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "lib"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [project.optional-dependencies]
+        feature = ["zcore"]
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python task.py"
+        "#
+    })?;
+    lib.child("task.py").write_str(
+        "from pathlib import Path\nassert Path('../zcore.done').is_file()\nPath('../lib.done').write_text('ready')\nprint('lib')\n",
+    )?;
+
+    let core = context.temp_dir.child("packages").child("zcore");
+    core.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "zcore"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python task.py"
+        "#
+    })?;
+    core.child("task.py").write_str(
+        "from pathlib import Path\nPath('../zcore.done').write_text('ready')\nprint('zcore')\n",
+    )?;
+
+    let mut command = context.run();
+    command.arg("--workspace").arg("--sequential").arg("check");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("zcore\nlib\napp\n").normalize());
+
+    Ok(())
+}
+
+/// A member can activate another of its own extras without declaring itself as a source.
+#[test]
+fn run_task_workspace_orders_self_extra_recursion() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "root"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.workspace]
+        members = ["packages/*"]
+
+        [tool.fyn.sources]
+        zcore = { workspace = true }
+        "#
+        })?;
+
+    let framework = context.temp_dir.child("packages").child("framework");
+    framework.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "framework"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [project.optional-dependencies]
+        cuda = ["zcore"]
+
+        [dependency-groups]
+        dev = ["framework[cuda]"]
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python task.py"
+        "#
+    })?;
+    framework.child("task.py").write_str(
+        "from pathlib import Path\nassert Path('../zcore.done').is_file()\nprint('framework')\n",
+    )?;
+
+    let core = context.temp_dir.child("packages").child("zcore");
+    core.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "zcore"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python task.py"
+        "#
+    })?;
+    core.child("task.py").write_str(
+        "from pathlib import Path\nPath('../zcore.done').write_text('ready')\nprint('zcore')\n",
+    )?;
+
+    let mut command = context.run();
+    command.arg("--workspace").arg("--sequential").arg("check");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("zcore\nframework\n").normalize());
+
+    Ok(())
+}
+
+/// Filtering to one task package does not reject a cycle outside the selected task graph.
+#[test]
+fn run_task_workspace_filter_prunes_dependency_cycles() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "root"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.workspace]
+        members = ["packages/*"]
+
+        [tool.fyn.sources]
+        a = { workspace = true }
+        b = { workspace = true }
+        "#
+        })?;
+
+    for (name, dependency) in [("a", "b"), ("b", "a")] {
+        context
+            .temp_dir
+            .child("packages")
+            .child(name)
+            .child("pyproject.toml")
+            .write_str(&formatdoc! { r#"
+                [project]
+                name = "{name}"
+                version = "1.0.0"
+                requires-python = ">=3.12"
+                dependencies = ["{dependency}"]
+
+                [tool.fyn]
+                package = false
+
+                [tool.fyn.tasks]
+                check = "python -c \"print('{name}')\""
+                "#
+            })?;
+    }
+
+    context
+        .temp_dir
+        .child("packages")
+        .child("independent")
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+            [project]
+            name = "independent"
+            version = "1.0.0"
+            requires-python = ">=3.12"
+            dependencies = []
+
+            [tool.fyn]
+            package = false
+
+            [tool.fyn.tasks]
+            check = "python -c \"print('must not run')\""
+            "#
+        })?;
+
+    let mut command = context.run();
+    command
+        .arg("--workspace")
+        .arg("--filter")
+        .arg("a")
+        .arg("check");
+    command
+        .assert()
+        .success()
+        .stdout(predicate::eq("a\n").normalize());
+
+    let mut cycle = context.run();
+    cycle.arg("--workspace").arg("--sequential").arg("check");
+    cycle
+        .assert()
+        .failure()
+        .stdout(predicate::str::contains("must not run").not())
+        .stderr(predicate::str::contains(
+            "Workspace task dependency cycle blocks the remaining packages: a, b",
+        ));
+
+    Ok(())
+}
+
+/// A failing dependency prevents dependent workspace tasks from starting.
+#[test]
+fn run_task_workspace_stops_dependents_after_failure() -> Result<()> {
+    let context = fyn_test::test_context!("3.12");
+
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(indoc! { r#"
+        [project]
+        name = "root"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.workspace]
+        members = ["packages/*"]
+
+        [tool.fyn.sources]
+        base = { workspace = true }
+        "#
+        })?;
+
+    let base = context.temp_dir.child("packages").child("base");
+    base.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "base"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = []
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python -c \"print('base failed'); raise SystemExit(7)\""
+        "#
+    })?;
+
+    let dependent = context.temp_dir.child("packages").child("dependent");
+    dependent.child("pyproject.toml").write_str(indoc! { r#"
+        [project]
+        name = "dependent"
+        version = "1.0.0"
+        requires-python = ">=3.12"
+        dependencies = ["base"]
+
+        [tool.fyn]
+        package = false
+
+        [tool.fyn.tasks]
+        check = "python -c \"print('must not run')\""
+        "#
+    })?;
+
+    let mut command = context.run();
+    command.arg("--workspace").arg("--sequential").arg("check");
+    command
+        .assert()
+        .code(7)
+        .stdout(predicate::eq("base failed\n").normalize())
+        .stderr(
+            predicate::str::contains(
+                "Workspace task `check` failed in package `base`; remaining tasks were not started",
+            )
+            .and(predicate::str::contains("[dependent] Running task").not()),
+        );
+
+    Ok(())
+}
+
 /// Run a detailed task (table form) defined in [tool.fyn.tasks].
 #[test]
 fn run_task_detailed() -> Result<()> {
@@ -7045,6 +8050,19 @@ fn run_task_dotted_name_does_not_override_local_script() -> Result<()> {
     Resolved 1 package in [TIME]
     Checked in [TIME]
     ");
+
+    context
+        .temp_dir
+        .child("main.py")
+        .write_str("# /// script\nprint('missing closing tag')\n")?;
+    context
+        .run()
+        .arg("main.py")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "An opening tag (`# /// script`) was found without a closing tag",
+        ));
 
     Ok(())
 }
