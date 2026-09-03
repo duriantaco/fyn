@@ -3,6 +3,19 @@
 <!-- prettier-ignore-start -->
 
 
+## 0.10.17
+
+Released on 2026-09-03.
+
+### Enhancements
+
+- Expanded project tasks with fail-fast command sequences, and added graph-aware workspace execution that synchronizes once, runs dependencies before dependents, parallelizes independent members, and supports package and transitive graph filters. ([#193](https://github.com/duriantaco/fyn/pull/193))
+- Updated managed Python downloads for CPython 3.15.0rc2, 3.12.14, 3.11.16, and 3.10.21, along with the latest standalone-build target metadata. ([#191](https://github.com/duriantaco/fyn/pull/191))
+
+### Bug fixes
+
+- Hardened `fyn audit` against malformed OSV responses, unsafe advisory IDs, unbounded pagination, cross-endpoint cache collisions, mismatched batch results, and fix versions from unrelated packages. ([#192](https://github.com/duriantaco/fyn/pull/192))
+
 ## 0.10.16
 
 Released on 2026-08-14.

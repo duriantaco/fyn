@@ -171,7 +171,7 @@ bird-feeder = { workspace = true }
 members = ["packages/*"]
 
 [build-system]
-requires = ["fyn_build>=0.10.16,<0.11.0"]
+requires = ["fyn_build>=0.10.17,<0.11.0"]
 build-backend = "fyn_build"
 ```
 
@@ -202,7 +202,7 @@ tqdm = { git = "https://github.com/tqdm/tqdm" }
 members = ["packages/*"]
 
 [build-system]
-requires = ["fyn_build>=0.10.16,<0.11.0"]
+requires = ["fyn_build>=0.10.17,<0.11.0"]
 build-backend = "fyn_build"
 ```
 
@@ -284,7 +284,7 @@ dependencies = ["bird-feeder", "tqdm>=4,<5"]
 bird-feeder = { path = "packages/bird-feeder" }
 
 [build-system]
-requires = ["fyn_build>=0.10.16,<0.11.0"]
+requires = ["fyn_build>=0.10.17,<0.11.0"]
 build-backend = "fyn_build"
 ```
 
