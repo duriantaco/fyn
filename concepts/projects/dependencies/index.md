@@ -1,0 +1,917 @@
+# [Managing dependencies](#managing-dependencies)
+
+## [Dependency fields](#dependency-fields)
+
+Dependencies of the project are defined in several fields:
+
+- [`project.dependencies`](#project-dependencies): Published dependencies.
+- [`project.optional-dependencies`](#optional-dependencies): Published optional dependencies, or "extras".
+- [`dependency-groups`](#dependency-groups): Local dependencies for development.
+- [`tool.fyn.sources`](#dependency-sources): Alternative sources for dependencies during development.
+
+Note
+
+The `project.dependencies` and `project.optional-dependencies` fields can be used even if project isn't going to be published. `dependency-groups` are a recently standardized feature and may not be supported by all tools yet.
+
+fyn supports modifying the project's dependencies with `fyn add` and `fyn remove`, but dependency metadata can also be updated by editing the `pyproject.toml` directly.
+
+## [Adding dependencies](#adding-dependencies)
+
+To add a dependency:
+
+```
+$ fyn add httpx
+```
+
+An entry will be added in the `project.dependencies` field:
+
+pyproject.toml
+
+```
+[project]
+name = "example"
+version = "0.1.0"
+dependencies = ["httpx>=0.27.2"]
+```
+
+The [`--dev`](#development-dependencies), [`--group`](#dependency-groups), or [`--optional`](#optional-dependencies) flags can be used to add dependencies to an alternative field.
+
+The dependency will include a constraint, e.g., `>=0.27.2`, for the most recent, compatible version of the package. The kind of bound can be adjusted with [`--bounds`](../../../reference/settings/#add-bounds), or the constraint can be provided directly:
+
+```
+$ fyn add "httpx>=0.20"
+```
+
+When adding a dependency from a source other than a package registry, fyn will add an entry in the sources field. For example, when adding `httpx` from GitHub:
+
+```
+$ fyn add "httpx @ git+https://github.com/encode/httpx"
+```
+
+The `pyproject.toml` will include a [Git source entry](#git):
+
+pyproject.toml
+
+```
+[project]
+name = "example"
+version = "0.1.0"
+dependencies = [
+    "httpx",
+]
+
+[tool.fyn.sources]
+httpx = { git = "https://github.com/encode/httpx" }
+```
+
+If a dependency cannot be used, fyn will display an error.:
+
+```
+$ fyn add "httpx>9999"
+  × No solution found when resolving dependencies:
+  ╰─▶ Because only httpx<=1.0.0b0 is available and your project depends on httpx>9999,
+      we can conclude that your project's requirements are unsatisfiable.
+```
+
+### [Importing dependencies from requirements files](#importing-dependencies-from-requirements-files)
+
+Dependencies declared in a `requirements.txt` file can be added to the project with the `-r` option:
+
+```
+fyn add -r requirements.txt
+```
+
+See the [pip migration guide](../../../guides/migration/pip-to-project/#importing-requirements-files) for more details.
+
+## [Removing dependencies](#removing-dependencies)
+
+To remove a dependency:
+
+```
+$ fyn remove httpx
+```
+
+The `--dev`, `--group`, or `--optional` flags can be used to remove a dependency from a specific table.
+
+If a [source](#dependency-sources) is defined for the removed dependency, and there are no other references to the dependency, it will also be removed.
+
+## [Changing dependencies](#changing-dependencies)
+
+To change an existing dependency, e.g., to use a different constraint for `httpx`:
+
+```
+$ fyn add "httpx>0.1.0"
+```
+
+Note
+
+In this example, we are changing the constraints for the dependency in the `pyproject.toml`. The locked version of the dependency will only change if necessary to satisfy the new constraints. To force the package version to update to the latest within the constraints, use `--upgrade-package <name>`, e.g.:
+
+```
+$ fyn add "httpx>0.1.0" --upgrade-package httpx
+```
+
+See the [lockfile](../sync/#upgrading-locked-package-versions) documentation for more details on upgrading packages.
+
+Requesting a different dependency source will update the `tool.fyn.sources` table, e.g., to use `httpx` from a local path during development:
+
+```
+$ fyn add "httpx @ ../httpx"
+```
+
+## [Platform-specific dependencies](#platform-specific-dependencies)
+
+To ensure that a dependency is only installed on a specific platform or on specific Python versions, use [environment markers](https://peps.python.org/pep-0508/#environment-markers).
+
+For example, to install `jax` on Linux, but not on Windows or macOS:
+
+```
+$ fyn add "jax; sys_platform == 'linux'"
+```
+
+The resulting `pyproject.toml` will then include the environment marker in the dependency definition:
+
+pyproject.toml
+
+```
+[project]
+name = "project"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["jax; sys_platform == 'linux'"]
+```
+
+Similarly, to include `numpy` on Python 3.11 and later:
+
+```
+$ fyn add "numpy; python_version >= '3.11'"
+```
+
+See Python's [environment marker](https://peps.python.org/pep-0508/#environment-markers) documentation for a complete enumeration of the available markers and operators.
+
+Tip
+
+Dependency sources can also be [changed per-platform](#platform-specific-sources).
+
+## [Project dependencies](#project-dependencies)
+
+The `project.dependencies` table represents the dependencies that are used when uploading to PyPI or building a wheel. Individual dependencies are specified using [dependency specifiers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/) syntax, and the table follows the [PEP 621](https://packaging.python.org/en/latest/specifications/pyproject-toml/) standard.
+
+`project.dependencies` defines the list of packages that are required for the project, along with the version constraints that should be used when installing them. Each entry includes a dependency name and version. An entry may include extras or environment markers for platform-specific packages. For example:
+
+pyproject.toml
+
+```
+[project]
+name = "albatross"
+version = "0.1.0"
+dependencies = [
+  # Any version in this range
+  "tqdm >=4.66.2,<5",
+  # Exactly this version of torch
+  "torch ==2.2.2",
+  # Install transformers with the torch extra
+  "transformers[torch] >=4.39.3,<5",
+  # Only install this package on older python versions
+  # See "Environment Markers" for more information
+  "importlib_metadata >=7.1.0,<8; python_version < '3.10'",
+  "mollymawk ==0.1.0"
+]
+```
+
+## [Dependency sources](#dependency-sources)
+
+The `tool.fyn.sources` table extends the standard dependency tables with alternative dependency sources, which are used during development.
+
+Dependency sources add support for common patterns that are not supported by the `project.dependencies` standard, like editable installations and relative paths. For example, to install `foo` from a directory relative to the project root:
+
+pyproject.toml
+
+```
+[project]
+name = "example"
+version = "0.1.0"
+dependencies = ["foo"]
+
+[tool.fyn.sources]
+foo = { path = "./packages/foo" }
+```
+
+The following dependency sources are supported by fyn:
+
+- [Index](#index): A package resolved from a specific package index.
+- [Git](#git): A Git repository.
+- [URL](#url): A remote wheel or source distribution.
+- [Path](#path): A local wheel, source distribution, or project directory.
+- [Workspace](#workspace-member): A member of the current workspace.
+
+Important
+
+Sources are only respected by fyn. If another tool is used, only the definitions in the standard project tables will be used. If another tool is being used for development, any metadata provided in the source table will need to be re-specified in the other tool's format.
+
+### [Index](#index)
+
+To add Python package from a specific index, use the `--index` option:
+
+```
+$ fyn add torch --index pytorch=https://download.pytorch.org/whl/cpu
+```
+
+fyn will store the index in `[[tool.fyn.index]]` and add a `[tool.fyn.sources]` entry:
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["torch"]
+
+[tool.fyn.sources]
+torch = { index = "pytorch" }
+
+[[tool.fyn.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+```
+
+Tip
+
+The above example will only work on x86-64 Linux, due to the specifics of the PyTorch index. See the [PyTorch guide](../../../guides/integration/pytorch/) for more information about setting up PyTorch.
+
+Using an `index` source *pins* a package to the given index — it will not be downloaded from other indexes.
+
+When defining an index, an `explicit` flag can be included to indicate that the index should *only* be used for packages that explicitly specify it in `tool.fyn.sources`. If `explicit` is not set, other packages may be resolved from the index, if not found elsewhere.
+
+pyproject.toml
+
+```
+[[tool.fyn.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+```
+
+### [Git](#git)
+
+To add a Git dependency source, prefix a Git-compatible URL with `git+`.
+
+For example:
+
+```
+$ # Install over HTTP(S).
+$ fyn add git+https://github.com/encode/httpx
+
+$ # Install over SSH.
+$ fyn add git+ssh://git@github.com/encode/httpx
+```
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["httpx"]
+
+[tool.fyn.sources]
+httpx = { git = "https://github.com/encode/httpx" }
+```
+
+Specific Git references can be requested, e.g., a tag:
+
+```
+$ fyn add git+https://github.com/encode/httpx --tag 0.27.0
+```
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["httpx"]
+
+[tool.fyn.sources]
+httpx = { git = "https://github.com/encode/httpx", tag = "0.27.0" }
+```
+
+Or, a branch:
+
+```
+$ fyn add git+https://github.com/encode/httpx --branch main
+```
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["httpx"]
+
+[tool.fyn.sources]
+httpx = { git = "https://github.com/encode/httpx", branch = "main" }
+```
+
+Or, a revision (commit):
+
+```
+$ fyn add git+https://github.com/encode/httpx --rev 326b9431c761e1ef1e00b9f760d1f654c8db48c6
+```
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["httpx"]
+
+[tool.fyn.sources]
+httpx = { git = "https://github.com/encode/httpx", rev = "326b9431c761e1ef1e00b9f760d1f654c8db48c6" }
+```
+
+A `subdirectory` may be specified if the package isn't in the repository root:
+
+```
+$ fyn add git+https://github.com/langchain-ai/langchain#subdirectory=libs/langchain
+```
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["langchain"]
+
+[tool.fyn.sources]
+langchain = { git = "https://github.com/langchain-ai/langchain", subdirectory = "libs/langchain" }
+```
+
+Support for [Git LFS](https://git-lfs.com) is also configurable per source. By default, Git LFS objects will not be fetched.
+
+```
+$ fyn add --lfs git+https://github.com/astral-sh/lfs-cowsay
+```
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["lfs-cowsay"]
+
+[tool.fyn.sources]
+lfs-cowsay = { git = "https://github.com/astral-sh/lfs-cowsay", lfs = true }
+```
+
+- When `lfs = true`, fyn will always fetch LFS objects for this Git source.
+- When `lfs = false`, fyn will never fetch LFS objects for this Git source.
+- When omitted, the `UV_GIT_LFS` environment variable is used for all Git sources without an explicit `lfs` configuration.
+
+Important
+
+Ensure Git LFS is installed and configured on your system before attempting to install sources using Git LFS, otherwise a build failure can occur.
+
+### [URL](#url)
+
+To add a URL source, provide a `https://` URL to either a wheel (ending in `.whl`) or a source distribution (typically ending in `.tar.gz` or `.zip`; see [here](../../resolution/#source-distribution) for all supported formats).
+
+For example:
+
+```
+$ fyn add "https://files.pythonhosted.org/packages/5c/2d/3da5bdf4408b8b2800061c339f240c1802f2e82d55e50bd39c5a881f47f0/httpx-0.27.0.tar.gz"
+```
+
+Will result in a `pyproject.toml` with:
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["httpx"]
+
+[tool.fyn.sources]
+httpx = { url = "https://files.pythonhosted.org/packages/5c/2d/3da5bdf4408b8b2800061c339f240c1802f2e82d55e50bd39c5a881f47f0/httpx-0.27.0.tar.gz" }
+```
+
+URL dependencies can also be manually added or edited in the `pyproject.toml` with the `{ url = <url> }` syntax. A `subdirectory` may be specified if the source distribution isn't in the archive root.
+
+### [Path](#path)
+
+To add a path source, provide the path of a wheel (ending in `.whl`), a source distribution (typically ending in `.tar.gz` or `.zip`; see [here](../../resolution/#source-distribution) for all supported formats), or a directory containing a `pyproject.toml`.
+
+For example:
+
+```
+$ fyn add /example/foo-0.1.0-py3-none-any.whl
+```
+
+Will result in a `pyproject.toml` with:
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["foo"]
+
+[tool.fyn.sources]
+foo = { path = "/example/foo-0.1.0-py3-none-any.whl" }
+```
+
+The path may also be a relative path:
+
+```
+$ fyn add ./foo-0.1.0-py3-none-any.whl
+```
+
+Or, a path to a project directory:
+
+```
+$ fyn add ~/projects/bar/
+```
+
+Important
+
+When using a directory as a path dependency, fyn will attempt to build and install the target as a package by default. See the [virtual dependency](#virtual-dependencies) documentation for details.
+
+An [editable installation](#editable-dependencies) is not used for path dependencies by default. An editable installation may be requested for project directories:
+
+```
+$ fyn add --editable ../projects/bar/
+```
+
+Which will result in a `pyproject.toml` with:
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["bar"]
+
+[tool.fyn.sources]
+bar = { path = "../projects/bar", editable = true }
+```
+
+Tip
+
+For multiple packages in the same repository, [*workspaces*](../workspaces/) may be a better fit.
+
+### [Workspace member](#workspace-member)
+
+To declare a dependency on a workspace member, add the member name with `{ workspace = true }`. All workspace members must be explicitly stated. Workspace members are always [editable](#editable-dependencies) . See the [workspace](../workspaces/) documentation for more details on workspaces.
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["foo==0.1.0"]
+
+[tool.fyn.sources]
+foo = { workspace = true }
+
+[tool.fyn.workspace]
+members = [
+  "packages/foo"
+]
+```
+
+### [Platform-specific sources](#platform-specific-sources)
+
+You can limit a source to a given platform or Python version by providing [dependency specifiers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/)-compatible environment markers for the source.
+
+For example, to pull `httpx` from GitHub, but only on macOS, use the following:
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["httpx"]
+
+[tool.fyn.sources]
+httpx = { git = "https://github.com/encode/httpx", tag = "0.27.2", marker = "sys_platform == 'darwin'" }
+```
+
+By specifying the marker on the source, fyn will still include `httpx` on all platforms, but will download the source from GitHub on macOS, and fall back to PyPI on all other platforms.
+
+### [Multiple sources](#multiple-sources)
+
+You can specify multiple sources for a single dependency by providing a list of sources, disambiguated by [PEP 508](https://peps.python.org/pep-0508/#environment-markers)-compatible environment markers.
+
+For example, to pull in different `httpx` tags on macOS vs. Linux:
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["httpx"]
+
+[tool.fyn.sources]
+httpx = [
+  { git = "https://github.com/encode/httpx", tag = "0.27.2", marker = "sys_platform == 'darwin'" },
+  { git = "https://github.com/encode/httpx", tag = "0.24.1", marker = "sys_platform == 'linux'" },
+]
+```
+
+This strategy extends to using different indexes based on environment markers. For example, to install `torch` from different PyTorch indexes based on the platform:
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["torch"]
+
+[tool.fyn.sources]
+torch = [
+  { index = "torch-cpu", marker = "platform_system == 'Darwin'"},
+  { index = "torch-gpu", marker = "platform_system == 'Linux'"},
+]
+
+[[tool.fyn.index]]
+name = "torch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.fyn.index]]
+name = "torch-gpu"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+```
+
+### [Disabling sources](#disabling-sources)
+
+To instruct fyn to ignore the `tool.fyn.sources` table (e.g., to simulate resolving with the package's published metadata), use the `--no-sources` flag:
+
+```
+$ fyn lock --no-sources
+```
+
+The use of `--no-sources` will also prevent fyn from discovering any [workspace members](#workspace-member) that could satisfy a given dependency.
+
+## [Optional dependencies](#optional-dependencies)
+
+It is common for projects that are published as libraries to make some features optional to reduce the default dependency tree. For example, Pandas has an [`excel` extra](https://pandas.pydata.org/docs/getting_started/install.html#excel-files) and a [`plot` extra](https://pandas.pydata.org/docs/getting_started/install.html#visualization) to avoid installation of Excel parsers and `matplotlib` unless someone explicitly requires them. Extras are requested with the `package[<extra>]` syntax, e.g., `pandas[plot, excel]`.
+
+Optional dependencies are specified in `[project.optional-dependencies]`, a TOML table that maps from extra name to its dependencies, following [dependency specifiers](#dependency-specifiers) syntax.
+
+Optional dependencies can have entries in `tool.fyn.sources` the same as normal dependencies.
+
+pyproject.toml
+
+```
+[project]
+name = "pandas"
+version = "1.0.0"
+
+[project.optional-dependencies]
+plot = [
+  "matplotlib>=3.6.3"
+]
+excel = [
+  "odfpy>=1.4.1",
+  "openpyxl>=3.1.0",
+  "python-calamine>=0.1.7",
+  "pyxlsb>=1.0.10",
+  "xlrd>=2.0.1",
+  "xlsxwriter>=3.0.5"
+]
+```
+
+To add an optional dependency, use the `--optional <extra>` option:
+
+```
+$ fyn add httpx --optional network
+```
+
+Note
+
+If you have optional dependencies that conflict with one another, resolution will fail unless you explicitly [declare them as conflicting](../config/#conflicting-dependencies).
+
+Sources can also be declared as applying only to a specific optional dependency. For example, to pull `torch` from different PyTorch indexes based on an optional `cpu` or `gpu` extra:
+
+pyproject.toml
+
+```
+[project]
+dependencies = []
+
+[project.optional-dependencies]
+cpu = [
+  "torch",
+]
+gpu = [
+  "torch",
+]
+
+[tool.fyn.sources]
+torch = [
+  { index = "torch-cpu", extra = "cpu" },
+  { index = "torch-gpu", extra = "gpu" },
+]
+
+[[tool.fyn.index]]
+name = "torch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+
+[[tool.fyn.index]]
+name = "torch-gpu"
+url = "https://download.pytorch.org/whl/cu124"
+```
+
+## [Development dependencies](#development-dependencies)
+
+Unlike optional dependencies, development dependencies are local-only and will *not* be included in the project requirements when published to PyPI or other indexes. As such, development dependencies are not included in the `[project]` table.
+
+Development dependencies can have entries in `tool.fyn.sources` the same as normal dependencies.
+
+To add a development dependency, use the `--dev` flag:
+
+```
+$ fyn add --dev pytest
+```
+
+fyn uses the `[dependency-groups]` table (as defined in [PEP 735](https://peps.python.org/pep-0735/)) for declaration of development dependencies. The above command will create a `dev` group:
+
+pyproject.toml
+
+```
+[dependency-groups]
+dev = [
+  "pytest >=8.1.1,<9"
+]
+```
+
+The `dev` group is special-cased; there are `--dev`, `--only-dev`, and `--no-dev` flags to toggle inclusion or exclusion of its dependencies. See `--no-default-groups` to disable all default groups instead. Additionally, the `dev` group is [synced by default](#default-groups).
+
+### [Dependency groups](#dependency-groups)
+
+Development dependencies can be divided into multiple groups, using the `--group` flag.
+
+For example, to add a development dependency in the `lint` group:
+
+```
+$ fyn add --group lint ruff
+```
+
+Which results in the following `[dependency-groups]` definition:
+
+pyproject.toml
+
+```
+[dependency-groups]
+dev = [
+  "pytest"
+]
+lint = [
+  "ruff"
+]
+```
+
+Once groups are defined, the `--all-groups`, `--no-default-groups`, `--group`, `--only-group`, and `--no-group` options can be used to include or exclude their dependencies.
+
+Tip
+
+The `--dev`, `--only-dev`, and `--no-dev` flags are equivalent to `--group dev`, `--only-group dev`, and `--no-group dev` respectively.
+
+fyn requires that all dependency groups are compatible with each other and resolves all groups together when creating the lockfile.
+
+If dependencies declared in one group are not compatible with those in another group, fyn will fail to resolve the requirements of the project with an error.
+
+Note
+
+If you have dependency groups that conflict with one another, resolution will fail unless you explicitly [declare them as conflicting](../config/#conflicting-dependencies).
+
+### [Nesting groups](#nesting-groups)
+
+A dependency group can include other dependency groups, e.g.:
+
+pyproject.toml
+
+```
+[dependency-groups]
+dev = [
+  {include-group = "lint"},
+  {include-group = "test"}
+]
+lint = [
+  "ruff"
+]
+test = [
+  "pytest"
+]
+```
+
+An included group's dependencies cannot conflict with the other dependencies declared in a group.
+
+### [Default groups](#default-groups)
+
+By default, fyn includes the `dev` dependency group in the environment (e.g., during `fyn run` or `fyn sync`). The default groups to include can be changed using the `tool.fyn.default-groups` setting.
+
+pyproject.toml
+
+```
+[tool.fyn]
+default-groups = ["dev", "foo"]
+```
+
+To enable all dependencies groups by default, use `"all"` instead of listing group names:
+
+pyproject.toml
+
+```
+[tool.fyn]
+default-groups = "all"
+```
+
+Tip
+
+To disable this behaviour during `fyn run` or `fyn sync`, use `--no-default-groups`. To exclude a specific default group, use `--no-group <name>`.
+
+### [Group `requires-python`](#group-requires-python)
+
+By default, dependency groups must be compatible with your project's `requires-python` range.
+
+If a dependency group requires a different range of Python versions than your project, you can specify a `requires-python` for the group in `[tool.fyn.dependency-groups]`, e.g.:
+
+pyproject.toml
+
+```
+[project]
+name = "example"
+version = "0.0.0"
+requires-python = ">=3.10"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.fyn.dependency-groups]
+dev = {requires-python = ">=3.12"}
+```
+
+### [Legacy `dev-dependencies`](#legacy-dev-dependencies)
+
+Before `[dependency-groups]` was standardized, fyn used the `tool.fyn.dev-dependencies` field to specify development dependencies, e.g.:
+
+pyproject.toml
+
+```
+[tool.fyn]
+dev-dependencies = [
+  "pytest"
+]
+```
+
+Dependencies declared in this section will be combined with the contents in the `dependency-groups.dev`. Eventually, the `dev-dependencies` field will be deprecated and removed.
+
+Note
+
+If a `tool.fyn.dev-dependencies` field exists, `fyn add --dev` will use the existing section instead of adding a new `dependency-groups.dev` section.
+
+## [Build dependencies](#build-dependencies)
+
+If a project is structured as [Python package](../config/#build-systems), it may declare dependencies that are required to build the project, but not required to run it. These dependencies are specified in the `[build-system]` table under `build-system.requires`, following [PEP 518](https://peps.python.org/pep-0518/).
+
+For example, if a project uses `setuptools` as its build backend, it should declare `setuptools` as a build dependency:
+
+pyproject.toml
+
+```
+[project]
+name = "pandas"
+version = "0.1.0"
+
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+```
+
+By default, fyn will respect `tool.fyn.sources` when resolving build dependencies. For example, to use a local version of `setuptools` for building, add the source to `tool.fyn.sources`:
+
+pyproject.toml
+
+```
+[project]
+name = "pandas"
+version = "0.1.0"
+
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[tool.fyn.sources]
+setuptools = { path = "./packages/setuptools" }
+```
+
+When publishing a package, we recommend running `fyn build --no-sources` to ensure that the package builds correctly when `tool.fyn.sources` is disabled, as is the case when using other build tools, like [`pypa/build`](https://github.com/pypa/build).
+
+## [Editable dependencies](#editable-dependencies)
+
+A regular installation of a directory with a Python package first builds a wheel and then installs that wheel into your virtual environment, copying all source files. When the package source files are edited, the virtual environment will contain outdated versions.
+
+Editable installations solve this problem by adding a link to the project within the virtual environment (a `.pth` file), which instructs the interpreter to include the source files directly.
+
+There are some limitations to editables (mainly: the build backend needs to support them, and native modules aren't recompiled before import), but they are useful for development, as the virtual environment will always use the latest changes to the package.
+
+fyn uses editable installation for workspace packages by default.
+
+To add an editable dependency, use the `--editable` flag:
+
+```
+$ fyn add --editable ./path/foo
+```
+
+Or, to opt-out of using an editable dependency in a workspace:
+
+```
+$ fyn add --no-editable ./path/foo
+```
+
+## [Virtual dependencies](#virtual-dependencies)
+
+fyn allows dependencies to be "virtual", in which the dependency itself is not installed as a [package](../config/#project-packaging), but its dependencies are.
+
+By default, dependencies are never virtual.
+
+A dependency with a [`path` source](#path) can be virtual if it explicitly sets [`tool.fyn.package = false`](../../../reference/settings/#package). Without this setting, fyn treats the path dependency as a normal package and will attempt to build it, even if the project does not declare a [build system](../config/#build-systems).
+
+To treat a dependency as virtual, set `package = false` on the source:
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["bar"]
+
+[tool.fyn.sources]
+bar = { path = "../projects/bar", package = false }
+```
+
+If a dependency sets `tool.fyn.package = false`, it can be overridden by declaring `package = true` on the source:
+
+pyproject.toml
+
+```
+[project]
+dependencies = ["bar"]
+
+[tool.fyn.sources]
+bar = { path = "../projects/bar", package = true }
+```
+
+Similarly, a dependency with a [`workspace` source](#workspace-member) can be virtual if it explicitly sets [`tool.fyn.package = false`](../../../reference/settings/#package). Without this setting, the workspace member will be built even if a [build system](../config/#build-systems) is not declared.
+
+Workspace members that are *not* dependencies can be virtual by default, e.g., if the parent `pyproject.toml` is:
+
+pyproject.toml
+
+```
+[project]
+name = "parent"
+version = "1.0.0"
+dependencies = []
+
+[tool.fyn.workspace]
+members = ["child"]
+```
+
+And the child `pyproject.toml` excluded a build system:
+
+pyproject.toml
+
+```
+[project]
+name = "child"
+version = "1.0.0"
+dependencies = ["anyio"]
+```
+
+Then the `child` workspace member would not be installed, but the transitive dependency `anyio` would be.
+
+In contrast, if the parent declared a dependency on `child`:
+
+pyproject.toml
+
+```
+[project]
+name = "parent"
+version = "1.0.0"
+dependencies = ["child"]
+
+[tool.fyn.sources]
+child = { workspace = true }
+
+[tool.fyn.workspace]
+members = ["child"]
+```
+
+Then `child` would be built and installed.
+
+## [Dependency specifiers](#dependency-specifiers)
+
+fyn uses standard [dependency specifiers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/), originally defined in [PEP 508](https://peps.python.org/pep-0508/). A dependency specifier is composed of, in order:
+
+- The dependency name
+- The extras you want (optional)
+- The version specifier
+- An environment marker (optional)
+
+The version specifiers are comma separated and added together, e.g., `foo >=1.2.3,<2,!=1.4.0` is interpreted as "a version of `foo` that's at least 1.2.3, but less than 2, and not 1.4.0".
+
+Specifiers are padded with trailing zeros if required, so `foo ==2` matches foo 2.0.0, too.
+
+A star can be used for the last digit with equals, e.g., `foo ==2.1.*` will accept any release from the 2.1 series. Similarly, `~=` matches where the last digit is equal or higher, e.g., `foo ~=1.2` is equal to `foo >=1.2,<2`, and `foo ~=1.2.3` is equal to `foo >=1.2.3,<1.3`.
+
+Extras are comma-separated in square bracket between name and version, e.g., `pandas[excel,plot] ==2.2`. Whitespace between extra names is ignored.
+
+Some dependencies are only required in specific environments, e.g., a specific Python version or operating system. For example to install the `importlib-metadata` backport for the `importlib.metadata` module, use `importlib-metadata >=7.1.0,<8; python_version < '3.10'`. To install `colorama` on Windows (but omit it on other platforms), use `colorama >=0.4.6,<5; platform_system == "Windows"`.
+
+Markers are combined with `and`, `or`, and parentheses, e.g., `aiohttp >=3.7.4,<4; (sys_platform != 'win32' or implementation_name != 'pypy') and python_version >= '3.10'`. Note that versions within markers must be quoted, while versions *outside* of markers must *not* be quoted.
