@@ -2998,6 +2998,7 @@ fn python_install_emulated_macos() {
     exit_code: 0
     ----- stdout -----
     cpython-3.13.[LATEST]-macos-aarch64-none    <download available>
+    graalpy-3.13.0-macos-aarch64-none     <download available>
 
     ----- stderr -----
     ");
@@ -3030,6 +3031,7 @@ fn python_install_emulated_macos() {
     ----- stdout -----
     cpython-3.13.[LATEST]-macos-aarch64-none    <download available>
     cpython-3.13.[LATEST]-macos-x86_64-none     managed/cpython-3.13-macos-x86_64-none/bin/python3.13
+    graalpy-3.13.0-macos-aarch64-none     <download available>
 
     ----- stderr -----
     ");
@@ -3070,6 +3072,7 @@ fn python_install_emulated_windows_x86_on_x64() {
     exit_code: 0
     ----- stdout -----
     cpython-3.13.[LATEST]-windows-x86_64-none    <download available>
+    graalpy-3.13.0-windows-x86_64-none     <download available>
 
     ----- stderr -----
     ");
@@ -3102,6 +3105,7 @@ fn python_install_emulated_windows_x86_on_x64() {
     ----- stdout -----
     cpython-3.13.[LATEST]-windows-x86_64-none    <download available>
     cpython-3.13.[LATEST]-windows-x86-none       managed/cpython-3.13-windows-x86-none/python
+    graalpy-3.13.0-windows-x86_64-none     <download available>
 
     ----- stderr -----
     ");
