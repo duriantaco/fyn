@@ -247,6 +247,7 @@ jobs:
     name: "all required jobs passed"
     if: always()
     needs:
+      - plan
       - check-fmt
       - check-lint
       - check-docs
