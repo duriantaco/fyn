@@ -1,18 +1,19 @@
 # RFC 0001: Selective Hatch-Inspired UX for `fyn`
 
-Status: Draft
+Status: Partially implemented
 
 Author: Codex
 
-Last updated: 2026-04-13
+Last updated: 2026-09-04
 
 ## Summary
 
 `fyn` should not copy Hatch wholesale.
 
-`fyn` should copy only the workflow UX where both `fyn` and `uv` are still thin:
+`fyn` should copy only the workflow UX where both `fyn` and `uv` were still thin when this RFC was
+written:
 
-1. Make the existing task runner actually match its documented surface.
+1. Make the existing task runner match its documented surface. **Complete as of `fyn` 0.10.17.**
 2. Make `fyn init` generate more useful project scaffolds.
 3. Add a small named workflow layer for lint/docs/test/typecheck tasks.
 4. Explicitly defer matrices and any plugin architecture.
@@ -22,33 +23,27 @@ without turning `fyn` into a second Hatch.
 
 ## Why This Exists
 
-Recent upstream `uv` already covers much more surface than older comparisons imply, including
-project initialization, version management, formatting, and auditing.
+When this RFC was drafted, upstream `uv` already covered much more surface than older comparisons
+implied, including project initialization, version management, formatting, and auditing.
 
-That means the remaining gap is not core package-management capability. The remaining gap is
-workflow ergonomics:
+The remaining gaps identified here were workflow ergonomics:
 
 - repeatable project tasks
 - useful scaffolding for new projects
 - isolated named workflows for docs/lint/test/typecheck work
 
-Those are the areas where Hatch is still meaningfully ahead.
+`fyn` 0.10.17 closes the first gap. The scaffold and isolated-workflow proposals remain prospective.
 
 ## Problem
 
-`fyn` currently has a workflow story, but parts of it are incomplete or too thin:
+When this RFC was drafted, `fyn` documented chained tasks and task-level environment variables, but
+the runtime did not consistently implement them. Common project scaffolding still required manual
+editing, and `tool.fyn.environments` described resolver scoping rather than named workflow
+environments.
 
-- `fyn` documents chained tasks, but the runtime still errors on `chain` tasks.
-- Task definitions also document `env`, but the runtime does not appear to apply it.
-- `fyn init` is already solid for app/lib/package creation, but common follow-up steps still need
-  hand editing.
-- `tool.fyn.environments` already exists, but it is resolver scoping, not named workflow
-  environments.
-
-This creates two problems:
-
-1. Users still reach for shell scripts, Makefiles, or external tools for routine workflows.
-2. `fyn` already advertises a richer UX than it fully delivers.
+The task-runtime mismatch has since been resolved. The remaining problem in this RFC is narrower:
+projects still need manual setup or external tooling for richer scaffolds and isolated lint, docs,
+test, and type-check workflows.
 
 ## Product Thesis
 
@@ -90,33 +85,43 @@ This RFC is not primarily aimed at:
 
 ## Proposal
 
-## Part 1: Finish the Task Runner
+## Part 1: Finish the Task Runner — Complete
 
-### Current state
+### Shipped state
 
-`[tool.fyn.tasks]` already supports:
+As of `fyn` 0.10.17, `[tool.fyn.tasks]` supports:
 
-- string tasks
-- `description`
-- `chain`
-- `env`
+- string command tasks
+- fail-fast arrays of command strings
+- detailed tasks with `cmd`, `description`, and `env`
+- named `chain` tasks with environment inheritance and cycle detection
+- graph-aware workspace execution with package filters
 
-But only simple command execution is working consistently today.
+Workspace task runs synchronize once, run active workspace dependencies before dependents, and run
+independent members in parallel by default. Marker evaluation, selected extras and dependency
+groups, transitively activated extras, and workspace source selection contribute to the active
+graph.
 
-### Proposed behavior
+### Shipped behavior
 
-Implement the documented task surface in full:
+The documented task surface is implemented:
 
 ```toml
 [tool.fyn.tasks]
 lint = "ruff check ."
 test = { cmd = "pytest -q", env = { PYTHONWARNINGS = "error" } }
+verify = ["ruff check .", "pytest -q"]
 check = { chain = ["lint", "test"], description = "Run lint and tests" }
 ```
 
 #### `cmd`
 
 - Executes exactly as today.
+
+#### Command sequences
+
+- An array of command strings executes in order.
+- Execution stops on the first failure.
 
 #### `env`
 
@@ -145,13 +150,22 @@ Rationale:
 - it solves the main usefulness gap immediately
 - it keeps the first implementation small and predictable
 
+#### Workspace execution
+
+- `fyn run --workspace <task>` runs the named task in selected child members that define it.
+- The shared workspace environment is synchronized once before task execution unless `--no-sync` is
+  used.
+- Active workspace dependencies finish before dependents; independent members run in parallel by
+  default.
+- Exact package filters can be expanded through active dependencies or dependents.
+
 ### Why this is useful
 
-This is the highest-value, lowest-risk change in the entire RFC:
+This completed the highest-value, lowest-risk part of the RFC:
 
-- it fixes a current doc/runtime mismatch
-- it removes immediate need for Makefiles or shell wrappers in many projects
-- it creates a better foundation for scaffolded projects and workflows later
+- it closed the documented task/runtime mismatch
+- it covers common fail-fast project command workflows directly
+- it provides the foundation for scaffolded projects and isolated workflows later
 
 ## Part 2: Make `fyn init` More Useful
 
@@ -427,20 +441,18 @@ $ fyn run docs:build
 
 ## Implementation Plan
 
-### Phase 1: Task runner parity
+### Phase 1: Task runner parity — Complete
 
-Scope:
+Completed by `fyn` 0.10.17:
 
-- implement `chain`
-- implement `env`
-- add task-runner tests
-- align docs with actual behavior
+- implemented `chain` and inherited task `env`
+- added fail-fast command sequences
+- added task validation and cycle diagnostics
+- added graph-aware workspace execution, filtering, dependency ordering, and parallel scheduling
+- aligned the reference documentation and integration tests with the shipped behavior
 
-Success criteria:
-
-- all documented task examples work
-- `chain` no longer errors
-- `env` affects the launched child process
+The current task reference is in
+[Running commands in projects](../concepts/projects/run.md#running-project-tasks).
 
 ### Phase 2: Better init presets
 
@@ -499,9 +511,8 @@ Only begin this phase if:
 
 ## Recommendation
 
-Adopt this RFC in order, with one hard rule:
+Phase 1 is complete. Continue with Phase 2 before introducing named workflows or matrices.
 
-do not start workflows or matrices until task-runner parity is complete.
-
-That sequencing gives users immediate value, removes a current mismatch in the product surface, and
-keeps `fyn` focused on useful workflow UX rather than architectural imitation.
+The original gate—do not start workflows or matrices until task-runner parity is complete—was met by
+`fyn` 0.10.17. The remaining phases should still proceed only from demonstrated user demand and with
+the scope limits above.
