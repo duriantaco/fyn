@@ -109,15 +109,14 @@ See the [PyTorch integration guide](../guides/integration/pytorch.md) for detail
 
 ## Utility
 
-Managing and inspecting fyn's state, such as the cache, storage directories, or performing a
-self-update:
+Managing and inspecting fyn's state, such as the cache or storage directories:
 
 - `fyn cache clean`: Remove cache entries.
 - `fyn cache prune`: Remove outdated cache entries.
 - `fyn cache dir`: Show the fyn cache directory path.
 - `fyn tool dir`: Show the fyn tool directory path.
 - `fyn python dir`: Show the fyn installed Python versions path.
-- `fyn self update`: Update fyn to the latest version.
+- `fyn self version`: Show the installed fyn version.
 
 ## Next steps
 

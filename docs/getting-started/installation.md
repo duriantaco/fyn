@@ -79,27 +79,25 @@ installer scripts.
 
 !!! note
 
-    This method builds fyn from source, which requires a compatible Rust toolchain.
+    Releases may not include binaries for every supported platform. If a binary is not available for
+    your platform, install fyn from [PyPI](#pypi) or build it from source (see the
+    [contributing setup guide](https://github.com/duriantaco/fyn/blob/main/CONTRIBUTING.md#setup)).
 
 ## Upgrading fyn
 
-When fyn is installed via the standalone installer, it can update itself on-demand:
+Use the same method you used to install fyn:
 
-```console
-$ fyn self update
-```
+- **Standalone installer**: download the latest `install.sh` or `install.ps1` from the
+  [GitHub release page](https://github.com/duriantaco/fyn/releases) and run it again.
+- **PyPI**: upgrade with the package manager used to install fyn, e.g., `pip install --upgrade fyn`
+  or `pipx upgrade fyn`.
+- **GitHub release assets**: download the latest binaries from
+  [GitHub Releases](https://github.com/duriantaco/fyn/releases) and replace the current installation.
 
-!!! tip
+!!! note
 
-    Updating fyn will re-run the installer and can modify your shell profiles. To disable this
-    behavior, set `UV_NO_MODIFY_PATH=1`.
-
-When another installation method is used, self-updates are disabled. Use the package manager's
-upgrade method instead. For example, with `pip`:
-
-```console
-$ pip install --upgrade fyn
-```
+    `fyn self update` is not yet available. When it ships, fyn installs created by the standalone
+    installer will be able to update themselves on demand.
 
 ## Shell autocompletion
 
