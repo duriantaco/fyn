@@ -145,7 +145,7 @@ $ fynx --from git+https://github.com/httpie/cli@2843b87 httpie
 Or with [Git LFS](https://git-lfs.com) support:
 
 ```console
-$ uvx --lfs --from git+https://github.com/astral-sh/lfs-cowsay lfs-cowsay
+$ fynx --lfs --from git+https://github.com/astral-sh/lfs-cowsay lfs-cowsay
 ```
 
 ## Commands with plugins
