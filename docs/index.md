@@ -50,7 +50,7 @@ Then, check out the [first steps](./getting-started/first-steps.md) or read on f
 
 !!! tip
 
-    fyn may also be installed with standalone release assets, Homebrew, and more. See all of the methods on the
+    fyn may also be installed with standalone release assets, and more. See all of the methods on the
     [installation page](./getting-started/installation.md).
 
 ## Projects

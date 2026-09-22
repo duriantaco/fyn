@@ -21,8 +21,6 @@ use settings::PipTreeSettings;
 use tokio::task::spawn_blocking;
 use tracing::{debug, instrument, trace};
 
-#[cfg(not(feature = "self-update"))]
-use crate::install_source::InstallSource;
 use fyn_cache::{Cache, Refresh};
 use fyn_cache_info::Timestamp;
 #[cfg(feature = "self-update")]
@@ -64,8 +62,6 @@ use crate::settings::{
 
 pub(crate) mod child;
 pub(crate) mod commands;
-#[cfg(not(feature = "self-update"))]
-mod install_source;
 pub(crate) mod logging;
 pub(crate) mod printer;
 pub(crate) mod settings;
@@ -1839,22 +1835,9 @@ async fn run(
         }
         #[cfg(not(feature = "self-update"))]
         Commands::Self_(_) => {
-            const BASE_MESSAGE: &str =
-                "fyn was installed through an external package manager and cannot update itself.";
-
-            let message = match InstallSource::detect() {
-                Some(source) => format!(
-                    "{base}\n\n{hint}{colon} You installed fyn using {}. To update fyn, run `{}`",
-                    source.description(),
-                    source.update_instructions().green(),
-                    hint = "hint".bold().cyan(),
-                    colon = ":".bold(),
-                    base = BASE_MESSAGE
-                ),
-                None => format!("{BASE_MESSAGE} Please use your package manager to update fyn."),
-            };
-
-            anyhow::bail!(message);
+            anyhow::bail!(
+                "fyn was installed through an external package manager and cannot update itself. Please use your package manager to update fyn."
+            );
         }
         Commands::GenerateShellCompletion(args) => {
             args.shell.generate(&mut Cli::command(), &mut stdout());

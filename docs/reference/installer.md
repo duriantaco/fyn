@@ -35,8 +35,7 @@ disable this behavior, use `UV_NO_MODIFY_PATH`. For example:
 $ env UV_NO_MODIFY_PATH=1 sh install.sh
 ```
 
-If installed with `UV_NO_MODIFY_PATH`, subsequent operations, like `fyn self update`, will not
-modify your shell profiles.
+If installed with `UV_NO_MODIFY_PATH`, the installer will not modify your shell profiles.
 
 ## Unmanaged installations
 
@@ -46,8 +45,6 @@ while preventing the installer from modifying shell profiles or environment vari
 ```console
 $ env UV_UNMANAGED_INSTALL="/custom/path" sh install.sh
 ```
-
-The use of `UV_UNMANAGED_INSTALL` will also disable self-updates (via `fyn self update`).
 
 ## Passing options to the installation script
 
