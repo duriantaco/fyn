@@ -23,6 +23,10 @@ __pycache__
 # Node dependencies
 /node_modules/
 
+# uv may regenerate a lockfile because of [tool.uv.dependency-groups]; the
+# repository tracks `fyn.lock` instead.
+/uv.lock
+
 # GitHub issue mirror
 .prism/
 

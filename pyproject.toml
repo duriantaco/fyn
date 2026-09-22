@@ -116,7 +116,9 @@ docs = { requires-python = ">=3.12" }
 docker = { requires-python = ">=3.12" }
 
 # The Docker build uses upstream uv to bootstrap cargo-zigbuild. Mirror the
-# group constraints here so upstream uv can validate fyn's universal lockfile.
+# group constraints here so upstream uv can validate fyn's universal lockfile
+# (the Dockerfile copies `fyn.lock` to `uv.lock` at image build time). No
+# `uv.lock` is tracked in the repository; the checked-in lockfile is `fyn.lock`.
 [tool.uv.dependency-groups]
 docs = { requires-python = ">=3.12" }
 docker = { requires-python = ">=3.12" }
