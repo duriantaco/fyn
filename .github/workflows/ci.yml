@@ -238,7 +238,8 @@ jobs:
       attestations: write
 
   # Intentionally not wired up (relative to upstream uv's CI):
-  # - bench: requires a CodSpeed token and runners this fork does not have.
+  # - bench: requires the CodSpeed token and runners on `duriantaco/fyn`; the
+  #   workflow only runs there (see `bench.yml`).
   # - test-integration: requires credentials for external package registries.
   # - test-publish: requires Astral's test-publish secrets and trusted publishing.
   # - check-publish: crates.io publishing is disabled for fyn (#165).
