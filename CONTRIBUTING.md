@@ -164,7 +164,7 @@ cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 fynx ruff check .
 
 # Python type checking
-fynx ty check python/uv
+fynx ty check python/fyn
 
 # Shell scripts
 shellcheck <script>
